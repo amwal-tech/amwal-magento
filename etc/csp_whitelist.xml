@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="script-src">
+            <values>
+                <value id="amwal-lib-base" type="host">https://cdn.jsdelivr.net</value>
+                <value id="amwal-other-base" type="host">https://cdnjs.cloudflare.com</value>
+                <value id="amwal" type="host">https://qa-backend.sa.amwal.tech</value>
+                <value id="shpf-base" type="host">https://secure.iframe.com</value>
+                <value id="iframe" type="host">https://iframe.com</value>
+            </values>
+        </policy>
+        <policy id="frame-src">
+            <values>
+                <value id="amwal-lib-base" type="host">https://cdn.jsdelivr.net</value>
+                <value id="amwal-other-base" type="host">https://cdnjs.cloudflare.com</value>
+                <value id="amwal" type="host">https://qa-pay.sa.amwal.tech</value>
+                <value id="shpf-base" type="host">https://secure.iframe.com</value>
+                <value id="iframe" type="host">https://iframe.com</value>
+            </values>
+        </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="amwal" type="host">https://qa-backend.sa.amwal.tech</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>

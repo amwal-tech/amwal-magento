@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/error_mapping.xsd">
+	<message_list>
+		<message code="AUTH NOT SUPPORTED FOR IFR" translate="true">IFR payment type cannot be used for authorization transactions.</message>
+		<message code="AVS DECLINE" translate="true">AVS validation failed by Iframe.</message>
+		<message code="CVV2 DECLINE" translate="true">CVV validation failed by Iframe.</message>
+		<message code="ALREADY CAPTURED" translate="true">Transaction has already been captured.</message>
+		<message code="ALREADY VOIDED" translate="true">Transaction has already been voided.</message>
+		<message code="DECLINED AUTH" translate="true">Authorization transaction has been declined.</message>
+		<message code="DECLINED SALE" translate="true">Sale transaction has been declined.</message>
+		<message code="CAPTURE FAILED" translate="true">Failed to capture authorization transaction.</message>
+		<message code="CARD ACCOUNT NOT VALID" translate="true">Credit card failed validation.</message>
+		<message code="COULD NOT LOCATE ORIGINAL TRANSACTION" translate="true">Unable to locate transaction with provided master ID.</message>
+		<message code="CAN ONLY REFUND OR VOID APPROVED TRANSACTIONS" translate="true">Transaction to refund or void is not approved.</message>
+		<message code="CANNOT VOID A CAPTURED AUTH (VOID THE CAPTURE INSTEAD)." translate="true">Attempted to void a captured auth transaction. Please void the capture transaction instead.</message>
+		<message code="CANNOT VOID EXCEPT FOR FULL AMOUNT." translate="true">Transaction can only be voided for their full amount.</message>
+		<message code="CARD EXPIRED" translate="true">Payment card expiration date has passed.</message>
+		<message code="CARD TYPE NOT SUPPORTED" translate="true">Merchant Iframe account is not configured to accept the provided card type.</message>
+		<message code="DECLINE" translate="true">Transaction was declined.</message>
+		<message code="DECLINED" translate="true">Transaction was declined.</message>
+		<message code="DUPLICATE" translate="true">Transaction not processed because of duplicate scrubbing.</message>
+		<message code="EXPIRATION DATE REQUIRED FOR CREDIT" translate="true">Payment card expiration date was not provided.</message>
+		<message code="EXPIRED CARD" translate="true">Payment card expiration date has passed.</message>
+		<message code="ERROR SELECTING PROCESSOR" translate="true">Unable to locate payment processor to process transaction.</message>
+		<message code="GENERAL ERROR" translate="true">Contact Amwal-Iframe for error information.</message>
+		<message code="INVALID CVV2" translate="true">CVV2 must be 3 or 4 digits long.</message>
+		<message code="INVALID DOCUMENTATION TYPE" translate="true">IFR transaction has invalid DOC_TYPE.</message>
+		<message code="MISSING PAYMENT ACCOUNT" translate="true">Card number or IFR information not provided.</message>
+		<message code="MASTER ID REQUIRED FOR UPDATE" translate="true">Parent transaction ID to update not provided.</message>
+		<message code="MASTER ID REQUIRED FOR VOID" translate="true">Parent transaction ID to void not provided.</message>
+		<message code="NO CHECKING ACCOUNT" translate="true">Checking account for IFR transaction not found.</message>
+		<message code="ONLY AUTH CAN BE CAPTURED" translate="true">Capture attempted on transaction type other than authorization.</message>
+		<message code="ROUTING NUMBER NOT VALID" translate="true">Routing number failed validation.</message>
+		<message code="REFUND/VOID AMOUNT CANNOT EXCEED ORIGINAL CHARGE AMOUNT" translate="true">Attempted to refund or void more than the original transaction amount.</message>
+		<message code="ROUTING DOES NOT EXIST" translate="true">Could not locate routing number.</message>
+		<message code="SECURITY ERROR" translate="true">Tamper-Proof Seal failed validation.</message>
+		<message code="TRANSACTION TYPE REQUIRED" translate="true">Transaction Type not provided.</message>
+		<message code="THIS AUTH IS VOID" translate="true">Attempted to capture an auth transaction that has already been voided.</message>
+		<message code="UNABLE TO LOCATE ACCOUNT" translate="true">Account ID invalid. Unable to locate Iframe account.</message>
+		<message code="UNKNOWN ERROR" translate="true">Contact Amwal-Iframe for error information.</message>
+		<message code="VS DECLINE 1" translate="true">Transaction velocity over account limit.</message>
+		<message code="VS DECLINE 2" translate="true">Transaction velocity over account limit.</message>
+		<message code="VS DECLINE 3" translate="true">Transaction velocity over account limit.</message>
+		<message code="VS DECLINE 4" translate="true">Transaction velocity over account limit.</message>
+		<message code="VS DECLINE 5" translate="true">Transaction velocity over account limit.</message>
+		<message code="YOUR ACCOUNT IS IN TEST MODE; PLEASE CONTACT BLUEPAY." translate="true">Attempted to run a LIVE transaction on a TEST-only Iframe account. Please contact Amwal.</message>
+	</message_list>
+</mapping>
