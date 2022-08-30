@@ -46,7 +46,7 @@ class MerchantAccountDataBuilder implements BuilderInterface
 		$paymentDO = $this->subjectReader->readPayment($buildSubject);
 		$orderDO = $paymentDO->getOrder();
 
-		$merchantAccountId = $this->config->getAccountId($orderDO->getStoreId());
+		$merchantAccountId = $this->config->getMerchantId($orderDO->getStoreId());
 
 		return [ ApRequestKeys::MERCHANT_ID => $merchantAccountId ];
 	}

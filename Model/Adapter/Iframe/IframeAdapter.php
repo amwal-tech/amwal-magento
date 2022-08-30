@@ -28,20 +28,20 @@ class IframeAdapter extends AmwAdapter
 	}
 
 	/**
-	 * Retrieve assoc array 
+	 * Retrieve assoc array
 	 * authorization information
 	 *
 	 * @param string $storeId
 	 * @return array
 	 */
-	protected function getGatewayData($storeId) 
+	protected function getGatewayData($storeId)
 	{
 		$data = [];
 		$data[self::KEY_GATEWAY] = self::KEY_BP_GATEWAY;
-		$data[self::KEY_ACCOUNT_ID] = $this->apConfig->getAccountId($storeId);
+		$data[self::KEY_ACCOUNT_ID] = $this->apConfig->getMerchantId($storeId);
 		//$data[self::KEY_SECRET_KEY] = $this->apConfig->getSecretKey($storeId);
 		$data[self::KEY_ZERO_AUTH] = false;
-		
+
 		return $data;
 	}
 
@@ -52,7 +52,7 @@ class IframeAdapter extends AmwAdapter
 	 * @param string $storeId
 	 * @return string
 	 */
-	protected function getEnvironment($storeId) 
+	protected function getEnvironment($storeId)
 	{
 		$env = $this->apConfig->getEnvironment($storeId);
 

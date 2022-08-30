@@ -1,64 +1,126 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
-	<system>
-		<section id="payment">
-			<group id="amwal_payments" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-				<label>Amwal Payments</label>
-				<attribute type="expanded">1</attribute>
-				<frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-				<field id="active" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
-					<label>Enable Amwal Gateway</label>
-					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-					<config_path>payment/amwal_iframe/active</config_path>
-				</field>
+    <system>
+        <section id="payment">
+            <group id="amwal_payments" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Amwal Payments</label>
+                <fieldset_css>amwal-payments-fieldset</fieldset_css>
+                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
+                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/amwal_payments/active</config_path>
+                </field>
+                <!-- Merchant Settings -->
+                <group id="amwal_payments_merchant" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="10">
+                    <label>Merchant Settings</label>
+                    <attribute type="expanded">1</attribute>
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <field id="express_checkout_active" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Express checkout</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/express_checkout_active</config_path>
+                        <tooltip>Indicates if the Express Checkout functionality should be enabled</tooltip>
+                    </field>
+                    <field id="regular_checkout_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Regular checkout</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/regular_checkout_active</config_path>
+                        <tooltip>Indicates if the Regular Checkout functionality should be enabled</tooltip>
+                    </field>
+                    <field id="merchant_id" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Merchant ID</label>
+                        <config_path>payment/amwal_payments/merchant_id</config_path>
+                    </field>
+                    <field id="ref_id_secret" translate="label tooltip" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Reference ID secret key</label>
+                        <config_path>payment/amwal_payments/ref_id_secret</config_path>
+                        <tooltip>A random key that is used to generate a reference ID. The reference ID is used to ensure a payment is valid.</tooltip>
+                    </field>
+                    <field id="country_code" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Merchant Country</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <config_path>payment/amwal_payments/country_code</config_path>
+                    </field>
+                    <field id="merchant_mode" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Merchant Mode</label>
+                        <source_model>Amwal\Payments\Model\Config\Source\MerchantMode</source_model>
+                        <config_path>payment/amwal_payments/merchant_mode</config_path>
+                    </field>
+                    <field id="express_checkout_shipping_price" translate="label tooltip" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Express Checkout Flat Rate Shipping Price</label>
+                        <validate>validate-number validate-zero-or-greater</validate>
+                        <tooltip>Currently we only support a flat rate shipping price for products purchased using the Express Checkout functionality</tooltip>
+                        <config_path>payment/amwal_payments/express_checkout_shipping_price</config_path>
+                    </field>
+                </group>
+                <!-- Visual Settings -->
+                <group id="amwal_payments_visual" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>Visual Settings</label>
+                    <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Title</label>
+                        <config_path>payment/amwal_payments/title</config_path>
+                        <tooltip>The title of the Amwal payment method in the checkout</tooltip>
+                    </field>
+                    <field id="express_checkout_title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Express Checkout Title</label>
+                        <config_path>payment/amwal_payments/express_checkout_title</config_path>
+                        <tooltip>The title of the Amwal payment method used for the express checkout</tooltip>
+                    </field>
+                    <field id="dark_mode" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Dark Mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/dark_mode</config_path>
+                        <tooltip>Toggle to enable dark mode</tooltip>
+                    </field>
+                </group>
+                <!-- Order Settings -->
+                <group id="amwal_payments_orders" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>Order Settings</label>
+                    <field id="order_creation_status" translate="label tooltip" type="select" sortOrder="61" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Order creation status</label>
+                        <tooltip>Status given to orders when the transaction is started, but the payment is not yet confirmed.</tooltip>
+                        <source_model>Amwal\Payments\Model\Config\Source\Status\OrderCreation</source_model>
+                        <config_path>payment/amwal_payments/order_creation_status</config_path>
+                    </field>
+                    <field id="order_confirmed_status" translate="label tooltip" type="select" sortOrder="62" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Order confirmed status</label>
+                        <tooltip>Status given to orders after the payment has been confirmed.</tooltip>
+                        <source_model>Amwal\Payments\Model\Config\Source\Status\OrderConfirmed</source_model>
+                        <config_path>payment/amwal_payments/order_confirmed_status</config_path>
+                    </field>
+                </group>
+                <!--Country specific settings-->
+                <group id="amwal_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40">
+                    <label>Country Specific Settings</label>
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment from Applicable Countries</label>
+                        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                        <config_path>payment/amwal_payments/allowspecific</config_path>
+                    </field>
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment from Specific Countries</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <can_be_empty>1</can_be_empty>
+                        <config_path>payment/amwal_payments/specificcountry</config_path>
+                    </field>
+                </group>
 
-				<!-- Amwal Gateway Settings -->
-				<group id="amwal_iframe" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="5">
-					<label>Amwal Gateway Settings</label>
-					<attribute type="expanded">0</attribute>
-					<frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-					<field id="title" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Title</label>
-						<config_path>payment/amwal_iframe/title</config_path>
-					</field>
-					<field id="account_id" translate="label" type="obscure" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Merchant ID</label>
-						<backend_model>Amwal\Payments\Model\System\Config\Backend\Iframe\Encrypted</backend_model>
-						<config_path>payment/amwal_iframe/account_id</config_path>
-					</field>
-					<field id="country_code" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Merchant Country</label>
-						<source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-					</field>
-					<field id="preferred_lang" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Preferred Language</label>
-						<config_path>payment/amwal_iframe/preferred_lang</config_path>
-					</field>
-					<field id="dark_mode" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Dark Mode</label>
-						<config_path>payment/amwal_iframe/dark_mode</config_path>
-					</field>
-					<field id="debug" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Debug</label>
-						<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-						<config_path>payment/amwal_iframe/debug</config_path>
-					</field>
-					<field id="currency" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Accepted Currency</label>
-						<source_model>Magento\Config\Model\Config\Source\Locale\Currency</source_model>
-						<config_path>payment/amwal_iframe/currency</config_path>
-					</field>
-					<field id="allowspecific" translate="label" type="allowspecific" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Payment from Applicable Countries</label>
-						<source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
-						<config_path>payment/amwal_iframe/allowspecific</config_path>
-					</field>
-					<field id="specificcountry" translate="label" type="multiselect" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
-						<label>Payment from Specific Countries</label>
-						<source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-					</field>
-				</group>
-			</group>
-		</section>
-	</system>
+                <!-- Developer Settings -->
+                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="50">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>Developer Settings</label>
+                    <field id="debug_mode" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Debug mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/debug_mode</config_path>
+                        <tooltip>Enable additional debug logging</tooltip>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
 </config>

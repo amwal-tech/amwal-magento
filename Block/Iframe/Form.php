@@ -1,8 +1,5 @@
 <?php
-/**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Amwal\Payments\Block\Iframe;
 
 use Amwal\Payments\Gateway\Config\Iframe\Config as GatewayConfig;
@@ -19,62 +16,62 @@ use Magento\Payment\Model\Config;
  */
 class Form extends Cc
 {
-	const KEY_IFR = 'ifr';
-	const KEY_CARD = 'payment-card';
-	/**
-	 * @var Quote
-	 */
-	protected $sessionQuote;
+    const KEY_IFR = 'ifr';
+    const KEY_CARD = 'payment-card';
+    /**
+     * @var Quote
+     */
+    protected $sessionQuote;
 
-	/**
-	 * @var Config
-	 */
-	protected $gatewayConfig;
+    /**
+     * @var Config
+     */
+    protected $gatewayConfig;
 
-	/**
-	 * @var CcType
-	 */
-	protected $ccType;
+    /**
+     * @var CcType
+     */
+    protected $ccType;
 
-	/**
-	 * @param Context $context
-	 * @param Config $paymentConfig
-	 * @param Quote $sessionQuote
-	 * @param GatewayConfig $gatewayConfig
-	 * @param CcType $ccType
-	 */
-	public function __construct(
-		Context $context,
-		Config $paymentConfig,
-		Quote $sessionQuote,
-		GatewayConfig $gatewayConfig,
-		CcType $ccType,
-		array $data = []
-	) {
-		parent::__construct($context, $paymentConfig, $data);
-		$this->sessionQuote = $sessionQuote;
-		$this->gatewayConfig = $gatewayConfig;
-		$this->ccType = $ccType;
-	}
+    /**
+     * @param Context $context
+     * @param Config $paymentConfig
+     * @param Quote $sessionQuote
+     * @param GatewayConfig $gatewayConfig
+     * @param CcType $ccType
+     */
+    public function __construct(
+        Context $context,
+        Config $paymentConfig,
+        Quote $sessionQuote,
+        GatewayConfig $gatewayConfig,
+        CcType $ccType,
+        array $data = []
+    ) {
+        parent::__construct($context, $paymentConfig, $data);
+        $this->sessionQuote = $sessionQuote;
+        $this->gatewayConfig = $gatewayConfig;
+        $this->ccType = $ccType;
+    }
 
 
-	public function getPaymentTypes()
-	{
-		$_types = $this->gatewayConfig->getPaymentType();
-		$paymentTypes = array();
-		
-		if (strpos($_types, "IFR") !== false)
-		{
-			$paymentTypes[self::KEY_IFR] = "E-Check";
-		}
+    public function getPaymentTypes()
+    {
+        $_types = $this->gatewayConfig->getPaymentType();
+        $paymentTypes = array();
 
-		error_log(print_r($paymentTypes, true));
-		return $paymentTypes;
-	}
+        if (strpos($_types, "IFR") !== false)
+        {
+            $paymentTypes[self::KEY_IFR] = "E-Check";
+        }
 
-	public function canIfr()
-	{
-		return isset($this->getPaymentTypes()[self::KEY_IFR]);
-	}
+        error_log(print_r($paymentTypes, true));
+        return $paymentTypes;
+    }
+
+    public function canIfr()
+    {
+        return isset($this->getPaymentTypes()[self::KEY_IFR]);
+    }
 
 }

@@ -17,54 +17,54 @@ use Magento\Framework\UrlInterface;
  */
 class TokenUiComponentProvider implements TokenUiComponentProviderInterface
 {
-	/**
-	 * @var TokenUiComponentInterfaceFactory
-	 */
-	private $componentFactory;
+    /**
+     * @var TokenUiComponentInterfaceFactory
+     */
+    private $componentFactory;
 
-	/**
-	 * @var \Magento\Framework\UrlInterface
-	 */
-	private $urlBuilder;
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    private $urlBuilder;
 
-	/**
-	 * @param TokenUiComponentInterfaceFactory $componentFactory
-	 * @param UrlInterface $urlBuilder
-	 */
-	public function __construct(
-		TokenUiComponentInterfaceFactory $componentFactory,
-		UrlInterface $urlBuilder
-	) {
-		$this->componentFactory = $componentFactory;
-		$this->urlBuilder = $urlBuilder;
-	}
+    /**
+     * @param TokenUiComponentInterfaceFactory $componentFactory
+     * @param UrlInterface $urlBuilder
+     */
+    public function __construct(
+        TokenUiComponentInterfaceFactory $componentFactory,
+        UrlInterface $urlBuilder
+    ) {
+        $this->componentFactory = $componentFactory;
+        $this->urlBuilder = $urlBuilder;
+    }
 
-	/**
-	 * Get UI component for token
-	 * @param PaymentTokenInterface $paymentToken
-	 * @return TokenUiComponentInterface
-	 */
-	public function getComponentForToken(PaymentTokenInterface $paymentToken)
-	{
-		$jsonDetails = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
-		$component = $this->componentFactory->create(
-			[
-				'config' => [
-					'code' => ConfigProvider::VAULT_CODE,
-					'type' => $paymentToken->getType(),
-					'tokenUrl' => $this->getTokenUrl(),
-					TokenUiComponentProviderInterface::COMPONENT_DETAILS => $jsonDetails,
-					TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash()
-				],
-				'name' => 'Amwal_Payments/js/view/payment/method-renderer/iframe-vault'
-			]
-		);
+    /**
+     * Get UI component for token
+     * @param PaymentTokenInterface $paymentToken
+     * @return TokenUiComponentInterface
+     */
+    public function getComponentForToken(PaymentTokenInterface $paymentToken)
+    {
+        $jsonDetails = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
+        $component = $this->componentFactory->create(
+            [
+                'config' => [
+                    'code' => ConfigProvider::VAULT_CODE,
+                    'type' => $paymentToken->getType(),
+                    'tokenUrl' => $this->getTokenUrl(),
+                    TokenUiComponentProviderInterface::COMPONENT_DETAILS => $jsonDetails,
+                    TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash()
+                ],
+                'name' => 'Amwal_Payments/js/view/payment/method-renderer/iframe-vault'
+            ]
+        );
 
-		return $component;
-	}
+        return $component;
+    }
 
-	private function getTokenUrl()
-	{
-		return $this->urlBuilder->getUrl('amwal/vault/getiframetoken', ['_secure' => true]);
-	}
+    private function getTokenUrl()
+    {
+        return $this->urlBuilder->getUrl('amwal/vault/getiframetoken', ['_secure' => true]);
+    }
 }

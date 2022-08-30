@@ -8,20 +8,14 @@ define(
         rendererList
     ) {
         'use strict';
+        rendererList.push(
+            {
+                type: 'amwal_payments',
+                component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment'
+            }
+        );
 
-        let config = window.checkoutConfig.payment;
-        let iframe = 'amwal_iframe';
-        
-        if (config[iframe].isActive) {
-            rendererList.push(
-                {
-                    type: iframe,
-                    component: 'Amwal_Payments/js/view/payment/method-renderer/iframe-form'
-                }
-            );
-        }
-
-        /** Add view logic here if needed */
         return Component.extend({});
     }
 );
+

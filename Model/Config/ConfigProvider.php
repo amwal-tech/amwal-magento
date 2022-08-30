@@ -17,59 +17,59 @@ use \Magento\Store\Model\StoreManagerInterface;
  */
 class ConfigProvider implements ConfigProviderInterface
 {
-	const CODE = 'amwal_payments';
+    const CODE = 'amwal_payments';
 
-	/**
-	 * @var Config
-	 */
-	private $config;
+    /**
+     * @var Config
+     */
+    private $config;
 
-	/**
-	 * @var SessionManagerInterface
-	 */
-	private $session;
+    /**
+     * @var SessionManagerInterface
+     */
+    private $session;
 
-	/**
-	* @var \Magento\Store\Model\StoreManagerInterface $storeManager
-	*/
-	private $storeManager;
+    /**
+    * @var \Magento\Store\Model\StoreManagerInterface $storeManager
+    */
+    private $storeManager;
 
-	/**
-	 * Constructor
-	 *
-	 * @param Config $config
-	 * @param SessionManagerInterface $session
-	 */
-	public function __construct(
-		Config $config,
-		SessionManagerInterface $session,
-		StoreManagerInterface $storeManager
-	) {
-		$this->config = $config;
-		$this->session = $session;
-		$this->storeManager = $storeManager;
-	}
+    /**
+     * Constructor
+     *
+     * @param Config $config
+     * @param SessionManagerInterface $session
+     */
+    public function __construct(
+        Config $config,
+        SessionManagerInterface $session,
+        StoreManagerInterface $storeManager
+    ) {
+        $this->config = $config;
+        $this->session = $session;
+        $this->storeManager = $storeManager;
+    }
 
-	/**
-	 * Retrieve assoc array of checkout configuration
-	 *
-	 * @return array
-	 */
-	public function getConfig()
-	{
-		$storeId = $this->session->getStoreId();
-		return [
-			'payment' => [
-				self::CODE => [
-					'isActive' => $this->config->isActive($storeId),
-					'storeUrl' => $this->getBaseUrl(),
-				]
-			]
-		];
-	}
+    /**
+     * Retrieve assoc array of checkout configuration
+     *
+     * @return array
+     */
+    public function getConfig()
+    {
+        $storeId = $this->session->getStoreId();
+        return [
+            'payment' => [
+                self::CODE => [
+                    'isActive' => $this->config->isActive($storeId),
+                    'storeUrl' => $this->getBaseUrl(),
+                ]
+            ]
+        ];
+    }
 
-	private function getBaseUrl()
-	{
-		return $this->storeManager->getStore()->getBaseUrl();
-	}
+    private function getBaseUrl()
+    {
+        return $this->storeManager->getStore()->getBaseUrl();
+    }
 }

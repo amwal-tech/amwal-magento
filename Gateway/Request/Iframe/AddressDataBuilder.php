@@ -14,38 +14,38 @@ use Amwal\Payments\Gateway\Subject\Iframe\SubjectReader;
  */
 class AddressDataBuilder implements BuilderInterface
 {
-	/**
-	 * @var SubjectReader
-	 */
-	private $subjectReader;
+    /**
+     * @var SubjectReader
+     */
+    private $subjectReader;
 
-	/**
-	 * Constructor
-	 *
-	 * @param SubjectReader $subjectReader
-	 */
-	public function __construct(SubjectReader $subjectReader)
-	{
-		$this->subjectReader = $subjectReader;
-	}
+    /**
+     * Constructor
+     *
+     * @param SubjectReader $subjectReader
+     */
+    public function __construct(SubjectReader $subjectReader)
+    {
+        $this->subjectReader = $subjectReader;
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function build(array $buildSubject)
-	{
-		$paymentDO = $this->subjectReader->readPayment($buildSubject);
+    /**
+     * @inheritdoc
+     */
+    public function build(array $buildSubject)
+    {
+        $paymentDO = $this->subjectReader->readPayment($buildSubject);
 
-		$order = $paymentDO->getOrder();
-		$billingAddress = $order->getBillingAddress();
-		
-		return [
-			ApRequestKeys::ADDRESS_1 => $billingAddress->getStreetLine1(),
-			ApRequestKeys::ADDRESS_2 => $billingAddress->getStreetLine2(),
-			ApRequestKeys::LOCALITY => $billingAddress->getCity(),
-			ApRequestKeys::REGION => $billingAddress->getRegionCode(),
-			ApRequestKeys::POSTAL_CODE => $billingAddress->getPostcode(),
-			ApRequestKeys::COUNTRY => $billingAddress->getCountryId()
-		];
-	}
+        $order = $paymentDO->getOrder();
+        $billingAddress = $order->getBillingAddress();
+
+        return [
+            ApRequestKeys::ADDRESS_1 => $billingAddress->getStreetLine1(),
+            ApRequestKeys::ADDRESS_2 => $billingAddress->getStreetLine2(),
+            ApRequestKeys::LOCALITY => $billingAddress->getCity(),
+            ApRequestKeys::REGION => $billingAddress->getRegionCode(),
+            ApRequestKeys::POSTAL_CODE => $billingAddress->getPostcode(),
+            ApRequestKeys::COUNTRY => $billingAddress->getCountryId()
+        ];
+    }
 }

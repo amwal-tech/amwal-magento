@@ -1,0 +1,16 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="after.body.start">
+            <block template="Amwal_Payments::lib/amwal-checkout-button-script.phtml" name="amwal.checkout.script" />
+        </referenceContainer>
+        <referenceContainer name="header-wrapper">
+            <block class="Amwal\Payments\Block\ExpressCheckoutMinicartButton" name="amwal.express-checkout.minicart" template="Amwal_Payments::express/button-minicart.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">
+                        Amwal\Payments\ViewModel\ExpressCheckoutButtonMinicart
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>
