@@ -12,6 +12,7 @@ use Amwal\Payments\Model\Config\ConfigProvider;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
+use \Magento\Customer\Model\Group as CustomerGroup;
 use Magento\Customer\Model\Session;
 use Magento\Framework\DataObject\Factory;
 use Magento\Framework\Exception\CouldNotSaveException;
@@ -134,6 +135,11 @@ class GetQuote
             $quote = $this->quoteRepository->get($quoteId);
         }
 
+        /** @TODO: Retrieve an actual email from somewhere */
+        if (!$this->getCustomerId()) {
+            $quote->setCustomerEmail('guest-checkout@amwal.tech');
+        }
+
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
 
@@ -225,7 +231,13 @@ class GetQuote
         $quote = $this->quoteFactory->create();
         $quote->setStore($this->storeManager->getStore());
         $quote->setCurrency();
-        $quote->assignCustomer($this->getCustomer());
+
+        if ($customer = $this->getCustomer()) {
+            $quote->assignCustomer($customer);
+        } else {
+            $quote->setCustomerIsGuest(true)
+                ->setCustomerGroupId(CustomerGroup::NOT_LOGGED_IN_ID);
+        }
 
         foreach ($orderItems as $item) {
             $product = $this->productRepository->getById($item->getProductId());

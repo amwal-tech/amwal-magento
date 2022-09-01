@@ -58,7 +58,6 @@ define(
                 }
 
                 self.observeAmount();
-                self.observeModal();
 
                 if (self.isMinicart) {
                     let $minicartButtonWrapper = self.$checkoutButton.parent();
@@ -189,28 +188,6 @@ define(
                     attributes: true,
                     attributeFilter: ['amount']
                 });
-            },
-
-            observeModal: function () {
-                // @TODO: Check if we can receive a custom event on modal close
-                // let ionModal = document.getElementById('html-body');
-                //
-                // let modalObserver = new MutationObserver(function(mutations) {
-                //     for (let mutation of mutations) {
-                //         if (mutation.removedNodes) {
-                //             for (let removedNode of mutation.removedNodes) {
-                //                 if (removedNode.tagName && removedNode.tagName.toLowerCase() === 'ion-modal' && removedNode.classList.contains('overlay-hidden')) {
-                //                     $('body').trigger('processStop');
-                //                 }
-                //             }
-                //         }
-                //     }
-                // });
-                //
-                // modalObserver.observe(ionModal.parentNode, {
-                //     childList: true,
-                //     subtree: true
-                // });
             },
 
             /**

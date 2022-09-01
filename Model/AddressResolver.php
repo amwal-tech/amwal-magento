@@ -62,11 +62,12 @@ class AddressResolver
     public function execute(DataObject $amwalOrderData): AddressInterface
     {
         $address = null;
-        $amwalAddress = $amwalOrderData->getAddressDetails();
 
         if ($this->isGuestOrder()) {
-            return $this->createAddress($amwalAddress);
+            return $this->createAddress($amwalOrderData);
         }
+
+        $amwalAddress = $amwalOrderData->getAddressDetails();
 
         if ($amwalAddressId = $amwalAddress->getId()) {
             $searchCriteria = $this->searchCriteriaBuilder->addFilter(
@@ -168,7 +169,11 @@ class AddressResolver
 
         $customerAddress->setCustomAttribute(AmwalAddressId::ATTRIBUTE_CODE, $amwalAddress->getId() ?? 'tmp');
 
-        return $this->addressRepository->save($customerAddress);
+        if (!$this->isGuestOrder()) {
+            $customerAddress = $this->addressRepository->save($customerAddress);
+        }
+
+        return $customerAddress;
     }
 
     /**
