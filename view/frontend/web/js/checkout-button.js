@@ -19,6 +19,7 @@ define(
             addToCartSelector: '#product-addtocart-button',
             productFormSelector: '#product_addtocart_form',
             superAttributeInputSelector: 'input[name^="super_attribute"]',
+            isClickable: false,
             isClicked: false,
             productPrice: 0,
             orderedQty: 1,
@@ -67,8 +68,10 @@ define(
                     }
                 }
 
-                self.$checkoutButton.not('.button-disabled').on('click', function() {
-                    self.startExpressCheckout();
+                self.$checkoutButton.on('click', function() {
+                    if (self.isClickable === true) {
+                        self.startExpressCheckout();
+                    }
                 });
 
                 $minicartContentWrapper.on('click', '#' + buttonSelector, function() {
@@ -211,9 +214,11 @@ define(
             setClickable(isClickable) {
                 let self = this;
                 if (!isClickable) {
+                    self.isClickable = false;
                     self.$checkoutButton.attr('disabled', 'disabled');
                 }
                 if (isClickable) {
+                    self.isClickable = true;
                     self.$checkoutButton.attr('disabled', false);
                 }
             },
