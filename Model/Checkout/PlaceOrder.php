@@ -144,15 +144,13 @@ class PlaceOrder
         }
 
         if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
-            if ($this->config->isDebugModeEnabled()) {
-                $this->logger->debug(sprintf(
-                    "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
-                    $amwalOrderData->getRefId(),
-                    $refId,
-                    $this->refIdManagement->generateRefId($refIdData),
-                    $refIdData->toJson()
-                ));
-            }
+            $this->logger->debug(sprintf(
+                "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
+                $amwalOrderData->getRefId(),
+                $refId,
+                $this->refIdManagement->generateRefId($refIdData),
+                $refIdData->toJson()
+            ));
             $this->throwException(__('We were unable to verify your payment.'));
         }
 
@@ -169,7 +167,10 @@ class PlaceOrder
         }
 
         $quote = $this->quoteRepository->get($quoteId);
-        $this->updateCustomerAddress($quote, $customerAddress);
+        if ($quote->getCustomerIsGuest()) {
+            $quote->setCustomerEmail($amwalOrderData->getClientEmail());
+        }
+        $this->updateCustomerAddress($quote, $customerAddress, $amwalOrderData);
         $this->updateShippingMethod->execute($quote, $amwalOrderData->getShippingDetails()->getId());
 
 
@@ -266,12 +267,16 @@ class PlaceOrder
      * Update the customer address, since we need to replace temporary data.
      * @param CartInterface $quote
      * @param AddressInterface $customerAddress
+     * @param DataObject $amwalOrderData
      * @return void
      */
-    private function updateCustomerAddress(CartInterface $quote, AddressInterface $customerAddress): void
+    private function updateCustomerAddress(CartInterface $quote, AddressInterface $customerAddress, DataObject $amwalOrderData): void
     {
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
+        if ($quote->getCustomerIsGuest()) {
+            $quoteAddress->setEmail($amwalOrderData->getClientEmail());
+        }
         $quote->setBillingAddress($quoteAddress);
         $quote->setShippingAddress($quoteAddress);
     }

@@ -130,6 +130,14 @@ class ExpressCheckoutButton implements ArgumentInterface
     }
 
     /**
+     * @return bool
+     */
+    public function isCustomerLoggedIn(): bool
+    {
+        return $this->customerSession->isLoggedIn();
+    }
+
+    /**
      * @return int
      */
     public function getCustomerId(): int

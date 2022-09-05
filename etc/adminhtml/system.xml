@@ -47,12 +47,6 @@
                         <source_model>Amwal\Payments\Model\Config\Source\MerchantMode</source_model>
                         <config_path>payment/amwal_payments/merchant_mode</config_path>
                     </field>
-                    <field id="express_checkout_shipping_price" translate="label tooltip" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Express Checkout Flat Rate Shipping Price</label>
-                        <validate>validate-number validate-zero-or-greater</validate>
-                        <tooltip>Currently we only support a flat rate shipping price for products purchased using the Express Checkout functionality</tooltip>
-                        <config_path>payment/amwal_payments/express_checkout_shipping_price</config_path>
-                    </field>
                 </group>
                 <!-- Visual Settings -->
                 <group id="amwal_payments_visual" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">

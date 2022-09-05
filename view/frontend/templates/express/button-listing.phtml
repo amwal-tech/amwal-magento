@@ -15,6 +15,7 @@ $productPrice = $product->getPriceInfo()->getPrice('final_price')->getAmount()->
             country-code="<?= $viewModel->getCountryCode() ?>"
             locale="<?= $viewModel->getLocale() ?>"
             dark-mode="<?= $viewModel->isDarkModeEnabled() ? 'on' : 'off' ?>"
+            email-required="<?= $viewModel->isCustomerLoggedIn() ? 'false' : 'true' ?>"
             address-required="true"
             address-handshake="true"
             shipping-methods='[{"id":"to-be-determined1","label":"To be determined 1","price":5},{"id":"to-be-determined2","label":"To be determined 2","price":15}]'

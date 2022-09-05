@@ -135,11 +135,6 @@ class GetQuote
             $quote = $this->quoteRepository->get($quoteId);
         }
 
-        /** @TODO: Retrieve an actual email from somewhere */
-        if (!$this->getCustomerId()) {
-            $quote->setCustomerEmail('guest-checkout@amwal.tech');
-        }
-
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
 
