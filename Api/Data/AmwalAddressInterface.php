@@ -6,6 +6,7 @@ namespace Amwal\Payments\Api\Data;
 interface AmwalAddressInterface
 {
     public const ID = 'id';
+    public const EMAIL = 'email';
     public const CITY = 'city';
     public const COUNTRY = 'country';
     public const POSTCODE = 'postcode';
@@ -17,6 +18,11 @@ interface AmwalAddressInterface
      * @return string|null
      */
     public function getId(): ?string;
+
+    /**
+     * @return string|null
+     */
+    public function getEmail(): ?string;
 
     /**
      * @return string
@@ -54,6 +60,11 @@ interface AmwalAddressInterface
      */
     public function setId(?string $id = null): AmwalAddressInterface;
 
+    /**
+     * @param string|null $email
+     * @return AmwalAddressInterface
+     */
+    public function setEmail(?string $email = null): AmwalAddressInterface;
     /**
      * @param string $city
      * @return AmwalAddressInterface

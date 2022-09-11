@@ -8,15 +8,12 @@ use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
-use Amwal\Payments\Model\Config\ConfigProvider;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use \Magento\Customer\Model\Group as CustomerGroup;
 use Magento\Customer\Model\Session;
 use Magento\Framework\DataObject\Factory;
-use Magento\Framework\Exception\CouldNotSaveException;
-use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
@@ -65,16 +62,16 @@ class GetQuote
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
         Session $customerSession,
-        QuoteFactory               $quoteFactory,
-        StoreManagerInterface      $storeManager,
+        QuoteFactory $quoteFactory,
+        StoreManagerInterface $storeManager,
         ProductRepositoryInterface $productRepository,
-        AddressFactory             $quoteAddressFactory,
-        QuoteRepositoryInterface   $quoteRepository,
-        ManagerInterface           $messageManager,
-        ShippingMethodManagement   $shippingMethodManagement,
-        AddressResolver            $addressResolver,
-        Factory                    $objectFactory,
-        RefIdManagementInterface   $refIdManagement,
+        AddressFactory $quoteAddressFactory,
+        QuoteRepositoryInterface $quoteRepository,
+        ManagerInterface $messageManager,
+        ShippingMethodManagement $shippingMethodManagement,
+        AddressResolver $addressResolver,
+        Factory $objectFactory,
+        RefIdManagementInterface $refIdManagement,
         LoggerInterface $logger
     ) {
         $this->customerRepository = $customerRepository;
@@ -93,7 +90,7 @@ class GetQuote
     }
 
     /**
-     * @param AmwalOrderItemInterface $orderItems
+     * @param AmwalOrderItemInterface[] $orderItems
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param AmwalAddressInterface $addressData
@@ -138,6 +135,10 @@ class GetQuote
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
 
+        if ($customerEmail = $addressData->getEmail()) {
+            $quoteAddress->setEmail($customerEmail);
+        }
+
         $quote->setBillingAddress($quoteAddress);
         $quote->setShippingAddress($quoteAddress);
 
@@ -165,6 +166,7 @@ class GetQuote
         }
 
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+        $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
@@ -236,7 +238,6 @@ class GetQuote
 
         foreach ($orderItems as $item) {
             $product = $this->productRepository->getById($item->getProductId());
-            $product->setPrice($item->getProductPrice());
 
             $request = $this->objectFactory->create();
             $request->setData('qty', $item->getQty());

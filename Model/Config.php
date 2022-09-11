@@ -5,6 +5,7 @@ namespace Amwal\Payments\Model;
 
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\Config\Source\MerchantMode;
+use Magento\Directory\Model\Currency;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
@@ -146,7 +147,7 @@ class Config
      */
     public function getCurrency(): string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_CURRENCY, ScopeInterface::SCOPE_WEBSITE);
+        return $this->scopeConfig->getValue(Currency::XML_PATH_CURRENCY_BASE, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**

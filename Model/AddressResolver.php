@@ -67,6 +67,7 @@ class AddressResolver
             return $this->createAddress($amwalOrderData);
         }
 
+        /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
 
         if ($amwalAddressId = $amwalAddress->getId()) {
@@ -147,6 +148,7 @@ class AddressResolver
      */
     private function createAddress(DataObject $amwalOrderData): AddressInterface
     {
+        /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
 
         $customerAddress = $this->addressDataFactory->create()
@@ -179,10 +181,10 @@ class AddressResolver
     /**
      * Check if the customer address matches the Amwal address
      * @param AddressInterface $customerAddress
-     * @param array $amwalAddress
+     * @param AmwalAddressInterface $amwalAddress
      * @return bool
      */
-    private function isAddressMatched(AddressInterface $customerAddress, array $amwalAddress): bool
+    private function isAddressMatched(AddressInterface $customerAddress, AmwalAddressInterface $amwalAddress): bool
     {
         if ($customerAddress->getCountryId() !== $amwalAddress->getCountry()) {
             return false;

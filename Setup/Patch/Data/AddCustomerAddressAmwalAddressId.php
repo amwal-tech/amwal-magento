@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Setup\Patch\Data;
 
 use Magento\Customer\Model\Indexer\Address\AttributeProvider as AddressAttributeProvider;
+use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
@@ -18,12 +19,12 @@ class AddCustomerAddressAmwalAddressId implements DataPatchInterface
     /**
      * @var ModuleDataSetupInterface
      */
-    private $moduleDataSetup;
+    private ModuleDataSetupInterface $moduleDataSetup;
 
     /**
      * @var EavSetupFactory
      */
-    private $eavSetupFactory;
+    private EavSetupFactory $eavSetupFactory;
 
     /**
      * @param ModuleDataSetupInterface $moduleDataSetup
@@ -42,7 +43,7 @@ class AddCustomerAddressAmwalAddressId implements DataPatchInterface
      */
     public function apply()
     {
-        /** @var \Magento\Eav\Setup\EavSetup $eavSetup */
+        /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
         $eavSetup->addAttribute(
             AddressAttributeProvider::ENTITY,

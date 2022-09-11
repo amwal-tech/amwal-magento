@@ -20,6 +20,14 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     /**
      * @inheritDoc
      */
+    public function getEmail(): ?string
+    {
+        return $this->getData(self::EMAIL);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getCity(): string
     {
         return $this->getData(self::CITY);
@@ -71,6 +79,14 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     public function setId(?string $id = null): AmwalAddressInterface
     {
         return $this->setData(self::ID, $id);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setEmail(?string $email = null): AmwalAddressInterface
+    {
+        return $this->setData(self::EMAIL, $email);
     }
 
     /**

@@ -21,7 +21,6 @@ $configurableOptions = $viewModel->getConfigurableOptions($product);
             shipping-methods='[{"id":"to-be-determined1","label":"To be determined 1","price":0},{"id":"to-be-determined2","label":"To be determined 2","price":0}]'
             ref-id="<?= $viewModel->getRefId() ?>"
             label="quick-buy"
-            debug="true"
             disabled="true"
             id="amwal-checkout-<?= $product->getId() ?>"
             <?php if ($viewModel->getMerchantMode() === \Amwal\Payments\Model\Config\Source\MerchantMode::MERCHANT_TEST_MODE): ?>

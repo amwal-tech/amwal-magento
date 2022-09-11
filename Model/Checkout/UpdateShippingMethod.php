@@ -44,9 +44,15 @@ class UpdateShippingMethod
         try {
             $this->shippingMethodManagement->set($quote->getId(), $carrier, $method);
         } catch (CouldNotSaveException|InputException|NoSuchEntityException|StateException $e) {
+            $this->logger->error(sprintf(
+                'Unable to set shipping method for quote with ID %s. Error: %s',
+                $quote->getId(),
+                $e->getMessage()
+            ));
             return false;
         }
 
+        $quote->getShippingAddress()->setCollectShippingRates(true)->collectShippingRates();
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 

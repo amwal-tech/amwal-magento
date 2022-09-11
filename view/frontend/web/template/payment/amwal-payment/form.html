@@ -32,7 +32,8 @@
                 attr: {'id': getCode() + '-button'}">
                     <amwal-checkout-button
                         id="amwal-place-order-button"
-                        data-bind="attr: {'merchant-id': getMerchantId(), 'amount': getAmount(), 'country-code': getCountryCode(), 'locale': getLocale(), 'dark-mode': getDarkMode(), 'test-environment': getTestEnvironment() }"
+                        data-bind="attr: {'ref-id': getRefId(), 'merchant-id': getMerchantId(), 'country-code': getCountryCode(), 'locale': getLocale(), 'dark-mode': getDarkMode(), 'test-environment': getTestEnvironment() }"
+                        amount="0"
                         address-required="false">
                     </amwal-checkout-button>
                 </div>

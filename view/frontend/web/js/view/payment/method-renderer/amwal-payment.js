@@ -1,15 +1,16 @@
 define([
     'jquery',
     'Magento_Checkout/js/view/payment/default',
+    'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/totals',
+    'placeAmwalOrder',
     'domReady!'
 ],
-function ($, Component, totals) {
+function ($, Component, quote, totals, placeAmwalOrder) {
     'use strict';
     return Component.extend({
         defaults: {
             template: 'Amwal_Payments/payment/amwal-payment/form',
-            active: false,
             amount: 0,
             code: 'amwal_payments',
             amwalButtonId: 'amwal-place-order-button',
@@ -23,18 +24,19 @@ function ($, Component, totals) {
             self._super();
 
             self.amount = parseFloat(totals.totals().base_grand_total);
+            self.setAmount();
 
             $(self.amwalButtonSelector).on('click', function (e) {
                 $('body').trigger('processStart');
             });
 
-            const eventListenerInterval = setInterval(function () {
+                const eventListenerInterval = setInterval(function () {
                 let $amwalCheckoutButton = $(self.amwalButtonSelector);
 
                 if ($amwalCheckoutButton.length) {
                     document.getElementById(self.amwalButtonId).addEventListener('amwalCheckoutSuccess', function (e) {
-                        self.additionalData.transactionId = e.detail.transactionId;
-                        self.placeOrder();
+                        self.additionalData.transactionId = e.detail.orderId;
+                        placeAmwalOrder.execute(e.detail.orderId, quote.getQuoteId(), self.getRefId(), self.getRefIdData());
                     });
                     self.setAmount();
                     self.observeAmount();
@@ -46,7 +48,6 @@ function ($, Component, totals) {
 
             return self;
         },
-
         getData: function () {
             let self = this,
                 parent = self._super();
@@ -87,16 +88,20 @@ function ($, Component, totals) {
             });
         },
 
+        getRefId: function () {
+            return window.checkoutConfig.payment[this.getCode()]['refId'];
+        },
+
+        getRefIdData: function () {
+            return window.checkoutConfig.payment[this.getCode()]['refIdData'];
+        },
+
         getMerchantId: function () {
             return window.checkoutConfig.payment[this.getCode()]['merchantId'];
         },
 
         getTitle: function () {
             return window.checkoutConfig.payment[this.getCode()]['title'];
-        },
-
-        getAmount: function () {
-            return '100';
         },
 
         getCountryCode: function () {

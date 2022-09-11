@@ -3,30 +3,13 @@
     <default>
         <payment>
             <amwal_payments>
-                <active>0</active>
-                <mode>2</mode>
-                <title>Amwal Merchant</title>
-                <order_status>pending</order_status>
-                <allowspecific>0</allowspecific>
-                <model>AmwalIframeFacade</model>
+                <title>Amwal</title>
+                <order_status>processing</order_status>
+                <model>AmwalPaymentMethodFacade</model>
                 <group>amwal_payments_group</group>
-                <prefered_lang>en</prefered_lang>
-                <payment_type>IFR</payment_type>
-                <amw_prod_service_url><![CDATA[https://backend.sa.amwal.tech]]></amw_prod_service_url>
-                <amw_sandbox_service_url><![CDATA[https://dev-backend.sa.amwal.tech]]></amw_sandbox_service_url>
                 <prod_api_base_url><![CDATA[https://backend.sa.amwal.tech]]></prod_api_base_url>
                 <test_api_base_url><![CDATA[https://dev-backend.sa.amwal.tech]]></test_api_base_url>
-                <is_gateway>1</is_gateway>
-                <can_use_internal>1</can_use_internal>
                 <can_use_checkout>1</can_use_checkout>
-                <can_capture>0</can_capture>
-                <can_authorize>0</can_authorize>
-                <can_refund>0</can_refund>
-                <can_void>0</can_void>
-                <cctypes>AE,VI,MC,DI,JCB</cctypes>
-                <useccv>1</useccv>
-                <tokenization>1</tokenization>
-                <currency>SAR</currency>
             </amwal_payments>
         </payment>
     </default>
