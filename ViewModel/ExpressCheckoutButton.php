@@ -122,6 +122,14 @@ class ExpressCheckoutButton implements ArgumentInterface
     }
 
     /**
+     * @return bool
+     */
+    public function shouldHideProceedToCheckout(): bool
+    {
+        return $this->config->shouldHideProceedToCheckout();
+    }
+
+    /**
      * @return string
      */
     public function getLocale(): string
@@ -180,15 +188,6 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function setProduct(Product $product): void
     {
         $this->product = $product;
-    }
-
-    /**
-     * @param string $carrierCode
-     * @return string
-     */
-    private function getCarrierTitle(string $carrierCode): string
-    {
-        return $this->scopeConfig->getValue('carriers/' . $carrierCode . '/title');
     }
 
     /**

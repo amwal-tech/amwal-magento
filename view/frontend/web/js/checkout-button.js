@@ -19,6 +19,8 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, confirm, _) {
         addToCartSelector: '#product-addtocart-button',
         productFormSelector: '#product_addtocart_form',
         superAttributeInputSelector: 'input[name^="super_attribute"]',
+        minicartContentSelector: 'minicart-content-wrapper',
+        proceedToCheckoutSelector: '#top-cart-btn-checkout',
         isClickable: false,
         isClicked: false,
         productPrice: 0,
@@ -36,6 +38,7 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, confirm, _) {
         quoteId: null,
         isListing: false,
         isMinicart: false,
+        hideProceedToCheckout: false,
 
         /**
          * @returns {exports.initialize}
@@ -45,7 +48,7 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, confirm, _) {
 
             let self = this,
                 buttonSelector = self.buttonSelectorPrefix + self.productId,
-                $minicartContentWrapper = $('#minicart-content-wrapper');
+                minicartContentWrapper = document.getElementById(self.minicartContentSelector);
 
             if (self.isMinicart) {
                 buttonSelector = self.buttonSelectorPrefix + 'quote-' + self.quoteId;
@@ -61,21 +64,40 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, confirm, _) {
             self.observeAmount();
 
             if (self.isMinicart) {
-                let $minicartButtonWrapper = self.$checkoutButton.parent();
-                if ($minicartButtonWrapper.length) {
-                    $minicartContentWrapper.append($minicartButtonWrapper);
-                    $minicartButtonWrapper.removeClass('hidden');
-                }
+                let proceedToCheckoutObserver,
+                    $minicartButtonWrapper = self.$checkoutButton.parent();
+
+                proceedToCheckoutObserver = new MutationObserver(function(mutations) {
+                    let $proceedToCheckoutButton = $(self.proceedToCheckoutSelector)
+
+                    if ($minicartButtonWrapper.length && $proceedToCheckoutButton.length) {
+                        $minicartButtonWrapper.insertAfter($proceedToCheckoutButton);
+                        $minicartButtonWrapper.removeClass('hidden');
+
+                        if (self.hideProceedToCheckout) {
+                            $(self.proceedToCheckoutSelector).hide();
+                        }
+
+                        proceedToCheckoutObserver.disconnect();
+                    }
+                });
+
+                proceedToCheckoutObserver.observe(minicartContentWrapper, {
+                    childList: true,
+                    subtree: true,
+                    attributes: false,
+                    characterData: false
+                });
+
+                $(minicartContentWrapper).on('click', '#' + buttonSelector, function() {
+                    self.startExpressCheckout();
+                });
             }
 
             self.$checkoutButton.on('click', function() {
                 if (self.isClickable === true) {
                     self.startExpressCheckout();
                 }
-            });
-
-            $minicartContentWrapper.on('click', '#' + buttonSelector, function() {
-                self.startExpressCheckout();
             });
 
             $(self.qtySelector).on('change', function() {

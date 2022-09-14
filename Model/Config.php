@@ -16,6 +16,7 @@ class Config
     public const XML_CONFIG_PATH_ACTIVE = 'payment/amwal_payments/active';
     public const XML_CONFIG_PATH_EXPRESS_CHECKOUT_ACTIVE = 'payment/amwal_payments/express_checkout_active';
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_ACTIVE = 'payment/amwal_payments/regular_checkout_active';
+    public const XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT = 'payment/amwal_payments/hide_proceed_to_checkout';
     public const XML_CONFIG_PATH_MERCHANT_ID = 'payment/amwal_payments/merchant_id';
     public const XML_CONFIG_PATH_REF_ID_SECRET = 'payment/amwal_payments/ref_id_secret';
     public const XML_CONFIG_PATH_MERCHANT_MODE = 'payment/amwal_payments/merchant_mode';
@@ -69,12 +70,22 @@ class Config
     }
 
     /**
+     * @return bool
+     */
+    public function shouldHideProceedToCheckout(): bool
+    {
+        return $this->isExpressCheckoutActive() && $this->scopeConfig->isSetFlag(
+            self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
+            ScopeInterface::SCOPE_WEBSITE
+        );
+    }
+
+    /**
      * @return string
      */
     public function getMerchantId(): string
     {
-//        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
-        return 'sandbox-amwal-37ad6246-9406-42d5-84f3-9703bf920470';
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**

@@ -1,0 +1,10 @@
+<?php
+/** @var \Amwal\Payments\Block\System\Config\ValidateMerchantIdButton $block  */
+?>
+<button class="scalable" type="button" id="<?= $block->getHtmlId() ?>" data-mage-init='{"verifyMerchantId":{
+    "baseUrl": "<?= $block->escapeUrl($block->getApiUrl()) ?>",
+    "elementId": "<?= $block->getHtmlId() ?>",
+    "successText": "<?= $block->escapeHtmlAttr(__('Merchant ID is valid!')) ?>",
+    "failedText": "<?= $block->escapeHtmlAttr(__('Invalid Merchant ID Provided!')) ?>"}}'>
+    <span id="<?= $block->getHtmlId() ?>_result"><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
+</button>

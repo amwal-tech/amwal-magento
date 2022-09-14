@@ -27,6 +27,7 @@ $viewModel->setQuoteId((string)$quote->getId());
         "#amwal-checkout-quote-<?= $quote->getId() ?>": {
             "Amwal_Payments/js/checkout-button": {
                 "isMinicart": true,
+                "hideProceedToCheckout": <?= (int) $viewModel->shouldHideProceedToCheckout() ?>,
                 "orderedAmount": "<?= $quote->getBaseGrandTotal() ?>",
                 "quoteId": "<?= $quote->getId() ?>",
                 "refId": "<?= $viewModel->getRefId() ?>",
