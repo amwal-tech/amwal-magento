@@ -5,6 +5,7 @@ namespace Amwal\Payments\Model;
 
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\Config\Source\MerchantMode;
+use Magento\Config\Model\Config\Backend\Admin\Custom as AdminConfig;
 use Magento\Directory\Model\Currency;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
@@ -201,11 +202,11 @@ class Config
     }
 
     /**
-     * @TODO: Add Locale logic
      * @return string
      */
     public function getLocale(): string
     {
-        return 'en';
+        $storeLocale = $this->scopeConfig->getValue(AdminConfig::XML_PATH_GENERAL_LOCALE_CODE, ScopeInterface::SCOPE_STORE);
+        return substr($storeLocale, 0, 2);
     }
 }
