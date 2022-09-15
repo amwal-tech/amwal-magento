@@ -85,7 +85,7 @@ class Config
      */
     public function getMerchantId(): string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
