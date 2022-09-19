@@ -1,25 +1,19 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-	<type name="Magento\Checkout\Model\CompositeConfigProvider">
-		<arguments>
-			<argument name="configProviders" xsi:type="array">
-				<item name="amwal_iframe_config_provider" xsi:type="object">Amwal\Payments\Model\Config\Iframe\ConfigProvider</item>
-			</argument>
-		</arguments>
-	</type>
-	<type name="Magento\Payment\Model\CcGenericConfigProvider">
-		<arguments>
-			<argument name="methodCodes" xsi:type="array">
-				<item name="amwal_iframe" xsi:type="const">Amwal\Payments\Model\Config\Iframe\ConfigProvider::CODE</item>
-			</argument>
-		</arguments>
-	</type>
-
-	<type name="Magento\Vault\Model\Ui\TokensConfigProvider">
-		<arguments>
-			<argument name="tokenUiComponentProviders" xsi:type="array">
-				<item name="amwal_iframe" xsi:type="object">Amwal\Payments\Model\Ui\Iframe\TokenUiComponentProvider</item>
-			</argument>
-		</arguments>
-	</type>
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="amwal_payments_config_provider" xsi:type="object">Amwal\Payments\Model\Config\Checkout\ConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Amwal\Payments\Block\ExpressCheckoutMinicartButton">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item name="template" xsi:type="string">Amwal_Payments::express/button-minicart.phtml</item>
+                <item name="alias" xsi:type="string">amwal.express.checkout.minicart</item>
+                <item name="view_model" xsi:type="object">Amwal\Payments\ViewModel\ExpressCheckoutButton</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

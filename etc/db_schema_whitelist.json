@@ -1,0 +1,7 @@
+{
+    "sales_order": {
+        "column": {
+            "amwal_order_id": true
+        }
+    }
+}

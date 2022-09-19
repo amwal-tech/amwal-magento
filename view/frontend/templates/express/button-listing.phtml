@@ -1,0 +1,47 @@
+<?php
+/** @var \Magento\Catalog\Block\Product\AbstractProduct $block */
+/** @var \Amwal\Payments\ViewModel\ExpressCheckoutButton $viewModel */
+$viewModel = $this->getViewModel();
+$product = $block->getProduct();
+$viewModel->setProduct($product);
+$productPrice = $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+?>
+
+<?php if ($viewModel->isExpressCheckoutActive() && !$viewModel->isProductConfigurable($product)): ?>
+    <div class="amwal-express-checkout-button">
+        <amwal-checkout-button
+            merchant-id="<?= $viewModel->getMerchantId() ?>"
+            amount="<?= $productPrice ?>"
+            country-code="<?= $viewModel->getCountryCode() ?>"
+            locale="<?= $viewModel->getLocale() ?>"
+            dark-mode="<?= $viewModel->isDarkModeEnabled() ? 'on' : 'off' ?>"
+            email-required="<?= $viewModel->isCustomerLoggedIn() ? 'false' : 'true' ?>"
+            address-required="true"
+            address-handshake="true"
+            shipping-methods='[{"id":"to-be-determined1","label":"To be determined 1","price":5},{"id":"to-be-determined2","label":"To be determined 2","price":15}]'
+            ref-id="<?= $viewModel->getRefId() ?>"
+            label="quick-buy"
+            disabled="true"
+            id="amwal-checkout-<?= $product->getId() ?>"
+            <?php if ($viewModel->getMerchantMode() === \Amwal\Payments\Model\Config\Source\MerchantMode::MERCHANT_TEST_MODE): ?>
+                test-environment="qa"
+            <?php endif; ?>/>
+    </div>
+    <script type="text/x-magento-init">
+        {
+            "#amwal-checkout-<?= $product->getId() ?>": {
+                "Amwal_Payments/js/checkout-button": {
+                    "productId": "<?= $product->getId() ?>",
+                    "refId": "<?= $viewModel->getRefId() ?>",
+                    "refIdData": <?= $viewModel->getRefIdData()->toJson() ?>,
+                    "configuredProductId": "<?= $product->getId() ?>",
+                    "configuration": {},
+                    "productPrice": "<?= $productPrice ?>",
+                    "isConfigurable": <?= $viewModel->isProductConfigurable($product) ? 'true' : 'false' ?>,
+                    "configurableOptions": <?= $viewModel->getConfigurableOptions($product) ? json_encode($viewModel->getConfigurableOptions($product)) : '"{}"' ?>,
+                    "isListing": true
+                }
+            }
+        }
+    </script>
+<?php endif; ?>

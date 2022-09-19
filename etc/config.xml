@@ -1,39 +1,16 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
-	<default>
-		<amwal_payments>
-			<active>1</active>
-			<amw_prod_service_url><![CDATA[https://qa-backend.sa.amwal.tech]]></amw_prod_service_url>
-			<amw_sandbox_service_url><![CDATA[https://qa-backend.sa.amwal.tech]]></amw_sandbox_service_url>
-		</amwal_payments>
-		<payment>
-			<amwal_iframe>
-				<active>1</active>
-				<title>Amwal Merchant</title>
-				<model>AmwalIframeFacade</model>
-				<account_id backend_model="Amwal\Payments\Model\System\Config\Backend\Iframe\Encrypted"/>
-				<payment_type>IFR</payment_type>
-				<country_code>SA</country_code>
-				<preferred_lang>en</preferred_lang>
-				<dark_mode>off</dark_mode>
-				<trans_mode>TEST</trans_mode>
-				<payment_action>AUTH</payment_action>
-				<cctypes>AE,VI,MC,DI,JCB</cctypes>
-				<useccv>1</useccv>
-				<tokenization>1</tokenization>
-				<order_status>pending</order_status>
-				<debug>0</debug>
-				<currency>SAR</currency>
-				<allowspecific>0</allowspecific>
-				<is_gateway>1</is_gateway>
-				<can_use_internal>1</can_use_internal>
-				<can_use_checkout>1</can_use_checkout>
-				<can_authorize>0</can_authorize>
-				<can_capture>0</can_capture>
-				<can_refund>0</can_refund>
-				<can_void>0</can_void>
-				<group>amwal_group</group>
-			</amwal_iframe>
-		</payment>
-	</default>
+    <default>
+        <payment>
+            <amwal_payments>
+                <title>Amwal</title>
+                <order_status>processing</order_status>
+                <model>AmwalPaymentMethodFacade</model>
+                <group>amwal_payments_group</group>
+                <prod_api_base_url><![CDATA[https://backend.sa.amwal.tech]]></prod_api_base_url>
+                <test_api_base_url><![CDATA[https://qa-backend.sa.amwal.tech]]></test_api_base_url>
+                <can_use_checkout>1</can_use_checkout>
+            </amwal_payments>
+        </payment>
+    </default>
 </config>

@@ -1,27 +1,18 @@
-define(
-    [
-        'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list'
-    ],
-    function (
-        Component,
-        rendererList
-    ) {
-        'use strict';
-
-        let config = window.checkoutConfig.payment;
-        let iframe = 'amwal_iframe';
-        
-        if (config[iframe].isActive) {
-            rendererList.push(
-                {
-                    type: iframe,
-                    component: 'Amwal_Payments/js/view/payment/method-renderer/iframe-form'
-                }
-            );
+define([
+    'uiComponent',
+    'Magento_Checkout/js/model/payment/renderer-list'
+],
+function (
+    Component,
+    rendererList
+) {
+    'use strict';
+    rendererList.push(
+        {
+            type: 'amwal_payments',
+            component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment'
         }
+    );
 
-        /** Add view logic here if needed */
-        return Component.extend({});
-    }
-);
+    return Component.extend({});
+});

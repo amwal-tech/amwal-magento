@@ -1,0 +1,11 @@
+.amwal-payments-fieldset > fieldset > table:before {
+    content: "";
+    background-image: url('../images/amwal-logo.png');
+    width: 150px;
+    height: 100px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    position: absolute;
+    margin-left: 40px;
+}
