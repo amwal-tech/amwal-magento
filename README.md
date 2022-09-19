@@ -4,7 +4,7 @@ This plugin integrates the Amwal Payments Service in your Magneto 2 store.
 
 ## Requirements
 - Magento 2.4.4 or higher
-- PHP 8.1 or higher
+- PHP 7.4 or higher
 
 ## Getting the plugin
 
@@ -21,7 +21,7 @@ composer config repositories.amwal_payments git https://github.com/amwal-tech/am
 
 2. Require the composer package
 ```shell
-composer require amwal/payments:dev-develop
+composer require amwal/payments
 ```
 
 ### By Download

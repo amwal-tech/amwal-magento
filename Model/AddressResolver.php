@@ -95,6 +95,8 @@ class AddressResolver
                 if ($this->isAddressMatched($customerAddress, $amwalAddress)) {
                     if ($amwalAddressId = $amwalAddress->getId()) {
                         $this->assignAmwalAddressIdToCustomerAddress($customerAddress, $amwalAddressId);
+                    }
+                    if ($amwalOrderData->getClientPhoneNumber() !== 'tmp') {
                         $this->updateTmpAddressData($customerAddress, $amwalOrderData);
                     }
                     $address = $customerAddress;
@@ -255,7 +257,10 @@ class AddressResolver
     }
 
     /**
+     * @param AddressInterface $customerAddress
+     * @param DataObject $amwalOrderData
      * @return void
+     * @throws LocalizedException
      */
     private function updateTmpAddressData(AddressInterface $customerAddress, DataObject $amwalOrderData): void
     {

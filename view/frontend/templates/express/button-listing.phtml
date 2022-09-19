@@ -24,7 +24,7 @@ $productPrice = $product->getPriceInfo()->getPrice('final_price')->getAmount()->
             disabled="true"
             id="amwal-checkout-<?= $product->getId() ?>"
             <?php if ($viewModel->getMerchantMode() === \Amwal\Payments\Model\Config\Source\MerchantMode::MERCHANT_TEST_MODE): ?>
-                test-environment="dev"
+                test-environment="qa"
             <?php endif; ?>/>
     </div>
     <script type="text/x-magento-init">
