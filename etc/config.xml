@@ -5,7 +5,7 @@
             <amwal_payments>
                 <title>Amwal</title>
                 <order_status>processing</order_status>
-                <merchant_mode>test</merchant_mode>
+                <merchant_mode>live</merchant_mode>
                 <model>AmwalPaymentMethodFacade</model>
                 <group>amwal_payments_group</group>
                 <prod_api_base_url><![CDATA[https://backend.sa.amwal.tech]]></prod_api_base_url>
