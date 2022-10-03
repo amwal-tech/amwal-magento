@@ -88,10 +88,6 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, confirm, _) {
                     attributes: false,
                     characterData: false
                 });
-
-                $(minicartContentWrapper).on('click', '#' + buttonSelector, function() {
-                    self.startExpressCheckout();
-                });
             }
 
             self.$checkoutButton.on('click', function() {

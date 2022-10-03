@@ -57,11 +57,6 @@
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <config_path>payment/amwal_payments/country_code</config_path>
                     </field>
-                    <field id="merchant_mode" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Merchant Mode</label>
-                        <source_model>Amwal\Payments\Model\Config\Source\MerchantMode</source_model>
-                        <config_path>payment/amwal_payments/merchant_mode</config_path>
-                    </field>
                 </group>
                 <!-- Visual Settings -->
                 <group id="amwal_payments_visual" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
