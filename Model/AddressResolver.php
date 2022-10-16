@@ -228,15 +228,22 @@ class AddressResolver
      */
     private function getRegion(AmwalAddressInterface $amwalAddress): ?RegionInterface
     {
+        $countryRegionsCollection = $this->regionCollectionFactory->create()
+            ->addCountryFilter($amwalAddress->getCountry());
+
+        if (!$countryRegionsCollection->count()) {
+            return null;
+        }
+
         $regionCollection = $this->regionCollectionFactory->create()
             ->addCountryFilter($amwalAddress->getCountry())
             ->addRegionCodeFilter($amwalAddress->getState());
 
         if (!$regionCollection->count()) {
-            return null;
+            $regionDirectory = $countryRegionsCollection->getFirstItem();
+        } else {
+            $regionDirectory = $regionCollection->getFirstItem();
         }
-
-        $regionDirectory = $regionCollection->getFirstItem();
 
         return $this->regionFactory->create()
             ->setRegion($regionDirectory->getName())
