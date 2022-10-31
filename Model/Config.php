@@ -51,7 +51,9 @@ class Config
      */
     public function isActive(): bool
     {
-        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ACTIVE, ScopeInterface::SCOPE_WEBSITE);
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
+            $this->getMerchantId() &&
+            $this->getRefIdSecret();
     }
 
     /**
@@ -111,7 +113,7 @@ class Config
      */
     public function getCountryCode(): string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_COUNTRY_CODE, ScopeInterface::SCOPE_WEBSITE);
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_COUNTRY_CODE, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
@@ -119,7 +121,7 @@ class Config
      */
     public function getTitle(): string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_TITLE, ScopeInterface::SCOPE_STORE);
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_TITLE, ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -127,7 +129,7 @@ class Config
      */
     public function getExpressCheckoutTitle(): string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_EXPRESS_CHECKOUT_TITLE, ScopeInterface::SCOPE_STORE);
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_EXPRESS_CHECKOUT_TITLE, ScopeInterface::SCOPE_STORE);
     }
 
     /**

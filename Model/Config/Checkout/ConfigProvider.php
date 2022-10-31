@@ -77,6 +77,8 @@ class ConfigProvider implements ConfigProviderInterface
 
         $config = [
             'isActive' => $this->config->isActive(),
+            'isRegularCheckoutActive' => $this->config->isRegularCheckoutActive(),
+            'isExpressCheckoutActive' => $this->config->isExpressCheckoutActive(),
             'merchantId' => $this->config->getMerchantId(),
             'merchantMode' => $this->config->getMerchantMode(),
             'title' => $this->config->getTitle(),

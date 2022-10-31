@@ -7,12 +7,18 @@ function (
     rendererList
 ) {
     'use strict';
-    rendererList.push(
-        {
-            type: 'amwal_payments',
-            component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment'
-        }
-    );
+
+    let config = window.checkoutConfig.payment,
+        methodCode = 'amwal_payments';
+
+    if (config[methodCode] && config[methodCode].isActive && config[methodCode].isRegularCheckoutActive) {
+        rendererList.push(
+            {
+                type: methodCode,
+                component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment'
+            }
+        );
+    }
 
     return Component.extend({});
 });
