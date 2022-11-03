@@ -15,6 +15,7 @@ class Config
 {
 
     public const XML_CONFIG_PATH_ACTIVE = 'payment/amwal_payments/active';
+    public const XML_CONFIG_PATH_MERCHANT_ID_VALID = 'payment/amwal_payments/merchant_id_valid';
     public const XML_CONFIG_PATH_EXPRESS_CHECKOUT_ACTIVE = 'payment/amwal_payments/express_checkout_active';
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_ACTIVE = 'payment/amwal_payments/regular_checkout_active';
     public const XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT = 'payment/amwal_payments/hide_proceed_to_checkout';
@@ -53,7 +54,16 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
             $this->getMerchantId() &&
-            $this->getRefIdSecret();
+            $this->getRefIdSecret() &&
+            $this->isMerchantValid();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMerchantValid(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_MERCHANT_ID_VALID, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
