@@ -21,18 +21,22 @@
                         <config_path>payment/amwal_payments/merchant_id</config_path>
                         <comment><![CDATA[Don't have a Merchant ID yet? <a href="https://merchant.sa.amwal.tech/" target="_blank">Sign up for an account here</a> to get your Merchant ID.]]></comment>
                     </field>
-                    <field id="verify_merchant_id" translate="button_label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="verify_merchant_id" translate="button_label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label/>
                         <button_label>Verify Merchant ID</button_label>
                         <frontend_model>Amwal\Payments\Block\System\Config\ValidateMerchantIdButton</frontend_model>
                     </field>
-                    <field id="express_checkout_active" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="merchant_id_valid" type="hidden" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label/>
+                        <config_path>payment/amwal_payments/merchant_id_valid</config_path>
+                    </field>
+                    <field id="express_checkout_active" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Enable Express checkout</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/express_checkout_active</config_path>
                         <tooltip>Indicates if the Express Checkout functionality should be enabled</tooltip>
                     </field>
-                    <field id="hide_proceed_to_checkout" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="hide_proceed_to_checkout" translate="label tooltip" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Hide "Proceed to Checkout" button</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/hide_proceed_to_checkout</config_path>
@@ -41,18 +45,18 @@
                             <field id="express_checkout_active">1</field>
                         </depends>
                     </field>
-                    <field id="regular_checkout_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="regular_checkout_active" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Enable Regular checkout</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/regular_checkout_active</config_path>
                         <tooltip>Indicates if the Regular Checkout functionality should be enabled</tooltip>
                     </field>
-                    <field id="ref_id_secret" translate="label tooltip" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="ref_id_secret" translate="label tooltip" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Reference ID secret key</label>
                         <config_path>payment/amwal_payments/ref_id_secret</config_path>
                         <tooltip>A random key that is used to generate a reference ID. The reference ID is used to ensure a payment is valid.</tooltip>
                     </field>
-                    <field id="country_code" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="country_code" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Merchant Country</label>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <config_path>payment/amwal_payments/country_code</config_path>
