@@ -25,13 +25,13 @@ $viewModel->setQuoteId((string)$quote->getId());
 <script type="text/x-magento-init">
     {
         "#amwal-checkout-quote-<?= $quote->getId() ?>": {
-            "Amwal_Payments/js/checkout-button": {
-                "isMinicart": true,
+            "Amwal_Payments/js/checkout-button-minicart": {
                 "hideProceedToCheckout": <?= (int) $viewModel->shouldHideProceedToCheckout() ?>,
-                "orderedAmount": "<?= $quote->getBaseGrandTotal() ?>",
+                "quotePrice": "<?= $quote->getGrandTotal() ?>",
                 "quoteId": "<?= $quote->getId() ?>",
                 "refId": "<?= $viewModel->getRefId() ?>",
-                "refIdData": <?= $viewModel->getRefIdData()->toJson() ?>
+                "refIdData": <?= $viewModel->getRefIdData()->toJson() ?>,
+                "customerId": "<?= $viewModel->getCustomerId() ?>"
             }
         }
     }

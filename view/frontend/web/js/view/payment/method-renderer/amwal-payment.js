@@ -30,7 +30,7 @@ function ($, Component, quote, totals, placeAmwalOrder) {
                 $('body').trigger('processStart');
             });
 
-                const eventListenerInterval = setInterval(function () {
+            const eventListenerInterval = setInterval(function () {
                 let $amwalCheckoutButton = $(self.amwalButtonSelector);
 
                 if ($amwalCheckoutButton.length) {
