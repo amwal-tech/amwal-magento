@@ -79,7 +79,6 @@ function ($, Component, customerData, urlBuidler, _) {
 
         /**
          * Updates the ordered price.
-         * @todo: This is taking the subtotal as is. We need to handle discounts + taxes somewhere later in the chain (after address update?)
          */
         updateOrderedAmount: function() {
             this.orderedAmount = customerData.get('cart')._latestValue.subtotalAmount;
@@ -91,7 +90,7 @@ function ($, Component, customerData, urlBuidler, _) {
         checkAmount: function () {
             let self = this,
                 setAmount = parseFloat(self.$checkoutButton.attr('amount')),
-                actualAmount = parseFloat(this.orderedAmount);
+                actualAmount = parseFloat(self.orderedAmount);
             if (setAmount !== actualAmount) {
                 self.$checkoutButton.attr('amount', actualAmount);
             }

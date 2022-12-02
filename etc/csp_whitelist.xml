@@ -32,5 +32,15 @@
                 <value id="unpkg" type="host">https://unpkg.com</value>
             </values>
         </policy>
+        <policy id="style-src">
+            <values>
+                <value id="googleapis-fonts" type="host">*.googleapis.com</value>
+            </values>
+        </policy>
+        <policy id="font-src">
+            <values>
+                <value id="googleapis-fonts" type="host">*.gstatic.com</value>
+            </values>
+        </policy>
     </policies>
 </csp_whitelist>

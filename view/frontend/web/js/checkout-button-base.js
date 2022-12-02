@@ -185,6 +185,13 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
 
                     self.$checkoutButton.attr('shipping-methods', JSON.stringify(amwalRates));
                     self.checkoutButton.shippingMethods = amwalRates;
+
+                    self.$checkoutButton.attr('taxes', response[0].tax_amount);
+                    self.checkoutButton.taxes = response[0].tax_amount;
+
+                    self.$checkoutButton.attr('discount', response[0].discount_amount);
+                    self.checkoutButton.discount = response[0].discount_amount;
+
                     window.dispatchEvent( new Event('amwalRatesSet') );
                 },
                 error: function (response) {
