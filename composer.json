@@ -31,5 +31,10 @@
         "psr-4": {
             "Amwal\\Payments\\": ""
         }
+    },
+    "archive": {
+        "exclude": [
+            ".gitignore"
+        ]
     }
 }
