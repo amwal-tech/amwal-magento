@@ -30,12 +30,11 @@ function ($, Component, customerData, urlBuidler, _) {
         initialize: function () {
             this._super();
 
-            let self = this;
-            self.processProceedToCheckoutButtonConfig();
-            self.updateOrderedAmount();
-            self.setClickable(true);
+            this.processProceedToCheckoutButtonConfig();
+            this.updateOrderedAmount();
+            this.setClickable(true);
 
-            return self;
+            return this;
         },
 
         /**
@@ -64,6 +63,9 @@ function ($, Component, customerData, urlBuidler, _) {
                     if (self.hideProceedToCheckout) {
                         $(self.proceedToCheckoutSelector).hide();
                     }
+
+                    self.updateOrderedAmount();
+                    self.checkAmount();
 
                     proceedToCheckoutObserver.disconnect();
                 }
