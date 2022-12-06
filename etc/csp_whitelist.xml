@@ -21,6 +21,7 @@
                 <value id="unpkg" type="host">https://unpkg.com</value>
                 <value id="oppwa" type="host">https://eu-test.oppwa.com</value>
                 <value id="ppipe" type="host">https://test.ppipe.net</value>
+                <value id="ppipe" type="host">https://eu-test.ppipe.net</value>
                 <value id="shpf-base" type="host">https://secure.iframe.com</value>
                 <value id="iframe" type="host">https://iframe.com</value>
             </values>
@@ -29,6 +30,16 @@
             <values>
                 <value id="amwal" type="host">*.amwal.tech</value>
                 <value id="unpkg" type="host">https://unpkg.com</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="googleapis-fonts" type="host">*.googleapis.com</value>
+            </values>
+        </policy>
+        <policy id="font-src">
+            <values>
+                <value id="googleapis-fonts" type="host">*.gstatic.com</value>
             </values>
         </policy>
     </policies>

@@ -162,7 +162,7 @@ class GetQuote
             $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
             $availableRates[$id] = [
                 'carrier_title' => $rate->getMethodTitle(),
-                'price' => $rate->getBaseAmount()
+                'price' => number_format((float) $rate->getBaseAmount(), 2)
             ];
         }
 
@@ -175,7 +175,11 @@ class GetQuote
             'data' => [
                 'quote_id' => $quote->getId(),
                 'available_rates' => $availableRates,
-                'amount' => $quote->getBaseGrandTotal()
+                'amount' => $quote->getGrandTotal(),
+                'subtotal' => $quote->getShippingAddress()->getSubtotal(),
+                'tax_amount' => $quote->getShippingAddress()->getTaxAmount(),
+                'shipping_amount' => $quote->getShippingAddress()->getShippingInclTax(),
+                'discount_amount' => abs($quote->getShippingAddress()->getDiscountAmount())
             ]
         ];
     }

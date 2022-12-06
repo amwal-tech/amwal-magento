@@ -30,12 +30,11 @@ $productPrice = $product->getPriceInfo()->getPrice('final_price')->getAmount()->
     <script type="text/x-magento-init">
         {
             "#amwal-checkout-<?= $product->getId() ?>": {
-                "Amwal_Payments/js/checkout-button": {
+                "Amwal_Payments/js/checkout-button-product": {
                     "productId": "<?= $product->getId() ?>",
                     "refId": "<?= $viewModel->getRefId() ?>",
                     "refIdData": <?= $viewModel->getRefIdData()->toJson() ?>,
                     "configuredProductId": "<?= $product->getId() ?>",
-                    "configuration": {},
                     "productPrice": "<?= $productPrice ?>",
                     "isConfigurable": <?= $viewModel->isProductConfigurable($product) ? 'true' : 'false' ?>,
                     "configurableOptions": <?= $viewModel->getConfigurableOptions($product) ? json_encode($viewModel->getConfigurableOptions($product)) : '"{}"' ?>,
