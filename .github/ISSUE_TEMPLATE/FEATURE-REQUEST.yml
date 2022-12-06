@@ -1,0 +1,27 @@
+name: "Feature request"
+description: Share your idea to improve our plugin.
+title: "[FEATURE] - <title>"
+labels: [
+  "feature request"
+]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: "Description"
+      description: Please explain what feature you would like to add.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "Why"
+      description: Please provide a detailed explanation on why this feature would be an improvement for the plugin.
+      placeholder: I think this feature will be an amazing addition becuase...
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: "Additional context"
+      description: Please provide any additional information that will help us understand your feature request.
