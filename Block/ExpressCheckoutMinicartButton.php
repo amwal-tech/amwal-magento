@@ -82,10 +82,6 @@ class ExpressCheckoutMinicartButton extends Template
      */
     private function shouldRender(): bool
     {
-        if (!$this->getQuote() || !$this->getQuote()->getItemsCount()) {
-            return false;
-        }
-
         if (!$this->config->isActive() || !$this->config->isExpressCheckoutActive()) {
             return false;
         }
