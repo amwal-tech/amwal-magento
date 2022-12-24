@@ -90,6 +90,12 @@ class ExpressCheckoutMinicartButton extends Template
             return false;
         }
 
+        if ($this->getQuote()) {
+            if ($this->getQuote()->getGrandTotal() <= 0) {
+                return false;
+            }
+        }
+
         return true;
     }
 

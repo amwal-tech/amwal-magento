@@ -34,6 +34,10 @@ function ($, Component, _) {
                 self.observeFormChange();
             }
 
+            if (self.isListing) {
+                self.triggerContext = 'product-listing-page';
+            }
+
             $(self.qtySelector).on('change', function() {
                 self.updateOrderedQty();
                 self.updateOrderedAmount();

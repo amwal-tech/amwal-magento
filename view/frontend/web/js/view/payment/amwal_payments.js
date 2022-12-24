@@ -1,17 +1,22 @@
 define([
     'uiComponent',
-    'Magento_Checkout/js/model/payment/renderer-list'
+    'Magento_Checkout/js/model/payment/renderer-list',
+    'Magento_Checkout/js/model/totals'
 ],
 function (
     Component,
-    rendererList
+    rendererList,
+    totals
 ) {
     'use strict';
 
     let config = window.checkoutConfig.payment,
         methodCode = 'amwal_payments';
 
-    if (config[methodCode] && config[methodCode].isActive && config[methodCode].isRegularCheckoutActive) {
+    if (config[methodCode] && config[methodCode].isActive &&
+        config[methodCode].isRegularCheckoutActive &&
+        (parseFloat(totals.totals().base_grand_total) > 0)
+    ) {
         rendererList.push(
             {
                 type: methodCode,
