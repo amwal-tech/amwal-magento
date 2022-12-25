@@ -13,7 +13,6 @@ use Magento\Store\Model\ScopeInterface;
 
 class Config
 {
-
     public const XML_CONFIG_PATH_ACTIVE = 'payment/amwal_payments/active';
     public const XML_CONFIG_PATH_MERCHANT_ID_VALID = 'payment/amwal_payments/merchant_id_valid';
     public const XML_CONFIG_PATH_EXPRESS_CHECKOUT_ACTIVE = 'payment/amwal_payments/express_checkout_active';
@@ -24,8 +23,9 @@ class Config
     public const XML_CONFIG_PATH_MERCHANT_MODE = 'payment/amwal_payments/merchant_mode';
     public const XML_CONFIG_PATH_COUNTRY_CODE = 'payment/amwal_payments/country_code';
     public const XML_CONFIG_PATH_TITLE = 'payment/amwal_payments/title';
-    public const XML_CONFIG_PATH_EXPRESS_CHECKOUT_TITLE =  'payment/amwal_payments/express_checkout_title';
-    public const XML_CONFIG_PATH_ORDER_CONFIRMED_STATUS =  'payment/amwal_payments/order_confirmed_status';
+    public const XML_CONFIG_PATH_EXPRESS_CHECKOUT_TITLE = 'payment/amwal_payments/express_checkout_title';
+    public const XML_CONFIG_PATH_ORDER_CONFIRMED_STATUS = 'payment/amwal_payments/order_confirmed_status';
+    public const XML_CONFIG_PATH_CREATE_USER_ON_ORDER = 'payment/amwal_payments/create_user_on_order';
     public const XML_CONFIG_PATH_DARK_MODE = 'payment/amwal_payments/dark_mode';
     public const XML_CONFIG_PATH_DEBUG_MODE = 'payment/amwal_payments/debug_mode';
     public const XML_CONFIG_PATH_CURRENCY = 'payment/amwal_payments/currency';
@@ -148,6 +148,14 @@ class Config
     public function getOrderConfirmedStatus(): string
     {
         return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_ORDER_CONFIRMED_STATUS, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function shouldCreateCustomer(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_CREATE_USER_ON_ORDER, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**

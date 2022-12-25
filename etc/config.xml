@@ -12,6 +12,7 @@
                 <prod_api_base_url><![CDATA[https://backend.sa.amwal.tech]]></prod_api_base_url>
                 <test_api_base_url><![CDATA[https://qa-backend.sa.amwal.tech]]></test_api_base_url>
                 <can_use_checkout>1</can_use_checkout>
+                <create_user_on_order>0</create_user_on_order>
             </amwal_payments>
         </payment>
     </default>

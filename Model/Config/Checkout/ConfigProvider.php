@@ -67,9 +67,10 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
+        $customerId = (int) $this->customerSession->getCustomerId();
         $refIdData = $this->refIdDataFactory->create();
         $refIdData->setIdentifier($this->checkoutSession->getSessionId())
-            ->setCustomerId((int) $this->customerSession->getCustomerId())
+            ->setCustomerId($customerId)
             ->setTimestamp(microtime())
             ->setSecret($this->config->getRefIdSecret());
 

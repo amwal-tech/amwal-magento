@@ -36,7 +36,13 @@ function ($, Component, quote, totals, placeAmwalOrder) {
                 if ($amwalCheckoutButton.length) {
                     document.getElementById(self.amwalButtonId).addEventListener('amwalCheckoutSuccess', function (e) {
                         self.additionalData.transactionId = e.detail.orderId;
-                        placeAmwalOrder.execute(e.detail.orderId, quote.getQuoteId(), self.getRefId(), self.getRefIdData());
+                        placeAmwalOrder.execute(
+                            e.detail.orderId,
+                            quote.getQuoteId(),
+                            self.getRefId(),
+                            self.getRefIdData(),
+                            'regular-checkout'
+                        );
                     });
                     self.setAmount();
                     self.observeAmount();

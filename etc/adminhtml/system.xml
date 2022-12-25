@@ -88,17 +88,17 @@
                 <group id="amwal_payments_orders" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <label>Order Settings</label>
-                    <field id="order_creation_status" translate="label tooltip" type="select" sortOrder="61" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Order creation status</label>
-                        <tooltip>Status given to orders when the transaction is started, but the payment is not yet confirmed.</tooltip>
-                        <source_model>Amwal\Payments\Model\Config\Source\Status\OrderCreation</source_model>
-                        <config_path>payment/amwal_payments/order_creation_status</config_path>
-                    </field>
-                    <field id="order_confirmed_status" translate="label tooltip" type="select" sortOrder="62" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="order_confirmed_status" translate="label tooltip" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Order confirmed status</label>
                         <tooltip>Status given to orders after the payment has been confirmed.</tooltip>
                         <source_model>Amwal\Payments\Model\Config\Source\Status\OrderConfirmed</source_model>
                         <config_path>payment/amwal_payments/order_confirmed_status</config_path>
+                    </field>
+                    <field id="create_user_on_order" translate="label tooltip" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Create customer on order creation</label>
+                        <tooltip>When set to YES a customer will be created if a guest user places an order using Amwal.</tooltip>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/create_user_on_order</config_path>
                     </field>
                 </group>
                 <!--Country specific settings-->

@@ -23,6 +23,7 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
         checkoutButton: null,
         $checkoutButton: null,
         quoteId: null,
+        triggerContext: 'product-detail-page',
 
         /**
          * @returns {exports.initialize}
@@ -82,8 +83,14 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
             });
 
             // Place the order once we receive the checkout success event
-            self.checkoutButton.addEventListener('amwalCheckoutSuccess', function (e) {
-                placeAmwalOrder.execute(e.detail.orderId, self.quoteId, self.refId, self.refIdData);
+            self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
+                placeAmwalOrder.execute(
+                    e.detail.orderId,
+                    self.quoteId,
+                    self.refId,
+                    self.refIdData,
+                    self.triggerContext
+                );
             });
 
             // Trigger the address update so Amwal knows the shippign methods are set

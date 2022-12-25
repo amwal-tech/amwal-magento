@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\ViewModel;
 
+use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Api\RefIdManagementInterface;
@@ -11,8 +12,10 @@ use Magento\Catalog\Model\Product;
 use Magento\Checkout\Helper\Data;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Session;
+use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Registry;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\ScopeInterface;
 
@@ -26,6 +29,9 @@ class ExpressCheckoutButton implements ArgumentInterface
     private RefIdManagementInterface $refIdManagement;
     protected RefIdDataInterfaceFactory $refIdDataFactory;
     private ?Product $product = null;
+    private DirectoryHelper $directoryHelper;
+    private Json $jsonSerializer;
+    private AmwalAddressInterfaceFactory $amwalAddressFactory;
     private string $timestamp;
 
     /**
@@ -35,7 +41,9 @@ class ExpressCheckoutButton implements ArgumentInterface
      * @param Session $customerSession
      * @param RefIdManagementInterface $refIdManagement
      * @param RefIdDataInterfaceFactory $refIdDataFactory
-     * @param int $timestamp
+     * @param DirectoryHelper $directoryHelper
+     * @param Json $jsonSerializer
+     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      */
     public function __construct(
         AmwalConfig $config,
@@ -43,7 +51,10 @@ class ExpressCheckoutButton implements ArgumentInterface
         Registry $registry,
         Session $customerSession,
         RefIdManagementInterface $refIdManagement,
-        RefIdDataInterfaceFactory $refIdDataFactory
+        RefIdDataInterfaceFactory $refIdDataFactory,
+        DirectoryHelper $directoryHelper,
+        Json $jsonSerializer,
+        AmwalAddressInterfaceFactory $amwalAddressFactory
     ) {
         $this->config = $config;
         $this->registry = $registry;
@@ -51,6 +62,9 @@ class ExpressCheckoutButton implements ArgumentInterface
         $this->scopeConfig = $scopeConfig;
         $this->refIdManagement = $refIdManagement;
         $this->refIdDataFactory = $refIdDataFactory;
+        $this->directoryHelper = $directoryHelper;
+        $this->jsonSerializer = $jsonSerializer;
+        $this->amwalAddressFactory = $amwalAddressFactory;
         $this->timestamp = microtime();
     }
 
@@ -200,5 +214,44 @@ class ExpressCheckoutButton implements ArgumentInterface
             ->setIdentifier((string) $this->getProduct()->getId())
             ->setCustomerId($this->getCustomerId())
             ->setTimestamp($this->getTimestamp());
+    }
+
+    /**
+     * @return string
+     */
+    public function getAllowedCountriesJson(): string
+    {
+        return $this->jsonSerializer->serialize(
+            array_keys($this->directoryHelper->getCountryCollection()->getItems())
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getInitialDataAttributes(): array
+    {
+        $customer = $this->customerSession->getCustomer();
+
+        $defaultShippingAddress = $customer->getDefaultShippingAddress();
+        if (!$defaultShippingAddress) {
+            return [];
+        }
+
+        $initialAddress = $this->amwalAddressFactory->create();
+        $initialAddress->setCity($defaultShippingAddress->getCity());
+        $initialAddress->setState($defaultShippingAddress->getRegionCode());
+        $initialAddress->setPostcode($defaultShippingAddress->getPostcode());
+        $initialAddress->setCountry($defaultShippingAddress->getCountryId());
+        $initialAddress->setStreet1($defaultShippingAddress->getStreetLine(1));
+        $initialAddress->setStreet2($defaultShippingAddress->getStreetLine(2));
+        $initialAddress->setEmail($customer->getEmail());
+
+        $attributes = [];
+        $attributes['initial-address'] = $initialAddress->toJson();
+        $attributes['initial-email'] = $customer->getEmail();
+        $attributes['initial-phone'] = $defaultShippingAddress->getTelephone();
+
+        return $attributes;
     }
 }

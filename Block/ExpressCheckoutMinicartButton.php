@@ -82,16 +82,18 @@ class ExpressCheckoutMinicartButton extends Template
      */
     private function shouldRender(): bool
     {
-        if (!$this->getQuote() || !$this->getQuote()->getItemsCount()) {
-            return false;
-        }
-
         if (!$this->config->isActive() || !$this->config->isExpressCheckoutActive()) {
             return false;
         }
 
         if (!$this->customerSessionFactory->create()->isLoggedIn() && !$this->scopeConfig->isSetFlag(Data::XML_PATH_GUEST_CHECKOUT, ScopeInterface::SCOPE_STORE)) {
             return false;
+        }
+
+        if ($this->getQuote()) {
+            if ($this->getQuote()->getGrandTotal() <= 0) {
+                return false;
+            }
         }
 
         return true;
