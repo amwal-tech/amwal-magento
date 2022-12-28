@@ -166,7 +166,7 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
             payload.ref_id = self.refId;
             payload.ref_id_data = self.refIdData;
 
-            if (self.quoteId !== null) {
+            if (self.quoteId !== null && self.quoteId !== 'newquote') {
                 payload.quote_id = self.quoteId;
             }
 
