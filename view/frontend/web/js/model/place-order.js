@@ -8,7 +8,7 @@ function ($, urlBuilder, customerData) {
 
     return {
 
-        execute: function(amwalOrderId, quoteId, refId, refIdData, triggerContext) {
+        execute: function(amwalOrderId, quoteId, refId, refIdData, triggerContext, hasAmwalAddress) {
             let self = this,
                 placeOrderEndpoint = urlBuilder.build('rest/V1/amwal/place-order'),
                 payload = {
@@ -16,7 +16,8 @@ function ($, urlBuilder, customerData) {
                     amwal_order_id: amwalOrderId,
                     ref_id: refId,
                     ref_id_data: refIdData,
-                    trigger_context: triggerContext
+                    trigger_context: triggerContext,
+                    has_amwal_address: hasAmwalAddress
                 };
 
             $('body').trigger('processStart');

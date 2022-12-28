@@ -41,7 +41,8 @@ function ($, Component, quote, totals, placeAmwalOrder) {
                             quote.getQuoteId(),
                             self.getRefId(),
                             self.getRefIdData(),
-                            'regular-checkout'
+                            'regular-checkout',
+                            false
                         );
                     });
                     self.setAmount();

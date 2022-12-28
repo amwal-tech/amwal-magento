@@ -89,7 +89,8 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
                     self.quoteId,
                     self.refId,
                     self.refIdData,
-                    self.triggerContext
+                    self.triggerContext,
+                    true
                 );
             });
 

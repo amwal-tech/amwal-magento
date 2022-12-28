@@ -30,6 +30,7 @@ use Magento\Framework\Phrase;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\AddressFactory;
 use Magento\Quote\Model\QuoteManagement;
@@ -63,6 +64,7 @@ class PlaceOrder
     private CustomerInterfaceFactory $customerFactory;
     private AccountManagementInterface $accountManagement;
     private SessionFactory $customerSessionFactory;
+    private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private LoggerInterface $logger;
 
     /**
@@ -87,31 +89,33 @@ class PlaceOrder
      * @param CustomerInterfaceFactory $customerFactory
      * @param AccountManagementInterface $accountManagement
      * @param SessionFactory $customerSessionFactory
+     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param LoggerInterface $logger
      */
     public function __construct(
-        AmwalClientFactory           $amwalClientFactory,
-        Json                         $jsonSerializer,
-        QuoteManagement              $quoteManagement,
-        AddressFactory               $quoteAddressFactory,
-        QuoteRepositoryInterface     $quoteRepository,
-        CheckoutSession              $checkoutSession,
-        Config                       $config,
-        ManagerInterface             $messageManager,
-        InvoiceOrder                 $invoiceAmwalOrder,
-        AddressResolver              $addressResolver,
-        OrderRepositoryInterface     $orderRepository,
-        Factory                      $objectFactory,
-        AmwalAddressInterfaceFactory $amwalAddressFactory,
-        RefIdManagementInterface     $refIdManagement,
-        UpdateShippingMethod         $updateShippingMethod,
-        SetAmwalOrderDetails         $setAmwalOrderDetails,
-        StoreManagerInterface        $storeManager,
-        CustomerRepositoryInterface  $customerRepository,
-        CustomerInterfaceFactory     $customerFactory,
-        AccountManagementInterface   $accountManagement,
-        SessionFactory               $customerSessionFactory,
-        LoggerInterface              $logger
+        AmwalClientFactory              $amwalClientFactory,
+        Json                            $jsonSerializer,
+        QuoteManagement                 $quoteManagement,
+        AddressFactory                  $quoteAddressFactory,
+        QuoteRepositoryInterface        $quoteRepository,
+        CheckoutSession                 $checkoutSession,
+        Config                          $config,
+        ManagerInterface                $messageManager,
+        InvoiceOrder                    $invoiceAmwalOrder,
+        AddressResolver                 $addressResolver,
+        OrderRepositoryInterface        $orderRepository,
+        Factory                         $objectFactory,
+        AmwalAddressInterfaceFactory    $amwalAddressFactory,
+        RefIdManagementInterface        $refIdManagement,
+        UpdateShippingMethod            $updateShippingMethod,
+        SetAmwalOrderDetails            $setAmwalOrderDetails,
+        StoreManagerInterface           $storeManager,
+        CustomerRepositoryInterface     $customerRepository,
+        CustomerInterfaceFactory        $customerFactory,
+        AccountManagementInterface      $accountManagement,
+        SessionFactory                  $customerSessionFactory,
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        LoggerInterface                 $logger
     ) {
         $this->amwalClientFactory = $amwalClientFactory;
         $this->jsonSerializer = $jsonSerializer;
@@ -134,20 +138,22 @@ class PlaceOrder
         $this->customerFactory = $customerFactory;
         $this->accountManagement = $accountManagement;
         $this->customerSessionFactory = $customerSessionFactory;
+        $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->logger = $logger;
     }
 
     /**
-     * @param int $quoteId
+     * @param string|int $quoteId
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param string $amwalOrderId
      * @param string $triggerContext
+     * @param bool $hasAmwalAddress
      * @return void
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute(int $quoteId, string $refId, RefIdDataInterface $refIdData, string $amwalOrderId, string $triggerContext): void
+    public function execute($quoteId, string $refId, RefIdDataInterface $refIdData, string $amwalOrderId, string $triggerContext, bool $hasAmwalAddress): void
     {
         $amwalOrderData = $this->getAmwalOrderData($amwalOrderId);
         if (!$amwalOrderData) {
@@ -166,33 +172,42 @@ class PlaceOrder
             $this->throwException(__('We were unable to verify your payment.'));
         }
 
-        try {
-            $customerAddress = $this->addressResolver->execute($amwalOrderData);
-        } catch (LocalizedException | RuntimeException $e) {
-            $this->logger->error(sprintf(
-                "Unable to resolve address while creating order.\nQuote ID: %s\nAmwal Order Data: %s\nAmwal Order id: %s",
-                $quoteId,
-                $amwalOrderData->toJson(),
-                $amwalOrderId
-            ));
-            $this->throwException();
+        if (!is_numeric($quoteId)) {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
         }
+
+        $quoteId = (int) $quoteId;
 
         $quote = $this->quoteRepository->get($quoteId);
 
-        if ($quote->getCustomerIsGuest()) {
-            $this->setCustomerEmail($quote, $amwalOrderData->getClientEmail());
-        }
+        $customerAddress = null;
+        if ($hasAmwalAddress) {
+            try {
+                $customerAddress = $this->addressResolver->execute($amwalOrderData);
+            } catch (LocalizedException|RuntimeException $e) {
+                $this->logger->error(sprintf(
+                    "Unable to resolve address while creating order.\nQuote ID: %s\nAmwal Order Data: %s\nAmwal Order id: %s",
+                    $quoteId,
+                    $amwalOrderData->toJson(),
+                    $amwalOrderId
+                ));
+                $this->throwException();
+            }
 
-        $this->updateCustomerAddress($quote, $customerAddress);
-        if ($amwalOrderData->getShippingDetails()) {
-            $this->updateShippingMethod->execute($quote, $amwalOrderData->getShippingDetails()->getId());
+            if ($quote->getCustomerIsGuest()) {
+                $this->setCustomerEmail($quote, $amwalOrderData->getClientEmail());
+            }
+
+            $this->updateCustomerAddress($quote, $customerAddress);
+            if ($amwalOrderData->getShippingDetails()) {
+                $this->updateShippingMethod->execute($quote, $amwalOrderData->getShippingDetails()->getId());
+            }
         }
 
         $newCustomer = null;
         if ($this->shouldCreateCustomer($quote, $amwalOrderData)) {
             try {
-                $newCustomer = $this->createCustomer($amwalOrderData, $customerAddress);
+                $newCustomer = $this->createCustomer($amwalOrderData, $customerAddress, $quote);
                 $quote->setCustomerIsGuest(false);
                 $quote->setCustomer($newCustomer);
                 $quote->setCustomerId($newCustomer->getId());
@@ -354,17 +369,20 @@ class PlaceOrder
 
     /**
      * @param DataObject $amwalOrderData
-     * @param AddressInterface $customerAddress
+     * @param AddressInterface|null $customerAddress
      * @return CustomerInterface
      * @throws LocalizedException
      */
-    private function createCustomer(DataObject $amwalOrderData, AddressInterface $customerAddress): CustomerInterface
+    private function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, $quote): CustomerInterface
     {
         $customer = $this->customerFactory->create();
-        $customer->setEmail($amwalOrderData->getClientEmail());
+        $customer->setEmail($amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail());
         $customer->setFirstname($amwalOrderData->getClientFirstName());
         $customer->setLastname($amwalOrderData->getClientLastName());
-        $customer->setAddresses([$customerAddress]);
+
+        if ($customerAddress) {
+            $customer->setAddresses([$customerAddress]);
+        }
 
         return $this->accountManagement->createAccount($customer);
     }
@@ -392,7 +410,7 @@ class PlaceOrder
     private function shouldCreateCustomer(CartInterface $quote, DataObject $amwalOrderData): bool
     {
         return $quote->getCustomerIsGuest() &&
-            !$this->customerWithEmailExists($amwalOrderData->getClientEmail()) &&
+            !$this->customerWithEmailExists($amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail()) &&
             $this->config->shouldCreateCustomer();
     }
 }
