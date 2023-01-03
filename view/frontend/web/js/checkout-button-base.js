@@ -79,6 +79,7 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
             // Create the quote when address is updated so we can gather shipping info
             self.checkoutButton.addEventListener('amwalAddressUpdate', function (e) {
                 self.addressData = e.detail;
+                console.log('Address:', e.detail);
                 self.getQuote();
             });
 

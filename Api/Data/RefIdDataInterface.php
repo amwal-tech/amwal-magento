@@ -5,16 +5,9 @@ namespace Amwal\Payments\Api\Data;
 
 interface RefIdDataInterface
 {
-    public const SECRET = 'secret';
     public const IDENTIFIER = 'identifier';
     public const CUSTOMER_ID = 'customer_id';
     public const TIMESTAMP = 'timestamp';
-
-    /**
-     * @param string $secret
-     * @return RefIdDataInterface
-     */
-    public function setSecret(string $secret): RefIdDataInterface;
 
     /**
      * @param string $identifier
@@ -33,11 +26,6 @@ interface RefIdDataInterface
      * @return RefIdDataInterface
      */
     public function setTimestamp(string $timestamp): RefIdDataInterface;
-
-    /**
-     * @return string
-     */
-    public function getSecret(): string;
 
     /**
      * @return string

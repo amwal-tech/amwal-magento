@@ -3,7 +3,6 @@
     <default>
         <payment>
             <amwal_payments>
-                <ref_id_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <title>Amwal</title>
                 <order_status>processing</order_status>
                 <merchant_mode>live</merchant_mode>

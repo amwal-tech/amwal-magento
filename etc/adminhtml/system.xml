@@ -51,13 +51,7 @@
                         <config_path>payment/amwal_payments/regular_checkout_active</config_path>
                         <tooltip>Indicates if the Regular Checkout functionality should be enabled</tooltip>
                     </field>
-                    <field id="ref_id_secret" translate="label tooltip" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Reference ID secret key</label>
-                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                        <config_path>payment/amwal_payments/ref_id_secret</config_path>
-                        <tooltip>A random key that is used to generate a reference ID. The reference ID is used to ensure a payment is valid.</tooltip>
-                    </field>
-                    <field id="country_code" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="country_code" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Merchant Country</label>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <config_path>payment/amwal_payments/country_code</config_path>
