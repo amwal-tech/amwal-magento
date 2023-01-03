@@ -71,8 +71,7 @@ class ConfigProvider implements ConfigProviderInterface
         $refIdData = $this->refIdDataFactory->create();
         $refIdData->setIdentifier($this->checkoutSession->getSessionId())
             ->setCustomerId($customerId)
-            ->setTimestamp(microtime())
-            ->setSecret($this->config->getRefIdSecret());
+            ->setTimestamp(microtime());
 
         $refId = $this->refIdManagement->generateRefId($refIdData);
 

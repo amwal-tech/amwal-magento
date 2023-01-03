@@ -11,14 +11,6 @@ class RefIdData extends DataObject implements RefIdDataInterface
     /**
      * @inheritDoc
      */
-    public function setSecret(string $secret): RefIdDataInterface
-    {
-        return $this->setData(self::SECRET, $secret);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function setIdentifier(string $identifier): RefIdDataInterface
     {
         return $this->setData(self::IDENTIFIER, $identifier);
@@ -38,14 +30,6 @@ class RefIdData extends DataObject implements RefIdDataInterface
     public function setTimestamp(string $timestamp): RefIdDataInterface
     {
         return $this->setData(self::TIMESTAMP, $timestamp);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getSecret(): string
-    {
-        return (string) $this->getData(self::SECRET);
     }
 
     /**

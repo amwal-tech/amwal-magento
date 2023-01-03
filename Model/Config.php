@@ -54,7 +54,6 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
             $this->getMerchantId() &&
-            $this->getRefIdSecret() &&
             $this->isMerchantValid();
     }
 
@@ -100,15 +99,6 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
     }
-
-    /**
-     * @return string
-     */
-    public function getRefIdSecret(): string
-    {
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_REF_ID_SECRET, ScopeInterface::SCOPE_WEBSITE);
-    }
-
 
     /**
      * @return string

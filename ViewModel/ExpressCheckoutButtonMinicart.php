@@ -35,7 +35,6 @@ class ExpressCheckoutButtonMinicart extends ExpressCheckoutButton
     public function getRefIdData(): RefIdDataInterface
     {
         return $this->refIdDataFactory->create()
-            ->setSecret($this->config->getRefIdSecret())
             ->setIdentifier($this->getQuoteId())
             ->setCustomerId($this->getCustomerId())
             ->setTimestamp($this->getTimestamp());

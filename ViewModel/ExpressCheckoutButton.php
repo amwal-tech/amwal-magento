@@ -210,7 +210,6 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function getRefIdData(): RefIdDataInterface
     {
         return $this->refIdDataFactory->create()
-            ->setSecret($this->config->getRefIdSecret())
             ->setIdentifier((string) $this->getProduct()->getId())
             ->setCustomerId($this->getCustomerId())
             ->setTimestamp($this->getTimestamp());
@@ -239,18 +238,18 @@ class ExpressCheckoutButton implements ArgumentInterface
         }
 
         $initialAddress = $this->amwalAddressFactory->create();
-        $initialAddress->setCity($defaultShippingAddress->getCity());
-        $initialAddress->setState($defaultShippingAddress->getRegionCode());
-        $initialAddress->setPostcode($defaultShippingAddress->getPostcode());
-        $initialAddress->setCountry($defaultShippingAddress->getCountryId());
-        $initialAddress->setStreet1($defaultShippingAddress->getStreetLine(1));
-        $initialAddress->setStreet2($defaultShippingAddress->getStreetLine(2));
-        $initialAddress->setEmail($customer->getEmail());
+        $initialAddress->setCity($defaultShippingAddress->getCity() ?? '');
+        $initialAddress->setState($defaultShippingAddress->getRegionCode() ?? '');
+        $initialAddress->setPostcode($defaultShippingAddress->getPostcode() ?? '');
+        $initialAddress->setCountry($defaultShippingAddress->getCountryId() ?? '');
+        $initialAddress->setStreet1($defaultShippingAddress->getStreetLine(1) ?? '');
+        $initialAddress->setStreet2($defaultShippingAddress->getStreetLine(2) ?? '');
+        $initialAddress->setEmail($customer->getEmail() ?? '');
 
         $attributes = [];
         $attributes['initial-address'] = $initialAddress->toJson();
-        $attributes['initial-email'] = $customer->getEmail();
-        $attributes['initial-phone'] = $defaultShippingAddress->getTelephone();
+        $attributes['initial-email'] = $customer->getEmail() ?? '';
+        $attributes['initial-phone'] = $defaultShippingAddress->getTelephone() ?? '';
 
         return $attributes;
     }
