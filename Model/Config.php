@@ -11,6 +11,7 @@ use Magento\Directory\Model\Currency;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
+use OutOfBoundsException;
 
 class Config
 {
@@ -226,6 +227,10 @@ class Config
      */
     public function getVersion(): string
     {
-        return InstalledVersions::getVersion('amwal/payments');
+        try {
+            return InstalledVersions::getVersion('amwal/payments');
+        } catch (OutOfBoundsException) {
+            return 'unknown';
+        }
     }
 }
