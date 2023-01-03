@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AmwalClientFactory;
+use Amwal\Payments\Model\Config;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -16,17 +17,21 @@ class SetAmwalOrderDetails
 {
 
     private AmwalClientFactory $amwalClientFactory;
+    private Config $config;
     private LoggerInterface $logger;
 
     /**
      * @param AmwalClientFactory $amwalClientFactory
+     * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
         AmwalClientFactory $amwalClientFactory,
+        Config $config,
         LoggerInterface $logger
     ) {
         $this->amwalClientFactory = $amwalClientFactory;
+        $this->config = $config;
         $this->logger = $logger;
     }
 
@@ -42,6 +47,8 @@ class SetAmwalOrderDetails
         $orderDetails['order_entity_id'] = $order->getEntityId();
         $orderDetails['order_created_at'] = $order->getCreatedAt();
         $orderDetails['order_position'] = $triggerContext;
+        $orderDetails['plugin_type'] = 'magento';
+        $orderDetails['plugin_version'] = $this->config->getVersion();
 
         $amwalClient = $this->amwalClientFactory->create();
         try {
