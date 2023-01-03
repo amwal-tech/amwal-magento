@@ -7,7 +7,7 @@ $quote = $block->getQuote();
 $quoteId = $quote ? $quote->getId() : 'newquote';
 $viewModel->setQuoteId((string)$quoteId);
 ?>
-<div id="amwal-minicart-button" class="amwal-express-checkout-button hidden">
+<div id="amwal-cart-button" class="amwal-express-checkout-button">
     <amwal-checkout-button
         merchant-id="<?= $escaper->escapeHtmlAttr($viewModel->getMerchantId()) ?>"
         amount="<?= $escaper->escapeHtmlAttr($quote ? $quote->getSubtotal() : 0) ?>"
@@ -21,7 +21,7 @@ $viewModel->setQuoteId((string)$quoteId);
         ref-id="<?= $escaper->escapeHtmlAttr($viewModel->getRefId()) ?>"
         label="quick-buy"
         allowed-address-countries='<?= $escaper->escapeHtmlAttr($viewModel->getAllowedCountriesJson()) ?>'
-        id="amwal-checkout-minicart-<?= $escaper->escapeHtmlAttr($quoteId) ?>"
+        id="amwal-checkout-cart-<?= $escaper->escapeHtmlAttr($quoteId) ?>"
         <?php foreach ($viewModel->getInitialDataAttributes() as $attribute => $value): ?>
             <?= $attribute ?>='<?= $value ?>'
         <?php endforeach; ?>
@@ -30,8 +30,8 @@ $viewModel->setQuoteId((string)$quoteId);
         <?php endif; ?>/>
 <script type="text/x-magento-init">
     {
-        "#amwal-checkout-minicart-<?= $quoteId ?>": {
-            "Amwal_Payments/js/checkout-button-minicart": {
+        "#amwal-checkout-cart-<?= $quoteId ?>": {
+            "Amwal_Payments/js/checkout-button-cart": {
                 "hideProceedToCheckout": <?= (int) $viewModel->shouldHideProceedToCheckout() ?>,
                 "quotePrice": "<?= $quote ? $quote->getSubtotal() : 0 ?>",
                 "quoteId": "<?= $quoteId ?>",

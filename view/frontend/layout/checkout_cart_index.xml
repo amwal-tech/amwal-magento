@@ -1,10 +1,10 @@
+<?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceContainer name="after.body.start">
-            <block template="Amwal_Payments::lib/amwal-checkout-button-script.phtml" name="amwal.checkout.script" />
-        </referenceContainer>
-        <referenceContainer name="header-wrapper">
-            <block class="Amwal\Payments\Block\ExpressCheckoutMinicartButton" name="amwal.express-checkout.minicart" template="Amwal_Payments::express/button-minicart.phtml">
+        <referenceContainer name="checkout.cart.methods">
+            <block class="Amwal\Payments\Block\ExpressCheckoutCartButton"
+                   name="checkout.cart.methods.amwal.payments"
+                   template="Amwal_Payments::express/button-cart.phtml">
                 <arguments>
                     <argument name="view_model" xsi:type="object">
                         Amwal\Payments\ViewModel\ExpressCheckoutButtonCart

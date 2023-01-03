@@ -51,7 +51,7 @@
                         <config_path>payment/amwal_payments/regular_checkout_active</config_path>
                         <tooltip>Indicates if the Regular Checkout functionality should be enabled</tooltip>
                     </field>
-                    <field id="country_code" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="country_code" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Merchant Country</label>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                         <config_path>payment/amwal_payments/country_code</config_path>

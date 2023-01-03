@@ -5,7 +5,7 @@ namespace Amwal\Payments\ViewModel;
 
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 
-class ExpressCheckoutButtonMinicart extends ExpressCheckoutButton
+class ExpressCheckoutButtonCart extends ExpressCheckoutButton
 {
     /**
      * @var string|null;
