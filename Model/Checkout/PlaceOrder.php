@@ -161,6 +161,14 @@ class PlaceOrder
             $this->throwException(__('We were unable to retrieve your transaction data.'));
         }
 
+        if ($this->config->isDebugModeEnabled()) {
+            $this->logger->debug(sprintf(
+                'Received Amwal Order data for order with ID %s: %s',
+                $amwalOrderId,
+                $amwalOrderData->toJson()
+            ));
+        }
+
         if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
             $this->logger->debug(sprintf(
                 "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
@@ -177,7 +185,6 @@ class PlaceOrder
         }
 
         $quoteId = (int) $quoteId;
-
         $quote = $this->quoteRepository->get($quoteId);
 
         $customerAddress = null;

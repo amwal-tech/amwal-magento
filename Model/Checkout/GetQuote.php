@@ -21,6 +21,7 @@ use Magento\Framework\Exception\StateException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\AddressFactory;
 use Magento\Quote\Model\QuoteFactory;
@@ -43,6 +44,7 @@ class GetQuote
     private AddressResolver $addressResolver;
     private Factory $objectFactory;
     private RefIdManagementInterface $refIdManagement;
+    private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private LoggerInterface $logger;
 
     /**
@@ -58,6 +60,7 @@ class GetQuote
      * @param AddressResolver $addressResolver
      * @param Factory $objectFactory
      * @param RefIdManagementInterface $refIdManagement
+     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -73,6 +76,7 @@ class GetQuote
         AddressResolver $addressResolver,
         Factory $objectFactory,
         RefIdManagementInterface $refIdManagement,
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         LoggerInterface $logger
     ) {
         $this->customerRepository = $customerRepository;
@@ -87,6 +91,7 @@ class GetQuote
         $this->addressResolver = $addressResolver;
         $this->objectFactory = $objectFactory;
         $this->refIdManagement = $refIdManagement;
+        $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->logger = $logger;
     }
 
@@ -95,13 +100,13 @@ class GetQuote
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param AmwalAddressInterface $addressData
-     * @param int|null $quoteId
+     * @param string|int|null $quoteId
      * @return mixed[]
      * @throws LocalizedException
      * @throws NoSuchEntityException
      * @throws StateException
      */
-    public function execute(array $orderItems, string $refId, RefIdDataInterface $refIdData, AmwalAddressInterface $addressData, ?int $quoteId = null): array
+    public function execute(array $orderItems, string $refId, RefIdDataInterface $refIdData, AmwalAddressInterface $addressData, $quoteId = null): array
     {
         if (!$this->refIdManagement->verifyRefId($refId, $refIdData)) {
             $this->logger->error(sprintf(
@@ -130,6 +135,9 @@ class GetQuote
         if (!$quoteId) {
             $quote = $this->createQuote($orderItems);
         } else {
+            if (!is_numeric($quoteId)) {
+                $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
+            }
             $quote = $this->quoteRepository->get($quoteId);
         }
 
