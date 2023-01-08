@@ -157,7 +157,7 @@ class GetQuote
         $quote->getShippingAddress()->collectShippingRates();
         $this->quoteRepository->save($quote);
 
-        $rates = $this->shippingMethodManagement->getList($quote->getId());
+        $rates = $this->shippingMethodManagement->estimateByExtendedAddress($quote->getId(), $quote->getShippingAddress());
 
         if (!$rates) {
             $this->logger->error('No shipping methods were found for the quote.');
@@ -170,7 +170,7 @@ class GetQuote
             $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
             $availableRates[$id] = [
                 'carrier_title' => $rate->getMethodTitle(),
-                'price' => number_format((float) $rate->getBaseAmount(), 2)
+                'price' => number_format((float) $rate->getPriceInclTax(), 2)
             ];
         }
 
