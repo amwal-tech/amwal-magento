@@ -161,6 +161,14 @@ class PlaceOrder
             $this->throwException(__('We were unable to retrieve your transaction data.'));
         }
 
+        if ($this->config->isDebugModeEnabled()) {
+            $this->logger->debug(sprintf(
+                'Received Amwal Order data for order with ID %s: %s',
+                $amwalOrderId,
+                $amwalOrderData->toJson()
+            ));
+        }
+
         if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
             $this->logger->debug(sprintf(
                 "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
@@ -177,13 +185,30 @@ class PlaceOrder
         }
 
         $quoteId = (int) $quoteId;
-
         $quote = $this->quoteRepository->get($quoteId);
 
         $customerAddress = null;
         if ($hasAmwalAddress) {
             try {
+                if ($this->config->isDebugModeEnabled()) {
+                    $this->logger->debug('Resolving customer address');
+                }
                 $customerAddress = $this->addressResolver->execute($amwalOrderData);
+                if ($this->config->isDebugModeEnabled()) {
+                    $this->logger->debug(sprintf(
+                        'Found/Created customer address with data: %s',
+                        json_encode([
+                            'street' => implode(' ', $customerAddress->getStreet() ?? []),
+                            'city' => $customerAddress->getCity(),
+                            'postcode' => $customerAddress->getPostcode(),
+                            'region_id' => $customerAddress->getRegion() ? $customerAddress->getRegion()->getRegionCode() : null,
+                            'country_id' => $customerAddress->getCountryId(),
+                            'firstname' => $customerAddress->getFirstname(),
+                            'lastname' => $customerAddress->getLastname(),
+                            'telephone' => $customerAddress->getTelephone(),
+                        ])
+                    ));
+                }
             } catch (LocalizedException|RuntimeException $e) {
                 $this->logger->error(sprintf(
                     "Unable to resolve address while creating order.\nQuote ID: %s\nAmwal Order Data: %s\nAmwal Order id: %s",
@@ -206,6 +231,9 @@ class PlaceOrder
 
         $newCustomer = null;
         if ($this->shouldCreateCustomer($quote, $amwalOrderData)) {
+            if ($this->config->isDebugModeEnabled()) {
+                $this->logger->debug('Creating new customer');
+            }
             try {
                 $newCustomer = $this->createCustomer($amwalOrderData, $customerAddress, $quote);
                 $quote->setCustomerIsGuest(false);
@@ -370,10 +398,11 @@ class PlaceOrder
     /**
      * @param DataObject $amwalOrderData
      * @param AddressInterface|null $customerAddress
+     * @param Quote $quote
      * @return CustomerInterface
      * @throws LocalizedException
      */
-    private function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, $quote): CustomerInterface
+    private function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, Quote $quote): CustomerInterface
     {
         $customer = $this->customerFactory->create();
         $customer->setEmail($amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail());
