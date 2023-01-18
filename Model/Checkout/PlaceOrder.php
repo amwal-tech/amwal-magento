@@ -10,12 +10,14 @@ use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
 use GuzzleHttp\Exception\GuzzleException;
+use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\AccountManagementInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Api\Data\CustomerInterfaceFactory;
+use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\EmailNotificationInterface;
 use Magento\Customer\Model\SessionFactory;
 use Magento\Framework\DataObject;
@@ -161,13 +163,11 @@ class PlaceOrder
             $this->throwException(__('We were unable to retrieve your transaction data.'));
         }
 
-        if ($this->config->isDebugModeEnabled()) {
-            $this->logger->debug(sprintf(
-                'Received Amwal Order data for order with ID %s: %s',
-                $amwalOrderId,
-                $amwalOrderData->toJson()
-            ));
-        }
+        $this->logDebug(sprintf(
+            'Received Amwal Order data for order with ID %s: %s',
+            $amwalOrderId,
+            $amwalOrderData->toJson()
+        ));
 
         if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
             $this->logger->debug(sprintf(
@@ -190,12 +190,10 @@ class PlaceOrder
         $customerAddress = null;
         if ($hasAmwalAddress) {
             try {
-                if ($this->config->isDebugModeEnabled()) {
-                    $this->logger->debug('Resolving customer address');
-                }
+                $this->logDebug('Resolving customer address');
                 $customerAddress = $this->addressResolver->execute($amwalOrderData);
-                if ($this->config->isDebugModeEnabled()) {
-                    $this->logger->debug(sprintf(
+                try {
+                    $this->logDebug(sprintf(
                         'Found/Created customer address with data: %s',
                         json_encode([
                             'street' => implode(' ', $customerAddress->getStreet() ?? []),
@@ -206,8 +204,10 @@ class PlaceOrder
                             'firstname' => $customerAddress->getFirstname(),
                             'lastname' => $customerAddress->getLastname(),
                             'telephone' => $customerAddress->getTelephone(),
-                        ])
+                        ], JSON_THROW_ON_ERROR)
                     ));
+                } catch (JsonException $e) {
+                    $this->logger->notice('Unable to log customer data.');
                 }
             } catch (LocalizedException|RuntimeException $e) {
                 $this->logger->error(sprintf(
@@ -219,7 +219,7 @@ class PlaceOrder
                 $this->throwException();
             }
 
-            if ($quote->getCustomerIsGuest()) {
+            if ($quote->getCustomerIsGuest() && $amwalOrderData->getClientEmail()) {
                 $this->setCustomerEmail($quote, $amwalOrderData->getClientEmail());
             }
 
@@ -231,9 +231,7 @@ class PlaceOrder
 
         $newCustomer = null;
         if ($this->shouldCreateCustomer($quote, $amwalOrderData)) {
-            if ($this->config->isDebugModeEnabled()) {
-                $this->logger->debug('Creating new customer');
-            }
+            $this->logDebug('Creating new customer');
             try {
                 $newCustomer = $this->createCustomer($amwalOrderData, $customerAddress, $quote);
                 $quote->setCustomerIsGuest(false);
@@ -241,7 +239,7 @@ class PlaceOrder
                 $quote->setCustomerId($newCustomer->getId());
                 $quote->setAmwalUserCreated(true);
                 $this->customerSessionFactory->create()->setCustomerDataAsLoggedIn($newCustomer);
-            } catch (LocalizedException $e) {
+            } catch (LocalizedException | JsonException $e) {
                 $this->logger->error(sprintf(
                     'Error while creating customer for quote with ID %s. Error: %s',
                     $quoteId,
@@ -308,7 +306,9 @@ class PlaceOrder
      */
     private function createOrder(Quote $quote): OrderInterface
     {
+        $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->quoteManagement->submit($quote);
+        $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
         if (!$order) {
             $this->logger->error(sprintf('Unable create an order because we failed to submit the quote with ID "%s"', $quote->getId()));
@@ -320,6 +320,8 @@ class PlaceOrder
             $this->logger->error(sprintf('Order could not be created from quote with ID "%s"', $quote->getId()));
             $this->throwException();
         }
+
+        $this->logDebug(sprintf('Updating order state and status for order with ID %s', $order->getEntityId()));
 
         $order->setState($this->config->getOrderConfirmedStatus());
         $order->setStatus($this->config->getOrderConfirmedStatus());
@@ -400,10 +402,11 @@ class PlaceOrder
      * @param AddressInterface|null $customerAddress
      * @param Quote $quote
      * @return CustomerInterface
-     * @throws LocalizedException
+     * @throws LocalizedException|JsonException
      */
     private function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, Quote $quote): CustomerInterface
     {
+        /** @var \Magento\Customer\Model\Data\Customer $customer */
         $customer = $this->customerFactory->create();
         $customer->setEmail($amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail());
         $customer->setFirstname($amwalOrderData->getClientFirstName());
@@ -412,6 +415,11 @@ class PlaceOrder
         if ($customerAddress) {
             $customer->setAddresses([$customerAddress]);
         }
+
+        $this->logDebug(sprintf(
+            'Creating customer with data: %s',
+            json_encode($customer->__toArray(), JSON_THROW_ON_ERROR)
+        ));
 
         return $this->accountManagement->createAccount($customer);
     }
@@ -438,8 +446,26 @@ class PlaceOrder
      */
     private function shouldCreateCustomer(CartInterface $quote, DataObject $amwalOrderData): bool
     {
+        if (!$email = $amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail()) {
+            return false;
+        }
+
         return $quote->getCustomerIsGuest() &&
-            !$this->customerWithEmailExists($amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail()) &&
+            !$this->customerWithEmailExists($email) &&
             $this->config->shouldCreateCustomer();
+    }
+
+    /**
+     * @param string $message
+     * @param array $context
+     * @return void
+     */
+    private function logDebug(string $message, array $context = []): void
+    {
+        if (!$this->config->isDebugModeEnabled()) {
+            return;
+        }
+
+        $this->logger->debug($message, $context);
     }
 }
