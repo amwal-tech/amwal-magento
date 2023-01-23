@@ -231,11 +231,7 @@ class Config
      */
     public function getVersion(): string
     {
-        try {
-            $packages = $this->composerInformation->getInstalledMagentoPackages();
-            return $packages['amwal/payments']['version'] ?? 'unknown';
-        } catch (OutOfBoundsException) {
-            return 'unknown';
-        }
+        $packages = $this->composerInformation->getInstalledMagentoPackages();
+        return $packages['amwal/payments']['version'] ?? 'unknown';
     }
 }

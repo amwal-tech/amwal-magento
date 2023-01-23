@@ -219,7 +219,7 @@ class PlaceOrder
                 $this->throwException();
             }
 
-            if ($quote->getCustomerIsGuest() && $amwalOrderData->getClientEmail()) {
+            if ($this->getCustomerIsGuest() && $amwalOrderData->getClientEmail()) {
                 $this->setCustomerEmail($quote, $amwalOrderData->getClientEmail());
             }
 
@@ -450,9 +450,17 @@ class PlaceOrder
             return false;
         }
 
-        return $quote->getCustomerIsGuest() &&
+        return $this->getCustomerIsGuest() &&
             !$this->customerWithEmailExists($email) &&
             $this->config->shouldCreateCustomer();
+    }
+
+    /**
+     * @return bool
+     */
+    private function getCustomerIsGuest(): bool
+    {
+        return $this->checkoutSession->getQuote()->getCustomer()->getId() === null;
     }
 
     /**
