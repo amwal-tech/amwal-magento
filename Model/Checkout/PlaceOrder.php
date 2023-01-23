@@ -408,7 +408,7 @@ class PlaceOrder
     {
         /** @var \Magento\Customer\Model\Data\Customer $customer */
         $customer = $this->customerFactory->create();
-        $customer->setEmail($amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail());
+        $customer->setEmail($amwalOrderData->getClientEmail() ?? $quote->getBillingAddress()->getEmail());
         $customer->setFirstname($amwalOrderData->getClientFirstName());
         $customer->setLastname($amwalOrderData->getClientLastName());
 
@@ -446,7 +446,7 @@ class PlaceOrder
      */
     private function shouldCreateCustomer(CartInterface $quote, DataObject $amwalOrderData): bool
     {
-        if (!$email = $amwalOrderData->getClientEmail() ?? $quote->getCustomerEmail()) {
+        if (!$email = $amwalOrderData->getClientEmail() ?? $quote->getBillingAddress()->getEmail()) {
             return false;
         }
 
