@@ -8,7 +8,9 @@ use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
+use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
+use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
@@ -45,6 +47,7 @@ class GetQuote
     private Factory $objectFactory;
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
+    private Config $config;
     private LoggerInterface $logger;
 
     /**
@@ -61,6 +64,7 @@ class GetQuote
      * @param Factory $objectFactory
      * @param RefIdManagementInterface $refIdManagement
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -77,6 +81,7 @@ class GetQuote
         Factory $objectFactory,
         RefIdManagementInterface $refIdManagement,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        Config $config,
         LoggerInterface $logger
     ) {
         $this->customerRepository = $customerRepository;
@@ -92,6 +97,7 @@ class GetQuote
         $this->objectFactory = $objectFactory;
         $this->refIdManagement = $refIdManagement;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
+        $this->config = $config;
         $this->logger = $logger;
     }
 
@@ -108,6 +114,7 @@ class GetQuote
      */
     public function execute(array $orderItems, string $refId, RefIdDataInterface $refIdData, AmwalAddressInterface $addressData, $quoteId = null): array
     {
+        $this->logDebug('Start GetQuote call');
         if (!$this->refIdManagement->verifyRefId($refId, $refIdData)) {
             $this->logger->error(sprintf(
                 "Unable to get quote because Ref ID cannot be verified.\nReceived Ref ID: %s\nExpected Ref ID: %s\nRef ID Data: %s",
@@ -126,33 +133,55 @@ class GetQuote
         $amwalOrderData->setAddressDetails($addressData);
 
         try {
+            $this->logDebug(sprintf(
+                'Resolving customer address using Amwal order data: %s',
+                $amwalOrderData->toJson()
+            ));
             $customerAddress = $this->addressResolver->execute($amwalOrderData);
         } catch (LocalizedException | RuntimeException $e) {
             $this->logger->error('Unable to resolve customer address while getting the Quote');
             $this->throwException(__($e->getMessage()));
         }
 
+        try {
+            $this->logDebug(sprintf(
+                'Resolved customer address with data: %s',
+                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
+            ));
+        } catch (JsonException $e) {
+            $this->logger->notice('Unable to log resolved customer address debug message');
+        }
+
+
         if (!$quoteId) {
+            $this->logDebug('No quote found. Creating a new quote');
             $quote = $this->createQuote($orderItems);
+            $this->logDebug('Quote created');
         } else {
             if (!is_numeric($quoteId)) {
                 $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
             }
+            $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
             $quote = $this->quoteRepository->get($quoteId);
         }
 
+        $this->logDebug('Creating quote address');
         $quoteAddress = $this->quoteAddressFactory->create();
+        $quoteAddress->importCustomerAddressData($customerAddress);
         $quoteAddress->importCustomerAddressData($customerAddress);
 
         if ($customerEmail = $addressData->getEmail()) {
+            $this->logDebug(sprintf('Setting customer email for quote address to %s', $customerEmail));
             $quoteAddress->setEmail($customerEmail);
         }
 
+        $this->logDebug('Setting Billing and Shipping address');
         $quote->setBillingAddress($quoteAddress);
         $quote->setShippingAddress($quoteAddress);
 
         $quote->setPaymentMethod(ConfigProvider::CODE);
 
+        $this->logDebug('Collcetion shipping rates');
         $quote->getShippingAddress()->setCollectShippingRates(true);
         $quote->getShippingAddress()->collectShippingRates();
         $this->quoteRepository->save($quote);
@@ -173,13 +202,21 @@ class GetQuote
                 'price' => number_format((float) $rate->getPriceInclTax(), 2)
             ];
         }
+        try {
+            $this->logDebug(sprintf(
+                'Collceted rates: %s',
+                json_encode($rates, JSON_THROW_ON_ERROR)
+            ));
+        } catch (JsonException $e) {
+            $this->logger->notice('Unable to log rates debug message');
+        }
 
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
-        return [
+        $quoteData = [
             'data' => [
                 'quote_id' => $quote->getId(),
                 'available_rates' => $availableRates,
@@ -190,6 +227,14 @@ class GetQuote
                 'discount_amount' => abs($quote->getShippingAddress()->getDiscountAmount())
             ]
         ];
+
+        try {
+            $this->logDebug(sprintf('End GetQuote call. Data: %s', json_encode($quoteData, JSON_THROW_ON_ERROR)));
+        } catch (JsonException $e) {
+            $this->logger->notice('Unable to log quote data debug message');
+        }
+
+        return $quoteData;
     }
 
     /**
@@ -269,5 +314,19 @@ class GetQuote
         $this->quoteRepository->save($quote);
 
         return $quote;
+    }
+
+    /**
+     * @param string $message
+     * @param array $context
+     * @return void
+     */
+    private function logDebug(string $message, array $context = []): void
+    {
+        if (!$this->config->isDebugModeEnabled()) {
+            return;
+        }
+
+        $this->logger->debug($message, $context);
     }
 }

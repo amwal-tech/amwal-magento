@@ -1,4 +1,5 @@
 <?php
+/** @var \Magento\Framework\Escaper $escaper */
 /** @var \Magento\Framework\View\Element\Template $block */
 /** @var \Amwal\Payments\ViewModel\ExpressCheckoutButton $viewModel */
 $viewModel = $this->getViewModel();
@@ -25,7 +26,7 @@ $configurableOptions = $viewModel->getConfigurableOptions($product);
             allowed-address-countries='<?= $viewModel->getAllowedCountriesJson() ?>'
             id="amwal-checkout-<?= $product->getId() ?>"
             <?php foreach ($viewModel->getInitialDataAttributes() as $attribute => $value): ?>
-                <?= $attribute ?>='<?= $value ?>'
+                <?= $attribute ?>='<?= $escaper->escapeHtmlAttr($value) ?>'
             <?php endforeach; ?>
             <?php if ($viewModel->getMerchantMode() === \Amwal\Payments\Model\Config\Source\MerchantMode::MERCHANT_TEST_MODE): ?>
                 test-environment="qa"
