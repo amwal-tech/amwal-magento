@@ -2,13 +2,14 @@ define([
     'jquery',
     'uiComponent',
     'placeAmwalOrder',
+    'payAmwalOrder',
     'mage/url',
     'Magento_Customer/js/customer-data',
     'underscore',
     'mage/translate',
     'domReady!'
 ],
-function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
+function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData, _) {
     'use strict';
 
     return Component.extend({
@@ -23,6 +24,7 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
         checkoutButton: null,
         $checkoutButton: null,
         quoteId: null,
+        placedOrderId: null,
         triggerContext: 'product-detail-page',
 
         /**
@@ -79,20 +81,39 @@ function ($, Component, placeAmwalOrder, urlBuilder, customerData, _) {
             // Create the quote when address is updated so we can gather shipping info
             self.checkoutButton.addEventListener('amwalAddressUpdate', function (e) {
                 self.addressData = e.detail;
-                console.log('Address:', e.detail);
                 self.getQuote();
             });
 
             // Place the order once we receive the checkout success event
-            self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
+            self.checkoutButton.addEventListener('amwalPrePayTrigger', function (e) {
                 placeAmwalOrder.execute(
-                    e.detail.orderId,
+                    e.detail.id,
                     self.quoteId,
                     self.refId,
                     self.refIdData,
                     self.triggerContext,
                     true
-                );
+                ).then((response) => {
+                    self.placedOrderId = response.entity_id;
+                    let prePayTriggerPayload = {
+                        detail: {
+                            order_id: self.placedOrderId,
+                            order_total_amount: response.total_due
+                        }
+                    };
+                    window.dispatchEvent(
+                        new CustomEvent ('amwalPrePayTriggerAck', prePayTriggerPayload)
+                    );
+                });
+            });
+
+            // Pay the order after payment through Amwal is confirmed
+            self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
+                payAmwalOrder.execute(self.placedOrderId, e.detail.orderId).then((response) => {
+                    if (response === true) {
+                        window.location.href = urlBuilder.build('checkout/onepage/success');
+                    }
+                });
             });
 
             // Trigger the address update so Amwal knows the shippign methods are set

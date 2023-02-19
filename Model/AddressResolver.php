@@ -154,8 +154,8 @@ class AddressResolver
         $amwalAddress = $amwalOrderData->getAddressDetails();
 
         $customerAddress = $this->addressDataFactory->create()
-            ->setFirstname($amwalOrderData->getClientFirstName())
-            ->setLastname($amwalOrderData->getClientLastName())
+            ->setFirstname($amwalOrderData->getClientFirstName() ?? 'tmp')
+            ->setLastname($amwalOrderData->getClientLastName() ?? 'tmp')
             ->setCountryId($amwalAddress->getCountry())
             ->setCity($amwalAddress->getCity())
             ->setPostcode($amwalAddress->getPostcode())

@@ -13,4 +13,10 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/amwal/pay-order" method="POST">
+        <service class="Amwal\Payments\Model\Checkout\PayOrder" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

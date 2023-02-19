@@ -21,6 +21,7 @@ $viewModel->setQuoteId((string)$quoteId);
         ref-id="<?= $escaper->escapeHtmlAttr($viewModel->getRefId()) ?>"
         label="quick-buy"
         allowed-address-countries='<?= $escaper->escapeHtmlAttr($viewModel->getAllowedCountriesJson()) ?>'
+        enable-pre-pay-trigger="true"
         id="amwal-checkout-minicart-<?= $escaper->escapeHtmlAttr($quoteId) ?>"
         <?php foreach ($viewModel->getInitialDataAttributes() as $attribute => $value): ?>
             <?= $attribute ?>='<?= $escaper->escapeHtmlAttr($value) ?>'

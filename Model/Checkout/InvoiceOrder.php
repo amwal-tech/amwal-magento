@@ -11,6 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -25,6 +26,7 @@ class InvoiceOrder
     private InvoiceSender $invoiceSender;
     private BuilderInterface $transactionBuilder;
     private Config $config;
+    private OrderRepositoryInterface $orderRepository;
     private LoggerInterface $logger;
 
     public function __construct(
@@ -33,6 +35,7 @@ class InvoiceOrder
         InvoiceSender $invoiceSender,
         BuilderInterface $transactionBuilder,
         Config $config,
+        OrderRepositoryInterface $orderRepository,
         LoggerInterface $logger
     ) {
         $this->invoiceRepository = $invoiceRepository;
@@ -40,6 +43,7 @@ class InvoiceOrder
         $this->invoiceSender = $invoiceSender;
         $this->transactionBuilder = $transactionBuilder;
         $this->config = $config;
+        $this->orderRepository = $orderRepository;
         $this->logger = $logger;
     }
 
@@ -90,13 +94,14 @@ class InvoiceOrder
         $this->createInvoice($order, $amwalOrderData);
 
         $status = $this->config->getOrderConfirmedStatus();
+        $order->setState($status);
+        $order->setStatus($status);
 
         $order->addCommentToStatusHistory(
-            __('Successfully completed Amwal payment with transaction ID %1', $amwalOrderData->getId()),
-            $status
+            __('Successfully completed Amwal payment with transaction ID %1', $amwalOrderData->getId())
         );
 
-        $order->setState($status);
+        $this->orderRepository->save($order);
     }
 
 

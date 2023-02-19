@@ -9,6 +9,7 @@ use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\GetAmwalOrderData;
 use GuzzleHttp\Exception\GuzzleException;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -38,6 +39,7 @@ use Magento\Quote\Model\Quote\AddressFactory;
 use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -67,11 +69,10 @@ class PlaceOrder
     private AccountManagementInterface $accountManagement;
     private SessionFactory $customerSessionFactory;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
+    private GetAmwalOrderData $getAmwalOrderData;
     private LoggerInterface $logger;
 
     /**
-     * @param AmwalClientFactory $amwalClientFactory
-     * @param Json $jsonSerializer
      * @param QuoteManagement $quoteManagement
      * @param AddressFactory $quoteAddressFactory
      * @param QuoteRepositoryInterface $quoteRepository
@@ -81,22 +82,18 @@ class PlaceOrder
      * @param InvoiceOrder $invoiceAmwalOrder
      * @param AddressResolver $addressResolver
      * @param OrderRepositoryInterface $orderRepository
-     * @param Factory $objectFactory
-     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param RefIdManagementInterface $refIdManagement
      * @param UpdateShippingMethod $updateShippingMethod
      * @param SetAmwalOrderDetails $setAmwalOrderDetails
-     * @param StoreManagerInterface $storeManager
      * @param CustomerRepositoryInterface $customerRepository
      * @param CustomerInterfaceFactory $customerFactory
      * @param AccountManagementInterface $accountManagement
      * @param SessionFactory $customerSessionFactory
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param GetAmwalOrderData $getAmwalOrderData
      * @param LoggerInterface $logger
      */
     public function __construct(
-        AmwalClientFactory              $amwalClientFactory,
-        Json                            $jsonSerializer,
         QuoteManagement                 $quoteManagement,
         AddressFactory                  $quoteAddressFactory,
         QuoteRepositoryInterface        $quoteRepository,
@@ -106,21 +103,17 @@ class PlaceOrder
         InvoiceOrder                    $invoiceAmwalOrder,
         AddressResolver                 $addressResolver,
         OrderRepositoryInterface        $orderRepository,
-        Factory                         $objectFactory,
-        AmwalAddressInterfaceFactory    $amwalAddressFactory,
         RefIdManagementInterface        $refIdManagement,
         UpdateShippingMethod            $updateShippingMethod,
         SetAmwalOrderDetails            $setAmwalOrderDetails,
-        StoreManagerInterface           $storeManager,
         CustomerRepositoryInterface     $customerRepository,
         CustomerInterfaceFactory        $customerFactory,
         AccountManagementInterface      $accountManagement,
         SessionFactory                  $customerSessionFactory,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        GetAmwalOrderData               $getAmwalOrderData,
         LoggerInterface                 $logger
     ) {
-        $this->amwalClientFactory = $amwalClientFactory;
-        $this->jsonSerializer = $jsonSerializer;
         $this->quoteManagement = $quoteManagement;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteRepository = $quoteRepository;
@@ -130,17 +123,15 @@ class PlaceOrder
         $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->addressResolver = $addressResolver;
         $this->orderRepository = $orderRepository;
-        $this->objectFactory = $objectFactory;
-        $this->amwalAddressFactory = $amwalAddressFactory;
         $this->refIdManagement = $refIdManagement;
         $this->updateShippingMethod = $updateShippingMethod;
         $this->setAmwalOrderDetails = $setAmwalOrderDetails;
-        $this->storeManager = $storeManager;
         $this->customerRepository = $customerRepository;
         $this->customerFactory = $customerFactory;
         $this->accountManagement = $accountManagement;
         $this->customerSessionFactory = $customerSessionFactory;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
+        $this->getAmwalOrderData = $getAmwalOrderData;
         $this->logger = $logger;
     }
 
@@ -151,13 +142,19 @@ class PlaceOrder
      * @param string $amwalOrderId
      * @param string $triggerContext
      * @param bool $hasAmwalAddress
-     * @return void
+     * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute($quoteId, string $refId, RefIdDataInterface $refIdData, string $amwalOrderId, string $triggerContext, bool $hasAmwalAddress): void
-    {
-        $amwalOrderData = $this->getAmwalOrderData($amwalOrderId);
+    public function execute(
+        $quoteId,
+        string $refId,
+        RefIdDataInterface $refIdData,
+        string $amwalOrderId,
+        string $triggerContext,
+        bool $hasAmwalAddress
+    ): OrderInterface {
+        $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
             $this->logger->error(sprintf('Unable to retrieve Amwal Order Data for quote with ID "%s". Amwal Order id: %s', $quoteId, $amwalOrderId));
             $this->throwException(__('We were unable to retrieve your transaction data.'));
@@ -248,11 +245,12 @@ class PlaceOrder
             }
         }
 
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
         $order = $this->createOrder($quote);
         $order->setAmwalOrderId($amwalOrderId);
-        $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
 
         if ($newCustomer) {
             $order->addCommentToStatusHistory(__('Created new customer with ID %1', $newCustomer->getId()));
@@ -261,42 +259,8 @@ class PlaceOrder
         $this->orderRepository->save($order);
 
         $this->setAmwalOrderDetails->execute($order, $amwalOrderId, $triggerContext);
-    }
 
-    /**
-     * @param string $amwalOrderId
-     * @return DataObject|null
-     */
-    private function getAmwalOrderData(string $amwalOrderId): ?DataObject
-    {
-        $amwalClient = $this->amwalClientFactory->create();
-
-        try {
-            $response = $amwalClient->get('transactions/' . $amwalOrderId);
-        } catch (GuzzleException $e) {
-            $this->logger->error(sprintf(
-                'Unable to retrieve Order data from Amwal. Exception: %s',
-                $e->getMessage()
-            ));
-            return null;
-        }
-
-        $responseData = $response->getBody()->getContents();
-        $responseData = $this->jsonSerializer->unserialize($responseData);
-
-        $amwalOrderData = $this->objectFactory->create($responseData);
-
-        if ($amwalOrderData->getAddressDetails()) {
-            $amwalOrderAddress = $this->amwalAddressFactory->create()->setData($amwalOrderData->getAddressDetails());
-            $amwalOrderData->setAddressDetails($amwalOrderAddress);
-        }
-
-        if ($amwalOrderData->getShippingDetails()) {
-            $shippingDetails = $this->objectFactory->create($amwalOrderData->getShippingDetails());
-            $amwalOrderData->setShippingDetails($shippingDetails);
-        }
-
-        return $amwalOrderData;
+        return $order;
     }
 
     /**
@@ -323,16 +287,8 @@ class PlaceOrder
 
         $this->logDebug(sprintf('Updating order state and status for order with ID %s', $order->getEntityId()));
 
-        $order->setState($this->config->getOrderConfirmedStatus());
-        $order->setStatus($this->config->getOrderConfirmedStatus());
-
-        $this->checkoutSession->clearHelperData();
-        $this->checkoutSession->setLastQuoteId($quote->getId())
-            ->setLastSuccessQuoteId($quote->getId());
-
-        $this->checkoutSession->setLastOrderId($order->getId())
-            ->setLastRealOrderId($order->getIncrementId())
-            ->setLastOrderStatus($order->getStatus());
+        $order->setState(Order::STATE_PENDING_PAYMENT);
+        $order->setStatus(Order::STATE_PENDING_PAYMENT);
 
         return $order;
     }

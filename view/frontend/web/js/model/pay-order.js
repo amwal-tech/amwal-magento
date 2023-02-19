@@ -8,21 +8,18 @@ function ($, urlBuilder, customerData) {
 
     return {
 
-        execute: function(amwalOrderId, quoteId, refId, refIdData, triggerContext, hasAmwalAddress) {
+        execute: function(orderId, amwalOrderId) {
             let self = this,
-                placeOrderEndpoint = urlBuilder.build('rest/V1/amwal/place-order'),
+                payOrderEndpoint = urlBuilder.build('rest/V1/amwal/pay-order'),
                 payload = {
-                    quote_id: quoteId,
+                    order_id: orderId,
                     amwal_order_id: amwalOrderId,
-                    ref_id: refId,
-                    ref_id_data: refIdData,
-                    trigger_context: triggerContext,
-                    has_amwal_address: hasAmwalAddress
                 };
 
             $('body').trigger('processStart');
+
             return $.ajax({
-                url: placeOrderEndpoint,
+                url: payOrderEndpoint,
                 type: 'POST',
                 data: JSON.stringify(payload),
                 global: true,

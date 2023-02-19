@@ -24,6 +24,7 @@ $configurableOptions = $viewModel->getConfigurableOptions($product);
             label="quick-buy"
             disabled="true"
             allowed-address-countries='<?= $viewModel->getAllowedCountriesJson() ?>'
+            enable-pre-pay-trigger="true"
             id="amwal-checkout-<?= $product->getId() ?>"
             <?php foreach ($viewModel->getInitialDataAttributes() as $attribute => $value): ?>
                 <?= $attribute ?>='<?= $escaper->escapeHtmlAttr($value) ?>'
