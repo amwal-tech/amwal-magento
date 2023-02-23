@@ -110,6 +110,12 @@
                         <can_be_empty>1</can_be_empty>
                         <config_path>payment/amwal_payments/specificcountry</config_path>
                     </field>
+                    <field id="limit_regions" translate="label" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Limit allowed regions</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Allregion</source_model>
+                        <can_be_empty>1</can_be_empty>
+                        <config_path>payment/amwal_payments/limit_regions</config_path>
+                    </field>
                 </group>
 
                 <!-- Developer Settings -->

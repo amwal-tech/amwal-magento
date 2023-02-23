@@ -11,6 +11,7 @@ interface AmwalAddressInterface
     public const COUNTRY = 'country';
     public const POSTCODE = 'postcode';
     public const STATE = 'state';
+    public const STATE_CODE = 'state_code';
     public const STREET1 = 'street1';
     public const STREET2 = 'street2';
 
@@ -43,6 +44,11 @@ interface AmwalAddressInterface
      * @return string
      */
     public function getState(): string;
+
+    /**
+     * @return string|null
+     */
+    public function getStateCode(): ?string;
 
     /**
      * @return string
@@ -88,6 +94,12 @@ interface AmwalAddressInterface
      * @return AmwalAddressInterface
      */
     public function setState(string $state): AmwalAddressInterface;
+
+    /**
+     * @param string|null $state
+     * @return AmwalAddressInterface
+     */
+    public function setStateCode(?string $stateCode = null): AmwalAddressInterface;
 
     /**
      * @param string $street1

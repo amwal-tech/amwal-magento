@@ -21,7 +21,6 @@ class Config
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_ACTIVE = 'payment/amwal_payments/regular_checkout_active';
     public const XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT = 'payment/amwal_payments/hide_proceed_to_checkout';
     public const XML_CONFIG_PATH_MERCHANT_ID = 'payment/amwal_payments/merchant_id';
-    public const XML_CONFIG_PATH_REF_ID_SECRET = 'payment/amwal_payments/ref_id_secret';
     public const XML_CONFIG_PATH_MERCHANT_MODE = 'payment/amwal_payments/merchant_mode';
     public const XML_CONFIG_PATH_COUNTRY_CODE = 'payment/amwal_payments/country_code';
     public const XML_CONFIG_PATH_TITLE = 'payment/amwal_payments/title';
@@ -30,9 +29,9 @@ class Config
     public const XML_CONFIG_PATH_CREATE_USER_ON_ORDER = 'payment/amwal_payments/create_user_on_order';
     public const XML_CONFIG_PATH_DARK_MODE = 'payment/amwal_payments/dark_mode';
     public const XML_CONFIG_PATH_DEBUG_MODE = 'payment/amwal_payments/debug_mode';
-    public const XML_CONFIG_PATH_CURRENCY = 'payment/amwal_payments/currency';
     public const XML_CONFIG_PATH_ALLOW_SPECIFIC = 'payment/amwal_payments/allowspecific';
     public const XML_CONFIG_PATH_SPECIFIC_COUNTRIES = 'payment/amwal_payments/specificcountries';
+    public const XML_CONFIG_PATH_LIMIT_REGIONS = 'payment/amwal_payments/limit_regions';
     public const XML_CONFIG_PATH_TEST_API_BASE_URL = 'payment/amwal_payments/test_api_base_url';
     public const XML_CONFIG_PATH_PROD_API_BASE_URL = 'payment/amwal_payments/prod_api_base_url';
 
@@ -44,6 +43,7 @@ class Config
 
     /**
      * @param ScopeConfigInterface $scopeConfig
+     * @param ComposerInformation $composerInformation
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -191,7 +191,16 @@ class Config
      */
     public function getSpecificCountries(): array
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_SPECIFIC_COUNTRIES, ScopeInterface::SCOPE_WEBSITE);
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_SPECIFIC_COUNTRIES, ScopeInterface::SCOPE_WEBSITE) ?? [];
+    }
+
+    /**
+     * @return array
+     */
+    public function getLimitedRegions(): array
+    {
+        $regionIds = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_LIMIT_REGIONS, ScopeInterface::SCOPE_WEBSITE) ?? '';
+        return explode(',', $regionIds);
     }
 
     /**
