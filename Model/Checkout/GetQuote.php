@@ -168,7 +168,6 @@ class GetQuote
         $this->logDebug('Creating quote address');
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
-        $quoteAddress->importCustomerAddressData($customerAddress);
 
         if ($customerEmail = $addressData->getEmail()) {
             $this->logDebug(sprintf('Setting customer email for quote address to %s', $customerEmail));

@@ -13,6 +13,7 @@ use Magento\Checkout\Helper\Data;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Helper\Data as DirectoryHelper;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -32,6 +33,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     private DirectoryHelper $directoryHelper;
     private Json $jsonSerializer;
     private AmwalAddressInterfaceFactory $amwalAddressFactory;
+    private RegionCollectionFactory $regionCollectionFactory;
     private string $timestamp;
 
     /**
@@ -44,6 +46,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      * @param DirectoryHelper $directoryHelper
      * @param Json $jsonSerializer
      * @param AmwalAddressInterfaceFactory $amwalAddressFactory
+     * @param RegionCollectionFactory $regionCollectionFactory
      */
     public function __construct(
         AmwalConfig $config,
@@ -54,7 +57,8 @@ class ExpressCheckoutButton implements ArgumentInterface
         RefIdDataInterfaceFactory $refIdDataFactory,
         DirectoryHelper $directoryHelper,
         Json $jsonSerializer,
-        AmwalAddressInterfaceFactory $amwalAddressFactory
+        AmwalAddressInterfaceFactory $amwalAddressFactory,
+        RegionCollectionFactory $regionCollectionFactory
     ) {
         $this->config = $config;
         $this->registry = $registry;
@@ -65,6 +69,7 @@ class ExpressCheckoutButton implements ArgumentInterface
         $this->directoryHelper = $directoryHelper;
         $this->jsonSerializer = $jsonSerializer;
         $this->amwalAddressFactory = $amwalAddressFactory;
+        $this->regionCollectionFactory = $regionCollectionFactory;
         $this->timestamp = microtime();
     }
 
@@ -252,5 +257,21 @@ class ExpressCheckoutButton implements ArgumentInterface
         $attributes['initial-phone'] = $defaultShippingAddress->getTelephone() ?? '';
 
         return $attributes;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLimitedRegionCodesJson(): string
+    {
+        $limitedRegionCodes = [];
+        $limitedRegions = $this->config->getLimitedRegions();
+        $regionCollection = $this->regionCollectionFactory->create();
+        $regionCollection->addFieldToFilter('main_table.region_id', ['in' => $limitedRegions]);
+        foreach ($regionCollection->getItems() as $region) {
+            $limitedRegionCodes[$region->getCountryId()][$region->getCode()] = $region->getName();
+        }
+
+        return $this->jsonSerializer->serialize($limitedRegionCodes);
     }
 }

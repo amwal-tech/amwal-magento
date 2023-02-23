@@ -60,6 +60,14 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     /**
      * @inheritDoc
      */
+    public function getStateCode(): ?string
+    {
+        return $this->getData(self::STATE_CODE);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getStreet1(): string
     {
         return $this->getData(self::STREET1);
@@ -119,6 +127,14 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     public function setState(string $state): AmwalAddressInterface
     {
         return $this->setData(self::STATE, $state);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setStateCode(?string $stateCode = null): AmwalAddressInterface
+    {
+        return $this->setData(self::STATE_CODE, $stateCode);
     }
 
     /**
