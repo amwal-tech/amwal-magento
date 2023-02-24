@@ -219,6 +219,9 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
                     self.$checkoutButton.attr('taxes', response[0].tax_amount);
                     self.checkoutButton.taxes = response[0].tax_amount;
 
+                    self.$checkoutButton.attr('amount', response[0].subtotal);
+                    self.checkoutButton.amount = response[0].subtotal;
+
                     self.$checkoutButton.attr('discount', response[0].discount_amount);
                     self.checkoutButton.discount = response[0].discount_amount;
 
