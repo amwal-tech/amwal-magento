@@ -14,6 +14,7 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -269,9 +270,27 @@ class ExpressCheckoutButton implements ArgumentInterface
         $regionCollection = $this->regionCollectionFactory->create();
         $regionCollection->addFieldToFilter('main_table.region_id', ['in' => $limitedRegions]);
         foreach ($regionCollection->getItems() as $region) {
-            $limitedRegionCodes[$region->getCountryId()][$region->getCode()] = $region->getName();
+            $limitedRegionCodes[$region->getCountryId()][$region->getRegionId()] = $region->getName();
         }
 
         return $this->jsonSerializer->serialize($limitedRegionCodes);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCityCodesJson(): string
+    {
+        $cityCodes = [];
+        $objectManager = ObjectManager::getInstance(); // Instance of object manager
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection = $resource->getConnection();
+        $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
+        $sql = "Select * FROM " . $tableName;
+        $result = $connection->fetchAll($sql); // gives associated array, table fields as key in array.
+        foreach ($connection->fetchAll($sql) as $city) {
+            $cityCodes[$city['country_id']][$city['region_id']][]  = $city['default_name'];
+        }
+        return $this->jsonSerializer->serialize($cityCodes);
     }
 }
