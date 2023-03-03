@@ -15,6 +15,7 @@ use Magento\Customer\Api\Data\RegionInterfaceFactory;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -167,6 +168,14 @@ class AddressResolver
                 ->setRegionId((int) $region->getRegionId());
         }
 
+        if (method_exists($customerAddress,'getCityId')) {
+            $cityId  = $this->getCityId($amwalAddress);
+            if ($cityId){
+                $this->logger->debug('Setting city id to '. $cityId);
+                $customerAddress->setCityId( (int) $cityId);
+            }
+        }
+
         if ($customer = $this->getCustomer()) {
             $customerAddress->setCustomerId($customer->getId());
         }
@@ -228,6 +237,15 @@ class AddressResolver
      */
     private function getRegion(AmwalAddressInterface $amwalAddress): ?RegionInterface
     {
+        $stateCode = $amwalAddress->getStateCode();
+        if (!empty($stateCode)){
+            $region = $this->regionCollectionFactory->create()->getItemById($stateCode);
+            return $this->regionFactory->create()
+                ->setRegion($region->getName())
+                ->setRegionCode($region->getCode())
+                ->setRegionId($region->getId());
+        }
+
         $countryRegionsCollection = $this->regionCollectionFactory->create()
             ->addCountryFilter($amwalAddress->getCountry());
 
@@ -249,6 +267,30 @@ class AddressResolver
             ->setRegion($regionDirectory->getName())
             ->setRegionCode($regionDirectory->getCode())
             ->setRegionId($regionDirectory->getId());
+    }
+
+    /**
+     * @param AmwalAddressInterface $amwalAddress
+     * @return String|null
+     */
+    private function getCityId(AmwalAddressInterface $amwalAddress): ?string
+    {
+        $stateCode = $amwalAddress->getStateCode();
+        if (empty($stateCode)){
+            return null;
+        }
+        $objectManager = ObjectManager::getInstance(); // Instance of object manager
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection = $resource->getConnection();
+        $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
+        $sql = "Select * FROM " . $tableName;
+        $select = $connection->select()
+            ->from(['main_table' => $tableName])
+            ->where('main_table.country_id = ?', $amwalAddress->getCountry())
+            ->where('main_table.region_id = ?', $amwalAddress->getStateCode())
+            ->where('main_table.default_name = ?' , $amwalAddress->getCity());
+        $data = $connection->fetchRow($select);
+        return $data['city_id'];
     }
 
     /**
