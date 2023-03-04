@@ -168,7 +168,7 @@ class AddressResolver
                 ->setRegionId((int) $region->getRegionId());
         }
 
-        if (method_exists($customerAddress,'getCityId')) {
+        if (method_exists($customerAddress,'setCityId')) {
             $cityId  = $this->getCityId($amwalAddress);
             if ($cityId){
                 $this->logger->debug('Setting city id to '. $cityId);
