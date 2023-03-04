@@ -287,7 +287,6 @@ class ExpressCheckoutButton implements ArgumentInterface
         $connection = $resource->getConnection();
         $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
         $sql = "Select * FROM " . $tableName;
-        $result = $connection->fetchAll($sql); // gives associated array, table fields as key in array.
         foreach ($connection->fetchAll($sql) as $city) {
             $cityCodes[$city['country_id']][$city['region_id']][]  = $city['default_name'];
         }
