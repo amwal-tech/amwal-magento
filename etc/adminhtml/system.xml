@@ -11,6 +11,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <config_path>payment/amwal_payments/active</config_path>
                 </field>
+
                 <!-- Merchant Settings -->
                 <group id="amwal_payments_merchant" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="10">
                     <label>Merchant Settings</label>
@@ -57,6 +58,7 @@
                         <config_path>payment/amwal_payments/country_code</config_path>
                     </field>
                 </group>
+
                 <!-- Visual Settings -->
                 <group id="amwal_payments_visual" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
@@ -78,8 +80,36 @@
                         <tooltip>Toggle to enable dark mode</tooltip>
                     </field>
                 </group>
+
+                <!-- Address Attribute Settings -->
+                <group id="amwal_payments_address_attributes" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>Address Attribute Settings</label>
+                    <field id="phone_number_format" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Phone number formatting</label>
+                        <config_path>payment/amwal_payments/phone_number_format</config_path>
+                        <tooltip>Indicate which format should be used for phone numbers</tooltip>
+                        <source_model>Amwal\Payments\Model\Config\Source\PhoneNumberFormat</source_model>
+                    </field>
+                    <field id="phone_number_format_country" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Phone number formatting Country</label>
+                        <config_path>payment/amwal_payments/phone_number_format_country</config_path>
+                        <tooltip>The title of the Amwal payment method in the checkout</tooltip>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <depends>
+                            <field id="phone_number_format">country</field>
+                        </depends>
+                    </field>
+                    <field id="phone_number_trim_whitespace" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Trim whitespace from phone numbers?</label>
+                        <config_path>payment/amwal_payments/phone_number_trim_whitespace</config_path>
+                        <tooltip>Turn this on to remove any whitespace characters from phone numbers</tooltip>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                </group>
+
                 <!-- Order Settings -->
-                <group id="amwal_payments_orders" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
+                <group id="amwal_payments_orders" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="40">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <label>Order Settings</label>
                     <field id="order_confirmed_status" translate="label tooltip" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
@@ -95,8 +125,9 @@
                         <config_path>payment/amwal_payments/create_user_on_order</config_path>
                     </field>
                 </group>
+
                 <!--Country specific settings-->
-                <group id="amwal_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40">
+                <group id="amwal_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50">
                     <label>Country Specific Settings</label>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
@@ -119,7 +150,7 @@
                 </group>
 
                 <!-- Developer Settings -->
-                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="50">
+                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="60">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <label>Developer Settings</label>
                     <field id="debug_mode" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">

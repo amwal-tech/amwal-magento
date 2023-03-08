@@ -28,6 +28,9 @@ class Config
     public const XML_CONFIG_PATH_ORDER_CONFIRMED_STATUS = 'payment/amwal_payments/order_confirmed_status';
     public const XML_CONFIG_PATH_CREATE_USER_ON_ORDER = 'payment/amwal_payments/create_user_on_order';
     public const XML_CONFIG_PATH_DARK_MODE = 'payment/amwal_payments/dark_mode';
+    public const XML_CONFIG_PATH_PHONE_NUMBER_FORMAT = 'payment/amwal_payments/phone_number_format';
+    public const XML_CONFIG_PATH_PHONE_NUMBER_FORMAT_COUNTRY = 'payment/amwal_payments/phone_number_format_country';
+    public const XML_CONFIG_PATH_PHONE_NUMBER_TRIM_WHITESPACE = 'payment/amwal_payments/phone_number_trim_whitespace';
     public const XML_CONFIG_PATH_DEBUG_MODE = 'payment/amwal_payments/debug_mode';
     public const XML_CONFIG_PATH_ALLOW_SPECIFIC = 'payment/amwal_payments/allowspecific';
     public const XML_CONFIG_PATH_SPECIFIC_COUNTRIES = 'payment/amwal_payments/specificcountries';
@@ -160,6 +163,30 @@ class Config
     public function isDarkModeEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_DARK_MODE, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getPhoneNumberFormat(): string
+    {
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_PHONE_NUMBER_FORMAT, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPhoneNumberFormatCountry(): ?string
+    {
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_PHONE_NUMBER_FORMAT_COUNTRY, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getPhoneNumberTrimWhitespace(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_PHONE_NUMBER_TRIM_WHITESPACE, ScopeInterface::SCOPE_STORE);
     }
 
     /**

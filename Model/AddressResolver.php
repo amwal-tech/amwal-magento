@@ -4,7 +4,10 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model;
 
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
+use Amwal\Payments\Model\Config\Source\PhoneNumberFormat;
 use Amwal\Payments\Setup\Patch\Data\AddCustomerAddressAmwalAddressId as AmwalAddressId;
+use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberUtil;
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
@@ -24,6 +27,10 @@ use RuntimeException;
 
 class AddressResolver
 {
+    /**
+     * This value is used during address creation when certain data is unavailable.
+     */
+    public const TEMPORARY_DATA_VALUE = 'undefined';
 
     private CustomerRepositoryInterface $customerRepository;
     private Session $customerSession;
@@ -32,6 +39,7 @@ class AddressResolver
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private RegionCollectionFactory $regionCollectionFactory;
     private RegionInterfaceFactory $regionFactory;
+    private Config $config;
     private LoggerInterface $logger;
 
     public function __construct(
@@ -42,6 +50,7 @@ class AddressResolver
         SearchCriteriaBuilder $searchCriteriaBuilder,
         RegionCollectionFactory $regionCollectionFactory,
         RegionInterfaceFactory $regionFactory,
+        Config $config,
         LoggerInterface $logger
     ) {
         $this->customerRepository = $customerRepository;
@@ -51,6 +60,7 @@ class AddressResolver
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->regionFactory = $regionFactory;
+        $this->config = $config;
         $this->logger = $logger;
     }
 
@@ -97,7 +107,7 @@ class AddressResolver
                     if ($amwalAddressId = $amwalAddress->getId()) {
                         $this->assignAmwalAddressIdToCustomerAddress($customerAddress, $amwalAddressId);
                     }
-                    if ($amwalOrderData->getClientPhoneNumber() !== 'tmp') {
+                    if ($amwalOrderData->getClientPhoneNumber() !== self::TEMPORARY_DATA_VALUE) {
                         $this->updateTmpAddressData($customerAddress, $amwalOrderData);
                     }
                     $address = $customerAddress;
@@ -155,13 +165,16 @@ class AddressResolver
         $amwalAddress = $amwalOrderData->getAddressDetails();
 
         $customerAddress = $this->addressDataFactory->create()
-            ->setFirstname($amwalOrderData->getClientFirstName() ?? 'tmp')
-            ->setLastname($amwalOrderData->getClientLastName() ?? 'tmp')
+            ->setFirstname($amwalOrderData->getClientFirstName() ?? self::TEMPORARY_DATA_VALUE)
+            ->setLastname($amwalOrderData->getClientLastName() ?? self::TEMPORARY_DATA_VALUE)
             ->setCountryId($amwalAddress->getCountry())
             ->setCity($amwalAddress->getCity())
             ->setPostcode($amwalAddress->getPostcode())
-            ->setStreet($this->getAmwalOrderStreet($amwalAddress))
-            ->setTelephone($amwalOrderData->getClientPhoneNumber());
+            ->setStreet($this->getAmwalOrderStreet($amwalAddress));
+
+
+        $phoneNumber = $this->getFormattedPhoneNumber($amwalOrderData->getClientPhoneNumber());
+        $customerAddress->setTelephone($phoneNumber);
 
         if ($region = $this->getRegion($amwalAddress)) {
             $customerAddress->setRegion($region)
@@ -177,7 +190,7 @@ class AddressResolver
             $customerAddress->setCustomerId($customer->getId());
         }
 
-        $customerAddress->setCustomAttribute(AmwalAddressId::ATTRIBUTE_CODE, $amwalAddress->getId() ?? 'tmp');
+        $customerAddress->setCustomAttribute(AmwalAddressId::ATTRIBUTE_CODE, $amwalAddress->getId() ?? self::TEMPORARY_DATA_VALUE);
 
         if (!$this->isGuestOrder()) {
             $customerAddress = $this->addressRepository->save($customerAddress);
@@ -314,5 +327,52 @@ class AddressResolver
         $customerAddress->setLastname($amwalOrderData->getClientLastName());
         $customerAddress->setTelephone($amwalOrderData->getClientPhoneNumber());
         $this->addressRepository->save($customerAddress);
+    }
+
+    /**
+     * @param string $rawPhoneNumber
+     * @return string
+     */
+    private function getFormattedPhoneNumber($rawPhoneNumber): string
+    {
+        $format = $this->config->getPhoneNumberFormat();
+        $formattedNumber = $rawPhoneNumber;
+        if ($rawPhoneNumber === self::TEMPORARY_DATA_VALUE) {
+            return $rawPhoneNumber;
+        }
+
+        if (in_array($format, PhoneNumberFormat::UTILS_LIB_FORMATS)) {
+            $phoneNumberUtil = PhoneNumberUtil::getInstance();
+            try {
+                $phoneNumber = $phoneNumberUtil->parse($rawPhoneNumber);
+            } catch (NumberParseException $e) {
+                $this->logger->error(sprintf(
+                    'Unable to parse phone number "%s" for formatting: %s',
+                    $rawPhoneNumber,
+                    $e->getMessage()
+                ));
+                return $rawPhoneNumber;
+            }
+
+            if ($format === PhoneNumberFormat::FORMAT_COUNTRY) {
+                $country = $this->config->getPhoneNumberFormatCountry();
+                if (!$country) {
+                    $this->logger->error(sprintf(
+                        'Unable to parse phone number "%s" for formatting. Country must be specified when country formatting is selected.',
+                        $rawPhoneNumber
+                    ));
+                    return $rawPhoneNumber;
+                }
+                $formattedNumber = $phoneNumberUtil->formatOutOfCountryCallingNumber($phoneNumber, $country);
+            } else {
+                $formattedNumber = $phoneNumberUtil->format($phoneNumber, $format);
+            }
+        }
+
+        if ($this->config->getPhoneNumberTrimWhitespace()) {
+            $formattedNumber = str_replace(' ', '', $formattedNumber);
+        }
+
+        return $formattedNumber;
     }
 }

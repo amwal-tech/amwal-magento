@@ -12,6 +12,8 @@
                 <test_api_base_url><![CDATA[https://qa-backend.sa.amwal.tech]]></test_api_base_url>
                 <can_use_checkout>1</can_use_checkout>
                 <create_user_on_order>0</create_user_on_order>
+                <phone_number_format>raw</phone_number_format>
+                <phone_number_trim_whitespace>0</phone_number_trim_whitespace>
             </amwal_payments>
         </payment>
     </default>
