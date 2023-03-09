@@ -9,17 +9,14 @@ use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config as AmwalConfig;
 use Magento\Catalog\Model\Product;
-use Magento\Checkout\Helper\Data;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\Locale\Resolver as LocaleResolver;
 
 class ExpressCheckoutButton implements ArgumentInterface
@@ -28,7 +25,6 @@ class ExpressCheckoutButton implements ArgumentInterface
     protected AmwalConfig $config;
     private Registry $registry;
     private Session $customerSession;
-    private ScopeConfigInterface $scopeConfig;
     private RefIdManagementInterface $refIdManagement;
     protected RefIdDataInterfaceFactory $refIdDataFactory;
     private ?Product $product = null;
@@ -42,7 +38,6 @@ class ExpressCheckoutButton implements ArgumentInterface
 
     /**
      * @param AmwalConfig $config
-     * @param ScopeConfigInterface $scopeConfig
      * @param Registry $registry
      * @param Session $customerSession
      * @param RefIdManagementInterface $refIdManagement
@@ -56,7 +51,6 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function __construct(
         AmwalConfig $config,
-        ScopeConfigInterface $scopeConfig,
         Registry $registry,
         Session $customerSession,
         RefIdManagementInterface $refIdManagement,
@@ -71,7 +65,6 @@ class ExpressCheckoutButton implements ArgumentInterface
         $this->config = $config;
         $this->registry = $registry;
         $this->customerSession = $customerSession;
-        $this->scopeConfig = $scopeConfig;
         $this->refIdManagement = $refIdManagement;
         $this->refIdDataFactory = $refIdDataFactory;
         $this->directoryHelper = $directoryHelper;
@@ -88,17 +81,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function isExpressCheckoutActive(): bool
     {
-        if (!$this->config->isActive() || !$this->config->isExpressCheckoutActive()) {
-            return false;
-        }
-
-        /*$guestCheckoutAllowed = $this->scopeConfig->isSetFlag(Data::XML_PATH_GUEST_CHECKOUT, ScopeInterface::SCOPE_STORE);
-
-        if (!$guestCheckoutAllowed && !$this->customerSession->isLoggedIn()) {
-            return false;
-        }*/
-
-        return true;
+        return !(!$this->config->isActive() || !$this->config->isExpressCheckoutActive());
     }
 
     /**
