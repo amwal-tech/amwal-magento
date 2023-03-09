@@ -26,6 +26,9 @@ $viewModel->setQuoteId((string)$quoteId);
         <?php if ($limitRegions = $viewModel->getLimitedRegionCodesJson()): ?>
             allowed-address-states='<?= $escaper->escapeHtmlAttr($limitRegions) ?>'
         <?php endif; ?>
+        <?php if ($limitCities = $viewModel->getCityCodesJson()): ?>
+            allowed-address-cities='<?= $escaper->escapeHtmlAttr($limitCities) ?>'
+        <?php endif; ?>
         <?php foreach ($viewModel->getInitialDataAttributes() as $attribute => $value): ?>
             <?= $attribute ?>='<?= $escaper->escapeHtmlAttr($value) ?>'
         <?php endforeach; ?>
