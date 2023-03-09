@@ -23,6 +23,7 @@ use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\Locale\Resolver as LocaleResolver;
 use RuntimeException;
 
 class AddressResolver
@@ -42,6 +43,7 @@ class AddressResolver
     private Config $config;
     private ResourceConnection $resourceConnection;
     private LoggerInterface $logger;
+    private LocaleResolver $localeResolver;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -53,7 +55,8 @@ class AddressResolver
         RegionInterfaceFactory $regionFactory,
         Config $config,
         ResourceConnection $resourceConnection,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        LocaleResolver $localeResolver
     ) {
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
@@ -65,6 +68,7 @@ class AddressResolver
         $this->config = $config;
         $this->resourceConnection = $resourceConnection;
         $this->logger = $logger;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -294,18 +298,30 @@ class AddressResolver
             return null;
         }
 
+        $locale = $this->localeResolver->getLocale();
+
         $connection = $this->resourceConnection->getConnection();
         $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
-
-        if (!$connection->isTableExists($tableName)) {
+        $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
+        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName)) {
             return null;
         }
+        
+        $amwalCityName = $amwalAddress->getCity();
+        $condition = $connection->quoteInto('lng.locale = ?', $locale);
+        $nameMatchCondition = $connection->quoteInto('main_table.default_name = ?', $amwalCityName);
+        $localeNameMatchCondition = $connection->quoteInto('lng.name = ?', $amwalCityName);
 
         $select = $connection->select()
             ->from(['main_table' => $tableName])
+            ->joinLeft(
+                ['lng' => $localeCityTableName],
+                "main_table.city_id = lng.city_id AND {$condition}",
+                ['name']
+            )
             ->where('main_table.country_id = ?', $amwalAddress->getCountry())
             ->where('main_table.region_id = ?', $amwalAddress->getStateCode())
-            ->where('main_table.default_name = ?' , $amwalAddress->getCity());
+            ->where("{$nameMatchCondition} OR {$localeNameMatchCondition}");
 
         $data = $connection->fetchRow($select);
 

@@ -20,6 +20,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Framework\Locale\Resolver as LocaleResolver;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -36,6 +37,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     private AmwalAddressInterfaceFactory $amwalAddressFactory;
     private RegionCollectionFactory $regionCollectionFactory;
     private string $timestamp;
+    private LocaleResolver $localeResolver;
 
     /**
      * @param AmwalConfig $config
@@ -48,6 +50,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      * @param Json $jsonSerializer
      * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param RegionCollectionFactory $regionCollectionFactory
+     * @param LocaleResolver $localeResolver
      */
     public function __construct(
         AmwalConfig $config,
@@ -59,7 +62,8 @@ class ExpressCheckoutButton implements ArgumentInterface
         DirectoryHelper $directoryHelper,
         Json $jsonSerializer,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
-        RegionCollectionFactory $regionCollectionFactory
+        RegionCollectionFactory $regionCollectionFactory,
+        LocaleResolver $localeResolver
     ) {
         $this->config = $config;
         $this->registry = $registry;
@@ -72,6 +76,7 @@ class ExpressCheckoutButton implements ArgumentInterface
         $this->amwalAddressFactory = $amwalAddressFactory;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->timestamp = microtime();
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -281,15 +286,28 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function getCityCodesJson(): string
     {
-        $cityCodes = [];
-        $objectManager = ObjectManager::getInstance(); // Instance of object manager
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
-        $sql = "Select * FROM " . $tableName;
-        foreach ($connection->fetchAll($sql) as $city) {
-            $cityCodes[$city['country_id']][$city['region_id']][]  = $city['default_name'];
+        try {
+            $locale = $this->localeResolver->getLocale();
+            $cityCodes = [];
+            $objectManager = ObjectManager::getInstance(); // Instance of object manager
+            $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+            $connection = $resource->getConnection();
+            $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
+            $localeCityTableName = $resource->getTableName('directory_country_region_city_name');
+            $condition = $connection->quoteInto('lng.locale = ?', $locale);
+            $sql = $connection->select()->from(
+                ['city' => $tableName]
+            )->joinLeft(
+                ['lng' => $localeCityTableName],
+                "city.city_id = lng.city_id AND {$condition}",
+                ['name']
+            );
+            foreach ($connection->fetchAll($sql) as $city) {
+                $cityCodes[$city['country_id']][$city['region_id']][]  = $city['name'] ?? $city['default_name'];
+            }
+            return $this->jsonSerializer->serialize($cityCodes);
+        } catch (LocalizedException | RuntimeException $e) {
+            return "";
         }
-        return $this->jsonSerializer->serialize($cityCodes);
     }
 }
