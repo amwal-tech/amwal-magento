@@ -92,11 +92,11 @@ class ExpressCheckoutButton implements ArgumentInterface
             return false;
         }
 
-        $guestCheckoutAllowed = $this->scopeConfig->isSetFlag(Data::XML_PATH_GUEST_CHECKOUT, ScopeInterface::SCOPE_STORE);
+        /*$guestCheckoutAllowed = $this->scopeConfig->isSetFlag(Data::XML_PATH_GUEST_CHECKOUT, ScopeInterface::SCOPE_STORE);
 
         if (!$guestCheckoutAllowed && !$this->customerSession->isLoggedIn()) {
             return false;
-        }
+        }*/
 
         return true;
     }
