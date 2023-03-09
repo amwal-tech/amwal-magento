@@ -3,13 +3,14 @@ define([
     'uiComponent',
     'placeAmwalOrder',
     'payAmwalOrder',
+    'amwalErrorHandler',
     'mage/url',
     'Magento_Customer/js/customer-data',
     'underscore',
     'mage/translate',
     'domReady!'
 ],
-function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData, _) {
+function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBuilder, customerData, _) {
     'use strict';
 
     return Component.extend({
@@ -228,16 +229,12 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
                     window.dispatchEvent( new Event('amwalRatesSet') );
                 },
                 error: function (response) {
-                    let message = self.getDefaultErrorMessage();
+                    let message = null;
                     if (typeof response.responseJSON !== 'undefined' && typeof response.responseJSON.message !== 'undefined') {
                         message = response.responseJSON.message;
                     }
-                    customerData.set('messages', {
-                        'messages': [{
-                            'type': 'error',
-                            'text': message
-                        }]
-                    });
+
+                    amwalErrorHandler.process(message);
                 }
             });
         },
@@ -249,14 +246,6 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
          */
         getOrderData() {
             throw "Abstract method updateOrderedAmount should be implemented in a child Component";
-        },
-
-        /**
-         * Return the translated default error message.
-         * @return {String}
-         */
-        getDefaultErrorMessage: function() {
-            return $.mage.__('Something went wrong while placing your order.');
         }
     });
 });
