@@ -18,7 +18,6 @@ use Magento\Customer\Api\Data\RegionInterfaceFactory;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
