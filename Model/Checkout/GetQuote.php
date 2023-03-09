@@ -13,9 +13,11 @@ use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Group as CustomerGroup;
 use Magento\Customer\Model\Session;
+use Magento\Framework\DataObject;
 use Magento\Framework\DataObject\Factory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -23,8 +25,10 @@ use Magento\Framework\Exception\StateException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\AddressFactory;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
@@ -132,47 +136,11 @@ class GetQuote
         ]);
         $amwalOrderData->setAddressDetails($addressData);
 
-        try {
-            $this->logDebug(sprintf(
-                'Resolving customer address using Amwal order data: %s',
-                $amwalOrderData->toJson()
-            ));
-            $customerAddress = $this->addressResolver->execute($amwalOrderData);
-        } catch (LocalizedException | RuntimeException $e) {
-            $this->logger->error('Unable to resolve customer address while getting the Quote');
-            $this->throwException(__($e->getMessage()));
-        }
+        $customerAddress = $this->getCustomerAddress($amwalOrderData);
 
-        try {
-            $this->logDebug(sprintf(
-                'Resolved customer address with data: %s',
-                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
-            ));
-        } catch (JsonException $e) {
-            $this->logger->notice('Unable to log resolved customer address debug message');
-        }
+        $quote = $this->getQuote($quoteId, $orderItems);
 
-
-        if (!$quoteId) {
-            $this->logDebug('No quote found. Creating a new quote');
-            $quote = $this->createQuote($orderItems);
-            $this->logDebug('Quote created');
-        } else {
-            if (!is_numeric($quoteId)) {
-                $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
-            }
-            $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
-            $quote = $this->quoteRepository->get($quoteId);
-        }
-
-        $this->logDebug('Creating quote address');
-        $quoteAddress = $this->quoteAddressFactory->create();
-        $quoteAddress->importCustomerAddressData($customerAddress);
-
-        if ($customerEmail = $addressData->getEmail()) {
-            $this->logDebug(sprintf('Setting customer email for quote address to %s', $customerEmail));
-            $quoteAddress->setEmail($customerEmail);
-        }
+        $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
 
         $this->logDebug('Setting Billing and Shipping address');
         $quote->setBillingAddress($quoteAddress);
@@ -185,46 +153,17 @@ class GetQuote
         $quote->getShippingAddress()->collectShippingRates();
         $this->quoteRepository->save($quote);
 
-        $rates = $this->shippingMethodManagement->estimateByExtendedAddress($quote->getId(), $quote->getShippingAddress());
-
-        if (!$rates) {
-            $this->logger->error('No shipping methods were found for the quote.');
-            $this->throwException(__('There are no shipping methods available for this order.'));
-        }
-
-        $availableRates = [];
-
-        foreach ($rates as $rate) {
-            $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
-            $availableRates[$id] = [
-                'carrier_title' => $rate->getMethodTitle(),
-                'price' => number_format((float) $rate->getPriceInclTax(), 2)
-            ];
-        }
-        try {
-            $this->logDebug(sprintf(
-                'Collceted rates: %s',
-                json_encode($rates, JSON_THROW_ON_ERROR)
-            ));
-        } catch (JsonException $e) {
-            $this->logger->notice('Unable to log rates debug message');
-        }
+        $availableRates = $this->getAvailableRates($quote);
 
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
+        $responseData = $this->getResponseData($quote, $availableRates);
+
         $quoteData = [
-            'data' => [
-                'quote_id' => $quote->getId(),
-                'available_rates' => $availableRates,
-                'amount' => $quote->getGrandTotal(),
-                'subtotal' => $quote->getShippingAddress()->getSubtotal(),
-                'tax_amount' => $quote->getShippingAddress()->getTaxAmount(),
-                'shipping_amount' => $quote->getShippingAddress()->getShippingInclTax(),
-                'discount_amount' => abs($quote->getShippingAddress()->getDiscountAmount())
-            ]
+            'data' => $responseData
         ];
 
         try {
@@ -280,7 +219,7 @@ class GetQuote
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function createQuote(array $orderItems): Quote
+    public function createQuote(array $orderItems): Quote
     {
         $quote = $this->quoteFactory->create();
         $quote->setStore($this->storeManager->getStore());
@@ -327,5 +266,130 @@ class GetQuote
         }
 
         $this->logger->debug($message, $context);
+    }
+
+    /**
+     * @param DataObject $amwalOrderData
+     * @return AddressInterface
+     * @throws LocalizedException
+     */
+    public function getCustomerAddress(DataObject $amwalOrderData): AddressInterface
+    {
+        try {
+            $this->logDebug(sprintf(
+                'Resolving customer address using Amwal order data: %s',
+                $amwalOrderData->toJson()
+            ));
+            $customerAddress = $this->addressResolver->execute($amwalOrderData);
+        } catch (LocalizedException|RuntimeException $e) {
+            $this->logger->error('Unable to resolve customer address while getting the Quote');
+            $this->throwException(__($e->getMessage()));
+        }
+
+        try {
+            $this->logDebug(sprintf(
+                'Resolved customer address with data: %s',
+                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
+            ));
+        } catch (JsonException $e) {
+            $this->logger->notice('Unable to log resolved customer address debug message');
+        }
+
+        return $customerAddress;
+    }
+
+    /**
+     * @param $quoteId
+     * @param array $orderItems
+     * @return CartInterface|Quote
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getQuote($quoteId, array $orderItems)
+    {
+        if (!$quoteId) {
+            $this->logDebug('No quote found. Creating a new quote');
+            $quote = $this->createQuote($orderItems);
+            $this->logDebug('Quote created');
+        } else {
+            if (!is_numeric($quoteId)) {
+                $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
+            }
+            $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
+            $quote = $this->quoteRepository->get($quoteId);
+        }
+        return $quote;
+    }
+
+    /**
+     * @param AddressInterface $customerAddress
+     * @param AmwalAddressInterface $addressData
+     * @return Address
+     */
+    public function getQuoteAddress(AddressInterface $customerAddress, AmwalAddressInterface $addressData): Address
+    {
+        $this->logDebug('Creating quote address');
+        $quoteAddress = $this->quoteAddressFactory->create();
+        $quoteAddress->importCustomerAddressData($customerAddress);
+
+        if ($customerEmail = $addressData->getEmail()) {
+            $this->logDebug(sprintf('Setting customer email for quote address to %s', $customerEmail));
+            $quoteAddress->setEmail($customerEmail);
+        }
+        return $quoteAddress;
+    }
+
+    /**
+     * @param $quote
+     * @return array
+     * @throws LocalizedException
+     */
+    public function getAvailableRates($quote): array
+    {
+        $rates = $this->shippingMethodManagement->estimateByExtendedAddress($quote->getId(), $quote->getShippingAddress());
+
+        if (!$rates) {
+            $this->logger->error('No shipping methods were found for the quote.');
+            $this->throwException(__('There are no shipping methods available for this order.'));
+        }
+
+        $availableRates = [];
+
+        foreach ($rates as $rate) {
+            $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
+            $availableRates[$id] = [
+                'carrier_title' => $rate->getMethodTitle(),
+                'price' => number_format((float)$rate->getPriceInclTax(), 2)
+            ];
+        }
+        try {
+            $this->logDebug(sprintf(
+                'Collceted rates: %s',
+                json_encode($rates, JSON_THROW_ON_ERROR)
+            ));
+        } catch (JsonException $e) {
+            $this->logger->notice('Unable to log rates debug message');
+        }
+
+        return $availableRates;
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @param array $availableRates
+     * @return array
+     */
+    public function getResponseData(CartInterface $quote, array $availableRates): array
+    {
+        $taxAmount = $quote->getShippingAddress()->getTaxAmount();
+        return [
+            'quote_id' => $quote->getId(),
+            'available_rates' => $availableRates,
+            'amount' => $quote->getGrandTotal(),
+            'subtotal' => $quote->getShippingAddress()->getSubtotalInclTax() - $taxAmount,
+            'tax_amount' => $taxAmount,
+            'shipping_amount' => $quote->getShippingAddress()->getShippingInclTax(),
+            'discount_amount' => abs($quote->getShippingAddress()->getDiscountAmount())
+        ];
     }
 }
