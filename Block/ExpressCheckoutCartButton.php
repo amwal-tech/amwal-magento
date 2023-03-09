@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Amwal\Payments\Block;
 
 use Amwal\Payments\Model\Config;
-use Magento\Checkout\Helper\Data;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -13,7 +12,6 @@ use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Store\Model\ScopeInterface;
 
 class ExpressCheckoutCartButton extends Template
 {
@@ -46,26 +44,20 @@ class ExpressCheckoutCartButton extends Template
     /**
      * @param Context $context
      * @param Config $config
-     * @param ScopeConfigInterface $scopeConfig
      * @param CheckoutSessionFactory $checkoutSessionFactory
-     * @param CustomerSessionFactory $customerSessionFactory
      * @param CartRepositoryInterface $quoteRepository
      * @param array $data
      */
     public function __construct(
         Context $context,
         Config $config,
-        ScopeConfigInterface $scopeConfig,
         CheckoutSessionFactory $checkoutSessionFactory,
-        CustomerSessionFactory $customerSessionFactory,
         CartRepositoryInterface $quoteRepository,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->config = $config;
-        $this->scopeConfig = $scopeConfig;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
-        $this->customerSessionFactory = $customerSessionFactory;
         $this->quoteRepository = $quoteRepository;
     }
 
@@ -86,15 +78,8 @@ class ExpressCheckoutCartButton extends Template
             return false;
         }
 
-        $customerSession = $this->customerSessionFactory->create();
-        /* if (!$customerSession->isLoggedIn() && !$this->scopeConfig->isSetFlag(Data::XML_PATH_GUEST_CHECKOUT, ScopeInterface::SCOPE_STORE) {
+        if ($this->getQuote() && $this->getQuote()->getGrandTotal() <= 0) {
             return false;
-        } */
-
-        if ($this->getQuote()) {
-            if ($this->getQuote()->getGrandTotal() <= 0) {
-                return false;
-            }
         }
 
         return true;
