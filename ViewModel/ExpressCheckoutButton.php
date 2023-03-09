@@ -293,12 +293,12 @@ class ExpressCheckoutButton implements ArgumentInterface
             $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
             $connection = $resource->getConnection();
             $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
-            $localCityTableName = $resource->getTableName('directory_country_region_city_name');
+            $localeCityTableName = $resource->getTableName('directory_country_region_city_name');
             $condition = $connection->quoteInto('lng.locale = ?', $locale);
             $sql = $connection->select()->from(
                 ['city' => $tableName]
             )->joinLeft(
-                ['lng' => $localCityTableName],
+                ['lng' => $localeCityTableName],
                 "city.city_id = lng.city_id AND {$condition}",
                 ['name']
             );

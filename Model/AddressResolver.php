@@ -302,26 +302,26 @@ class AddressResolver
 
         $connection = $this->resourceConnection->getConnection();
         $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
-        $localCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
-        if (!$connection->isTableExists($tableName)) {
+        $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
+        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName)) {
             return null;
         }
         
         $amwalCityName = $amwalAddress->getCity();
         $condition = $connection->quoteInto('lng.locale = ?', $locale);
-        $name_match_condition = $connection->quoteInto('main_table.default_name = ?', $amwalCityName);
-        $local_name_match_condition = $connection->quoteInto('lng.name = ?', $amwalCityName);
+        $nameMatchCondition = $connection->quoteInto('main_table.default_name = ?', $amwalCityName);
+        $localeNameMatchCondition = $connection->quoteInto('lng.name = ?', $amwalCityName);
 
         $select = $connection->select()
             ->from(['main_table' => $tableName])
             ->joinLeft(
-                ['lng' => $localCityTableName],
+                ['lng' => $localeCityTableName],
                 "main_table.city_id = lng.city_id AND {$condition}",
                 ['name']
             )
             ->where('main_table.country_id = ?', $amwalAddress->getCountry())
             ->where('main_table.region_id = ?', $amwalAddress->getStateCode())
-            ->where("{$name_match_condition} OR {$local_name_match_condition}");
+            ->where("{$nameMatchCondition} OR {$localeNameMatchCondition}");
 
         $data = $connection->fetchRow($select);
 
