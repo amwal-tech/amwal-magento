@@ -19,6 +19,7 @@ use Magento\Customer\Model\Session;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -40,6 +41,7 @@ class AddressResolver
     private RegionCollectionFactory $regionCollectionFactory;
     private RegionInterfaceFactory $regionFactory;
     private Config $config;
+    private ResourceConnection $resourceConnection;
     private LoggerInterface $logger;
 
     public function __construct(
@@ -51,6 +53,7 @@ class AddressResolver
         RegionCollectionFactory $regionCollectionFactory,
         RegionInterfaceFactory $regionFactory,
         Config $config,
+        ResourceConnection $resourceConnection,
         LoggerInterface $logger
     ) {
         $this->customerRepository = $customerRepository;
@@ -61,6 +64,7 @@ class AddressResolver
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->regionFactory = $regionFactory;
         $this->config = $config;
+        $this->resourceConnection = $resourceConnection;
         $this->logger = $logger;
     }
 
@@ -282,6 +286,7 @@ class AddressResolver
     /**
      * @param AmwalAddressInterface $amwalAddress
      * @return String|null
+     * @todo This should be extracted and either offered as a separate extension, or implemented directly on the business side
      */
     private function getCityId(AmwalAddressInterface $amwalAddress): ?string
     {
@@ -289,17 +294,22 @@ class AddressResolver
         if (empty($stateCode)){
             return null;
         }
-        $objectManager = ObjectManager::getInstance(); // Instance of object manager
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
-        $sql = "Select * FROM " . $tableName;
+
+        $connection = $this->resourceConnection->getConnection();
+        $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
+
+        if (!$connection->isTableExists($tableName)) {
+            return null;
+        }
+
         $select = $connection->select()
             ->from(['main_table' => $tableName])
             ->where('main_table.country_id = ?', $amwalAddress->getCountry())
             ->where('main_table.region_id = ?', $amwalAddress->getStateCode())
             ->where('main_table.default_name = ?' , $amwalAddress->getCity());
+
         $data = $connection->fetchRow($select);
+
         return $data['city_id'];
     }
 
