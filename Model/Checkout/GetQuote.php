@@ -350,7 +350,7 @@ class GetQuote
 
         if (!$rates) {
             $this->logger->error('No shipping methods were found for the quote.');
-            $this->throwException(__('There are no shipping methods available for this order.'));
+            return [];
         }
 
         $availableRates = [];
