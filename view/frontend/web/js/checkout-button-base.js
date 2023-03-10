@@ -27,6 +27,9 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
         quoteId: null,
         placedOrderId: null,
         triggerContext: 'product-detail-page',
+        redirectURL: undefined,
+        receivedSuccess: false,
+        busyUpdatingOrder: false,
 
         /**
          * @returns {exports.initialize}
@@ -52,6 +55,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.addAmwalEventListers(self.checkoutButton)
                 }
             });
+
+            self.redirectURL = undefined;
+            self.receivedSuccess = false;
+            self.busyUpdatingOrder = false;
 
             return self;
         },
@@ -110,11 +117,27 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
 
             // Pay the order after payment through Amwal is confirmed
             self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
+                self.busyUpdatingOrder = true;
                 payAmwalOrder.execute(self.placedOrderId, e.detail.orderId).then((response) => {
+                    self.busyUpdatingOrder = false;
                     if (response === true) {
-                        window.location.href = urlBuilder.build('checkout/onepage/success');
+                        self.redirectURL = urlBuilder.build('checkout/onepage/success');
+                        if (self.receivedSuccess){
+                            window.location.href = self.redirectURL;
+                        }
                     }
                 });
+            });
+
+            // Pay the order after payment through Amwal is confirmed
+            self.checkoutButton.addEventListener('amwalCheckoutSuccess', function (e) {
+                self.receivedSuccess = true; // coordinate with the updateOrderOnPaymentsuccess event
+                if (self.busyUpdatingOrder) {
+                    return; // the redirection will happen in the updateOrderOnPaymentsuccess event
+                }
+                if (self.redirectURL){
+                    window.location.href = self.redirectURL;
+                }
             });
 
             // Trigger the address update so Amwal knows the shippign methods are set
