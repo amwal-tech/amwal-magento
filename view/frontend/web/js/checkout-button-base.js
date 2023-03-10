@@ -102,7 +102,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                             order_total_amount: response.total_due
                         }
                     };
-                    window.dispatchEvent(
+                    self.checkoutButton.dispatchEvent(
                         new CustomEvent ('amwalPrePayTriggerAck', prePayTriggerPayload)
                     );
                 });
@@ -119,7 +119,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
 
             // Trigger the address update so Amwal knows the shippign methods are set
             window.addEventListener('amwalRatesSet', function () {
-                window.dispatchEvent(new Event('amwalAddressAck'));
+                self.checkoutButton.dispatchEvent(new Event('amwalAddressAck'));
             });
 
             // Triggered when the modal is closed
@@ -234,7 +234,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                         message = response.responseJSON.message;
                     }
 
-                    amwalErrorHandler.process(message);
+                    amwalErrorHandler.process(self.checkoutButton, message);
                 }
             });
         },
