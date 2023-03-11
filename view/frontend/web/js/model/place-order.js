@@ -1,9 +1,10 @@
 define([
     'jquery',
+    'amwalErrorHandler',
     'mage/url',
     'Magento_Customer/js/customer-data'
 ],
-function ($, urlBuilder, customerData) {
+function ($, amwalErrorHandler, urlBuilder, customerData) {
     'use strict';
 
     return {
@@ -28,16 +29,12 @@ function ($, urlBuilder, customerData) {
                 global: true,
                 contentType: 'application/json',
                 error: function (response) {
-                    let message = $.mage.__('Something went wrong while placing your order.');
-                    if (typeof response.responseJSON !== undefined && typeof response.responseJSON.message !== undefined) {
+                    let message = null;
+                    if (typeof response.responseJSON !== 'undefined' && typeof response.responseJSON.message !== 'undefined') {
                         message = response.responseJSON.message;
                     }
-                    customerData.set('messages', {
-                        'messages': [{
-                            'type': 'error',
-                            'text': message
-                        }]
-                    });
+
+                    amwalErrorHandler.process(message);
                 },
                 always: function () {
                     $('body').trigger('processStop');

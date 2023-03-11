@@ -9,17 +9,15 @@ use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config as AmwalConfig;
 use Magento\Catalog\Model\Product;
-use Magento\Checkout\Helper\Data;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Magento\Store\Model\ScopeInterface;
+use Magento\Framework\Locale\Resolver as LocaleResolver;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -27,7 +25,6 @@ class ExpressCheckoutButton implements ArgumentInterface
     protected AmwalConfig $config;
     private Registry $registry;
     private Session $customerSession;
-    private ScopeConfigInterface $scopeConfig;
     private RefIdManagementInterface $refIdManagement;
     protected RefIdDataInterfaceFactory $refIdDataFactory;
     private ?Product $product = null;
@@ -36,10 +33,11 @@ class ExpressCheckoutButton implements ArgumentInterface
     private AmwalAddressInterfaceFactory $amwalAddressFactory;
     private RegionCollectionFactory $regionCollectionFactory;
     private string $timestamp;
+    private LocaleResolver $localeResolver;
+    private ResourceConnection $resourceConnection;
 
     /**
      * @param AmwalConfig $config
-     * @param ScopeConfigInterface $scopeConfig
      * @param Registry $registry
      * @param Session $customerSession
      * @param RefIdManagementInterface $refIdManagement
@@ -48,10 +46,11 @@ class ExpressCheckoutButton implements ArgumentInterface
      * @param Json $jsonSerializer
      * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param RegionCollectionFactory $regionCollectionFactory
+     * @param LocaleResolver $localeResolver
+     * @param ResourceConnection $resourceConnection
      */
     public function __construct(
         AmwalConfig $config,
-        ScopeConfigInterface $scopeConfig,
         Registry $registry,
         Session $customerSession,
         RefIdManagementInterface $refIdManagement,
@@ -59,18 +58,21 @@ class ExpressCheckoutButton implements ArgumentInterface
         DirectoryHelper $directoryHelper,
         Json $jsonSerializer,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
-        RegionCollectionFactory $regionCollectionFactory
+        RegionCollectionFactory $regionCollectionFactory,
+        LocaleResolver $localeResolver,
+        ResourceConnection $resourceConnection
     ) {
         $this->config = $config;
         $this->registry = $registry;
         $this->customerSession = $customerSession;
-        $this->scopeConfig = $scopeConfig;
         $this->refIdManagement = $refIdManagement;
         $this->refIdDataFactory = $refIdDataFactory;
         $this->directoryHelper = $directoryHelper;
         $this->jsonSerializer = $jsonSerializer;
         $this->amwalAddressFactory = $amwalAddressFactory;
         $this->regionCollectionFactory = $regionCollectionFactory;
+        $this->localeResolver = $localeResolver;
+        $this->resourceConnection = $resourceConnection;
         $this->timestamp = microtime();
     }
 
@@ -79,17 +81,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function isExpressCheckoutActive(): bool
     {
-        if (!$this->config->isActive() || !$this->config->isExpressCheckoutActive()) {
-            return false;
-        }
-
-        $guestCheckoutAllowed = $this->scopeConfig->isSetFlag(Data::XML_PATH_GUEST_CHECKOUT, ScopeInterface::SCOPE_STORE);
-
-        if (!$guestCheckoutAllowed && !$this->customerSession->isLoggedIn()) {
-            return false;
-        }
-
-        return true;
+        return !(!$this->config->isActive() || !$this->config->isExpressCheckoutActive());
     }
 
     /**
@@ -281,15 +273,29 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function getCityCodesJson(): string
     {
+        $locale = $this->localeResolver->getLocale();
         $cityCodes = [];
-        $objectManager = ObjectManager::getInstance(); // Instance of object manager
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('directory_country_region_city'); //gives table name with prefix
-        $sql = "Select * FROM " . $tableName;
-        foreach ($connection->fetchAll($sql) as $city) {
-            $cityCodes[$city['country_id']][$city['region_id']][]  = $city['default_name'];
+        $connection = $this->resourceConnection->getConnection();
+        $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
+        $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
+
+        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName)) {
+            return '';
         }
+
+        $condition = $connection->quoteInto('lng.locale = ?', $locale);
+        $sql = $connection->select()->from(
+            ['city' => $tableName]
+        )->joinLeft(
+            ['lng' => $localeCityTableName],
+            "city.city_id = lng.city_id AND {$condition}",
+            ['name']
+        );
+
+        foreach ($connection->fetchAll($sql) as $city) {
+            $cityCodes[$city['country_id']][$city['region_id']][]  = $city['name'] ?? $city['default_name'];
+        }
+
         return $this->jsonSerializer->serialize($cityCodes);
     }
 }

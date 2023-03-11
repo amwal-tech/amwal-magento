@@ -3,13 +3,14 @@ define([
     'uiComponent',
     'placeAmwalOrder',
     'payAmwalOrder',
+    'amwalErrorHandler',
     'mage/url',
     'Magento_Customer/js/customer-data',
     'underscore',
     'mage/translate',
     'domReady!'
 ],
-function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData, _) {
+function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBuilder, customerData, _) {
     'use strict';
 
     return Component.extend({
@@ -26,6 +27,9 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
         quoteId: null,
         placedOrderId: null,
         triggerContext: 'product-detail-page',
+        redirectURL: undefined,
+        receivedSuccess: false,
+        busyUpdatingOrder: false,
 
         /**
          * @returns {exports.initialize}
@@ -51,6 +55,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
                     self.addAmwalEventListers(self.checkoutButton)
                 }
             });
+
+            self.redirectURL = undefined;
+            self.receivedSuccess = false;
+            self.busyUpdatingOrder = false;
 
             return self;
         },
@@ -101,7 +109,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
                             order_total_amount: response.total_due
                         }
                     };
-                    window.dispatchEvent(
+                    self.checkoutButton.dispatchEvent(
                         new CustomEvent ('amwalPrePayTriggerAck', prePayTriggerPayload)
                     );
                 });
@@ -109,16 +117,32 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
 
             // Pay the order after payment through Amwal is confirmed
             self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
+                self.busyUpdatingOrder = true;
                 payAmwalOrder.execute(self.placedOrderId, e.detail.orderId).then((response) => {
+                    self.busyUpdatingOrder = false;
                     if (response === true) {
-                        window.location.href = urlBuilder.build('checkout/onepage/success');
+                        self.redirectURL = urlBuilder.build('checkout/onepage/success');
+                        if (self.receivedSuccess){
+                            window.location.href = self.redirectURL;
+                        }
                     }
                 });
             });
 
+            // Pay the order after payment through Amwal is confirmed
+            self.checkoutButton.addEventListener('amwalCheckoutSuccess', function (e) {
+                self.receivedSuccess = true; // coordinate with the updateOrderOnPaymentsuccess event
+                if (self.busyUpdatingOrder) {
+                    return; // the redirection will happen in the updateOrderOnPaymentsuccess event
+                }
+                if (self.redirectURL){
+                    window.location.href = self.redirectURL;
+                }
+            });
+
             // Trigger the address update so Amwal knows the shippign methods are set
             window.addEventListener('amwalRatesSet', function () {
-                window.dispatchEvent(new Event('amwalAddressAck'));
+                self.checkoutButton.dispatchEvent(new Event('amwalAddressAck'));
             });
 
             // Triggered when the modal is closed
@@ -228,16 +252,12 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
                     window.dispatchEvent( new Event('amwalRatesSet') );
                 },
                 error: function (response) {
-                    let message = self.getDefaultErrorMessage();
+                    let message = null;
                     if (typeof response.responseJSON !== 'undefined' && typeof response.responseJSON.message !== 'undefined') {
                         message = response.responseJSON.message;
                     }
-                    customerData.set('messages', {
-                        'messages': [{
-                            'type': 'error',
-                            'text': message
-                        }]
-                    });
+
+                    amwalErrorHandler.process(self.checkoutButton, message);
                 }
             });
         },
@@ -249,14 +269,6 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, urlBuilder, customerData
          */
         getOrderData() {
             throw "Abstract method updateOrderedAmount should be implemented in a child Component";
-        },
-
-        /**
-         * Return the translated default error message.
-         * @return {String}
-         */
-        getDefaultErrorMessage: function() {
-            return $.mage.__('Something went wrong while placing your order.');
         }
     });
 });

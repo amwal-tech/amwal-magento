@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Checkout;
 
+use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -104,8 +105,8 @@ class PayOrder
      */
     private function updateCustomerName(OrderInterface $order, DataObject $amwalOrderData)
     {
-        $order->setCustomerFirstname($amwalOrderData->getClientFirstName() ?? 'tmp');
-        $order->setCustomerLastname($amwalOrderData->getClientLastName() ?? 'tmp');
+        $order->setCustomerFirstname($amwalOrderData->getClientFirstName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
+        $order->setCustomerLastname($amwalOrderData->getClientLastName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
         $this->orderRepository->save($order);
     }
 
@@ -128,14 +129,14 @@ class PayOrder
     {
         $shippingAddress = $entity->getShippingAddress();
 
-        $shippingAddress->setFirstname($amwalOrderData->getClientFirstName() ?? 'tmp');
-        $shippingAddress->setLastname($amwalOrderData->getClientLastName() ?? 'tmp');
+        $shippingAddress->setFirstname($amwalOrderData->getClientFirstName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
+        $shippingAddress->setLastname($amwalOrderData->getClientLastName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
         $entity->setShippingAddress($shippingAddress);
 
         $billingAddress = $entity->getBillingAddress();
         if ($billingAddress) {
-            $billingAddress->setFirstname($amwalOrderData->getClientFirstName() ?? 'tmp');
-            $billingAddress->setLastname($amwalOrderData->getClientLastName() ?? 'tmp');
+            $billingAddress->setFirstname($amwalOrderData->getClientFirstName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
+            $billingAddress->setLastname($amwalOrderData->getClientLastName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
             $entity->setBillingAddress($billingAddress);
         }
 
