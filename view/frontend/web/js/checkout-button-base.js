@@ -100,7 +100,8 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.refId,
                     self.refIdData,
                     self.triggerContext,
-                    true
+                    true,
+                    self.checkoutButton
                 ).then((response) => {
                     self.placedOrderId = response.entity_id;
                     let prePayTriggerPayload = {
@@ -118,7 +119,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             // Pay the order after payment through Amwal is confirmed
             self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
                 self.busyUpdatingOrder = true;
-                payAmwalOrder.execute(self.placedOrderId, e.detail.orderId).then((response) => {
+                payAmwalOrder.execute(self.placedOrderId, e.detail.orderId, self.checkoutButton).then((response) => {
                     self.busyUpdatingOrder = false;
                     if (response === true) {
                         self.redirectURL = urlBuilder.build('checkout/onepage/success');
