@@ -24,6 +24,7 @@ $configurableOptions = $viewModel->getConfigurableOptions($product);
             label="quick-buy"
             disabled="true"
             allowed-address-countries='<?= $viewModel->getAllowedCountriesJson() ?>'
+            enable-pre-checkout-trigger="true"
             enable-pre-pay-trigger="true"
             id="amwal-checkout-<?= $product->getId() ?>"
             <?php if ($limitRegions = $viewModel->getLimitedRegionCodesJson()): ?>
@@ -43,6 +44,7 @@ $configurableOptions = $viewModel->getConfigurableOptions($product);
         {
             "#amwal-checkout-<?= $product->getId() ?>": {
                 "Amwal_Payments/js/checkout-button-product": {
+                    "pluginVersion" : "<?= $viewModel->getPluginVersion() ?>",
                     "productId": "<?= $product->getId() ?>",
                     "refId": "<?= $viewModel->getRefId() ?>",
                     "refIdData": <?= $viewModel->getRefIdData()->toJson() ?>,
