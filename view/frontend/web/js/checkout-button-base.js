@@ -21,6 +21,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
         orderedAmount: 0,
         addressData: {},
         refId: null,
+        pluginVersion: "",
         refIdData: {},
         checkoutButton: null,
         $checkoutButton: null,
@@ -42,23 +43,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             self.checkoutButton = document.getElementById(buttonSelector);
             self.$checkoutButton = $(self.checkoutButton);
 
-            // Handle express checkout trigger.
-            self.$checkoutButton.on('click', function() {
-                if (self.isClickable === true) {
-                    self.startExpressCheckout();
-                }
-            });
-
-            // Only add event listeners once the button is clicked to prevent each individual button from listening to events.
-            self.isClicked.subscribe(function() {
-                if (self.isClicked() === true) {
-                    self.addAmwalEventListers(self.checkoutButton)
-                }
-            });
-
             self.redirectURL = undefined;
             self.receivedSuccess = false;
             self.busyUpdatingOrder = false;
+            self.addAmwalEventListers(self.checkoutButton);
 
             return self;
         },
@@ -90,6 +78,20 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             self.checkoutButton.addEventListener('amwalAddressUpdate', function (e) {
                 self.addressData = e.detail;
                 self.getQuote();
+            });
+
+            // Create the quote when address is updated so we can gather shipping info
+            self.checkoutButton.addEventListener('amwalPreCheckoutTrigger', function (e) {
+                self.startExpressCheckout();
+                self.checkoutButton.dispatchEvent(
+                    new CustomEvent ('amwalPreCheckoutTriggerAck', {
+                        detail: {
+                            order_position: self.triggerContext,
+                            plugin_version: `Magento ${self.pluginVersion}`,
+                            order_content: JSON.stringify(self.getOrderData())
+                        }
+                    })
+                );
             });
 
             // Place the order once we receive the checkout success event

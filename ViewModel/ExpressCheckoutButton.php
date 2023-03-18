@@ -120,6 +120,14 @@ class ExpressCheckoutButton implements ArgumentInterface
     /**
      * @return string
      */
+    public function getPluginVersion(): string
+    {
+        return $this->config->getVersion();
+    }
+
+    /**
+     * @return string
+     */
     public function getCountryCode(): string
     {
         return $this->config->getCountryCode();
