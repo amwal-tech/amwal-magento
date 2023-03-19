@@ -17,7 +17,7 @@ function ($, Component, customerData, urlBuidler, _) {
         quoteId: null,
         hideProceedToCheckout: false,
         customerId: null,
-        triggerContext: 'minicart',
+        triggerContext: 'cart',
 
         /**
          * @returns {exports.initialize}
