@@ -215,6 +215,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             payload.address_data = self.addressData;
             payload.ref_id = self.refId;
             payload.ref_id_data = self.refIdData;
+            payload.trigger_context = self.triggerContext;
 
             if (self.quoteId !== null && self.quoteId !== 'newquote') {
                 payload.quote_id = self.quoteId;
