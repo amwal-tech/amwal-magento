@@ -80,7 +80,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 self.getQuote();
             });
 
-            // Create the quote when address is updated so we can gather shipping info
+            // Use the preCheckoutTrigger to initiate the express checkout
             self.checkoutButton.addEventListener('amwalPreCheckoutTrigger', function (e) {
                 self.startExpressCheckout();
                 self.checkoutButton.dispatchEvent(

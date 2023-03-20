@@ -6,9 +6,11 @@ namespace Amwal\Payments\Model\Config\Checkout;
 use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ThirdParty\CityHelper;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Directory\Helper\Data as DirectoryHelper;
 
 class ConfigProvider implements ConfigProviderInterface
 {
@@ -40,24 +42,40 @@ class ConfigProvider implements ConfigProviderInterface
     private CheckoutSession $checkoutSession;
 
     /**
+     * @var CityHelper
+     */
+    private CityHelper $cityHelper;
+
+    /**
+     * @var DirectoryHelper
+     */
+    private DirectoryHelper $directoryHelper;
+
+    /**
      * @param Config $config
      * @param RefIdManagementInterface $refIdManagement
      * @param RefIdDataInterfaceFactory $refIdDataFactory
      * @param CustomerSession $customerSession
      * @param CheckoutSession $checkoutSession
+     * @param CityHelper $cityHelper
+     * @param DirectoryHelper $directoryHelper
      */
     public function __construct(
         Config $config,
         RefIdManagementInterface  $refIdManagement,
         RefIdDataInterfaceFactory $refIdDataFactory,
         CustomerSession $customerSession,
-        CheckoutSession $checkoutSession
+        CheckoutSession $checkoutSession,
+        CityHelper $cityHelper,
+        DirectoryHelper $directoryHelper
     ) {
         $this->config = $config;
         $this->refIdManagement = $refIdManagement;
         $this->refIdDataFactory = $refIdDataFactory;
         $this->customerSession = $customerSession;
         $this->checkoutSession = $checkoutSession;
+        $this->cityHelper = $cityHelper;
+        $this->directoryHelper = $directoryHelper;
     }
 
     /**
@@ -88,6 +106,10 @@ class ConfigProvider implements ConfigProviderInterface
             'currency' => $this->config->getCurrency(),
             'refId' => $refId,
             'refIdData' => $refIdData->toArray(),
+            'allowedCountries' => array_keys($this->directoryHelper->getCountryCollection()->getItems()),
+            'allowedAddressStates' => $this->config->getLimitedRegionsArray(),
+            'allowedAddressCities' => $this->cityHelper->getCityCodes(),
+            'pluginVersion' => $this->config->getVersion(),
         ];
 
         return [

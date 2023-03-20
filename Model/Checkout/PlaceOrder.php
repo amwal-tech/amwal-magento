@@ -3,14 +3,11 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Checkout;
 
-use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
-use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\GetAmwalOrderData;
-use GuzzleHttp\Exception\GuzzleException;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\AccountManagementInterface;
@@ -18,19 +15,12 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Api\Data\CustomerInterfaceFactory;
-use Magento\Customer\Model\Customer;
-use Magento\Customer\Model\EmailNotificationInterface;
 use Magento\Customer\Model\SessionFactory;
 use Magento\Framework\DataObject;
-use Magento\Framework\DataObject\Factory;
-use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Exception\State\InputMismatchException;
-use Magento\Framework\Math\Random;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
@@ -40,30 +30,22 @@ use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 class PlaceOrder
 {
-
-    private AmwalClientFactory $amwalClientFactory;
-    private Json $jsonSerializer;
     private QuoteManagement $quoteManagement;
     private AddressFactory $quoteAddressFactory;
     private QuoteRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
     private Config $config;
     private ManagerInterface $messageManager;
-    private InvoiceOrder $invoiceAmwalOrder;
     private AddressResolver $addressResolver;
     private OrderRepositoryInterface $orderRepository;
-    private Factory $objectFactory;
-    private AmwalAddressInterfaceFactory $amwalAddressFactory;
     private RefIdManagementInterface $refIdManagement;
     private UpdateShippingMethod $updateShippingMethod;
     private SetAmwalOrderDetails $setAmwalOrderDetails;
-    private StoreManagerInterface $storeManager;
     private CustomerRepositoryInterface $customerRepository;
     private CustomerInterfaceFactory $customerFactory;
     private AccountManagementInterface $accountManagement;
@@ -79,7 +61,6 @@ class PlaceOrder
      * @param CheckoutSession $checkoutSession
      * @param Config $config
      * @param ManagerInterface $messageManager
-     * @param InvoiceOrder $invoiceAmwalOrder
      * @param AddressResolver $addressResolver
      * @param OrderRepositoryInterface $orderRepository
      * @param RefIdManagementInterface $refIdManagement
@@ -100,7 +81,6 @@ class PlaceOrder
         CheckoutSession                 $checkoutSession,
         Config                          $config,
         ManagerInterface                $messageManager,
-        InvoiceOrder                    $invoiceAmwalOrder,
         AddressResolver                 $addressResolver,
         OrderRepositoryInterface        $orderRepository,
         RefIdManagementInterface        $refIdManagement,
@@ -120,7 +100,6 @@ class PlaceOrder
         $this->checkoutSession = $checkoutSession;
         $this->config = $config;
         $this->messageManager = $messageManager;
-        $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->addressResolver = $addressResolver;
         $this->orderRepository = $orderRepository;
         $this->refIdManagement = $refIdManagement;
@@ -224,6 +203,19 @@ class PlaceOrder
             if ($amwalOrderData->getShippingDetails()) {
                 $this->updateShippingMethod->execute($quote, $amwalOrderData->getShippingDetails()->getId());
             }
+        }
+
+        if (!$quote->getShippingAddress()->getEmail() && $quote->getBillingAddress() && $quote->getBillingAddress()->getEmail()) {
+            $shippingAddress = $quote->getShippingAddress();
+            $shippingAddress->setEmail($quote->getBillingAddress()->getEmail());
+            $quote->setShippingAddress($shippingAddress);
+            $this->quoteRepository->save($quote);
+        }
+
+        if (!$quote->getCustomerEmail()) {
+            $customerEmail = $quote->getShippingAddress()->getEmail();
+            $quote->setCustomerEmail($customerEmail);
+            $this->quoteRepository->save($quote);
         }
 
         $newCustomer = null;

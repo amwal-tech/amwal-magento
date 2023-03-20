@@ -7,11 +7,11 @@ use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\Config\Source\MerchantMode;
 use Magento\Config\Model\Config\Backend\Admin\Custom as AdminConfig;
 use Magento\Directory\Model\Currency;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Composer\ComposerInformation;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
-use OutOfBoundsException;
 
 class Config
 {
@@ -38,22 +38,28 @@ class Config
     public const XML_CONFIG_PATH_TEST_API_BASE_URL = 'payment/amwal_payments/test_api_base_url';
     public const XML_CONFIG_PATH_PROD_API_BASE_URL = 'payment/amwal_payments/prod_api_base_url';
 
-    /**
-     * @var ScopeConfigInterface
-     */
+    /** @var ScopeConfigInterface  */
     private ScopeConfigInterface $scopeConfig;
+
+    /** @var ComposerInformation  */
     private ComposerInformation $composerInformation;
+
+    /** @var RegionCollectionFactory  */
+    private RegionCollectionFactory $regionCollectionFactory;
 
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param ComposerInformation $composerInformation
+     * @param RegionCollectionFactory $regionCollectionFactory
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        ComposerInformation $composerInformation
+        ComposerInformation $composerInformation,
+        RegionCollectionFactory $regionCollectionFactory
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->composerInformation = $composerInformation;
+        $this->regionCollectionFactory = $regionCollectionFactory;
     }
 
     /**
@@ -228,6 +234,22 @@ class Config
     {
         $regionIds = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_LIMIT_REGIONS, ScopeInterface::SCOPE_WEBSITE) ?? '';
         return explode(',', $regionIds);
+    }
+
+    /**
+     * @return array
+     */
+    public function getLimitedRegionsArray(): array
+    {
+        $limitedRegionCodes = [];
+        $limitedRegions = $this->getLimitedRegions();
+        $regionCollection = $this->regionCollectionFactory->create();
+        $regionCollection->addFieldToFilter('main_table.region_id', ['in' => $limitedRegions]);
+        foreach ($regionCollection->getItems() as $region) {
+            $limitedRegionCodes[$region->getCountryId()][$region->getRegionId()] = $region->getName();
+        }
+
+        return $limitedRegionCodes;
     }
 
     /**
