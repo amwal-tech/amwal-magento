@@ -38,6 +38,7 @@ class SetAmwalOrderDetails
     /**
      * @param OrderInterface $order
      * @param string $amwalOrderId
+     * @param string $triggerContext
      * @return void
      */
     public function execute(OrderInterface $order, string $amwalOrderId, string $triggerContext): void
@@ -67,12 +68,12 @@ class SetAmwalOrderDetails
             return;
         }
 
-        $responseStatucCode = $response->getStatusCode();
-        if ($responseStatucCode !== 200) {
+        $responseStatusCode = $response->getStatusCode();
+        if ($responseStatusCode !== 200) {
             $this->logger->error(sprintf(
                 'Unable to set Order details in Amwal for order with ID "%s". Received status: %s - %s',
                 $amwalOrderId,
-                $responseStatucCode,
+                $responseStatusCode,
                 $response->getReasonPhrase()
             ));
         }

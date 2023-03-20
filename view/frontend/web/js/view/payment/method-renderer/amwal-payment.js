@@ -4,57 +4,141 @@ define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/totals',
     'placeAmwalOrder',
+    'payAmwalOrder',
+    'mage/url',
     'domReady!'
 ],
-function ($, Component, quote, totals, placeAmwalOrder) {
+function ($, Component, quote, totals, placeAmwalOrder, payAmwalOrder, urlBuilder) {
     'use strict';
     return Component.extend({
         defaults: {
             template: 'Amwal_Payments/payment/amwal-payment/form',
+            pluginVersion: 0,
             amount: 0,
+            triggerContext: 'regular-checkout',
             code: 'amwal_payments',
             amwalButtonId: 'amwal-place-order-button',
             amwalButtonSelector: '#amwal-place-order-button',
-            additionalData: {}
+            additionalData: {},
+            checkoutButton: null,
+            $checkoutButton: null,
+            isInitialized: false,
+            receivedSuccess: false,
+            busyUpdatingOrder: false
         },
 
         initialize: function () {
             let self = this;
-
             self._super();
 
-            self.amount = parseFloat(totals.totals().base_grand_total);
-            self.setAmount();
-
-            $(self.amwalButtonSelector).on('click', function (e) {
-                $('body').trigger('processStart');
-            });
-
             const eventListenerInterval = setInterval(function () {
-                let $amwalCheckoutButton = $(self.amwalButtonSelector);
-
-                if ($amwalCheckoutButton.length) {
-                    document.getElementById(self.amwalButtonId).addEventListener('amwalCheckoutSuccess', function (e) {
-                        self.additionalData.transactionId = e.detail.orderId;
-                        placeAmwalOrder.execute(
-                            e.detail.orderId,
-                            quote.getQuoteId(),
-                            self.getRefId(),
-                            self.getRefIdData(),
-                            'regular-checkout',
-                            false
-                        );
-                    });
-                    self.setAmount();
-                    self.observeAmount();
+                if (self.isInitialized) {
                     clearInterval(eventListenerInterval);
+                } else {
+                    self.initializeAmwalButton();
                 }
-
             }, 250);
-
 
             return self;
         },
+
+        initializeAmwalButton: function () {
+            let self = this;
+
+            if (!$(self.amwalButtonSelector).length) {
+                return;
+            }
+
+            self.checkoutButton = document.getElementById(self.amwalButtonId);
+            self.$checkoutButton = $(self.amwalButtonSelector);
+
+            self.amount = parseFloat(totals.totals().grand_total);
+            self.setAmount();
+
+            if (self.getAllowedAddressStates().length) {
+                self.$checkoutButton.attr('allowed-address-states', JSON.stringify(self.getAllowedAddressStates()));
+            }
+
+            if (self.getAllowedAddressCities().length) {
+                self.$checkoutButton.attr('allowed-address-cities', JSON.stringify(self.getAllowedAddressCities()));
+            }
+
+            self.addAmwalEventListers()
+
+            self.setAmount();
+            self.observeAmount();
+
+            self.isInitialized = true;
+        },
+
+        addAmwalEventListers: function () {
+            let self = this;
+
+            // Use the preCheckoutTrigger to initiate the express checkout
+            self.checkoutButton.addEventListener('amwalPreCheckoutTrigger', function (e) {
+                self.checkoutButton.dispatchEvent(
+                    new CustomEvent ('amwalPreCheckoutTriggerAck', {
+                        detail: {
+                            order_position: 'checkout',
+                            plugin_version: 'Magento ' + self.pluginVersion
+                        }
+                    })
+                );
+            });
+
+            // Place the order once we receive the checkout success event
+            self.checkoutButton.addEventListener('amwalPrePayTrigger', function (e) {
+                placeAmwalOrder.execute(
+                    e.detail.id,
+                    quote.getQuoteId(),
+                    self.getRefId(),
+                    self.getRefIdData(),
+                    self.triggerContext,
+                    false,
+                    self.checkoutButton
+                ).then((response) => {
+                    self.placedOrderId = response.entity_id;
+                    let prePayTriggerPayload = {
+                        detail: {
+                            order_id: self.placedOrderId,
+                            order_total_amount: response.total_due
+                        }
+                    };
+                    self.checkoutButton.dispatchEvent(
+                        new CustomEvent ('amwalPrePayTriggerAck', prePayTriggerPayload)
+                    );
+                });
+            });
+
+            // Pay the order after payment through Amwal is confirmed
+            let redirectUrl = urlBuilder.build('checkout/onepage/success');
+            self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
+                self.busyUpdatingOrder = true;
+                payAmwalOrder.execute(self.placedOrderId, e.detail.orderId, self.checkoutButton).then((response) => {
+                    self.busyUpdatingOrder = false;
+                    if (response === true) {
+                        if (self.receivedSuccess){
+                            window.location.href = redirectUrl;
+                        }
+                    }
+                });
+            });
+
+            // Pay the order after payment through Amwal is confirmed
+            self.checkoutButton.addEventListener('amwalCheckoutSuccess', function (e) {
+                self.receivedSuccess = true; // coordinate with the updateOrderOnPaymentsuccess event
+                if (self.busyUpdatingOrder) {
+                    return; // the redirection will happen in the updateOrderOnPaymentsuccess event
+                }
+                window.location.href = redirectUrl;
+            });
+
+            // Triggered when the modal is closed
+            self.checkoutButton.addEventListener('amwalDismissed', function (e) {
+                $('body').trigger('processStop');
+            });
+        },
+
         getData: function () {
             let self = this,
                 parent = self._super();
@@ -65,7 +149,7 @@ function ($, Component, quote, totals, placeAmwalOrder) {
         },
 
         setAmount: function () {
-            $(this.amwalButtonSelector).attr('amount', this.amount);
+            this.$checkoutButton.attr('amount', this.amount);
         },
 
         /**
@@ -73,8 +157,7 @@ function ($, Component, quote, totals, placeAmwalOrder) {
          */
         checkAmount: function () {
             let self = this,
-                $checkoutButton = $(self.amwalButtonSelector),
-                setAmount = parseFloat($checkoutButton.attr('amount')),
+                setAmount = parseFloat(self.$checkoutButton.attr('amount')),
                 actualAmount = parseFloat(self.amount);
 
             if (setAmount !== actualAmount) {
@@ -89,7 +172,7 @@ function ($, Component, quote, totals, placeAmwalOrder) {
                     self.checkAmount($checkoutButton);
                 });
 
-            amountObserver.observe(document.getElementById(self.amwalButtonId), {
+            amountObserver.observe(self.checkoutButton, {
                 attributes: true,
                 attributeFilter: ['amount']
             });
@@ -128,5 +211,20 @@ function ($, Component, quote, totals, placeAmwalOrder) {
             return merchantMode === 'test' ? 'dev' : null;
         },
 
+        getAllowedCountries: function () {
+            return JSON.stringify(window.checkoutConfig.payment[this.getCode()]['allowedCountries']);
+        },
+
+        getAllowedAddressStates: function () {
+            return window.checkoutConfig.payment[this.getCode()]['allowedAddressStates'];
+        },
+
+        getAllowedAddressCities: function () {
+            return window.checkoutConfig.payment[this.getCode()]['allowedAddressCities'];
+        },
+
+        getPluginVersion: function () {
+            return window.checkoutConfig.payment[this.getCode()]['pluginVersion'];
+        }
     });
 });

@@ -385,7 +385,7 @@ class GetQuote
         }
         try {
             $this->logDebug(sprintf(
-                'Collceted rates: %s',
+                'Collected rates: %s',
                 json_encode($rates, JSON_THROW_ON_ERROR)
             ));
         } catch (JsonException $e) {

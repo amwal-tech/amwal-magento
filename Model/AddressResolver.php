@@ -306,7 +306,7 @@ class AddressResolver
         if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName)) {
             return null;
         }
-        
+
         $amwalCityName = $amwalAddress->getCity();
         $condition = $connection->quoteInto('lng.locale = ?', $locale);
         $nameMatchCondition = $connection->quoteInto('main_table.default_name = ?', $amwalCityName);
@@ -316,12 +316,12 @@ class AddressResolver
             ->from(['main_table' => $tableName])
             ->joinLeft(
                 ['lng' => $localeCityTableName],
-                "main_table.city_id = lng.city_id AND {$condition}",
+                'main_table.city_id = lng.city_id AND ' . $condition,
                 ['name']
             )
             ->where('main_table.country_id = ?', $amwalAddress->getCountry())
             ->where('main_table.region_id = ?', $amwalAddress->getStateCode())
-            ->where("{$nameMatchCondition} OR {$localeNameMatchCondition}");
+            ->where($nameMatchCondition . ' OR ' . $localeNameMatchCondition);
 
         $data = $connection->fetchRow($select);
 

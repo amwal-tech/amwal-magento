@@ -6,7 +6,7 @@ namespace Amwal\Payments\Model\Data;
 use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Magento\Framework\DataObject;
 
-class AmwalOrderItem extends DataObject implements \Amwal\Payments\Api\Data\AmwalOrderItemInterface
+class AmwalOrderItem extends DataObject implements AmwalOrderItemInterface
 {
 
     /**

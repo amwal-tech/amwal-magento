@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Checkout;
 
-use Amwal\Payments\Api\Data\AmwalAddressInterface;
-use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
