@@ -21,6 +21,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
         orderedAmount: 0,
         addressData: {},
         refId: null,
+        pluginVersion: "",
         refIdData: {},
         checkoutButton: null,
         $checkoutButton: null,
@@ -42,23 +43,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             self.checkoutButton = document.getElementById(buttonSelector);
             self.$checkoutButton = $(self.checkoutButton);
 
-            // Handle express checkout trigger.
-            self.$checkoutButton.on('click', function() {
-                if (self.isClickable === true) {
-                    self.startExpressCheckout();
-                }
-            });
-
-            // Only add event listeners once the button is clicked to prevent each individual button from listening to events.
-            self.isClicked.subscribe(function() {
-                if (self.isClicked() === true) {
-                    self.addAmwalEventListers(self.checkoutButton)
-                }
-            });
-
             self.redirectURL = undefined;
             self.receivedSuccess = false;
             self.busyUpdatingOrder = false;
+            self.addAmwalEventListers(self.checkoutButton);
 
             return self;
         },
@@ -92,6 +80,20 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 self.getQuote();
             });
 
+            // Use the preCheckoutTrigger to initiate the express checkout
+            self.checkoutButton.addEventListener('amwalPreCheckoutTrigger', function (e) {
+                self.startExpressCheckout();
+                self.checkoutButton.dispatchEvent(
+                    new CustomEvent ('amwalPreCheckoutTriggerAck', {
+                        detail: {
+                            order_position: self.triggerContext,
+                            plugin_version: `Magento ${self.pluginVersion}`,
+                            order_content: JSON.stringify(self.getOrderData())
+                        }
+                    })
+                );
+            });
+
             // Place the order once we receive the checkout success event
             self.checkoutButton.addEventListener('amwalPrePayTrigger', function (e) {
                 placeAmwalOrder.execute(
@@ -100,7 +102,8 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.refId,
                     self.refIdData,
                     self.triggerContext,
-                    true
+                    true,
+                    self.checkoutButton
                 ).then((response) => {
                     self.placedOrderId = response.entity_id;
                     let prePayTriggerPayload = {
@@ -118,7 +121,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             // Pay the order after payment through Amwal is confirmed
             self.checkoutButton.addEventListener('updateOrderOnPaymentsuccess', function (e) {
                 self.busyUpdatingOrder = true;
-                payAmwalOrder.execute(self.placedOrderId, e.detail.orderId).then((response) => {
+                payAmwalOrder.execute(self.placedOrderId, e.detail.orderId, self.checkoutButton).then((response) => {
                     self.busyUpdatingOrder = false;
                     if (response === true) {
                         self.redirectURL = urlBuilder.build('checkout/onepage/success');
@@ -212,6 +215,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             payload.address_data = self.addressData;
             payload.ref_id = self.refId;
             payload.ref_id_data = self.refIdData;
+            payload.trigger_context = self.triggerContext;
 
             if (self.quoteId !== null && self.quoteId !== 'newquote') {
                 payload.quote_id = self.quoteId;

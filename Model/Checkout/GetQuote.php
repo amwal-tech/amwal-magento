@@ -12,6 +12,7 @@ use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
@@ -52,6 +53,7 @@ class GetQuote
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private Config $config;
+    private CheckoutSession $checkoutSession;
     private LoggerInterface $logger;
 
     /**
@@ -69,6 +71,7 @@ class GetQuote
      * @param RefIdManagementInterface $refIdManagement
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param Config $config
+     * @param CheckoutSession $checkoutSession
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -86,6 +89,7 @@ class GetQuote
         RefIdManagementInterface $refIdManagement,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         Config $config,
+        CheckoutSession $checkoutSession,
         LoggerInterface $logger
     ) {
         $this->customerRepository = $customerRepository;
@@ -102,6 +106,7 @@ class GetQuote
         $this->refIdManagement = $refIdManagement;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->config = $config;
+        $this->checkoutSession = $checkoutSession;
         $this->logger = $logger;
     }
 
@@ -110,14 +115,21 @@ class GetQuote
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param AmwalAddressInterface $addressData
+     * @param string $triggerContext
      * @param string|int|null $quoteId
      * @return mixed[]
      * @throws LocalizedException
      * @throws NoSuchEntityException
      * @throws StateException
      */
-    public function execute(array $orderItems, string $refId, RefIdDataInterface $refIdData, AmwalAddressInterface $addressData, $quoteId = null): array
-    {
+    public function execute(
+        array $orderItems,
+        string $refId,
+        RefIdDataInterface $refIdData,
+        AmwalAddressInterface $addressData,
+        string $triggerContext,
+        $quoteId = null
+    ): array {
         $this->logDebug('Start GetQuote call');
         if (!$this->refIdManagement->verifyRefId($refId, $refIdData)) {
             $this->logger->error(sprintf(
@@ -138,7 +150,7 @@ class GetQuote
 
         $customerAddress = $this->getCustomerAddress($amwalOrderData);
 
-        $quote = $this->getQuote($quoteId, $orderItems);
+        $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
 
         $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
 
@@ -148,7 +160,7 @@ class GetQuote
 
         $quote->setPaymentMethod(ConfigProvider::CODE);
 
-        $this->logDebug('Collcetion shipping rates');
+        $this->logDebug('Collecting shipping rates');
         $quote->getShippingAddress()->setCollectShippingRates(true);
         $quote->getShippingAddress()->collectShippingRates();
         $this->quoteRepository->save($quote);
@@ -301,13 +313,22 @@ class GetQuote
     /**
      * @param $quoteId
      * @param array $orderItems
+     * @param string $triggerContext
      * @return CartInterface|Quote
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getQuote($quoteId, array $orderItems)
+    public function getQuote($quoteId, array $orderItems, string $triggerContext)
     {
         if (!$quoteId) {
+            if ($triggerContext === 'minicart') {
+                $this->logDebug('No quote found. Checking if one was created.');
+                $quote = $this->checkoutSession->getQuote();
+                if ($quote) {
+                    $this->logDebug(sprintf('Quote with ID %s found.', $quote->getId()));
+                    return $quote;
+                }
+            }
             $this->logDebug('No quote found. Creating a new quote');
             $quote = $this->createQuote($orderItems);
             $this->logDebug('Quote created');
@@ -364,7 +385,7 @@ class GetQuote
         }
         try {
             $this->logDebug(sprintf(
-                'Collceted rates: %s',
+                'Collected rates: %s',
                 json_encode($rates, JSON_THROW_ON_ERROR)
             ));
         } catch (JsonException $e) {

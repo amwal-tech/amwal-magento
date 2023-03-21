@@ -15,6 +15,7 @@ use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 
@@ -28,6 +29,7 @@ class PayOrder
     private Config $config;
     private OrderRepositoryInterface $orderRepository;
     private ManagerInterface $messageManager;
+    private OrderPaymentRepositoryInterface $paymentRepository;
     private LoggerInterface $logger;
 
     public function __construct(
@@ -38,6 +40,7 @@ class PayOrder
         Config $config,
         OrderRepositoryInterface $orderRepository,
         ManagerInterface $messageManager,
+        OrderPaymentRepositoryInterface $paymentRepository,
         LoggerInterface $logger
     ) {
         $this->quoteRepository = $quoteRepository;
@@ -47,6 +50,7 @@ class PayOrder
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->messageManager = $messageManager;
+        $this->paymentRepository = $paymentRepository;
         $this->logger = $logger;
     }
 
@@ -76,6 +80,8 @@ class PayOrder
             $this->addError(__('We were unable to retrieve your order data.'));
             return false;
         }
+
+        $this->addAdditionalPaymentInformation($amwalOrderData, $order);
 
         $this->updateAddressData($quote, $amwalOrderData);
         $this->updateAddressData($order, $amwalOrderData);
@@ -147,5 +153,22 @@ class PayOrder
         if ($entity instanceof OrderInterface) {
             $this->orderRepository->save($entity);
         }
+    }
+
+    private function addAdditionalPaymentInformation(DataObject $amwalOrderData, OrderInterface $order): void
+    {
+        $payment = $order->getPayment();
+
+        if (!$payment) {
+            return;
+        }
+
+        $additionalInfo = $payment->getAdditionalInformation();
+        $additionalInfo['payment_brand'] = $amwalOrderData->getData('paymentBrand');
+        $payment->setAdditionalInformation($additionalInfo);
+        $this->paymentRepository->save($payment);
+
+        $order->setPayment($payment);
+        $this->orderRepository->save($order);
     }
 }

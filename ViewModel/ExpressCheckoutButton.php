@@ -8,6 +8,7 @@ use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config as AmwalConfig;
+use Amwal\Payments\Model\ThirdParty\CityHelper;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Session;
@@ -35,6 +36,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     private string $timestamp;
     private LocaleResolver $localeResolver;
     private ResourceConnection $resourceConnection;
+    private CityHelper $cityHelper;
 
     /**
      * @param AmwalConfig $config
@@ -60,7 +62,8 @@ class ExpressCheckoutButton implements ArgumentInterface
         AmwalAddressInterfaceFactory $amwalAddressFactory,
         RegionCollectionFactory $regionCollectionFactory,
         LocaleResolver $localeResolver,
-        ResourceConnection $resourceConnection
+        ResourceConnection $resourceConnection,
+        CityHelper $cityHelper
     ) {
         $this->config = $config;
         $this->registry = $registry;
@@ -73,6 +76,7 @@ class ExpressCheckoutButton implements ArgumentInterface
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->localeResolver = $localeResolver;
         $this->resourceConnection = $resourceConnection;
+        $this->cityHelper = $cityHelper;
         $this->timestamp = microtime();
     }
 
@@ -115,6 +119,14 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function getMerchantMode(): string
     {
         return $this->config->getMerchantMode();
+    }
+
+    /**
+     * @return string
+     */
+    public function getPluginVersion(): string
+    {
+        return $this->config->getVersion();
     }
 
     /**
@@ -257,15 +269,9 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function getLimitedRegionCodesJson(): string
     {
-        $limitedRegionCodes = [];
-        $limitedRegions = $this->config->getLimitedRegions();
-        $regionCollection = $this->regionCollectionFactory->create();
-        $regionCollection->addFieldToFilter('main_table.region_id', ['in' => $limitedRegions]);
-        foreach ($regionCollection->getItems() as $region) {
-            $limitedRegionCodes[$region->getCountryId()][$region->getRegionId()] = $region->getName();
-        }
-
-        return $this->jsonSerializer->serialize($limitedRegionCodes);
+        return $this->jsonSerializer->serialize(
+            $this->config->getLimitedRegionsArray()
+        );
     }
 
     /**
@@ -273,27 +279,10 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function getCityCodesJson(): string
     {
-        $locale = $this->localeResolver->getLocale();
-        $cityCodes = [];
-        $connection = $this->resourceConnection->getConnection();
-        $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
-        $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
+        $cityCodes = $this->cityHelper->getCityCodes();
 
-        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName)) {
+        if (!$cityCodes) {
             return '';
-        }
-
-        $condition = $connection->quoteInto('lng.locale = ?', $locale);
-        $sql = $connection->select()->from(
-            ['city' => $tableName]
-        )->joinLeft(
-            ['lng' => $localeCityTableName],
-            "city.city_id = lng.city_id AND {$condition}",
-            ['name']
-        );
-
-        foreach ($connection->fetchAll($sql) as $city) {
-            $cityCodes[$city['country_id']][$city['region_id']][]  = $city['name'] ?? $city['default_name'];
         }
 
         return $this->jsonSerializer->serialize($cityCodes);

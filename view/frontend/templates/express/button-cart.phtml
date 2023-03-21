@@ -21,6 +21,7 @@ $viewModel->setQuoteId((string)$quoteId);
         ref-id="<?= $escaper->escapeHtmlAttr($viewModel->getRefId()) ?>"
         label="quick-buy"
         allowed-address-countries='<?= $escaper->escapeHtmlAttr($viewModel->getAllowedCountriesJson()) ?>'
+        enable-pre-checkout-trigger="true"
         enable-pre-pay-trigger="true"
         id="amwal-checkout-cart-<?= $escaper->escapeHtmlAttr($quoteId) ?>"
         <?php if ($limitRegions = $viewModel->getLimitedRegionCodesJson()): ?>
@@ -39,6 +40,7 @@ $viewModel->setQuoteId((string)$quoteId);
     {
         "#amwal-checkout-cart-<?= $quoteId ?>": {
             "Amwal_Payments/js/checkout-button-cart": {
+                "pluginVersion" : "<?= $viewModel->getPluginVersion() ?>",
                 "hideProceedToCheckout": <?= (int) $viewModel->shouldHideProceedToCheckout() ?>,
                 "quotePrice": "<?= $quote ? $quote->getSubtotal() : 0 ?>",
                 "quoteId": "<?= $quoteId ?>",

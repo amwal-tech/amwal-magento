@@ -117,7 +117,7 @@ class InvoiceOrder
                 $invoice = $order->prepareInvoice();
                 $invoice->getOrder()->setIsInProcess(true);
 
-                // set transaction id so you can do a online refund from credit memo
+                // set transaction id so you can do an online refund from credit memo
                 $invoice->setTransactionId($amwalOrderData->getId());
                 $invoice->register()->pay();
 

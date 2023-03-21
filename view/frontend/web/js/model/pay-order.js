@@ -9,7 +9,7 @@ function ($, amwalErrorHandler, urlBuilder, customerData) {
 
     return {
 
-        execute: function(orderId, amwalOrderId) {
+        execute: function(orderId, amwalOrderId, element) {
             let self = this,
                 payOrderEndpoint = urlBuilder.build('rest/V1/amwal/pay-order'),
                 payload = {
@@ -31,7 +31,7 @@ function ($, amwalErrorHandler, urlBuilder, customerData) {
                         message = response.responseJSON.message;
                     }
 
-                    amwalErrorHandler.process(message);
+                    amwalErrorHandler.process(element, message);
                 },
                 always: function () {
                     $('body').trigger('processStop');
