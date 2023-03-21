@@ -350,7 +350,7 @@ class AddressResolver
     {
         $customerAddress->setFirstname($amwalOrderData->getClientFirstName());
         $customerAddress->setLastname($amwalOrderData->getClientLastName());
-        $customerAddress->setTelephone($amwalOrderData->getClientPhoneNumber());
+        $customerAddress->setTelephone($this->getFormattedPhoneNumber($amwalOrderData->getClientPhoneNumber()));
         $this->addressRepository->save($customerAddress);
     }
 
@@ -358,7 +358,7 @@ class AddressResolver
      * @param string $rawPhoneNumber
      * @return string
      */
-    private function getFormattedPhoneNumber($rawPhoneNumber): string
+    private function getFormattedPhoneNumber(string $rawPhoneNumber): string
     {
         $format = $this->config->getPhoneNumberFormat();
         $formattedNumber = $rawPhoneNumber;
