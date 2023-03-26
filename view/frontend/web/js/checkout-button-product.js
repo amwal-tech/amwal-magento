@@ -198,6 +198,12 @@ function ($, Component, idsResolver, productInfoResolver, _) {
                         'form': $form,
                         'response': res
                     });
+
+                    self.$checkoutButton.dispatchEvent(new CustomEvent('amwalPreCheckoutTriggerError', {
+                        detail: {
+                            description: res?.responseJSON?.message
+                        }
+                    }));
                 }
             });
         },
