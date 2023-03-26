@@ -325,7 +325,7 @@ class AddressResolver
 
         $data = $connection->fetchRow($select);
 
-        return $data['city_id'];
+        return $data? $data['city_id']: null;
     }
 
     /**
