@@ -11,10 +11,10 @@ function ($, customerData) {
          * Process an error message and send the associated event to the Amwal modal
          * @return {String}
          */
-        process: function(element, message) {
+        process: function(element, message, eventName = 'amwalPrePayTriggerError') {
             message = message || this.getDefaultErrorMessage();
 
-            element.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
+            element.dispatchEvent(new CustomEvent(eventName, {
                 detail: {
                     description: message
                 }

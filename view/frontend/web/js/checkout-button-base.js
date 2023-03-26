@@ -279,7 +279,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                         message = response.responseJSON.message;
                     }
 
-                    amwalErrorHandler.process(self.checkoutButton, message);
+                    amwalErrorHandler.process(self.checkoutButton, message, 'amwalPreCheckoutTriggerError');
                 }
             });
         },
