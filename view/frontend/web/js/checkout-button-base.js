@@ -31,6 +31,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
         redirectURL: undefined,
         receivedSuccess: false,
         busyUpdatingOrder: false,
+        isPreCheckoutActive: false,
 
         /**
          * @returns {exports.initialize}
@@ -46,7 +47,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             self.redirectURL = undefined;
             self.receivedSuccess = false;
             self.busyUpdatingOrder = false;
-            self.addAmwalEventListers(self.checkoutButton);
+            self.addAmwalEventListers();
 
             return self;
         },
@@ -82,16 +83,24 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
 
             // Use the preCheckoutTrigger to initiate the express checkout
             self.checkoutButton.addEventListener('amwalPreCheckoutTrigger', function (e) {
+                self.isPreCheckoutActive = true;
+                self.$checkoutButton.on('amwalPreCheckoutComplete', function (event, data) {
+                    self.checkoutButton.dispatchEvent(
+                        new CustomEvent ('amwalPreCheckoutTriggerAck', {
+                            detail: {
+                                order_position: self.triggerContext,
+                                plugin_version: 'Magento ' + self.pluginVersion,
+                                order_content: JSON.stringify(self.getOrderData())
+                            }
+                        })
+                    );
+                });
+
+                self.$checkoutButton.on('startAmwalCheckout', function (event, data) {
+                    self.getQuote();
+                });
+
                 self.startExpressCheckout();
-                self.checkoutButton.dispatchEvent(
-                    new CustomEvent ('amwalPreCheckoutTriggerAck', {
-                        detail: {
-                            order_position: self.triggerContext,
-                            plugin_version: `Magento ${self.pluginVersion}`,
-                            order_content: JSON.stringify(self.getOrderData())
-                        }
-                    })
-                );
             });
 
             // Place the order once we receive the checkout success event
@@ -164,7 +173,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             $('body').trigger('processStart');
 
             self.updateOrderedAmount();
+
             self.checkAmount();
+
+            self.$checkoutButton.trigger('startAmwalCheckout', {});
         },
 
         /**
@@ -216,6 +228,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             payload.ref_id = self.refId;
             payload.ref_id_data = self.refIdData;
             payload.trigger_context = self.triggerContext;
+            payload.is_pre_checkout = self.isPreCheckoutActive;
 
             if (self.quoteId !== null && self.quoteId !== 'newquote') {
                 payload.quote_id = self.quoteId;
@@ -253,7 +266,12 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.$checkoutButton.attr('discount', response[0].discount_amount);
                     self.checkoutButton.discount = response[0].discount_amount;
 
-                    window.dispatchEvent( new Event('amwalRatesSet') );
+                    if (self.isPreCheckoutActive) {
+                        self.isPreCheckoutActive = false;
+                        self.$checkoutButton.trigger('amwalPreCheckoutComplete');
+                    } else {
+                        window.dispatchEvent(new Event('amwalRatesSet'));
+                    }
                 },
                 error: function (response) {
                     let message = null;
