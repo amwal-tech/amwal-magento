@@ -3,10 +3,11 @@ define([
     'Amwal_Payments/js/checkout-button-base',
     'Magento_Catalog/js/product/view/product-ids-resolver',
     'Magento_Catalog/js/product/view/product-info-resolver',
+    'amwalErrorHandler',
     'underscore',
     'domReady!'
 ],
-function ($, Component, idsResolver, productInfoResolver, _) {
+function ($, Component, idsResolver, productInfoResolver, amwalErrorHandler, _) {
     'use strict';
 
     return Component.extend({
@@ -199,11 +200,7 @@ function ($, Component, idsResolver, productInfoResolver, _) {
                         'response': res
                     });
 
-                    self.$checkoutButton.dispatchEvent(new CustomEvent('amwalPreCheckoutTriggerError', {
-                        detail: {
-                            description: res?.responseJSON?.message
-                        }
-                    }));
+                    amwalErrorHandler.process(self.checkoutButton, res?.responseJSON?.message, 'amwalPreCheckoutTriggerError');
                 }
             });
         },
