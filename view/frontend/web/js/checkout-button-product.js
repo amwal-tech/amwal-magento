@@ -1,10 +1,13 @@
 define([
     'jquery',
     'Amwal_Payments/js/checkout-button-base',
+    'Magento_Catalog/js/product/view/product-ids-resolver',
+    'Magento_Catalog/js/product/view/product-info-resolver',
+    'amwalErrorHandler',
     'underscore',
     'domReady!'
 ],
-function ($, Component, _) {
+function ($, Component, idsResolver, productInfoResolver, amwalErrorHandler, _) {
     'use strict';
 
     return Component.extend({
@@ -13,6 +16,7 @@ function ($, Component, _) {
         qtySelector: 'input#qty',
         addToCartSelector: '#product-addtocart-button',
         productFormSelector: '#product_addtocart_form',
+        listingProductFormSelector: 'form[data-role="tocart-form"]',
         superAttributeInputSelector: 'input[name^="super_attribute"]',
         productPrice: 0,
         orderedQty: 1,
@@ -128,6 +132,75 @@ function ($, Component, _) {
                 if (isProductMatched) {
                     self.configuredProductId = productId;
                     self.productPrice = productPriceIndex[productId].finalPrice.amount;
+                }
+            });
+        },
+
+        /**
+         * Start the express checkout flow.
+         */
+        startExpressCheckout: function () {
+            let self = this;
+
+            self.isClicked(true);
+            $('body').trigger('processStart');
+
+            self.updateOrderedAmount();
+
+            self.checkAmount();
+
+            let $form = $(self.productFormSelector);
+            if (self.isListing) {
+                $form = self.$checkoutButton.closest('.product-item-actions').find(self.listingProductFormSelector);
+            }
+
+            if ($form.length) {
+                self.triggerAddToCart($form);
+            } else {
+                self.$checkoutButton.trigger('startAmwalCheckout', {});
+            }
+        },
+
+        /**
+         * @param {jQuery} $form
+         */
+        triggerAddToCart: function ($form) {
+            var self = this,
+                productIds = idsResolver($form),
+                productInfo = productInfoResolver($form),
+                formData;
+
+            formData = new FormData($form[0]);
+
+            $.ajax({
+                url: $form.prop('action'),
+                data: formData,
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    var eventData, parameters;
+
+                    self.$checkoutButton.trigger('startAmwalCheckout', {
+                        'sku': $form.data().productSku,
+                        'productIds': productIds,
+                        'productInfo': productInfo,
+                        'form': $form,
+                        'response': res
+                    });
+                },
+                error: function (res) {
+                    $(document).trigger('ajax:addToCart:error', {
+                        'sku': $form.data().productSku,
+                        'productIds': productIds,
+                        'productInfo': productInfo,
+                        'form': $form,
+                        'response': res
+                    });
+
+                    amwalErrorHandler.process(self.checkoutButton, res?.responseJSON?.message, 'amwalPreCheckoutTriggerError');
                 }
             });
         },

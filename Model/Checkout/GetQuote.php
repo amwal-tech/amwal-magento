@@ -111,16 +111,16 @@ class GetQuote
     }
 
     /**
-     * @param AmwalOrderItemInterface[] $orderItems
+     * @param AmwalOrderItemInterface $orderItems
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param AmwalAddressInterface $addressData
      * @param string $triggerContext
+     * @param bool $isPreCheckout
      * @param string|int|null $quoteId
      * @return mixed[]
      * @throws LocalizedException
      * @throws NoSuchEntityException
-     * @throws StateException
      */
     public function execute(
         array $orderItems,
@@ -128,6 +128,7 @@ class GetQuote
         RefIdDataInterface $refIdData,
         AmwalAddressInterface $addressData,
         string $triggerContext,
+        bool $isPreCheckout,
         $quoteId = null
     ): array {
         $this->logDebug('Start GetQuote call');
@@ -141,33 +142,39 @@ class GetQuote
             $this->throwException(__('We are unable to verify the reference ID of this payment'));
         }
 
-        $amwalOrderData = $this->objectFactory->create([
-            'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-            'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-            'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE
-        ]);
-        $amwalOrderData->setAddressDetails($addressData);
+        if (!$isPreCheckout) {
+            $amwalOrderData = $this->objectFactory->create([
+                'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
+                'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
+                'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE
+            ]);
+            $amwalOrderData->setAddressDetails($addressData);
 
-        $customerAddress = $this->getCustomerAddress($amwalOrderData);
+            $customerAddress = $this->getCustomerAddress($amwalOrderData);
+        }
 
         $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
 
-        $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
-
-        $this->logDebug('Setting Billing and Shipping address');
-        $quote->setBillingAddress($quoteAddress);
-        $quote->setShippingAddress($quoteAddress);
 
         $quote->setPaymentMethod(ConfigProvider::CODE);
-
-        $this->logDebug('Collecting shipping rates');
-        $quote->getShippingAddress()->setCollectShippingRates(true);
-        $quote->getShippingAddress()->collectShippingRates();
-        $this->quoteRepository->save($quote);
-
-        $availableRates = $this->getAvailableRates($quote);
-
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+
+        $availableRates = [];
+        if (!$isPreCheckout) {
+            $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
+
+            $this->logDebug('Setting Billing and Shipping address');
+            $quote->setBillingAddress($quoteAddress);
+            $quote->setShippingAddress($quoteAddress);
+
+            $this->logDebug('Collecting shipping rates');
+            $quote->getShippingAddress()->setCollectShippingRates(true);
+            $quote->getShippingAddress()->collectShippingRates();
+            $this->quoteRepository->save($quote);
+
+            $availableRates = $this->getAvailableRates($quote);
+        }
+
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
@@ -321,13 +328,10 @@ class GetQuote
     public function getQuote($quoteId, array $orderItems, string $triggerContext)
     {
         if (!$quoteId) {
-            if ($triggerContext === 'minicart') {
-                $this->logDebug('No quote found. Checking if one was created.');
-                $quote = $this->checkoutSession->getQuote();
-                if ($quote) {
-                    $this->logDebug(sprintf('Quote with ID %s found.', $quote->getId()));
-                    return $quote;
-                }
+            $quote = $this->checkoutSession->getQuote();
+            if ($quote) {
+                $this->logDebug(sprintf('Quote with ID %s found.', $quote->getId()));
+                return $quote;
             }
             $this->logDebug('No quote found. Creating a new quote');
             $quote = $this->createQuote($orderItems);
@@ -339,6 +343,7 @@ class GetQuote
             $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
             $quote = $this->quoteRepository->get($quoteId);
         }
+
         return $quote;
     }
 
