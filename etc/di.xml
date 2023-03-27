@@ -48,6 +48,11 @@
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
         </arguments>
     </type>
+    <type name="Amwal\Payments\Model\Checkout\CleanQuote">
+        <arguments>
+            <argument name="logger" xsi:type="object">AmwalLogger</argument>
+        </arguments>
+    </type>
     <type name="Amwal\Payments\Model\Checkout\GetQuote">
         <arguments>
             <argument name="logger" xsi:type="object">AmwalLogger</argument>

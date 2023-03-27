@@ -19,4 +19,10 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/amwal/clean-quote" method="POST">
+        <service class="Amwal\Payments\Model\Checkout\CleanQuote" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>
