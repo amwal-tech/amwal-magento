@@ -155,7 +155,7 @@ function ($, Component, idsResolver, productInfoResolver, urlBuilder, amwalError
                 $form = self.$checkoutButton.closest('.product-item-actions').find(self.listingProductFormSelector);
             }
 
-            self.$checkoutButton.on('amwalQuoteCleaned', function () {
+            self.$checkoutButton.off('amwalQuoteCleaned').on('amwalQuoteCleaned', function () {
                 if ($form.length) {
                         self.triggerAddToCart($form);
                 } else {

@@ -84,7 +84,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             // Use the preCheckoutTrigger to initiate the express checkout
             self.checkoutButton.addEventListener('amwalPreCheckoutTrigger', function (e) {
                 self.isPreCheckoutActive = true;
-                self.$checkoutButton.on('amwalPreCheckoutComplete', function (event, data) {
+                self.$checkoutButton.off('amwalPreCheckoutComplete').on('amwalPreCheckoutComplete', function (event, data) {
                     self.checkoutButton.dispatchEvent(
                         new CustomEvent ('amwalPreCheckoutTriggerAck', {
                             detail: {
@@ -96,7 +96,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     );
                 });
 
-                self.$checkoutButton.on('startAmwalCheckout', function (event, data) {
+                self.$checkoutButton.off('startAmwalCheckout').on('startAmwalCheckout', function (event, data) {
                     self.getQuote();
                 });
 
