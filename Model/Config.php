@@ -32,6 +32,7 @@ class Config
     public const XML_CONFIG_PATH_PHONE_NUMBER_FORMAT_COUNTRY = 'payment/amwal_payments/phone_number_format_country';
     public const XML_CONFIG_PATH_PHONE_NUMBER_TRIM_WHITESPACE = 'payment/amwal_payments/phone_number_trim_whitespace';
     public const XML_CONFIG_PATH_DEBUG_MODE = 'payment/amwal_payments/debug_mode';
+    public const XML_CONFIG_PATH_USE_BASE_CURRENCY = 'payment/amwal_payments/use_base_currency';
     public const XML_CONFIG_PATH_ALLOW_SPECIFIC = 'payment/amwal_payments/allowspecific';
     public const XML_CONFIG_PATH_SPECIFIC_COUNTRIES = 'payment/amwal_payments/specificcountries';
     public const XML_CONFIG_PATH_LIMIT_REGIONS = 'payment/amwal_payments/limit_regions';
@@ -201,6 +202,14 @@ class Config
     public function isDebugModeEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_DEBUG_MODE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function shouldUseBaseCurrency(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_USE_BASE_CURRENCY);
     }
 
     /**
