@@ -131,7 +131,7 @@ class PayOrder
      * @param DataObject $amwalOrderData
      * @return void
      */
-    private function updateAddressData($entity, DataObject $amwalOrderData): void
+    public function updateAddressData($entity, DataObject $amwalOrderData): void
     {
         $shippingAddress = $entity->getShippingAddress();
 
@@ -155,7 +155,7 @@ class PayOrder
         }
     }
 
-    private function addAdditionalPaymentInformation(DataObject $amwalOrderData, OrderInterface $order): void
+    public function addAdditionalPaymentInformation(DataObject $amwalOrderData, OrderInterface $order): void
     {
         $payment = $order->getPayment();
 

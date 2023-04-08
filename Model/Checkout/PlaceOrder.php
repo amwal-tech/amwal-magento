@@ -260,7 +260,7 @@ class PlaceOrder
      * @return OrderInterface
      * @throws LocalizedException
      */
-    private function createOrder(Quote $quote): OrderInterface
+    public function createOrder(Quote $quote): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->quoteManagement->submit($quote);
@@ -310,7 +310,7 @@ class PlaceOrder
      * @param AddressInterface $customerAddress
      * @return void
      */
-    private function updateCustomerAddress(CartInterface $quote, AddressInterface $customerAddress): void
+    public function updateCustomerAddress(CartInterface $quote, AddressInterface $customerAddress): void
     {
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
@@ -352,7 +352,7 @@ class PlaceOrder
      * @return CustomerInterface
      * @throws LocalizedException|JsonException
      */
-    private function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, Quote $quote): CustomerInterface
+    public function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, Quote $quote): CustomerInterface
     {
         /** @var \Magento\Customer\Model\Data\Customer $customer */
         $customer = $this->customerFactory->create();
