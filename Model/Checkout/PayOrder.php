@@ -155,6 +155,11 @@ class PayOrder
         }
     }
 
+    /**
+     * @param DataObject $amwalOrderData
+     * @param OrderInterface $order
+     * @return void
+     */
     public function addAdditionalPaymentInformation(DataObject $amwalOrderData, OrderInterface $order): void
     {
         $payment = $order->getPayment();

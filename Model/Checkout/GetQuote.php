@@ -407,15 +407,18 @@ class GetQuote
      */
     public function getResponseData(CartInterface $quote, array $availableRates): array
     {
-        $taxAmount = $quote->getShippingAddress()->getTaxAmount();
+        $useBaseCurrency = $this->config->shouldUseBaseCurrency();
+        $shippingAddress = $quote->getShippingAddress();
+        $taxAmount = $useBaseCurrency ? $shippingAddress->getBaseTaxAmount() : $shippingAddress->getTaxAmount();
+
         return [
             'quote_id' => $quote->getId(),
             'available_rates' => $availableRates,
-            'amount' => $quote->getGrandTotal(),
-            'subtotal' => $quote->getShippingAddress()->getSubtotalInclTax() - $taxAmount,
+            'amount' => $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal(),
+            'subtotal' => ($useBaseCurrency ? $shippingAddress->getBaseSubtotalTotalInclTax() : $shippingAddress->getSubtotalInclTax()) - $taxAmount,
             'tax_amount' => $taxAmount,
-            'shipping_amount' => $quote->getShippingAddress()->getShippingInclTax(),
-            'discount_amount' => abs($quote->getShippingAddress()->getDiscountAmount())
+            'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
+            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount())
         ];
     }
 }
