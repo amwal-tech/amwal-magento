@@ -63,7 +63,7 @@ class InvoiceOrder
 
         if (!$paymentObj) {
             $this->logger->error(sprintf(
-                "Unable to find payment for order with ID %s",
+                'Unable to find payment for order with ID %s',
                 $order->getId()
             ));
             throw new LocalizedException(__('Invoice cannot be created because no payment can be found for the order'));
@@ -84,7 +84,7 @@ class InvoiceOrder
             $transaction->save();
         } catch (Exception $e) {
             $this->logger->error(sprintf(
-                "Unable to save the transaction for order with ID: %s. Exception %s",
+                'Unable to save the transaction for order with ID: %s. Exception %s',
                 $order->getId(),
                 $e->getMessage()
             ));
@@ -110,7 +110,7 @@ class InvoiceOrder
      * @param DataObject $amwalOrderData
      * @throws LocalizedException
      */
-    private function createInvoice(OrderInterface $order, DataObject $amwalOrderData): void
+    public function createInvoice(OrderInterface $order, DataObject $amwalOrderData): void
     {
         if ($order->canInvoice()) {
             try {
@@ -124,14 +124,14 @@ class InvoiceOrder
                 $this->invoiceRepository->save($invoice);
             } catch (Exception $e) {
                 $this->logger->error(sprintf(
-                    "Unable to invoice the order with ID %s. Exception: %s",
+                    'Unable to invoice the order with ID %s. Exception: %s',
                     $order->getId(),
                     $e->getMessage()
                 ));
                 throw new LocalizedException(__('Something went wrong while invoicing the order.'));
             }
 
-            $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
+            $invoiceAutoMail = $this->scopeConfig->isSetFlag(
                 InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
                 ScopeInterface::SCOPE_STORE,
                 $order->getStoreId()
@@ -142,7 +142,7 @@ class InvoiceOrder
             }
         } else {
             $this->logger->error(sprintf(
-                "Order with ID %s cannot be invoiced",
+                'Order with ID %s cannot be invoiced',
                 $order->getId()
             ));
             throw new LocalizedException(__('The order cannot be invoiced.'));
