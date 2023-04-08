@@ -4,35 +4,35 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ErrorReporter;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Psr\Log\LoggerInterface;
 
-class CleanQuote
+class CleanQuote extends AmwalCheckoutAction
 {
-    private Config $config;
     private CheckoutSession $checkoutSession;
     private CartRepositoryInterface $cartRepository;
-    private LoggerInterface $logger;
 
     /**
-     * @param Config $config
      * @param CheckoutSession $checkoutSession
      * @param CartRepositoryInterface $cartRepository
+     * @param ErrorReporter $errorReporter
+     * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
-        Config $config,
         CheckoutSession $checkoutSession,
         CartRepositoryInterface $cartRepository,
+        ErrorReporter $errorReporter,
+        Config $config,
         LoggerInterface $logger
     ) {
-        $this->config = $config;
+        parent::__construct($errorReporter, $config, $logger);
         $this->checkoutSession = $checkoutSession;
         $this->cartRepository = $cartRepository;
-        $this->logger = $logger;
     }
 
     /**
@@ -56,14 +56,5 @@ class CleanQuote
         $quote->removeAllItems();
         $this->cartRepository->save($quote);
         $this->logDebug('Quote cleanup completed.');
-    }
-
-    private function logDebug(string $message, array $context = []): void
-    {
-        if (!$this->config->isDebugModeEnabled()) {
-            return;
-        }
-
-        $this->logger->debug($message, $context);
     }
 }

@@ -5,6 +5,7 @@ namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ErrorReporter;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -13,26 +14,25 @@ use Psr\Log\LoggerInterface;
 /**
  * Add order details in the Amwal system after order placement
  */
-class SetAmwalOrderDetails
+class SetAmwalOrderDetails extends AmwalCheckoutAction
 {
 
     private AmwalClientFactory $amwalClientFactory;
-    private Config $config;
-    private LoggerInterface $logger;
 
     /**
      * @param AmwalClientFactory $amwalClientFactory
+     * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
         AmwalClientFactory $amwalClientFactory,
+        ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->amwalClientFactory = $amwalClientFactory;
-        $this->config = $config;
-        $this->logger = $logger;
     }
 
     /**
@@ -60,22 +60,26 @@ class SetAmwalOrderDetails
                 ]
             );
         } catch (GuzzleException $e) {
-            $this->logger->error(sprintf(
+            $message = sprintf(
                 'Unable to set Order details in Amwal for order with ID "%s". Exception: %s',
                 $amwalOrderId,
                 $e->getMessage()
-            ));
+            );
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
             return;
         }
 
         $responseStatusCode = $response->getStatusCode();
         if ($responseStatusCode !== 200) {
-            $this->logger->error(sprintf(
+            $message = sprintf(
                 'Unable to set Order details in Amwal for order with ID "%s". Received status: %s - %s',
                 $amwalOrderId,
                 $responseStatusCode,
                 $response->getReasonPhrase()
-            ));
+            );
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
         }
     }
 }

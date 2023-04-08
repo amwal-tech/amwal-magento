@@ -4,12 +4,12 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
-use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
+use Amwal\Payments\Model\ErrorReporter;
 use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -37,7 +37,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-class GetQuote
+class GetQuote extends AmwalCheckoutAction
 {
     private CustomerRepositoryInterface $customerRepository;
     private Session $customerSession;
@@ -52,9 +52,7 @@ class GetQuote
     private Factory $objectFactory;
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
-    private Config $config;
     private CheckoutSession $checkoutSession;
-    private LoggerInterface $logger;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -70,8 +68,9 @@ class GetQuote
      * @param Factory $objectFactory
      * @param RefIdManagementInterface $refIdManagement
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
-     * @param Config $config
      * @param CheckoutSession $checkoutSession
+     * @param ErrorReporter $errorReporter
+     * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -88,10 +87,12 @@ class GetQuote
         Factory $objectFactory,
         RefIdManagementInterface $refIdManagement,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
-        Config $config,
         CheckoutSession $checkoutSession,
+        ErrorReporter $errorReporter,
+        Config $config,
         LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
         $this->quoteFactory = $quoteFactory;
@@ -105,13 +106,11 @@ class GetQuote
         $this->objectFactory = $objectFactory;
         $this->refIdManagement = $refIdManagement;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
-        $this->config = $config;
         $this->checkoutSession = $checkoutSession;
-        $this->logger = $logger;
     }
 
     /**
-     * @param AmwalOrderItemInterface $orderItems
+     * @param array $orderItems
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param AmwalAddressInterface $addressData
@@ -154,7 +153,6 @@ class GetQuote
         }
 
         $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
-
 
         $quote->setPaymentMethod(ConfigProvider::CODE);
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
@@ -206,7 +204,7 @@ class GetQuote
     }
 
     /**
-     * @return int|null/
+     * @return int|null
      */
     private function getCustomerId(): ?int
     {

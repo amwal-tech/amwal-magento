@@ -5,6 +5,7 @@ namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\DataObject;
@@ -19,39 +20,37 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 
-class PayOrder
+class PayOrder extends AmwalCheckoutAction
 {
 
     private CartRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
     private InvoiceOrder $invoiceAmwalOrder;
     private GetAmwalOrderData $getAmwalOrderData;
-    private Config $config;
     private OrderRepositoryInterface $orderRepository;
     private ManagerInterface $messageManager;
     private OrderPaymentRepositoryInterface $paymentRepository;
-    private LoggerInterface $logger;
 
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         CheckoutSession $checkoutSession,
         InvoiceOrder $invoiceAmwalOrder,
         GetAmwalOrderData $getAmwalOrderData,
-        Config $config,
         OrderRepositoryInterface $orderRepository,
         ManagerInterface $messageManager,
         OrderPaymentRepositoryInterface $paymentRepository,
+        ErrorReporter $errorReporter,
+        Config $config,
         LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
         $this->checkoutSession = $checkoutSession;
         $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->getAmwalOrderData = $getAmwalOrderData;
-        $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->messageManager = $messageManager;
         $this->paymentRepository = $paymentRepository;
-        $this->logger = $logger;
     }
 
     /**
@@ -76,7 +75,9 @@ class PayOrder
         try {
             $quote = $this->quoteRepository->get($order->getQuoteId());
         } catch (NoSuchEntityException $e) {
-            $this->logger->error(sprintf('Unable to load Quote for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId));
+            $message = sprintf('Unable to load Quote for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
             $this->addError(__('We were unable to retrieve your order data.'));
             return false;
         }
