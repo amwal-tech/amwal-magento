@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Checkout;
 
+use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ErrorReporter;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -12,21 +14,22 @@ use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\ShippingMethodManagementInterface;
 use Psr\Log\LoggerInterface;
 
-class UpdateShippingMethod
+class UpdateShippingMethod extends AmwalCheckoutAction
 {
 
     private CartRepositoryInterface $quoteRepository;
     private ShippingMethodManagementInterface $shippingMethodManagement;
-    private LoggerInterface $logger;
 
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         ShippingMethodManagementInterface $shippingMethodManagement,
+        ErrorReporter $errorReporter,
+        Config $config,
         LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
         $this->shippingMethodManagement = $shippingMethodManagement;
-        $this->logger = $logger;
     }
 
     /**

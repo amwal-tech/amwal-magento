@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ErrorReporter;
 use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
@@ -19,32 +20,30 @@ use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
-class InvoiceOrder
+class InvoiceOrder extends AmwalCheckoutAction
 {
     private InvoiceRepositoryInterface $invoiceRepository;
     private ScopeConfigInterface $scopeConfig;
     private InvoiceSender $invoiceSender;
     private BuilderInterface $transactionBuilder;
-    private Config $config;
     private OrderRepositoryInterface $orderRepository;
-    private LoggerInterface $logger;
 
     public function __construct(
         InvoiceRepositoryInterface $invoiceRepository,
         ScopeConfigInterface $scopeConfig,
         InvoiceSender $invoiceSender,
         BuilderInterface $transactionBuilder,
-        Config $config,
         OrderRepositoryInterface $orderRepository,
+        ErrorReporter $errorReporter,
+        Config $config,
         LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->invoiceRepository = $invoiceRepository;
         $this->scopeConfig = $scopeConfig;
         $this->invoiceSender = $invoiceSender;
         $this->transactionBuilder = $transactionBuilder;
-        $this->config = $config;
         $this->orderRepository = $orderRepository;
-        $this->logger = $logger;
     }
 
     /**
@@ -58,25 +57,24 @@ class InvoiceOrder
         if ($order->getState() === Order::STATE_PAYMENT_REVIEW) {
             $order->setState(Order::STATE_NEW);
         }
-
+        $amwalOrderId = $amwalOrderData->getId();
         $paymentObj = $order->getPayment();
 
         if (!$paymentObj) {
-            $this->logger->error(sprintf(
-                'Unable to find payment for order with ID %s',
-                $order->getId()
-            ));
+            $message = sprintf('Unable to find payment for order with ID %s', $order->getId());
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
             throw new LocalizedException(__('Invoice cannot be created because no payment can be found for the order'));
         }
 
-        $paymentObj->setTransactionId($amwalOrderData->getId());
+        $paymentObj->setTransactionId($amwalOrderId);
         $paymentObj->setAmountAuthorized($order->getTotalDue());
         $paymentObj->setBaseAmountAuthorized($order->getBaseTotalDue());
 
         // Prepare transaction
         $transaction = $this->transactionBuilder->setPayment($paymentObj)
             ->setOrder($order)
-            ->setTransactionId($amwalOrderData->getId())
+            ->setTransactionId($amwalOrderId)
             ->build(TransactionInterface::TYPE_AUTH);
 
         $transaction->setIsClosed(false);

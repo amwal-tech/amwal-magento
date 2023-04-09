@@ -7,6 +7,7 @@ use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -33,13 +34,12 @@ use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-class PlaceOrder
+class PlaceOrder extends AmwalCheckoutAction
 {
     private QuoteManagement $quoteManagement;
     private AddressFactory $quoteAddressFactory;
     private QuoteRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
-    private Config $config;
     private ManagerInterface $messageManager;
     private AddressResolver $addressResolver;
     private OrderRepositoryInterface $orderRepository;
@@ -52,14 +52,12 @@ class PlaceOrder
     private SessionFactory $customerSessionFactory;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private GetAmwalOrderData $getAmwalOrderData;
-    private LoggerInterface $logger;
 
     /**
      * @param QuoteManagement $quoteManagement
      * @param AddressFactory $quoteAddressFactory
      * @param QuoteRepositoryInterface $quoteRepository
      * @param CheckoutSession $checkoutSession
-     * @param Config $config
      * @param ManagerInterface $messageManager
      * @param AddressResolver $addressResolver
      * @param OrderRepositoryInterface $orderRepository
@@ -72,6 +70,8 @@ class PlaceOrder
      * @param SessionFactory $customerSessionFactory
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param GetAmwalOrderData $getAmwalOrderData
+     * @param ErrorReporter $errorReporter
+     * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -79,7 +79,6 @@ class PlaceOrder
         AddressFactory                  $quoteAddressFactory,
         QuoteRepositoryInterface        $quoteRepository,
         CheckoutSession                 $checkoutSession,
-        Config                          $config,
         ManagerInterface                $messageManager,
         AddressResolver                 $addressResolver,
         OrderRepositoryInterface        $orderRepository,
@@ -92,13 +91,15 @@ class PlaceOrder
         SessionFactory                  $customerSessionFactory,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         GetAmwalOrderData               $getAmwalOrderData,
-        LoggerInterface                 $logger
+        ErrorReporter $errorReporter,
+        Config $config,
+        LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteRepository = $quoteRepository;
         $this->checkoutSession = $checkoutSession;
-        $this->config = $config;
         $this->messageManager = $messageManager;
         $this->addressResolver = $addressResolver;
         $this->orderRepository = $orderRepository;
@@ -111,7 +112,6 @@ class PlaceOrder
         $this->customerSessionFactory = $customerSessionFactory;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->getAmwalOrderData = $getAmwalOrderData;
-        $this->logger = $logger;
     }
 
     /**
@@ -146,13 +146,15 @@ class PlaceOrder
         ));
 
         if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
-            $this->logger->debug(sprintf(
+            $message = sprintf(
                 "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
                 $amwalOrderData->getRefId(),
                 $refId,
                 $this->refIdManagement->generateRefId($refIdData),
                 $refIdData->toJson()
-            ));
+            );
+            $this->logDebug($message);
+            $this->reportError($amwalOrderId, $message);
             $this->throwException(__('We were unable to verify your payment.'));
         }
 
@@ -186,12 +188,14 @@ class PlaceOrder
                     $this->logger->notice('Unable to log customer data.');
                 }
             } catch (LocalizedException|RuntimeException $e) {
-                $this->logger->error(sprintf(
+                $message = sprintf(
                     "Unable to resolve address while creating order.\nQuote ID: %s\nAmwal Order Data: %s\nAmwal Order id: %s",
                     $quoteId,
                     $amwalOrderData->toJson(),
                     $amwalOrderId
-                ));
+                );
+                $this->reportError($amwalOrderId, $message);
+                $this->logger->error($message);
                 $this->throwException();
             }
 
@@ -229,11 +233,13 @@ class PlaceOrder
                 $quote->setAmwalUserCreated(true);
                 $this->customerSessionFactory->create()->setCustomerDataAsLoggedIn($newCustomer);
             } catch (LocalizedException | JsonException $e) {
-                $this->logger->error(sprintf(
+                $message = sprintf(
                     'Error while creating customer for quote with ID %s. Error: %s',
                     $quoteId,
                     $e->getMessage()
-                ));
+                );
+                $this->reportError($amwalOrderId, $message);
+                $this->logger->error($message);
             }
         }
 
@@ -241,8 +247,7 @@ class PlaceOrder
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
-        $order = $this->createOrder($quote);
-        $order->setAmwalOrderId($amwalOrderId);
+        $order = $this->createOrder($quote, $amwalOrderId);
 
         if ($newCustomer) {
             $order->addCommentToStatusHistory(__('Created new customer with ID %1', $newCustomer->getId()));
@@ -257,23 +262,28 @@ class PlaceOrder
 
     /**
      * @param Quote $quote
+     * @param string $amwalOrderId
      * @return OrderInterface
      * @throws LocalizedException
      */
-    public function createOrder(Quote $quote): OrderInterface
+    public function createOrder(Quote $quote, string $amwalOrderId): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->quoteManagement->submit($quote);
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
         if (!$order) {
-            $this->logger->error(sprintf('Unable create an order because we failed to submit the quote with ID "%s"', $quote->getId()));
+            $message = sprintf('Unable create an order because we failed to submit the quote with ID "%s"', $quote->getId());
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
             $this->throwException();
         }
 
         $order->setEmailSent(0);
         if (!$order->getEntityId()) {
-            $this->logger->error(sprintf('Order could not be created from quote with ID "%s"', $quote->getId()));
+            $message = sprintf('Order could not be created from quote with ID "%s"', $quote->getId());
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
             $this->throwException();
         }
 
@@ -281,6 +291,7 @@ class PlaceOrder
 
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
+        $order->setAmwalOrderId($amwalOrderId);
 
         return $order;
     }
@@ -409,19 +420,5 @@ class PlaceOrder
     private function getCustomerIsGuest(): bool
     {
         return $this->checkoutSession->getQuote()->getCustomer()->getId() === null;
-    }
-
-    /**
-     * @param string $message
-     * @param array $context
-     * @return void
-     */
-    private function logDebug(string $message, array $context = []): void
-    {
-        if (!$this->config->isDebugModeEnabled()) {
-            return;
-        }
-
-        $this->logger->debug($message, $context);
     }
 }
