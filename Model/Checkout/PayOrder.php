@@ -134,7 +134,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param DataObject $amwalOrderData
      * @return void
      */
-    private function updateAddressData($entity, DataObject $amwalOrderData): void
+    public function updateAddressData($entity, DataObject $amwalOrderData): void
     {
         $shippingAddress = $entity->getShippingAddress();
 
@@ -158,7 +158,12 @@ class PayOrder extends AmwalCheckoutAction
         }
     }
 
-    private function addAdditionalPaymentInformation(DataObject $amwalOrderData, OrderInterface $order): void
+    /**
+     * @param DataObject $amwalOrderData
+     * @param OrderInterface $order
+     * @return void
+     */
+    public function addAdditionalPaymentInformation(DataObject $amwalOrderData, OrderInterface $order): void
     {
         $payment = $order->getPayment();
 
