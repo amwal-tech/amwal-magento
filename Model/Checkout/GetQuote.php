@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
+use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
@@ -22,7 +23,6 @@ use Magento\Framework\DataObject;
 use Magento\Framework\DataObject\Factory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Exception\StateException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
@@ -110,7 +110,7 @@ class GetQuote extends AmwalCheckoutAction
     }
 
     /**
-     * @param array $orderItems
+     * @param AmwalOrderItemInterface[] $orderItems
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param AmwalAddressInterface $addressData
@@ -272,20 +272,6 @@ class GetQuote extends AmwalCheckoutAction
     }
 
     /**
-     * @param string $message
-     * @param array $context
-     * @return void
-     */
-    private function logDebug(string $message, array $context = []): void
-    {
-        if (!$this->config->isDebugModeEnabled()) {
-            return;
-        }
-
-        $this->logger->debug($message, $context);
-    }
-
-    /**
      * @param DataObject $amwalOrderData
      * @return AddressInterface
      * @throws LocalizedException
@@ -365,7 +351,7 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param $quote
-     * @return array
+     * @return mixed[]
      * @throws LocalizedException
      */
     public function getAvailableRates($quote): array
@@ -401,7 +387,7 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param CartInterface $quote
      * @param array $availableRates
-     * @return array
+     * @return mixed[]
      */
     public function getResponseData(CartInterface $quote, array $availableRates): array
     {

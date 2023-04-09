@@ -42,7 +42,7 @@ class ErrorReporter
 
         try {
             $amwalClient->post(
-                'transactions/' . $amwalOrderId . '/report-error',
+                'transactions/' . $amwalOrderId . '/report_error',
                 [RequestOptions::JSON => $report]
             );
         } catch (GuzzleException $e) {

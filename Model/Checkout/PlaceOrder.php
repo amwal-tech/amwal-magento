@@ -146,17 +146,17 @@ class PlaceOrder extends AmwalCheckoutAction
         ));
 
         if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
-            $this->logDebug(sprintf(
+            $message = sprintf(
                 "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
                 $amwalOrderData->getRefId(),
                 $refId,
                 $this->refIdManagement->generateRefId($refIdData),
                 $refIdData->toJson()
-            ));
+            );
+            $this->logDebug($message);
+            $this->reportError($amwalOrderId, $message);
             $this->throwException(__('We were unable to verify your payment.'));
         }
-
-        $this->reportError($amwalOrderId, 'Test error message');
 
         if (!is_numeric($quoteId)) {
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
