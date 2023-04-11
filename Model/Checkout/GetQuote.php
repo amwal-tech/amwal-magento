@@ -149,7 +149,7 @@ class GetQuote extends AmwalCheckoutAction
             ]);
             $amwalOrderData->setAddressDetails($addressData);
 
-            $customerAddress = $this->getCustomerAddress($amwalOrderData);
+            $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
         }
 
         $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
@@ -273,10 +273,11 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param DataObject $amwalOrderData
+     * @param string $refId
      * @return AddressInterface
      * @throws LocalizedException
      */
-    public function getCustomerAddress(DataObject $amwalOrderData): AddressInterface
+    public function getCustomerAddress(DataObject $amwalOrderData, string $refId): AddressInterface
     {
         try {
             $this->logDebug(sprintf(
@@ -285,8 +286,14 @@ class GetQuote extends AmwalCheckoutAction
             ));
             $customerAddress = $this->addressResolver->execute($amwalOrderData);
         } catch (LocalizedException|RuntimeException $e) {
-            $this->logger->error('Unable to resolve customer address while getting the Quote');
-            $this->throwException(__($e->getMessage()));
+            $message = sprintf(
+                'Unable to resolve customer address with Data %s. Received exception %s',
+                $amwalOrderData->toJson(),
+                $e->getMessage()
+            );
+            $this->reportError($refId, $message);
+            $this->logger->error($message);
+            $this->throwException(__('Something went wrong while processing you address information.'));
         }
 
         try {
