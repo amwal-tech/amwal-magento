@@ -7,17 +7,29 @@ use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Customer\Api\AccountManagementInterface;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\AddressInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Customer\Api\Data\CustomerInterfaceFactory;
+use Magento\Customer\Model\Data\Customer;
+use Magento\Customer\Model\SessionFactory;
 use Magento\Framework\DataObject;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order\CustomerManagement;
+use Magento\Sales\Model\Order\OrderCustomerExtractor;
 use Psr\Log\LoggerInterface;
 
 class PayOrder extends AmwalCheckoutAction
@@ -30,7 +42,30 @@ class PayOrder extends AmwalCheckoutAction
     private OrderRepositoryInterface $orderRepository;
     private ManagerInterface $messageManager;
     private OrderPaymentRepositoryInterface $paymentRepository;
+    private CustomerRepositoryInterface $customerRepository;
+    private CustomerInterfaceFactory $customerFactory;
+    private AccountManagementInterface $accountManagement;
+    private SessionFactory $customerSessionFactory;
+    private OrderCustomerExtractor $orderCustomerExtractor;
+    private CustomerManagement $customerManagement;
 
+    /**
+     * @param CartRepositoryInterface $quoteRepository
+     * @param CheckoutSession $checkoutSession
+     * @param InvoiceOrder $invoiceAmwalOrder
+     * @param GetAmwalOrderData $getAmwalOrderData
+     * @param OrderRepositoryInterface $orderRepository
+     * @param ManagerInterface $messageManager
+     * @param OrderPaymentRepositoryInterface $paymentRepository
+     * @param CustomerRepositoryInterface $customerRepository
+     * @param CustomerInterfaceFactory $customerFactory
+     * @param AccountManagementInterface $accountManagement
+     * @param SessionFactory $customerSessionFactory
+     * @param CustomerManagement $customerManagement
+     * @param ErrorReporter $errorReporter
+     * @param Config $config
+     * @param LoggerInterface $logger
+     */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         CheckoutSession $checkoutSession,
@@ -39,6 +74,11 @@ class PayOrder extends AmwalCheckoutAction
         OrderRepositoryInterface $orderRepository,
         ManagerInterface $messageManager,
         OrderPaymentRepositoryInterface $paymentRepository,
+        CustomerRepositoryInterface $customerRepository,
+        CustomerInterfaceFactory $customerFactory,
+        AccountManagementInterface $accountManagement,
+        SessionFactory $customerSessionFactory,
+        CustomerManagement $customerManagement,
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger
@@ -51,6 +91,11 @@ class PayOrder extends AmwalCheckoutAction
         $this->orderRepository = $orderRepository;
         $this->messageManager = $messageManager;
         $this->paymentRepository = $paymentRepository;
+        $this->customerRepository = $customerRepository;
+        $this->customerFactory = $customerFactory;
+        $this->accountManagement = $accountManagement;
+        $this->customerSessionFactory = $customerSessionFactory;
+        $this->customerManagement = $customerManagement;
     }
 
     /**
@@ -72,8 +117,6 @@ class PayOrder extends AmwalCheckoutAction
             return false;
         }
 
-        $this->updateCustomerName($order, $amwalOrderData);
-
         try {
             $quote = $this->quoteRepository->get($order->getQuoteId());
         } catch (NoSuchEntityException $e) {
@@ -84,10 +127,27 @@ class PayOrder extends AmwalCheckoutAction
             return false;
         }
 
-        $this->addAdditionalPaymentInformation($amwalOrderData, $order);
-
+        $this->updateCustomerName($order, $amwalOrderData);
         $this->updateAddressData($quote, $amwalOrderData);
         $this->updateAddressData($order, $amwalOrderData);
+
+        if ($this->shouldCreateCustomer($order, $amwalOrderData)) {
+            $this->logDebug('Creating new customer');
+            try {
+                $newCustomer = $this->createCustomer($order);
+                $this->customerSessionFactory->create()->setCustomerDataAsLoggedIn($newCustomer);
+            } catch (LocalizedException $e) {
+                $message = sprintf(
+                    'Error occurred while creating customer for order with ID %s. Exception %s',
+                    $order->getEntityId(),
+                    $e->getMessage()
+                );
+                $this->reportError($amwalOrderId, $message);
+                $this->logger->error($message);
+            }
+        }
+
+        $this->addAdditionalPaymentInformation($amwalOrderData, $order);
 
         $order->setState($this->config->getOrderConfirmedStatus());
         $order->setStatus($this->config->getOrderConfirmedStatus());
@@ -112,7 +172,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param DataObject $amwalOrderData
      * @return void
      */
-    private function updateCustomerName(OrderInterface $order, DataObject $amwalOrderData)
+    private function updateCustomerName(OrderInterface $order, DataObject $amwalOrderData): void
     {
         $order->setCustomerFirstname($amwalOrderData->getClientFirstName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
         $order->setCustomerLastname($amwalOrderData->getClientLastName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
@@ -178,5 +238,70 @@ class PayOrder extends AmwalCheckoutAction
 
         $order->setPayment($payment);
         $this->orderRepository->save($order);
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @return CustomerInterface
+     * @throws AlreadyExistsException
+     */
+    public function createCustomer(OrderInterface $order): CustomerInterface
+    {
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $quoteBillingAddress = $quote->getBillingAddress();
+        if ($quoteBillingAddress) {
+            $quoteBillingAddress->setSaveInAddressBook(1);
+            $quote->setBillingAddress($quoteBillingAddress);
+        }
+        $quoteShippingAddress = $quote->getShippingAddress();
+        if ($quoteShippingAddress) {
+            $quoteShippingAddress->setSaveInAddressBook(1);
+            $quote->setShippingAddress($quoteShippingAddress);
+        }
+        $this->quoteRepository->save($quote);
+
+        $customer = $this->customerManagement->create($order->getEntityId());
+
+        try {
+            $this->logDebug(sprintf(
+                'Customer created with data: %s',
+                json_encode($customer->__toArray(), JSON_THROW_ON_ERROR)
+            ));
+        } catch (JsonException $e) {
+            return $customer;
+        }
+
+        return $customer;
+    }
+
+    /**
+     * @param string $email
+     * @return bool
+     */
+    private function customerWithEmailExists(string $email): bool
+    {
+        try {
+            $this->customerRepository->get($email);
+        } catch (NoSuchEntityException|LocalizedException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param DataObject $amwalOrderData
+     * @return bool
+     */
+    private function shouldCreateCustomer(OrderInterface $order, DataObject $amwalOrderData): bool
+    {
+        if (!$email = $amwalOrderData->getClientEmail() ?? $order->getCustomerEmail()) {
+            return false;
+        }
+
+        return $order->getCustomerIsGuest() &&
+            !$this->customerWithEmailExists($email) &&
+            $this->config->shouldCreateCustomer();
     }
 }

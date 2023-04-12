@@ -11,13 +11,7 @@ use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Customer\Api\AccountManagementInterface;
-use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
-use Magento\Customer\Api\Data\CustomerInterface;
-use Magento\Customer\Api\Data\CustomerInterfaceFactory;
-use Magento\Customer\Model\SessionFactory;
-use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
@@ -46,10 +40,6 @@ class PlaceOrder extends AmwalCheckoutAction
     private RefIdManagementInterface $refIdManagement;
     private UpdateShippingMethod $updateShippingMethod;
     private SetAmwalOrderDetails $setAmwalOrderDetails;
-    private CustomerRepositoryInterface $customerRepository;
-    private CustomerInterfaceFactory $customerFactory;
-    private AccountManagementInterface $accountManagement;
-    private SessionFactory $customerSessionFactory;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private GetAmwalOrderData $getAmwalOrderData;
 
@@ -64,10 +54,6 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param RefIdManagementInterface $refIdManagement
      * @param UpdateShippingMethod $updateShippingMethod
      * @param SetAmwalOrderDetails $setAmwalOrderDetails
-     * @param CustomerRepositoryInterface $customerRepository
-     * @param CustomerInterfaceFactory $customerFactory
-     * @param AccountManagementInterface $accountManagement
-     * @param SessionFactory $customerSessionFactory
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param GetAmwalOrderData $getAmwalOrderData
      * @param ErrorReporter $errorReporter
@@ -75,22 +61,18 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param LoggerInterface $logger
      */
     public function __construct(
-        QuoteManagement                 $quoteManagement,
-        AddressFactory                  $quoteAddressFactory,
-        QuoteRepositoryInterface        $quoteRepository,
-        CheckoutSession                 $checkoutSession,
-        ManagerInterface                $messageManager,
-        AddressResolver                 $addressResolver,
-        OrderRepositoryInterface        $orderRepository,
-        RefIdManagementInterface        $refIdManagement,
-        UpdateShippingMethod            $updateShippingMethod,
-        SetAmwalOrderDetails            $setAmwalOrderDetails,
-        CustomerRepositoryInterface     $customerRepository,
-        CustomerInterfaceFactory        $customerFactory,
-        AccountManagementInterface      $accountManagement,
-        SessionFactory                  $customerSessionFactory,
+        QuoteManagement $quoteManagement,
+        AddressFactory $quoteAddressFactory,
+        QuoteRepositoryInterface $quoteRepository,
+        CheckoutSession $checkoutSession,
+        ManagerInterface $messageManager,
+        AddressResolver $addressResolver,
+        OrderRepositoryInterface $orderRepository,
+        RefIdManagementInterface $refIdManagement,
+        UpdateShippingMethod $updateShippingMethod,
+        SetAmwalOrderDetails $setAmwalOrderDetails,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
-        GetAmwalOrderData               $getAmwalOrderData,
+        GetAmwalOrderData $getAmwalOrderData,
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger
@@ -106,10 +88,6 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->refIdManagement = $refIdManagement;
         $this->updateShippingMethod = $updateShippingMethod;
         $this->setAmwalOrderDetails = $setAmwalOrderDetails;
-        $this->customerRepository = $customerRepository;
-        $this->customerFactory = $customerFactory;
-        $this->accountManagement = $accountManagement;
-        $this->customerSessionFactory = $customerSessionFactory;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->getAmwalOrderData = $getAmwalOrderData;
     }
@@ -222,36 +200,11 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->quoteRepository->save($quote);
         }
 
-        $newCustomer = null;
-        if ($this->shouldCreateCustomer($quote, $amwalOrderData)) {
-            $this->logDebug('Creating new customer');
-            try {
-                $newCustomer = $this->createCustomer($amwalOrderData, $customerAddress, $quote);
-                $quote->setCustomerIsGuest(false);
-                $quote->setCustomer($newCustomer);
-                $quote->setCustomerId($newCustomer->getId());
-                $quote->setAmwalUserCreated(true);
-                $this->customerSessionFactory->create()->setCustomerDataAsLoggedIn($newCustomer);
-            } catch (LocalizedException | JsonException $e) {
-                $message = sprintf(
-                    'Error while creating customer for quote with ID %s. Error: %s',
-                    $quoteId,
-                    $e->getMessage()
-                );
-                $this->reportError($amwalOrderId, $message);
-                $this->logger->error($message);
-            }
-        }
-
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
         $order = $this->createOrder($quote, $amwalOrderId);
-
-        if ($newCustomer) {
-            $order->addCommentToStatusHistory(__('Created new customer with ID %1', $newCustomer->getId()));
-        }
 
         $this->orderRepository->save($order);
 
@@ -354,64 +307,6 @@ class PlaceOrder extends AmwalCheckoutAction
         }
 
         $this->quoteRepository->save($quote);
-    }
-
-    /**
-     * @param DataObject $amwalOrderData
-     * @param AddressInterface|null $customerAddress
-     * @param Quote $quote
-     * @return CustomerInterface
-     * @throws LocalizedException|JsonException
-     */
-    public function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, Quote $quote): CustomerInterface
-    {
-        /** @var \Magento\Customer\Model\Data\Customer $customer */
-        $customer = $this->customerFactory->create();
-        $customer->setEmail($amwalOrderData->getClientEmail() ?? $quote->getBillingAddress()->getEmail());
-        $customer->setFirstname($amwalOrderData->getClientFirstName());
-        $customer->setLastname($amwalOrderData->getClientLastName());
-
-        if ($customerAddress) {
-            $customer->setAddresses([$customerAddress]);
-        }
-
-        $this->logDebug(sprintf(
-            'Creating customer with data: %s',
-            json_encode($customer->__toArray(), JSON_THROW_ON_ERROR)
-        ));
-
-        return $this->accountManagement->createAccount($customer);
-    }
-
-    /**
-     * @param string $email
-     * @return bool
-     */
-    private function customerWithEmailExists(string $email): bool
-    {
-        try {
-            $this->customerRepository->get($email);
-        } catch (NoSuchEntityException|LocalizedException $e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param CartInterface $quote
-     * @param DataObject $amwalOrderData
-     * @return bool
-     */
-    private function shouldCreateCustomer(CartInterface $quote, DataObject $amwalOrderData): bool
-    {
-        if (!$email = $amwalOrderData->getClientEmail() ?? $quote->getBillingAddress()->getEmail()) {
-            return false;
-        }
-
-        return $this->getCustomerIsGuest() &&
-            !$this->customerWithEmailExists($email) &&
-            $this->config->shouldCreateCustomer();
     }
 
     /**
