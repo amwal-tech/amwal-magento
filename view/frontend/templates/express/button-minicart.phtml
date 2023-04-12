@@ -17,6 +17,7 @@ $viewModel->setQuoteId((string)$quoteId);
         email-required="<?= $escaper->escapeHtmlAttr($viewModel->isCustomerLoggedIn() ? 'false' : 'true') ?>"
         address-required="true"
         address-handshake="true"
+        show-payment-brands="true"
         shipping-methods='[]'
         ref-id="<?= $escaper->escapeHtmlAttr($viewModel->getRefId()) ?>"
         label="quick-buy"
