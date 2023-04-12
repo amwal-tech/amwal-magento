@@ -23,6 +23,7 @@ $configurableOptions = $viewModel->getConfigurableOptions($product);
             ref-id="<?= $viewModel->getRefId() ?>"
             label="quick-buy"
             disabled="true"
+            show-payment-brands="true"
             allowed-address-countries='<?= $viewModel->getAllowedCountriesJson() ?>'
             enable-pre-checkout-trigger="true"
             enable-pre-pay-trigger="true"
