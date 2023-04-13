@@ -3,11 +3,12 @@ define([
     'Amwal_Payments/js/checkout-button-base',
     'Magento_Catalog/js/product/view/product-ids-resolver',
     'Magento_Catalog/js/product/view/product-info-resolver',
+    'mage/url',
     'amwalErrorHandler',
     'underscore',
     'domReady!'
 ],
-function ($, Component, idsResolver, productInfoResolver, amwalErrorHandler, _) {
+function ($, Component, idsResolver, productInfoResolver, urlBuilder, amwalErrorHandler, _) {
     'use strict';
 
     return Component.extend({
@@ -154,11 +155,35 @@ function ($, Component, idsResolver, productInfoResolver, amwalErrorHandler, _) 
                 $form = self.$checkoutButton.closest('.product-item-actions').find(self.listingProductFormSelector);
             }
 
-            if ($form.length) {
-                self.triggerAddToCart($form);
-            } else {
-                self.$checkoutButton.trigger('startAmwalCheckout', {});
-            }
+            self.$checkoutButton.off('amwalQuoteCleaned').on('amwalQuoteCleaned', function () {
+                if ($form.length) {
+                        self.triggerAddToCart($form);
+                } else {
+                    self.$checkoutButton.trigger('startAmwalCheckout', {});
+                }
+            });
+
+            self.cleanQuote($form);
+        },
+
+        /**
+         * @param {jQuery} $form
+         */
+        cleanQuote: function ($form) {
+            let self = this,
+                serviceUrl = urlBuilder.build('rest/V1/amwal/clean-quote');
+
+            $.ajax({
+                url: serviceUrl,
+                type: 'POST',
+                cache: false,
+                success: function (res) {
+                    self.$checkoutButton.trigger('amwalQuoteCleaned');
+                },
+                error: function (res) {
+                    amwalErrorHandler.process(self.checkoutButton, res?.responseJSON?.message, 'amwalPreCheckoutTriggerError');
+                }
+            });
         },
 
         /**
@@ -175,7 +200,7 @@ function ($, Component, idsResolver, productInfoResolver, amwalErrorHandler, _) 
             $.ajax({
                 url: $form.prop('action'),
                 data: formData,
-                type: 'post',
+                type: 'POST',
                 dataType: 'json',
                 cache: false,
                 contentType: false,
