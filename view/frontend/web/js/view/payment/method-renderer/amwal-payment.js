@@ -52,7 +52,7 @@ function ($, Component, quote, totals, placeAmwalOrder, payAmwalOrder, urlBuilde
             self.checkoutButton = document.getElementById(self.amwalButtonId);
             self.$checkoutButton = $(self.amwalButtonSelector);
 
-            self.amount = parseFloat(totals.totals().grand_total);
+            self.amount = parseFloat(totals.totals().base_grand_total);
             self.setAmount();
 
             if (self.getAllowedAddressStates().length) {
