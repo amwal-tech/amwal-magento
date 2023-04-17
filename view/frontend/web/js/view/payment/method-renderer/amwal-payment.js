@@ -52,7 +52,14 @@ function ($, Component, quote, totals, placeAmwalOrder, payAmwalOrder, urlBuilde
             self.checkoutButton = document.getElementById(self.amwalButtonId);
             self.$checkoutButton = $(self.amwalButtonSelector);
 
-            self.amount = parseFloat(totals.totals().base_grand_total);
+            let totalAmount;
+            if (self.useBaseCurrency()) {
+                totalAmount = totals.totals().base_grand_total
+            } else {
+                totalAmount = totals.totals().grand_total
+            }
+
+            self.amount = parseFloat(totalAmount);
             self.setAmount();
 
             if (self.getAllowedAddressStates().length) {
@@ -221,6 +228,10 @@ function ($, Component, quote, totals, placeAmwalOrder, payAmwalOrder, urlBuilde
 
         getAllowedAddressCities: function () {
             return window.checkoutConfig.payment[this.getCode()]['allowedAddressCities'];
+        },
+
+        useBaseCurrency: function () {
+            return window.checkoutConfig.payment[this.getCode()]['useBaseCurrency'];
         },
 
         getPluginVersion: function () {
