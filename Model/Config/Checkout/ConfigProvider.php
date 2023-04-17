@@ -110,6 +110,7 @@ class ConfigProvider implements ConfigProviderInterface
             'allowedAddressStates' => $this->config->getLimitedRegionsArray(),
             'allowedAddressCities' => $this->cityHelper->getCityCodes(),
             'pluginVersion' => $this->config->getVersion(),
+            'useBaseCurrency' => $this->config->shouldUseBaseCurrency()
         ];
 
         return [
