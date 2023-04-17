@@ -208,7 +208,7 @@ function ($, Component, quote, totals, placeAmwalOrder, payAmwalOrder, urlBuilde
 
         getTestEnvironment: function () {
             let merchantMode = window.checkoutConfig.payment[this.getCode()]['merchantMode'];
-            return merchantMode === 'test' ? 'dev' : null;
+            return merchantMode === 'test' ? 'qa' : null;
         },
 
         getAllowedCountries: function () {

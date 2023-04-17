@@ -10,6 +10,7 @@ use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
+use Amwal\Payments\Model\ErrorReporter;
 use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -22,7 +23,6 @@ use Magento\Framework\DataObject;
 use Magento\Framework\DataObject\Factory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Exception\StateException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
@@ -37,7 +37,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-class GetQuote
+class GetQuote extends AmwalCheckoutAction
 {
     private CustomerRepositoryInterface $customerRepository;
     private Session $customerSession;
@@ -52,9 +52,7 @@ class GetQuote
     private Factory $objectFactory;
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
-    private Config $config;
     private CheckoutSession $checkoutSession;
-    private LoggerInterface $logger;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -70,8 +68,9 @@ class GetQuote
      * @param Factory $objectFactory
      * @param RefIdManagementInterface $refIdManagement
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
-     * @param Config $config
      * @param CheckoutSession $checkoutSession
+     * @param ErrorReporter $errorReporter
+     * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -88,10 +87,12 @@ class GetQuote
         Factory $objectFactory,
         RefIdManagementInterface $refIdManagement,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
-        Config $config,
         CheckoutSession $checkoutSession,
+        ErrorReporter $errorReporter,
+        Config $config,
         LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
         $this->quoteFactory = $quoteFactory;
@@ -105,13 +106,11 @@ class GetQuote
         $this->objectFactory = $objectFactory;
         $this->refIdManagement = $refIdManagement;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
-        $this->config = $config;
         $this->checkoutSession = $checkoutSession;
-        $this->logger = $logger;
     }
 
     /**
-     * @param AmwalOrderItemInterface $orderItems
+     * @param AmwalOrderItemInterface[] $orderItems
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param AmwalAddressInterface $addressData
@@ -150,11 +149,10 @@ class GetQuote
             ]);
             $amwalOrderData->setAddressDetails($addressData);
 
-            $customerAddress = $this->getCustomerAddress($amwalOrderData);
+            $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
         }
 
         $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
-
 
         $quote->setPaymentMethod(ConfigProvider::CODE);
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
@@ -206,7 +204,7 @@ class GetQuote
     }
 
     /**
-     * @return int|null/
+     * @return int|null
      */
     private function getCustomerId(): ?int
     {
@@ -274,25 +272,12 @@ class GetQuote
     }
 
     /**
-     * @param string $message
-     * @param array $context
-     * @return void
-     */
-    private function logDebug(string $message, array $context = []): void
-    {
-        if (!$this->config->isDebugModeEnabled()) {
-            return;
-        }
-
-        $this->logger->debug($message, $context);
-    }
-
-    /**
      * @param DataObject $amwalOrderData
+     * @param string $refId
      * @return AddressInterface
      * @throws LocalizedException
      */
-    public function getCustomerAddress(DataObject $amwalOrderData): AddressInterface
+    public function getCustomerAddress(DataObject $amwalOrderData, string $refId): AddressInterface
     {
         try {
             $this->logDebug(sprintf(
@@ -301,8 +286,14 @@ class GetQuote
             ));
             $customerAddress = $this->addressResolver->execute($amwalOrderData);
         } catch (LocalizedException|RuntimeException $e) {
-            $this->logger->error('Unable to resolve customer address while getting the Quote');
-            $this->throwException(__($e->getMessage()));
+            $message = sprintf(
+                'Unable to resolve customer address with Data %s. Received exception %s',
+                $amwalOrderData->toJson(),
+                $e->getMessage()
+            );
+            $this->reportError($refId, $message);
+            $this->logger->error($message);
+            $this->throwException(__('Something went wrong while processing you address information.'));
         }
 
         try {
@@ -367,7 +358,7 @@ class GetQuote
 
     /**
      * @param $quote
-     * @return array
+     * @return mixed[]
      * @throws LocalizedException
      */
     public function getAvailableRates($quote): array
@@ -403,19 +394,22 @@ class GetQuote
     /**
      * @param CartInterface $quote
      * @param array $availableRates
-     * @return array
+     * @return mixed[]
      */
     public function getResponseData(CartInterface $quote, array $availableRates): array
     {
-        $taxAmount = $quote->getShippingAddress()->getTaxAmount();
+        $useBaseCurrency = $this->config->shouldUseBaseCurrency();
+        $shippingAddress = $quote->getShippingAddress();
+        $taxAmount = $useBaseCurrency ? $shippingAddress->getBaseTaxAmount() : $shippingAddress->getTaxAmount();
+
         return [
             'quote_id' => $quote->getId(),
             'available_rates' => $availableRates,
-            'amount' => $quote->getGrandTotal(),
-            'subtotal' => $quote->getShippingAddress()->getSubtotalInclTax() - $taxAmount,
+            'amount' => $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal(),
+            'subtotal' => ($useBaseCurrency ? $shippingAddress->getBaseSubtotalTotalInclTax() : $shippingAddress->getSubtotalInclTax()) - $taxAmount,
             'tax_amount' => $taxAmount,
-            'shipping_amount' => $quote->getShippingAddress()->getShippingInclTax(),
-            'discount_amount' => abs($quote->getShippingAddress()->getDiscountAmount())
+            'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
+            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount())
         ];
     }
 }

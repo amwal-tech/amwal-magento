@@ -159,6 +159,12 @@
                         <config_path>payment/amwal_payments/debug_mode</config_path>
                         <tooltip>Enable additional debug logging</tooltip>
                     </field>
+                    <field id="use_base_currency" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Use base currency</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/use_base_currency</config_path>
+                        <comment><![CDATA[<strong class="colorRed">Warning</strong>: Do not set to "Yes" unless you experience problems with the total amounts in orders due to third party modules.]]></comment>
+                    </field>
                 </group>
             </group>
         </section>

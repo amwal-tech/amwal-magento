@@ -7,16 +7,11 @@ use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Customer\Api\AccountManagementInterface;
-use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
-use Magento\Customer\Api\Data\CustomerInterface;
-use Magento\Customer\Api\Data\CustomerInterfaceFactory;
-use Magento\Customer\Model\SessionFactory;
-use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
@@ -33,85 +28,68 @@ use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-class PlaceOrder
+class PlaceOrder extends AmwalCheckoutAction
 {
     private QuoteManagement $quoteManagement;
     private AddressFactory $quoteAddressFactory;
     private QuoteRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
-    private Config $config;
     private ManagerInterface $messageManager;
     private AddressResolver $addressResolver;
     private OrderRepositoryInterface $orderRepository;
     private RefIdManagementInterface $refIdManagement;
     private UpdateShippingMethod $updateShippingMethod;
     private SetAmwalOrderDetails $setAmwalOrderDetails;
-    private CustomerRepositoryInterface $customerRepository;
-    private CustomerInterfaceFactory $customerFactory;
-    private AccountManagementInterface $accountManagement;
-    private SessionFactory $customerSessionFactory;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private GetAmwalOrderData $getAmwalOrderData;
-    private LoggerInterface $logger;
 
     /**
      * @param QuoteManagement $quoteManagement
      * @param AddressFactory $quoteAddressFactory
      * @param QuoteRepositoryInterface $quoteRepository
      * @param CheckoutSession $checkoutSession
-     * @param Config $config
      * @param ManagerInterface $messageManager
      * @param AddressResolver $addressResolver
      * @param OrderRepositoryInterface $orderRepository
      * @param RefIdManagementInterface $refIdManagement
      * @param UpdateShippingMethod $updateShippingMethod
      * @param SetAmwalOrderDetails $setAmwalOrderDetails
-     * @param CustomerRepositoryInterface $customerRepository
-     * @param CustomerInterfaceFactory $customerFactory
-     * @param AccountManagementInterface $accountManagement
-     * @param SessionFactory $customerSessionFactory
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param GetAmwalOrderData $getAmwalOrderData
+     * @param ErrorReporter $errorReporter
+     * @param Config $config
      * @param LoggerInterface $logger
      */
     public function __construct(
-        QuoteManagement                 $quoteManagement,
-        AddressFactory                  $quoteAddressFactory,
-        QuoteRepositoryInterface        $quoteRepository,
-        CheckoutSession                 $checkoutSession,
-        Config                          $config,
-        ManagerInterface                $messageManager,
-        AddressResolver                 $addressResolver,
-        OrderRepositoryInterface        $orderRepository,
-        RefIdManagementInterface        $refIdManagement,
-        UpdateShippingMethod            $updateShippingMethod,
-        SetAmwalOrderDetails            $setAmwalOrderDetails,
-        CustomerRepositoryInterface     $customerRepository,
-        CustomerInterfaceFactory        $customerFactory,
-        AccountManagementInterface      $accountManagement,
-        SessionFactory                  $customerSessionFactory,
+        QuoteManagement $quoteManagement,
+        AddressFactory $quoteAddressFactory,
+        QuoteRepositoryInterface $quoteRepository,
+        CheckoutSession $checkoutSession,
+        ManagerInterface $messageManager,
+        AddressResolver $addressResolver,
+        OrderRepositoryInterface $orderRepository,
+        RefIdManagementInterface $refIdManagement,
+        UpdateShippingMethod $updateShippingMethod,
+        SetAmwalOrderDetails $setAmwalOrderDetails,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
-        GetAmwalOrderData               $getAmwalOrderData,
-        LoggerInterface                 $logger
+        GetAmwalOrderData $getAmwalOrderData,
+        ErrorReporter $errorReporter,
+        Config $config,
+        LoggerInterface $logger
     ) {
+        parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteRepository = $quoteRepository;
         $this->checkoutSession = $checkoutSession;
-        $this->config = $config;
         $this->messageManager = $messageManager;
         $this->addressResolver = $addressResolver;
         $this->orderRepository = $orderRepository;
         $this->refIdManagement = $refIdManagement;
         $this->updateShippingMethod = $updateShippingMethod;
         $this->setAmwalOrderDetails = $setAmwalOrderDetails;
-        $this->customerRepository = $customerRepository;
-        $this->customerFactory = $customerFactory;
-        $this->accountManagement = $accountManagement;
-        $this->customerSessionFactory = $customerSessionFactory;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->getAmwalOrderData = $getAmwalOrderData;
-        $this->logger = $logger;
     }
 
     /**
@@ -146,13 +124,15 @@ class PlaceOrder
         ));
 
         if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
-            $this->logger->debug(sprintf(
+            $message = sprintf(
                 "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
                 $amwalOrderData->getRefId(),
                 $refId,
                 $this->refIdManagement->generateRefId($refIdData),
                 $refIdData->toJson()
-            ));
+            );
+            $this->logDebug($message);
+            $this->reportError($amwalOrderId, $message);
             $this->throwException(__('We were unable to verify your payment.'));
         }
 
@@ -186,12 +166,14 @@ class PlaceOrder
                     $this->logger->notice('Unable to log customer data.');
                 }
             } catch (LocalizedException|RuntimeException $e) {
-                $this->logger->error(sprintf(
+                $message = sprintf(
                     "Unable to resolve address while creating order.\nQuote ID: %s\nAmwal Order Data: %s\nAmwal Order id: %s",
                     $quoteId,
                     $amwalOrderData->toJson(),
                     $amwalOrderId
-                ));
+                );
+                $this->reportError($amwalOrderId, $message);
+                $this->logger->error($message);
                 $this->throwException();
             }
 
@@ -218,35 +200,11 @@ class PlaceOrder
             $this->quoteRepository->save($quote);
         }
 
-        $newCustomer = null;
-        if ($this->shouldCreateCustomer($quote, $amwalOrderData)) {
-            $this->logDebug('Creating new customer');
-            try {
-                $newCustomer = $this->createCustomer($amwalOrderData, $customerAddress, $quote);
-                $quote->setCustomerIsGuest(false);
-                $quote->setCustomer($newCustomer);
-                $quote->setCustomerId($newCustomer->getId());
-                $quote->setAmwalUserCreated(true);
-                $this->customerSessionFactory->create()->setCustomerDataAsLoggedIn($newCustomer);
-            } catch (LocalizedException | JsonException $e) {
-                $this->logger->error(sprintf(
-                    'Error while creating customer for quote with ID %s. Error: %s',
-                    $quoteId,
-                    $e->getMessage()
-                ));
-            }
-        }
-
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
-        $order = $this->createOrder($quote);
-        $order->setAmwalOrderId($amwalOrderId);
-
-        if ($newCustomer) {
-            $order->addCommentToStatusHistory(__('Created new customer with ID %1', $newCustomer->getId()));
-        }
+        $order = $this->createOrder($quote, $amwalOrderId);
 
         $this->orderRepository->save($order);
 
@@ -257,23 +215,28 @@ class PlaceOrder
 
     /**
      * @param Quote $quote
+     * @param string $amwalOrderId
      * @return OrderInterface
      * @throws LocalizedException
      */
-    public function createOrder(Quote $quote): OrderInterface
+    public function createOrder(Quote $quote, string $amwalOrderId): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->quoteManagement->submit($quote);
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
         if (!$order) {
-            $this->logger->error(sprintf('Unable create an order because we failed to submit the quote with ID "%s"', $quote->getId()));
+            $message = sprintf('Unable create an order because we failed to submit the quote with ID "%s"', $quote->getId());
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
             $this->throwException();
         }
 
         $order->setEmailSent(0);
         if (!$order->getEntityId()) {
-            $this->logger->error(sprintf('Order could not be created from quote with ID "%s"', $quote->getId()));
+            $message = sprintf('Order could not be created from quote with ID "%s"', $quote->getId());
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
             $this->throwException();
         }
 
@@ -281,6 +244,7 @@ class PlaceOrder
 
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
+        $order->setAmwalOrderId($amwalOrderId);
 
         return $order;
     }
@@ -346,82 +310,10 @@ class PlaceOrder
     }
 
     /**
-     * @param DataObject $amwalOrderData
-     * @param AddressInterface|null $customerAddress
-     * @param Quote $quote
-     * @return CustomerInterface
-     * @throws LocalizedException|JsonException
-     */
-    public function createCustomer(DataObject $amwalOrderData, ?AddressInterface $customerAddress, Quote $quote): CustomerInterface
-    {
-        /** @var \Magento\Customer\Model\Data\Customer $customer */
-        $customer = $this->customerFactory->create();
-        $customer->setEmail($amwalOrderData->getClientEmail() ?? $quote->getBillingAddress()->getEmail());
-        $customer->setFirstname($amwalOrderData->getClientFirstName());
-        $customer->setLastname($amwalOrderData->getClientLastName());
-
-        if ($customerAddress) {
-            $customer->setAddresses([$customerAddress]);
-        }
-
-        $this->logDebug(sprintf(
-            'Creating customer with data: %s',
-            json_encode($customer->__toArray(), JSON_THROW_ON_ERROR)
-        ));
-
-        return $this->accountManagement->createAccount($customer);
-    }
-
-    /**
-     * @param string $email
-     * @return bool
-     */
-    private function customerWithEmailExists(string $email): bool
-    {
-        try {
-            $this->customerRepository->get($email);
-        } catch (NoSuchEntityException|LocalizedException $e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param CartInterface $quote
-     * @param DataObject $amwalOrderData
-     * @return bool
-     */
-    private function shouldCreateCustomer(CartInterface $quote, DataObject $amwalOrderData): bool
-    {
-        if (!$email = $amwalOrderData->getClientEmail() ?? $quote->getBillingAddress()->getEmail()) {
-            return false;
-        }
-
-        return $this->getCustomerIsGuest() &&
-            !$this->customerWithEmailExists($email) &&
-            $this->config->shouldCreateCustomer();
-    }
-
-    /**
      * @return bool
      */
     private function getCustomerIsGuest(): bool
     {
         return $this->checkoutSession->getQuote()->getCustomer()->getId() === null;
-    }
-
-    /**
-     * @param string $message
-     * @param array $context
-     * @return void
-     */
-    private function logDebug(string $message, array $context = []): void
-    {
-        if (!$this->config->isDebugModeEnabled()) {
-            return;
-        }
-
-        $this->logger->debug($message, $context);
     }
 }

@@ -20,6 +20,7 @@ $viewModel->setQuoteId((string)$quoteId);
         shipping-methods='[]'
         ref-id="<?= $escaper->escapeHtmlAttr($viewModel->getRefId()) ?>"
         label="quick-buy"
+        show-payment-brands="true"
         allowed-address-countries='<?= $escaper->escapeHtmlAttr($viewModel->getAllowedCountriesJson()) ?>'
         enable-pre-checkout-trigger="true"
         enable-pre-pay-trigger="true"

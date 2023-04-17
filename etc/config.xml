@@ -14,6 +14,7 @@
                 <create_user_on_order>0</create_user_on_order>
                 <phone_number_format>raw</phone_number_format>
                 <phone_number_trim_whitespace>0</phone_number_trim_whitespace>
+                <use_base_currency>0</use_base_currency>
             </amwal_payments>
         </payment>
     </default>
