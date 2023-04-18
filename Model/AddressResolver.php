@@ -6,8 +6,6 @@ namespace Amwal\Payments\Model;
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Amwal\Payments\Model\Config\Source\PhoneNumberFormat;
 use Amwal\Payments\Setup\Patch\Data\AddCustomerAddressAmwalAddressId as AmwalAddressId;
-use libphonenumber\NumberParseException;
-use libphonenumber\PhoneNumberUtil;
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
@@ -366,11 +364,12 @@ class AddressResolver
             return $rawPhoneNumber;
         }
 
-        if (in_array($format, PhoneNumberFormat::UTILS_LIB_FORMATS)) {
-            $phoneNumberUtil = PhoneNumberUtil::getInstance();
+        if (class_exists('libphonenumber\PhoneNumberUtil') &&
+            in_array($format, PhoneNumberFormat::UTILS_LIB_FORMATS)) {
+            $phoneNumberUtil = libphonenumber\PhoneNumberUtil::getInstance();
             try {
                 $phoneNumber = $phoneNumberUtil->parse($rawPhoneNumber);
-            } catch (NumberParseException $e) {
+            } catch (libphonenumber\NumberParseException $e) {
                 $this->logger->error(sprintf(
                     'Unable to parse phone number "%s" for formatting: %s',
                     $rawPhoneNumber,
