@@ -260,7 +260,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.$checkoutButton.attr('taxes', response[0].tax_amount);
                     self.checkoutButton.taxes = response[0].tax_amount;
 
-                    let subtotal = parseFloat(response[0].amount) - parseFloat(response[0].tax_amount) - parseFloat(response[0].shipping_amount);
+                    let subtotal = parseFloat(response[0].amount)
+                                 - parseFloat(response[0].tax_amount)
+                                 - parseFloat(response[0].shipping_amount)
+                                 + parseFloat(response[0].discount_amount);
                     self.$checkoutButton.attr('amount', subtotal);
                     self.checkoutButton.amount = subtotal;
 
