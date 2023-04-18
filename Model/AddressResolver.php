@@ -366,7 +366,8 @@ class AddressResolver
             return $rawPhoneNumber;
         }
 
-        if (in_array($format, PhoneNumberFormat::UTILS_LIB_FORMATS)) {
+        if (class_exists('libphonenumber\PhoneNumberUtil') &&
+            in_array($format, PhoneNumberFormat::UTILS_LIB_FORMATS)) {
             $phoneNumberUtil = PhoneNumberUtil::getInstance();
             try {
                 $phoneNumber = $phoneNumberUtil->parse($rawPhoneNumber);
