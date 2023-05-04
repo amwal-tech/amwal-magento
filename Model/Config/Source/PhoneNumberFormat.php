@@ -8,6 +8,7 @@ use Magento\Framework\Data\OptionSourceInterface;
 
 class PhoneNumberFormat implements OptionSourceInterface
 {
+    public const COUNTRY_OPTION_VALUE = 'country';
     /**
      * @inheritdoc
      */
@@ -38,10 +39,31 @@ class PhoneNumberFormat implements OptionSourceInterface
             ];
         }
         $options[] = [
-            'value' => 'country',
+            'value' => self::COUNTRY_OPTION_VALUE,
             'label' => __('Country based')
         ];
 
         return $options;
+    }
+
+
+    /**
+     * @return string[]
+     */
+    public static function getValidValues(): array
+    {
+        $values = [
+            'raw',
+            self::COUNTRY_OPTION_VALUE,
+        ];
+
+        if (class_exists('libphonenumber\PhoneNumberFormat')) {
+            $values[] = LibPhoneNumberFormat::NATIONAL;
+            $values[] = LibPhoneNumberFormat::INTERNATIONAL;
+            $values[] = LibPhoneNumberFormat::E164;
+            $values[] = LibPhoneNumberFormat::RFC3966;
+        }
+
+        return $values;
     }
 }

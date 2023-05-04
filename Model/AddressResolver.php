@@ -367,7 +367,7 @@ class AddressResolver
         }
 
         if (class_exists('libphonenumber\PhoneNumberUtil') &&
-            in_array($format, PhoneNumberFormat::UTILS_LIB_FORMATS)) {
+            in_array($format, PhoneNumberFormat::getValidValues())) {
             $phoneNumberUtil = PhoneNumberUtil::getInstance();
             try {
                 $phoneNumber = $phoneNumberUtil->parse($rawPhoneNumber);
@@ -380,7 +380,7 @@ class AddressResolver
                 return $rawPhoneNumber;
             }
 
-            if ($format === PhoneNumberFormat::FORMAT_COUNTRY) {
+            if ($format === PhoneNumberFormat::COUNTRY_OPTION_VALUE) {
                 $country = $this->config->getPhoneNumberFormatCountry();
                 if (!$country) {
                     $this->logger->error(sprintf(
