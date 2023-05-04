@@ -38,6 +38,7 @@ class Config
     public const XML_CONFIG_PATH_LIMIT_REGIONS = 'payment/amwal_payments/limit_regions';
     public const XML_CONFIG_PATH_TEST_API_BASE_URL = 'payment/amwal_payments/test_api_base_url';
     public const XML_CONFIG_PATH_PROD_API_BASE_URL = 'payment/amwal_payments/prod_api_base_url';
+    public const XML_CONFIG_PATH_STREET_LINE_COUNT = 'customer/address/street_lines';
 
     /** @var ScopeConfigInterface  */
     private ScopeConfigInterface $scopeConfig;
@@ -291,6 +292,15 @@ class Config
     {
         $storeLocale = $this->scopeConfig->getValue(AdminConfig::XML_PATH_GENERAL_LOCALE_CODE, ScopeInterface::SCOPE_STORE);
         return substr($storeLocale, 0, 2);
+    }
+
+    /**
+     * @return bool
+     */
+    public function shouldCombineStreetLines(): bool
+    {
+        $lineCount = (int) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_STREET_LINE_COUNT, ScopeInterface::SCOPE_STORE);
+        return $lineCount < 2;
     }
 
     /**

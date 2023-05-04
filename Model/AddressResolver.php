@@ -245,6 +245,10 @@ class AddressResolver
             $street[] = $amwalAddress->getStreet2();
         }
 
+        if ($this->config->shouldCombineStreetLines()) {
+            $street = [implode(' ', $street)];
+        }
+
         return $street;
     }
 
