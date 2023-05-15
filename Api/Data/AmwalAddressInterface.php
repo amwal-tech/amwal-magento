@@ -7,6 +7,8 @@ interface AmwalAddressInterface
 {
     public const ID = 'id';
     public const ORDER_ID = 'order_id';
+    public const FIRST_NAME = 'first_name';
+    public const LAST_NAME = 'last_name';
     public const EMAIL = 'email';
     public const CITY = 'city';
     public const COUNTRY = 'country';
@@ -25,6 +27,16 @@ interface AmwalAddressInterface
      * @return string|null
      */
     public function getOrderId(): ?string;
+
+    /**
+     * @return string|null
+     */
+    public function getFirstName(): ?string;
+
+    /**
+     * @return string|null
+     */
+    public function getLastName(): ?string;
 
     /**
      * @return string|null
@@ -78,6 +90,17 @@ interface AmwalAddressInterface
      * @return AmwalAddressInterface
      */
     public function setOrderId(?string $orderId = null): AmwalAddressInterface;
+
+    /**
+     * @param string|null $firstName
+     * @return AmwalAddressInterface
+     */
+    public function setFirstName(?string $firstName = null): AmwalAddressInterface;
+    /**
+     * @param string|null $lastName
+     * @return AmwalAddressInterface
+     */
+    public function setLastName(?string $lastName = null): AmwalAddressInterface;
 
     /**
      * @param string|null $email
