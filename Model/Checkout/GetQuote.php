@@ -36,6 +36,7 @@ use Magento\Quote\Model\ShippingMethodManagement;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Throwable;
 
 class GetQuote extends AmwalCheckoutAction
 {
@@ -130,68 +131,73 @@ class GetQuote extends AmwalCheckoutAction
         bool $isPreCheckout,
         $quoteId = null
     ): array {
-        $this->logDebug('Start GetQuote call');
-        if (!$this->refIdManagement->verifyRefId($refId, $refIdData)) {
-            $this->logger->error(sprintf(
-                "Unable to get quote because Ref ID cannot be verified.\nReceived Ref ID: %s\nExpected Ref ID: %s\nRef ID Data: %s",
-                $refId,
-                $this->refIdManagement->generateRefId($refIdData),
-                $refIdData->toJson()
-            ));
-            $this->throwException(__('We are unable to verify the reference ID of this payment'));
-        }
+        try {
+            $this->logDebug('Start GetQuote call');
+            if (!$this->refIdManagement->verifyRefId($refId, $refIdData)) {
+                $this->logger->error(sprintf(
+                    "Unable to get quote because Ref ID cannot be verified.\nReceived Ref ID: %s\nExpected Ref ID: %s\nRef ID Data: %s",
+                    $refId,
+                    $this->refIdManagement->generateRefId($refIdData),
+                    $refIdData->toJson()
+                ));
+                $this->throwException(__('We are unable to verify the reference ID of this payment'));
+            }
 
-        if (!$isPreCheckout) {
-            $amwalOrderData = $this->objectFactory->create([
-                'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE
-            ]);
-            $amwalOrderData->setAddressDetails($addressData);
+            if (!$isPreCheckout) {
+                $amwalOrderData = $this->objectFactory->create([
+                    'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE
+                ]);
+                $amwalOrderData->setAddressDetails($addressData);
 
-            $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
-        }
+                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
+            }
 
-        $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
+            $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
 
-        // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
-        if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
-            $quote->setCustomerIsGuest(true);
-        }
+            // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
+            if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
+                $quote->setCustomerIsGuest(true);
+            }
 
-        $quote->setPaymentMethod(ConfigProvider::CODE);
-        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+            $quote->setPaymentMethod(ConfigProvider::CODE);
+            $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
-        $availableRates = [];
-        if (!$isPreCheckout) {
-            $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
+            $availableRates = [];
+            if (!$isPreCheckout) {
+                $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
 
-            $this->logDebug('Setting Billing and Shipping address');
-            $quote->setBillingAddress($quoteAddress);
-            $quote->setShippingAddress($quoteAddress);
+                $this->logDebug('Setting Billing and Shipping address');
+                $quote->setBillingAddress($quoteAddress);
+                $quote->setShippingAddress($quoteAddress);
 
-            $this->logDebug('Collecting shipping rates');
-            $quote->getShippingAddress()->setCollectShippingRates(true);
-            $quote->getShippingAddress()->collectShippingRates();
+                $this->logDebug('Collecting shipping rates');
+                $quote->getShippingAddress()->setCollectShippingRates(true);
+                $quote->getShippingAddress()->collectShippingRates();
+                $this->quoteRepository->save($quote);
+
+                $availableRates = $this->getAvailableRates($quote);
+            }
+
+            $quote->setTotalsCollectedFlag(false);
+            $quote->collectTotals();
             $this->quoteRepository->save($quote);
 
-            $availableRates = $this->getAvailableRates($quote);
-        }
+            $responseData = $this->getResponseData($quote, $availableRates);
 
-        $quote->setTotalsCollectedFlag(false);
-        $quote->collectTotals();
-        $this->quoteRepository->save($quote);
+            $quoteData = [
+                'data' => $responseData
+            ];
 
-        $responseData = $this->getResponseData($quote, $availableRates);
-
-        $quoteData = [
-            'data' => $responseData
-        ];
-
-        try {
-            $this->logDebug(sprintf('End GetQuote call. Data: %s', json_encode($quoteData, JSON_THROW_ON_ERROR)));
-        } catch (JsonException $e) {
-            $this->logger->notice('Unable to log quote data debug message');
+            try {
+                $this->logDebug(sprintf('End GetQuote call. Data: %s', json_encode($quoteData, JSON_THROW_ON_ERROR)));
+            } catch (JsonException $e) {
+                $this->logger->notice('Unable to log quote data debug message');
+            }
+        } catch (Throwable $e) {
+            $this->reportError($refId, $e->getMessage());
+            throw $e;
         }
 
         return $quoteData;
