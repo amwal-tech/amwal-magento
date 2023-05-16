@@ -28,6 +28,22 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     /**
      * @inheritDoc
      */
+    public function getFirstName(): ?string
+    {
+        return $this->getData(self::FIRST_NAME);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLastName(): ?string
+    {
+        return $this->getData(self::LAST_NAME);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getEmail(): ?string
     {
         return $this->getData(self::EMAIL);
@@ -103,6 +119,22 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     public function setOrderId(?string $orderId = null): AmwalAddressInterface
     {
         return $this->setData(self::ORDER_ID, $orderId);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setFirstName(?string $firstName = null): AmwalAddressInterface
+    {
+        return $this->setData(self::FIRST_NAME, $firstName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setLastName(?string $lastName = null): AmwalAddressInterface
+    {
+        return $this->setData(self::LAST_NAME, $lastName);
     }
 
     /**

@@ -172,8 +172,8 @@ class AddressResolver
         $amwalAddress = $amwalOrderData->getAddressDetails();
 
         $customerAddress = $this->addressDataFactory->create()
-            ->setFirstname($amwalOrderData->getClientFirstName() ?? self::TEMPORARY_DATA_VALUE)
-            ->setLastname($amwalOrderData->getClientLastName() ?? self::TEMPORARY_DATA_VALUE)
+            ->setFirstname($this->getFirstName($amwalAddress, $amwalOrderData))
+            ->setLastname($this->getLastName($amwalAddress, $amwalOrderData))
             ->setCountryId($amwalAddress->getCountry())
             ->setCity($amwalAddress->getCity())
             ->setPostcode($amwalAddress->getPostcode())
@@ -404,5 +404,39 @@ class AddressResolver
         }
 
         return $formattedNumber;
+    }
+
+    /**
+     * @param AmwalAddressInterface $amwalAddress
+     * @param DataObject $amwalOrderData
+     * @return string
+     */
+    private function getFirstName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): string
+    {
+        if ($amwalAddress->getFirstName()) {
+            return $amwalAddress->getFirstName();
+        }
+        if ($amwalOrderData->getClientFirstName()) {
+            return $amwalOrderData->getClientFirstName();
+        }
+
+        return self::TEMPORARY_DATA_VALUE;
+    }
+
+    /**
+     * @param AmwalAddressInterface $amwalAddress
+     * @param DataObject $amwalOrderData
+     * @return string
+     */
+    private function getLastName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): ?string
+    {
+        if ($amwalAddress->getLastName()) {
+            return $amwalAddress->getLastName();
+        }
+        if ($amwalOrderData->getClientLastName()) {
+            return $amwalOrderData->getClientLastName();
+        }
+
+        return self::TEMPORARY_DATA_VALUE;
     }
 }
