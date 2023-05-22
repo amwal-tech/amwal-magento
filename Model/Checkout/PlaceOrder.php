@@ -232,7 +232,6 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->throwException();
         }
 
-        $order->setEmailSent(0);
         if (!$order->getEntityId()) {
             $message = sprintf('Order could not be created from quote with ID "%s"', $quote->getId());
             $this->reportError($amwalOrderId, $message);
