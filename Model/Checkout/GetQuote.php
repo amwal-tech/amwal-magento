@@ -413,8 +413,8 @@ class GetQuote extends AmwalCheckoutAction
         $shippingAddress = $quote->getShippingAddress();
         $taxAmount = $useBaseCurrency ? $shippingAddress->getBaseTaxAmount() : $shippingAddress->getTaxAmount();
 
-        $amount = $this->getAmount($useBaseCurrency, $quote);
-        $subtotal = $this->getSubtotal($useBaseCurrency, $shippingAddress, $taxAmount);
+        $amount = $this->getAmount($quote, $useBaseCurrency);
+        $subtotal = $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency);
 
         return [
             'quote_id' => $quote->getId(),
@@ -424,48 +424,50 @@ class GetQuote extends AmwalCheckoutAction
             'tax_amount' => $taxAmount,
             'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
             'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
-            'additional_fee_amount' => $this->getAdditionalFeeAmount(),
-            'additional_fee_description' => $this->getAdditionalFeeDescription()
+            'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
+            'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
         ];
     }
 
     /**
      * This method can be overwritten to pass any additional fees that should be displayed in the Amwal amount summary
-     * @see getAdditionalFeeDescription()
+     * @param CartInterface $quote
      * @return float
+     * @see getAdditionalFeeDescription()
      */
-    public function getAdditionalFeeAmount(): float
+    public function getAdditionalFeeAmount(CartInterface $quote): float
     {
         return 0;
     }
 
     /**
      * This method can be overwritten to provide a description for any additional fees that should be displayed in the Amwal amount summary
-     * @see getAdditionalFeeAmount()
+     * @param CartInterface $quote
      * @return Phrase|string
+     * @see getAdditionalFeeAmount()
      */
-    public function getAdditionalFeeDescription()
+    public function getAdditionalFeeDescription(CartInterface $quote)
     {
         return 'Assembly';
     }
 
     /**
-     * @param bool $useBaseCurrency
      * @param CartInterface $quote
+     * @param bool $useBaseCurrency
      * @return float
      */
-    public function getAmount(bool $useBaseCurrency, CartInterface $quote): float
+    public function getAmount(CartInterface $quote, bool $useBaseCurrency): float
     {
         return $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal();
     }
 
     /**
-     * @param bool $useBaseCurrency
      * @param Address $shippingAddress
      * @param float $taxAmount
+     * @param bool $useBaseCurrency
      * @return float
      */
-    public function getSubtotal(bool $useBaseCurrency, Address $shippingAddress, float $taxAmount): float
+    public function getSubtotal(Address $shippingAddress, float $taxAmount, bool $useBaseCurrency): float
     {
         return ($useBaseCurrency ? $shippingAddress->getBaseSubtotalTotalInclTax() : $shippingAddress->getSubtotalInclTax()) - $taxAmount;
     }
