@@ -427,25 +427,40 @@ class GetQuote extends AmwalCheckoutAction
     }
 
     /**
-     * This method can be overwritten to pass any additional fees that should be displayed in the Amwal amount summary
+     * This method can be extended to pass any additional fees that should be displayed in the Amwal amount summary
+     * Currently we have built-in support for the Amasty Extrafee extension
      * @param CartInterface $quote
      * @return float
      * @see getAdditionalFeeDescription()
      */
     public function getAdditionalFeeAmount(CartInterface $quote): float
     {
-        return 0;
+        $extraFee = 0;
+        $totals = $quote->getTotals();
+        if (isset($totals['amasty_extrafee'])) {
+            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
+        }
+
+        return $extraFee;
     }
 
     /**
      * This method can be overwritten to provide a description for any additional fees that should be displayed in the Amwal amount summary
+     * Currently we have built-in support for the Amasty Extrafee extension
      * @param CartInterface $quote
      * @return Phrase|string
      * @see getAdditionalFeeAmount()
      */
     public function getAdditionalFeeDescription(CartInterface $quote)
     {
-        return 'Assembly';
+        $feeDescription = '';
+        $totals = $quote->getTotals();
+        if ($quote->getData('applied_amasty_fee_flag') && isset($totals['amasty_extrafee'])) {
+            $feeArguments = $totals['amasty_extrafee']->getTitle()->getArguments();
+            $feeDescription = reset($feeArguments);
+        }
+
+        return $feeDescription;
     }
 
     /**
@@ -455,7 +470,15 @@ class GetQuote extends AmwalCheckoutAction
      */
     public function getAmount(CartInterface $quote, bool $useBaseCurrency): float
     {
-        return $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal();
+        $grandTotal = $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal();
+
+        $totals = $quote->getTotals();
+        if ($quote->getData('applied_amasty_fee_flag') && isset($totals['amasty_extrafee'])) {
+            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
+            $grandTotal -= $extraFee;
+        }
+
+        return $grandTotal;
     }
 
     /**
