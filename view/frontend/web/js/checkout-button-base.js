@@ -270,12 +270,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.$checkoutButton.attr('discount', response[0].discount_amount);
                     self.checkoutButton.discount = response[0].discount_amount;
 
-                    if (response[0].additional_fee_amount) {
-                        self.$checkoutButton.attr('fees', response[0].additional_fee_amount);
-                        self.checkoutButton.fees = response[0].additional_fee_amount;
-                        self.$checkoutButton.attr('fees-description', response[0].additional_fee_description);
-                        self.checkoutButton.feesDescription = response[0].additional_fee_description;
-                    }
+                    self.$checkoutButton.attr('fees', response[0].additional_fee_amount);
+                    self.checkoutButton.fees = response[0].additional_fee_amount;
+                    self.$checkoutButton.attr('fees-description', response[0].additional_fee_description);
+                    self.checkoutButton.feesDescription = response[0].additional_fee_description;
 
                     if (self.isPreCheckoutActive) {
                         self.isPreCheckoutActive = false;
