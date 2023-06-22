@@ -479,7 +479,7 @@ class GetQuote extends AmwalCheckoutAction
         }
         
         if (!$grandTotal) {
-            throw new LocalizedException(__('Unable to calculate order total');
+            throw new LocalizedException(__('Unable to calculate order total'));
         }
 
         return $grandTotal;
