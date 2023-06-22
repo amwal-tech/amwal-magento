@@ -477,6 +477,10 @@ class GetQuote extends AmwalCheckoutAction
             $extraFee = $totals['amasty_extrafee']->getValueInclTax();
             $grandTotal -= $extraFee;
         }
+        
+        if (!$grandTotal) {
+            throw new LocalizedException(__('Unable to calculate order total');
+        }
 
         return $grandTotal;
     }
