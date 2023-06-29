@@ -25,4 +25,16 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/amwal/button/product" method="POST">
+        <service class="Amwal\Payments\Model\Button\GetProductButtonConfig" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/amwal/button/cart" method="POST">
+        <service class="Amwal\Payments\Model\Button\GetCartButtonConfig" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

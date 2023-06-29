@@ -76,6 +76,7 @@
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>
     <preference for="Amwal\Payments\Api\Data\AmwalAddressInterface" type="Amwal\Payments\Model\Data\AmwalAddress"/>
+    <preference for="Amwal\Payments\Api\Data\AmwalButtonConfigInterface" type="Amwal\Payments\Model\Data\AmwalButtonConfig"/>
     <preference for="Amwal\Payments\Api\RefIdManagementInterface" type="Amwal\Payments\Model\RefIdManagement"/>
     <preference for="Amwal\Payments\Api\Data\RefIdDataInterface" type="Amwal\Payments\Model\Data\RefIdData"/>
 
