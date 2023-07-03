@@ -1,0 +1,14 @@
+{
+    "eslint.workingDirectories": [
+      {
+        "directory": "./view/frontend/web/js/react-src",
+        "changeProcessCWD": true
+      }
+    ],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "eslint.validate": [
+      "typescript"
+    ]
+  }
