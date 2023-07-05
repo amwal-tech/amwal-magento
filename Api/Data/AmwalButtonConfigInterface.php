@@ -22,11 +22,13 @@ interface AmwalButtonConfigInterface
     public const ENABLE_PRE_PAY_TRIGGER = 'enable_pre_pay_trigger';
     public const ID = 'id';
     public const TEST_ENVIRONMENT = 'test_environment';
+    public const ALLOWED_ADDRESS_COUNTRIES = 'allowed_address_countries';
     public const ALLOWED_ADDRESS_STATES = 'allowed_address_states';
     public const ALLOWED_ADDRESS_CITIES = 'allowed_address_cities';
     public const INITIAL_ADDRESS = 'initial_address';
     public const INITIAL_EMAIL = 'initial_email';
     public const INITIAL_PHONE = 'initial_phone';
+    public const PLUGIN_VERSION = 'plugin_version';
 
     /**
      * @return string
@@ -207,6 +209,17 @@ interface AmwalButtonConfigInterface
     /**
      * @return array|null
      */
+    public function getAllowedAddressCountries(): ?array;
+
+    /**
+     * @param array|null $allowedAddressCities
+     * @return AmwalButtonConfigInterface
+     */
+    public function setAllowedAddressCountries(?array $allowedAddressCountries): AmwalButtonConfigInterface;
+
+    /**
+     * @return array|null
+     */
     public function getAllowedAddressStates(): ?array;
 
     /**
@@ -258,4 +271,15 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setInitialPhone(?string $initialPhone): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getPluginVersion(): ?string;
+
+    /**
+     * @param string|null $initialPhone
+     * @return AmwalButtonConfigInterface
+     */
+    public function setPluginVersion(?string $pluginVersion): AmwalButtonConfigInterface;
 }

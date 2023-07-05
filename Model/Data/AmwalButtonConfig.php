@@ -268,6 +268,22 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
+    public function getAllowedAddressCountries(): ?array
+    {
+        return $this->getData(self::ALLOWED_ADDRESS_COUNTRIES);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAllowedAddressCountries(?array $allowedAddressCountries): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::ALLOWED_ADDRESS_COUNTRIES, $allowedAddressCountries);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getAllowedAddressStates(): ?array
     {
         return $this->getData(self::ALLOWED_ADDRESS_STATES);
@@ -343,5 +359,21 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     public function setInitialPhone(?string $initialPhone): AmwalButtonConfigInterface
     {
         return $this->setData(self::INITIAL_PHONE, $initialPhone);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPluginVersion(): ?string
+    {
+        return $this->getData(self::PLUGIN_VERSION);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setPluginVersion(?string $pluginVersion): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::PLUGIN_VERSION, $pluginVersion);
     }
 }

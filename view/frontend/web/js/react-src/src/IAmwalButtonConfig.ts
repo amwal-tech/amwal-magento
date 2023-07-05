@@ -20,7 +20,15 @@ export interface IAmwalButtonConfig {
   test_environment: string
   allowed_address_states: Record<string, StateSpecs>
   allowed_address_cities: Record<string, CitySpecs>
+  allowed_address_countries: string[]
   initial_address: IAddress
   initial_email: string
   initial_phone: string
+  plugin_version: string
+}
+
+export interface IRefIdData {
+  identifier: string
+  customer_id: string
+  timestamp: number
 }

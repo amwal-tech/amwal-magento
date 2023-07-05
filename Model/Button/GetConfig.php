@@ -12,6 +12,7 @@ use Amwal\Payments\Model\Config\Source\MerchantMode;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
+use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
 use Magento\Customer\Model\Session;
@@ -27,6 +28,7 @@ class GetConfig
     protected CustomerSessionFactory $customerSessionFactory;
     protected CheckoutSessionFactory $checkoutSessionFactory;
     protected CityHelper $cityHelper;
+    protected DirectoryHelper $directoryHelper;
     protected AmwalAddressInterfaceFactory $amwalAddressFactory;
     protected RefIdManagementInterface $refIdManagement;
     protected CartRepositoryInterface $cartRepository;
@@ -39,6 +41,7 @@ class GetConfig
         CustomerSessionFactory   $customerSessionFactory,
         CheckoutSessionFactory   $checkoutSessionFactory,
         CityHelper               $cityHelper,
+        DirectoryHelper          $directoryHelper,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
@@ -50,6 +53,7 @@ class GetConfig
         $this->customerSessionFactory = $customerSessionFactory;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
         $this->cityHelper = $cityHelper;
+        $this->directoryHelper = $directoryHelper;
         $this->amwalAddressFactory = $amwalAddressFactory;
         $this->refIdManagement = $refIdManagement;
         $this->cartRepository = $cartRepository;
@@ -70,6 +74,7 @@ class GetConfig
         $buttonConfig->setAddressRequired(true);
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
+        $buttonConfig->setAllowedAddressCountries(array_keys($this->directoryHelper->getCountryCollection()->getItems()));
         $buttonConfig->setAllowedAddressStates($this->config->getLimitedRegionsArray());
         $buttonConfig->setAllowedAddressCities($this->cityHelper->getCityCodes());
         $buttonConfig->setLocale($this->config->getLocale());
@@ -81,6 +86,7 @@ class GetConfig
         $buttonConfig->setMerchantId($this->config->getMerchantId());
         $buttonConfig->setRefId($this->refIdManagement->generateRefId($refIdData));
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
+        $buttonConfig->setPluginVersion($this->config->getVersion());
 
         $initialAddressData = $this->getInitialAddressData($customerSession);
         if ($initialAddressData) {
