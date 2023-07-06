@@ -6,9 +6,14 @@ $viewModel = $block->getViewModel();
 $quote = $block->getQuote();
 $quoteId = $quote ? $quote->getId() : 'newquote';
 $viewModel->setQuoteId((string)$quoteId);
-$bundleUrl = $block->getViewFileUrl('Amwal_Payments/js/react-src/dist/bundle.js') 
 ?>
-<div id="amwal-cart-button" class="amwal-express-checkout-button">
+<div id="amwal-cart-button" class="amwal-express-checkout-button" trigger-context="cart">
 </div>
-<script type="text/javascript" src="<?= $bundleUrl ?>"></script>
-
+<script>
+    window.addEventListener("DOMContentLoaded", (event) => {
+        if (window.renderReactElement){
+            const cartButtonContainer = document.getElementById('amwal-cart-button');
+            window.renderReactElement(cartButtonContainer);
+        }
+    })
+</script>

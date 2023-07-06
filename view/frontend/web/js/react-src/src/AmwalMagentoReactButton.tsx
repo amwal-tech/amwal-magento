@@ -3,7 +3,11 @@ import { AmwalCheckoutButton } from 'amwal-checkout-button-react'
 import { type IRefIdData, type IAmwalButtonConfig } from './IAmwalButtonConfig'
 import { type AmwalCheckoutButtonCustomEvent, type IAddress, type IShippingMethod, type AmwalDismissalStatus, type AmwalCheckoutStatus, type ITransactionDetails } from 'amwal-checkout-button'
 
-const CartButton = (): JSX.Element => {
+interface AmwalMagentoReactButtonProps {
+  triggerContext: string
+}
+
+const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
   const [amount, setAmount] = React.useState(0)
@@ -42,44 +46,50 @@ const CartButton = (): JSX.Element => {
       .catch(err => { console.log(err) })
   }, [])
 
-  const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
-    fetch('/rest/V1/amwal/get-quote', {
+  const getQuote = async (addressData?: IAddress): Promise<void> => {
+    const response = await fetch('/rest/V1/amwal/get-quote', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         ref_id: config?.ref_id,
-        address_data: event.detail,
+        address_data: addressData,
         is_pre_checkout: false,
-        trigger_context: 'cart',
+        trigger_context: props.triggerContext,
         ref_id_data: refIdData,
         order_items: []
       })
-    }).then(async response => await response.json())
-      .then(data => {
-        if (data instanceof Array && data.length > 0) {
-          const quote = data[0]
-          setQuoteId(quote.quote_id)
-          const subtotal = parseFloat(quote.amount) -
-              parseFloat(quote.tax_amount) -
-              parseFloat(quote.shipping_amount) +
-              parseFloat(quote.discount_amount)
-          setAmount(subtotal)
-          setTaxes(quote.tax_amount)
-          setDiscount(quote.discount_amount)
-          setFees(quote.additional_fee_amount)
-          setFeesDescription(quote.additional_fee_description)
-          setShippingMethods(Object.entries(quote.available_rates).map<IShippingMethod>(([id, rate]) => {
-            return {
-              id,
-              label: (rate as any).carrier_title,
-              price: (rate as any).price
-            }
-          }))
-          buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
-          console.log(data)
+    })
+    const data = await response.json()
+    if (data instanceof Array && data.length > 0) {
+      const quote = data[0]
+      setQuoteId(quote.quote_id)
+      const subtotal = parseFloat(quote.amount) -
+            parseFloat(quote.tax_amount) -
+            parseFloat(quote.shipping_amount) +
+            parseFloat(quote.discount_amount)
+      setAmount(subtotal)
+      setTaxes(quote.tax_amount)
+      setDiscount(quote.discount_amount)
+      setFees(quote.additional_fee_amount)
+      setFeesDescription(quote.additional_fee_description)
+      setShippingMethods(Object.entries(quote.available_rates).map<IShippingMethod>(([id, rate]) => {
+        return {
+          id,
+          label: (rate as any).carrier_title,
+          price: (rate as any).price
         }
+      }))
+      return quote
+    }
+    throw new Error(`Unexpected get-quote result ${JSON.stringify(data)}`)
+  }
+
+  const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
+    getQuote(event.detail)
+      .then(() => {
+        buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
       })
       .catch(err => {
         console.log(err)
@@ -131,7 +141,7 @@ const CartButton = (): JSX.Element => {
         quote_id: quoteId,
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
-        trigger_context: 'cart',
+        trigger_context: props.triggerContext,
         has_amwal_address: true
       })
     }).then(async response => await response.json())
@@ -155,14 +165,36 @@ const CartButton = (): JSX.Element => {
   }
 
   const handleAmwalPreCheckoutTrigger = (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
-    buttonRef.current?.dispatchEvent(
-      new CustomEvent('amwalPreCheckoutTriggerAck', {
-        detail: {
-          order_position: 'checkout',
-          plugin_version: 'Magento ' + (config?.plugin_version ?? '')
-        }
+    fetch('/rest/V1/amwal/button/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        refIdData
       })
-    )
+    })
+      .then(async response => await response.json())
+      .then(data => {
+        setAmount(data.amount)
+      })
+      .then(() => {
+        buttonRef.current?.dispatchEvent(
+          new CustomEvent('amwalPreCheckoutTriggerAck', {
+            detail: {
+              order_position: props.triggerContext,
+              plugin_version: 'Magento ' + (config?.plugin_version ?? '')
+            }
+          })
+        )
+      })
+      .catch(err => {
+        buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
+          detail: {
+            description: err?.toString()
+          }
+        }))
+      })
   }
 
   return config
@@ -204,4 +236,4 @@ const CartButton = (): JSX.Element => {
     : <></>
 }
 
-export default CartButton
+export default AmwalMagentoReactButton

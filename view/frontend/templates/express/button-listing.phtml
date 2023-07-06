@@ -7,54 +7,15 @@ $product = $block->getProduct();
 $viewModel->setProduct($product);
 $productPrice = $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
 ?>
-
 <?php if ($viewModel->isExpressCheckoutActive() && !$viewModel->isProductConfigurable($product)): ?>
-    <div class="amwal-express-checkout-button">
-        <amwal-checkout-button
-            merchant-id="<?= $viewModel->getMerchantId() ?>"
-            amount="<?= $productPrice ?>"
-            country-code="<?= $viewModel->getCountryCode() ?>"
-            locale="<?= $viewModel->getLocale() ?>"
-            dark-mode="<?= $viewModel->isDarkModeEnabled() ? 'on' : 'off' ?>"
-            email-required="<?= $viewModel->isCustomerLoggedIn() ? 'false' : 'true' ?>"
-            address-required="true"
-            address-handshake="true"
-            shipping-methods='[]'
-            ref-id="<?= $viewModel->getRefId() ?>"
-            label="quick-buy"
-            disabled="true"
-            allowed-address-countries='<?= $viewModel->getAllowedCountriesJson() ?>'
-            enable-pre-checkout-trigger="true"
-            enable-pre-pay-trigger="true"
-            id="amwal-checkout-<?= $product->getId() ?>"
-            <?php if ($limitRegions = $viewModel->getLimitedRegionCodesJson()): ?>
-                allowed-address-states='<?= $escaper->escapeHtmlAttr($limitRegions) ?>'
-            <?php endif; ?>
-            <?php if ($limitCities = $viewModel->getCityCodesJson()): ?>
-                allowed-address-cities='<?= $escaper->escapeHtmlAttr($limitCities) ?>'
-            <?php endif; ?>
-            <?php foreach ($viewModel->getInitialDataAttributes() as $attribute => $value): ?>
-                <?= $attribute ?>='<?= $escaper->escapeHtmlAttr($value) ?>'
-            <?php endforeach; ?>
-            <?php if ($viewModel->getMerchantMode() === \Amwal\Payments\Model\Config\Source\MerchantMode::MERCHANT_TEST_MODE): ?>
-                test-environment="qa"
-            <?php endif; ?>/>
+    <div class="amwal-express-checkout-button" trigger-context="product-listing-page" id="amwal-product-button-<?= $product->getId() ?>">
     </div>
-    <script type="text/x-magento-init">
-        {
-            "#amwal-checkout-<?= $product->getId() ?>": {
-                "Amwal_Payments/js/checkout-button-product": {
-                    "pluginVersion" : "<?= $viewModel->getPluginVersion() ?>",
-                    "productId": "<?= $product->getId() ?>",
-                    "refId": "<?= $viewModel->getRefId() ?>",
-                    "refIdData": <?= $viewModel->getRefIdData()->toJson() ?>,
-                    "configuredProductId": "<?= $product->getId() ?>",
-                    "productPrice": "<?= $productPrice ?>",
-                    "isConfigurable": <?= $viewModel->isProductConfigurable($product) ? 'true' : 'false' ?>,
-                    "configurableOptions": <?= $viewModel->getConfigurableOptions($product) ? json_encode($viewModel->getConfigurableOptions($product)) : '"{}"' ?>,
-                    "isListing": true
-                }
+    <script>
+        window.addEventListener("DOMContentLoaded", (event) => {
+            if (window.renderReactElement){
+                const cartButtonContainer = document.getElementById("amwal-product-button-<?= $product->getId() ?>");
+                window.renderReactElement(cartButtonContainer);
             }
-        }
+        })
     </script>
 <?php endif; ?>

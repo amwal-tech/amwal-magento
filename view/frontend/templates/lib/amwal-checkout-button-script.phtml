@@ -1,1 +1,5 @@
-<script src="https://cdn.jsdelivr.net/npm/amwal-checkout-button@0.0.49-alpha/dist/checkout/checkout.esm.js" type="module"></script>
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+$bundleUrl = $block->getViewFileUrl('Amwal_Payments/js/react-src/dist/bundle.js') 
+?>
+<script type="text/javascript" src="<?= $bundleUrl ?>"></script>
