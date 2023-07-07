@@ -10,10 +10,29 @@ $viewModel->setQuoteId((string)$quoteId);
 <div id="amwal-minicart-button" class="amwal-express-checkout-button hidden" trigger-context="minicart">
 </div>
 <script>
+
     window.addEventListener("DOMContentLoaded", (event) => {
         if (window.renderReactElement){
             const cartButtonContainer = document.getElementById('amwal-minicart-button');
             window.renderReactElement(cartButtonContainer);
+            
+            const proceedToCheckoutObserver = new MutationObserver((mutations) => {
+                const proceedToCheckoutButton = document.getElementById('top-cart-btn-checkout')
+                if (proceedToCheckoutButton){
+                    cartButtonContainer.classList.remove('hidden')
+                    proceedToCheckoutButton.after(cartButtonContainer)
+                    <?php if ($viewModel->shouldHideProceedToCheckout()): ?>
+                    proceedToCheckoutButton.style.display = 'none'
+                    <?php endif; ?>
+                    proceedToCheckoutObserver.disconnect()
+                }
+            })
+            proceedToCheckoutObserver.observe(document.getElementById('minicart-content-wrapper'), {
+                childList: true,
+                subtree: true,
+                attributes: false,
+                characterData: false
+            });
         }
     })
 </script>
