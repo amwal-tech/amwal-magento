@@ -32,9 +32,12 @@ export const renderReactAll = (): void => {
 declare global {
   interface Window {
     renderReactElement?: (container: Element) => void
+    autoRenderReact?: boolean
   }
 }
 
 window.renderReactElement = renderReactElement
 
-renderReactAll()
+if (window.autoRenderReact) {
+  renderReactAll()
+}
