@@ -5,6 +5,7 @@ import { type AmwalCheckoutButtonCustomEvent, type IAddress, type IShippingMetho
 
 interface AmwalMagentoReactButtonProps {
   triggerContext: string
+  preCheckoutTask?: () => Promise<void>
 }
 
 const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Element => {
@@ -21,6 +22,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
   const [finishedUpdatingOrder, setFinishedUpdatingOrder] = React.useState(false)
   const [receivedSuccess, setReceivedSuccess] = React.useState(false)
   const [refIdData, setRefIdData] = React.useState<IRefIdData | undefined>(undefined)
+  const [triggerPreCheckoutAck, setTriggerPreCheckoutAck] = React.useState(false)
 
   React.useEffect(() => {
     const initalRefIdData: IRefIdData = {
@@ -96,11 +98,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
       })
   }
 
-  const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
-
-  }
-
-  const handleUpdateOrderOnPaymentsuccess = (event: AmwalCheckoutButtonCustomEvent<AmwalCheckoutStatus>): void => {
+  const completeOrder = (amwalOrderId: string): void => {
     fetch('/rest/V1/amwal/pay-order', {
       method: 'POST',
       headers: {
@@ -108,7 +106,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
       },
       body: JSON.stringify({
         order_id: placedOrderId,
-        amwal_order_id: event.detail.orderId
+        amwal_order_id: amwalOrderId
       })
     })
       .then(response => {
@@ -117,6 +115,24 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
       .catch(err => {
         console.log(err)
       })
+  }
+  const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
+    if (event.detail.paymentSuccessful) {
+      if (event.detail.orderId) {
+        completeOrder(event.detail.orderId)
+      }
+    } else if (props.triggerContext === 'product-listing-page') {
+      buttonRef.current?.setAttribute('disabled', 'true')
+      fetch('/rest/V1/amwal/clean-quote', {
+        method: 'POST'
+      }).finally(() => {
+        buttonRef.current?.removeAttribute('disabled')
+      })
+    }
+  }
+
+  const handleUpdateOrderOnPaymentsuccess = (event: AmwalCheckoutButtonCustomEvent<AmwalCheckoutStatus>): void => {
+    completeOrder(event.detail.orderId)
   }
 
   const handleAmwalCheckoutSuccess = (event: AmwalCheckoutButtonCustomEvent<AmwalCheckoutStatus>): void => {
@@ -165,28 +181,25 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
   }
 
   const handleAmwalPreCheckoutTrigger = (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
-    fetch('/rest/V1/amwal/button/cart', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        refIdData
+    const getConfig = async (): Promise<Response> => {
+      return await fetch('/rest/V1/amwal/button/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          refIdData
+        })
       })
-    })
+    }
+    const preCheckoutPromise = props.preCheckoutTask
+      ? props.preCheckoutTask().then(async () => await getConfig())
+      : getConfig()
+    preCheckoutPromise
       .then(async response => await response.json())
       .then(data => {
         setAmount(data.amount)
-      })
-      .then(() => {
-        buttonRef.current?.dispatchEvent(
-          new CustomEvent('amwalPreCheckoutTriggerAck', {
-            detail: {
-              order_position: props.triggerContext,
-              plugin_version: 'Magento ' + (config?.plugin_version ?? '')
-            }
-          })
-        )
+        setTriggerPreCheckoutAck(true)
       })
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
@@ -196,6 +209,20 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
         }))
       })
   }
+
+  React.useEffect(() => {
+    if (triggerPreCheckoutAck) {
+      buttonRef.current?.dispatchEvent(
+        new CustomEvent('amwalPreCheckoutTriggerAck', {
+          detail: {
+            order_position: props.triggerContext,
+            plugin_version: 'Magento ' + (config?.plugin_version ?? '')
+          }
+        })
+      )
+      setTriggerPreCheckoutAck(false)
+    }
+  }, [triggerPreCheckoutAck])
 
   return config
     ? <AmwalCheckoutButton

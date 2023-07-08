@@ -12,11 +12,46 @@ $configurableOptions = $viewModel->getConfigurableOptions($product);
     <div class="amwal-express-checkout-button" trigger-context="product-listing-page" id="amwal-product-button-<?= $product->getId() ?>">
     </div>
     <script>
+        const productButtonContainer = document.getElementById("amwal-product-button-<?= $product->getId() ?>");
         window.addEventListener("DOMContentLoaded", (event) => {
             if (window.renderReactElement){
-                const cartButtonContainer = document.getElementById("amwal-product-button-<?= $product->getId() ?>");
-                window.renderReactElement(cartButtonContainer);
+                window.renderReactElement(productButtonContainer);
             }
         })
+
+        const amwalButtonObserver = new MutationObserver((mutations) => {
+            const amwalCheckoutButton = productButtonContainer.querySelector('amwal-checkout-button')
+            if (amwalCheckoutButton){
+                amwalCheckoutButton.setAttribute('disabled', true)
+                amwalButtonObserver.disconnect()
+            }
+        })
+        amwalButtonObserver.observe(productButtonContainer, {
+            childList: true,
+            subtree: true,
+            attributes: false,
+            characterData: false
+        });
+
+        require([
+        'jquery'
+        ], function($) {
+            const addToCartForm = $('#product_addtocart_form')
+            const isProductFormValid = () => {
+                addToCartForm.validation();
+                const formIsValid = addToCartForm.validation('isValid');
+                addToCartForm.validation('clearError')
+                return formIsValid;
+            }
+
+            addToCartForm.on('change', function() {
+                const amwalButton = $("#amwal-product-button-<?= $product->getId() ?> amwal-checkout-button")
+                if (isProductFormValid()) {
+                    amwalButton.removeAttr('disabled');
+                } else {
+                    amwalButton.attr('disabled', true);
+                }
+            });
+        });
     </script>
 <?php endif; ?>
