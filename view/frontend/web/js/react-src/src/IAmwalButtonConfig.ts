@@ -22,8 +22,8 @@ export interface IAmwalButtonConfig {
   enable_pre_pay_trigger: boolean
   id: string
   test_environment: string
-  allowed_address_states: any // Record<string, StateSpecs>
-  allowed_address_cities: any // Record<string, CitySpecs>
+  allowed_address_states: string // Record<string, StateSpecs>
+  allowed_address_cities: string // Record<string, CitySpecs>
   allowed_address_countries: string[]
   initial_address: IAddress
   initial_email: string

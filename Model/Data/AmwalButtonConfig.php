@@ -284,7 +284,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getAllowedAddressStates(): ?array
+    public function getAllowedAddressStates(): ?string
     {
         return $this->getData(self::ALLOWED_ADDRESS_STATES);
     }
@@ -292,7 +292,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function setAllowedAddressStates(?array $allowedAddressStates): AmwalButtonConfigInterface
+    public function setAllowedAddressStates(?string $allowedAddressStates): AmwalButtonConfigInterface
     {
         return $this->setData(self::ALLOWED_ADDRESS_STATES, $allowedAddressStates);
     }
@@ -300,7 +300,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getAllowedAddressCities(): ?array
+    public function getAllowedAddressCities(): ?string
     {
         return $this->getData(self::ALLOWED_ADDRESS_CITIES);
     }
@@ -308,7 +308,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function setAllowedAddressCities(?array $allowedAddressCities): AmwalButtonConfigInterface
+    public function setAllowedAddressCities(?string $allowedAddressCities): AmwalButtonConfigInterface
     {
         return $this->setData(self::ALLOWED_ADDRESS_CITIES, $allowedAddressCities);
     }

@@ -220,24 +220,24 @@ interface AmwalButtonConfigInterface
     /**
      * @return array|null
      */
-    public function getAllowedAddressStates(): ?array;
+    public function getAllowedAddressStates(): ?string;
 
     /**
      * @param array|null $allowedAddressStates
      * @return AmwalButtonConfigInterface
      */
-    public function setAllowedAddressStates(?array $allowedAddressStates): AmwalButtonConfigInterface;
+    public function setAllowedAddressStates(?string $allowedAddressStates): AmwalButtonConfigInterface;
 
     /**
      * @return array|null
      */
-    public function getAllowedAddressCities(): ?array;
+    public function getAllowedAddressCities(): ?string;
 
     /**
      * @param array|null $allowedAddressCities
      * @return AmwalButtonConfigInterface
      */
-    public function setAllowedAddressCities(?array $allowedAddressCities): AmwalButtonConfigInterface;
+    public function setAllowedAddressCities(?string $allowedAddressCities): AmwalButtonConfigInterface;
 
     /**
      * @return string|null

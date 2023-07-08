@@ -19,11 +19,13 @@ use Magento\Customer\Model\Session;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 
 class GetConfig
 {
     protected AmwalButtonConfigFactory $buttonConfigFactory;
     protected Config $config;
+    protected ExpressCheckoutButton $viewModel;
     protected StoreManagerInterface $storeManager;
     protected CustomerSessionFactory $customerSessionFactory;
     protected CheckoutSessionFactory $checkoutSessionFactory;
@@ -37,6 +39,7 @@ class GetConfig
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
         Config                   $config,
+        ExpressCheckoutButton    $viewModel,
         StoreManagerInterface    $storeManager,
         CustomerSessionFactory   $customerSessionFactory,
         CheckoutSessionFactory   $checkoutSessionFactory,
@@ -49,6 +52,7 @@ class GetConfig
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
+        $this->viewModel = $viewModel;
         $this->storeManager = $storeManager;
         $this->customerSessionFactory = $customerSessionFactory;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
@@ -75,8 +79,12 @@ class GetConfig
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
         $buttonConfig->setAllowedAddressCountries(array_keys($this->directoryHelper->getCountryCollection()->getItems()));
-        $buttonConfig->setAllowedAddressStates($this->config->getLimitedRegionsArray());
-        $buttonConfig->setAllowedAddressCities($this->cityHelper->getCityCodes());
+        if ($limitedRegions = $this->viewModel->getLimitedRegionCodesJson()) {
+            $buttonConfig->setAllowedAddressStates($limitedRegions);
+        }
+        if ($limitedCities = $this->viewModel->getCityCodesJson()) {
+            $buttonConfig->setAllowedAddressCities($limitedCities);
+        }
         $buttonConfig->setLocale($this->config->getLocale());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
