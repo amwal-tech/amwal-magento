@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+cd view/frontend/web/js/react-src
+npm install
+npm run lint
+npm run build
