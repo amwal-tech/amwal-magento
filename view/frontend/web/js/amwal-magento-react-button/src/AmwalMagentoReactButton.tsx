@@ -192,7 +192,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
         })
       })
     }
-    const preCheckoutPromise = props.preCheckoutTask
+    const preCheckoutPromise = (props.preCheckoutTask != null)
       ? props.preCheckoutTask().then(async () => await getConfig())
       : getConfig()
     preCheckoutPromise
@@ -224,7 +224,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
     }
   }, [triggerPreCheckoutAck])
 
-  return config
+  return (config != null)
     ? <AmwalCheckoutButton
         ref={buttonRef}
         id={config.id}

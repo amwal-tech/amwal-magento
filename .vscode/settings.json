@@ -3,6 +3,10 @@
       {
         "directory": "./view/frontend/web/js/react-src",
         "changeProcessCWD": true
+      },
+      {
+        "directory": "./view/frontend/web/js/amwal-magento-react-button",
+        "changeProcessCWD": true
       }
     ],
     "editor.codeActionsOnSave": {

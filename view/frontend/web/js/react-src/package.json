@@ -6,11 +6,12 @@
     "@types/node": "^16.18.38",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
-    "amwal-checkout-button-react": "^0.0.49-alpha.0.4",
+    "amwal-magento-react-button": "file:../amwal-magento-react-button",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "scripts": {
+    "setup": "npm install --install-links",
     "build": "rm -rf dist/*; webpack --mode production",
     "lint": "eslint src/*.ts*",
     "prepare": "cd ../../../../.. && husky install view/frontend/web/js/react-src/.husky"
@@ -34,10 +35,12 @@
     ]
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.22.5",
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
     "@babel/preset-react": "^7.22.5",
     "@babel/preset-typescript": "^7.22.5",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "babel-loader": "^9.1.3",
     "eslint": "^8.44.0",
     "eslint-config-standard-with-typescript": "^36.0.0",
     "eslint-plugin-import": "^2.27.5",

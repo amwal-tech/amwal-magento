@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import AmwalMagentoReactButton from './AmwalMagentoReactButton'
+import AmwalMagentoReactButton from 'amwal-magento-react-button'
 
 export const renderReactElement = (container: Element): void => {
   const triggerContext = container.getAttribute('trigger-context')
