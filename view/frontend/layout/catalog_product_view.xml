@@ -15,6 +15,7 @@
                 <arguments>
                     <argument name="view_model" xsi:type="object">Amwal\Payments\ViewModel\ExpressCheckoutButton</argument>
                     <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_DETAIL</argument>
+                    <argument name="form_selector" xsi:type="string">form#product_addtocart_form</argument>
                 </arguments>
             </block>
         </referenceBlock>
