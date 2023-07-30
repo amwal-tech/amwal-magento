@@ -17,6 +17,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
 use Magento\Customer\Model\Session;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
@@ -35,20 +36,37 @@ class GetConfig
     protected RefIdManagementInterface $refIdManagement;
     protected CartRepositoryInterface $cartRepository;
     protected ProductRepositoryInterface $productRepository;
+    protected Json $jsonSerializer;
 
+    /**
+     * @param AmwalButtonConfigFactory $buttonConfigFactory
+     * @param Config $config
+     * @param ExpressCheckoutButton $viewModel
+     * @param StoreManagerInterface $storeManager
+     * @param CustomerSessionFactory $customerSessionFactory
+     * @param CheckoutSessionFactory $checkoutSessionFactory
+     * @param CityHelper $cityHelper
+     * @param DirectoryHelper $directoryHelper
+     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
+     * @param RefIdManagementInterface $refIdManagement
+     * @param CartRepositoryInterface $cartRepository
+     * @param ProductRepositoryInterface $productRepository
+     * @param Json $jsonSerializer
+     */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
-        Config                   $config,
-        ExpressCheckoutButton    $viewModel,
-        StoreManagerInterface    $storeManager,
-        CustomerSessionFactory   $customerSessionFactory,
-        CheckoutSessionFactory   $checkoutSessionFactory,
-        CityHelper               $cityHelper,
-        DirectoryHelper          $directoryHelper,
+        Config $config,
+        ExpressCheckoutButton $viewModel,
+        StoreManagerInterface $storeManager,
+        CustomerSessionFactory $customerSessionFactory,
+        CheckoutSessionFactory $checkoutSessionFactory,
+        CityHelper $cityHelper,
+        DirectoryHelper $directoryHelper,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        Json $jsonSerializer
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -62,6 +80,7 @@ class GetConfig
         $this->refIdManagement = $refIdManagement;
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
+        $this->jsonSerializer = $jsonSerializer;
     }
 
     /**
@@ -79,10 +98,10 @@ class GetConfig
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
         $buttonConfig->setAllowedAddressCountries(array_keys($this->directoryHelper->getCountryCollection()->getItems()));
-        if ($limitedRegions = $this->viewModel->getLimitedRegionCodesJson()) {
+        if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
-        if ($limitedCities = $this->viewModel->getCityCodesJson()) {
+        if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
         $buttonConfig->setLocale($this->config->getLocale());
@@ -102,6 +121,30 @@ class GetConfig
             $buttonConfig->setInitialPhone($initialAddressData['phone']);
             $buttonConfig->setInitialEmail($initialAddressData['email']);
         }
+    }
+
+    /**
+     * @return string
+     */
+    protected function getLimitedRegionCodesJson(): string
+    {
+        return $this->jsonSerializer->serialize(
+            $this->config->getLimitedRegionsArray()
+        );
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCityCodesJson(): string
+    {
+        $cityCodes = $this->cityHelper->getCityCodes();
+
+        if (!$cityCodes) {
+            return '';
+        }
+
+        return $this->jsonSerializer->serialize($cityCodes);
     }
 
     /**

@@ -1,0 +1,36 @@
+<?php
+
+use Magento\Catalog\Block\Product\ProductList\Item\Block;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+
+/**
+ * @var Escaper $escaper
+ * @var Template|Block $block
+ * @var ExpressCheckoutButton $viewModel
+ */
+$viewModel = $this->getViewModel();
+$buttonId = $viewModel->getUniqueId();
+$triggerContext = $block->getTriggerContext();
+$formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
+?>
+
+<?php if ($viewModel->shouldRender($triggerContext)): ?>
+    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?>"
+         trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
+         <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
+         id="<?= $escaper->escapeHtmlAttr($buttonId) ?>">
+    </div>
+    <script type="text/x-magento-init">
+        {
+            "#<?= $buttonId ?>": {
+                "Amwal_Payments/js/checkout-button": {
+                    "buttonId" : "<?= $buttonId ?>",
+                    "triggerContext": "<?= $triggerContext ?>",
+                    "hideProceedToCheckout": <?= $viewModel->shouldHideProceedToCheckout() ?>
+                }
+            }
+        }
+    </script>
+<?php endif; ?>

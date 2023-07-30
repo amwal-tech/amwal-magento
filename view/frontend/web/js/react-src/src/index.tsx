@@ -4,9 +4,10 @@ import AmwalMagentoReactButton from 'amwal-magento-react-button'
 
 export const renderReactElement = (container: Element): void => {
   const triggerContext = container.getAttribute('trigger-context')
+  const formSelector = container.getAttribute('form-selector')
   if (triggerContext) {
     const submitAddToCart = async (): Promise<void> => {
-      const cartForm = document.querySelector('form#product_addtocart_form')
+      const cartForm = document.querySelector(formSelector)
       if (cartForm == null) throw new Error('Product form not found')
       const formURL = cartForm.getAttribute('action') ?? window.location.href
       if (!formURL) throw new Error('Product form URL not found')
@@ -18,7 +19,7 @@ export const renderReactElement = (container: Element): void => {
     ReactDOM.render(
         <AmwalMagentoReactButton
             triggerContext={triggerContext}
-            preCheckoutTask={triggerContext === 'product-listing-page' ? submitAddToCart : undefined}
+            preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />
         , container)
   }

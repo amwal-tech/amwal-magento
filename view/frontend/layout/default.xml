@@ -1,14 +1,16 @@
+<?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <link src="Amwal_Payments::js/react-src/dist/bundle.js"/>
+    </head>
     <body>
-        <referenceContainer name="after.body.start">
-            <block template="Amwal_Payments::lib/amwal-checkout-button-script.phtml" name="amwal.checkout.script" />
-        </referenceContainer>
         <referenceContainer name="header-wrapper">
-            <block class="Amwal\Payments\Block\ExpressCheckoutMinicartButton" name="amwal.express-checkout.minicart" template="Amwal_Payments::express/button-minicart.phtml">
+            <block name="amwal.express-checkout.minicart" template="Amwal_Payments::express/checkout-button.phtml">
                 <arguments>
                     <argument name="view_model" xsi:type="object">
-                        Amwal\Payments\ViewModel\ExpressCheckoutButtonCart
+                        Amwal\Payments\ViewModel\ExpressCheckoutButton
                     </argument>
+                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART</argument>
                 </arguments>
             </block>
         </referenceContainer>

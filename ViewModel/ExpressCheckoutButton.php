@@ -9,12 +9,15 @@ use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config as AmwalConfig;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Math\Random;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
@@ -22,62 +25,42 @@ use Magento\Framework\Locale\Resolver as LocaleResolver;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
+    public const TRIGGER_CONTEXT_PRODUCT_LIST = 'product-listing-page';
+    public const TRIGGER_CONTEXT_PRODUCT_DETAIL = 'product-detail-page';
+    public const TRIGGER_CONTEXT_MINICART = 'minicart';
+    public const TRIGGER_CONTEXT_CART = 'cart';
 
+    public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
+
+    /**
+     * @var AmwalConfig
+     */
     protected AmwalConfig $config;
-    private Registry $registry;
-    private Session $customerSession;
-    private RefIdManagementInterface $refIdManagement;
-    protected RefIdDataInterfaceFactory $refIdDataFactory;
-    private ?Product $product = null;
-    private DirectoryHelper $directoryHelper;
-    private Json $jsonSerializer;
-    private AmwalAddressInterfaceFactory $amwalAddressFactory;
-    private RegionCollectionFactory $regionCollectionFactory;
-    private string $timestamp;
-    private LocaleResolver $localeResolver;
-    private ResourceConnection $resourceConnection;
-    private CityHelper $cityHelper;
+
+    /**
+     * @var Random
+     */
+    private Random $random;
 
     /**
      * @param AmwalConfig $config
-     * @param Registry $registry
-     * @param Session $customerSession
-     * @param RefIdManagementInterface $refIdManagement
-     * @param RefIdDataInterfaceFactory $refIdDataFactory
-     * @param DirectoryHelper $directoryHelper
-     * @param Json $jsonSerializer
-     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
-     * @param RegionCollectionFactory $regionCollectionFactory
-     * @param LocaleResolver $localeResolver
-     * @param ResourceConnection $resourceConnection
+     * @param Random $random
      */
     public function __construct(
         AmwalConfig $config,
-        Registry $registry,
-        Session $customerSession,
-        RefIdManagementInterface $refIdManagement,
-        RefIdDataInterfaceFactory $refIdDataFactory,
-        DirectoryHelper $directoryHelper,
-        Json $jsonSerializer,
-        AmwalAddressInterfaceFactory $amwalAddressFactory,
-        RegionCollectionFactory $regionCollectionFactory,
-        LocaleResolver $localeResolver,
-        ResourceConnection $resourceConnection,
-        CityHelper $cityHelper
+        Random $random
     ) {
         $this->config = $config;
-        $this->registry = $registry;
-        $this->customerSession = $customerSession;
-        $this->refIdManagement = $refIdManagement;
-        $this->refIdDataFactory = $refIdDataFactory;
-        $this->directoryHelper = $directoryHelper;
-        $this->jsonSerializer = $jsonSerializer;
-        $this->amwalAddressFactory = $amwalAddressFactory;
-        $this->regionCollectionFactory = $regionCollectionFactory;
-        $this->localeResolver = $localeResolver;
-        $this->resourceConnection = $resourceConnection;
-        $this->cityHelper = $cityHelper;
-        $this->timestamp = microtime();
+        $this->random = $random;
+    }
+
+    /**
+     * @param string $triggerContext
+     * @return bool
+     */
+    public function shouldRender(string $triggerContext): bool
+    {
+        return $this->isExpressCheckoutActive();
     }
 
     /**
@@ -86,63 +69,6 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function isExpressCheckoutActive(): bool
     {
         return !(!$this->config->isActive() || !$this->config->isExpressCheckoutActive());
-    }
-
-    /**
-     * @return Product|null
-     */
-    public function getProduct(): ?Product
-    {
-        return $this->product ?? $this->registry->registry('product');
-    }
-
-    /**
-     * @param Product $product
-     * @return bool
-     */
-    public function isProductConfigurable(Product $product): bool
-    {
-        return $product->getTypeId() === Configurable::TYPE_CODE;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMerchantId(): string
-    {
-        return $this->config->getMerchantId();
-    }
-
-    /**
-     * @return string
-     */
-    public function getMerchantMode(): string
-    {
-        return $this->config->getMerchantMode();
-    }
-
-    /**
-     * @return string
-     */
-    public function getPluginVersion(): string
-    {
-        return $this->config->getVersion();
-    }
-
-    /**
-     * @return string
-     */
-    public function getCountryCode(): string
-    {
-        return $this->config->getCountryCode();
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDarkModeEnabled(): bool
-    {
-        return $this->config->isDarkModeEnabled();
     }
 
     /**
@@ -155,136 +81,28 @@ class ExpressCheckoutButton implements ArgumentInterface
 
     /**
      * @return string
+     * @throws LocalizedException
      */
-    public function getLocale(): string
+    public function getUniqueId(): string
     {
-        return $this->config->getLocale();
+        return self::CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString(8);
     }
 
     /**
-     * @return bool
-     */
-    public function isCustomerLoggedIn(): bool
-    {
-        return $this->customerSession->isLoggedIn();
-    }
-
-    /**
-     * @return int
-     */
-    public function getCustomerId(): int
-    {
-        return (int) $this->customerSession->getId();
-    }
-
-    /**
+     * @param string|null $formSelector
+     * @param ProductInterface|null $product
      * @return string
      */
-    public function getTimestamp(): string
+    public function getFormSelector(?string $formSelector, ?ProductInterface $product): string
     {
-        return $this->timestamp;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRefId(): string
-    {
-        return $this->refIdManagement->generateRefId($this->getRefIdData());
-    }
-
-    /**
-     * @param Product $product
-     * @return array
-     */
-    public function getConfigurableOptions(Product $product): array
-    {
-        if (!$this->isProductConfigurable($product)) {
-            return [];
-        }
-        return $product->getTypeInstance(true)->getConfigurableAttributesAsArray($product);
-    }
-
-    /**
-     * @param Product $product
-     * @return void
-     */
-    public function setProduct(Product $product): void
-    {
-        $this->product = $product;
-    }
-
-    /**
-     * @return RefIdDataInterface
-     */
-    public function getRefIdData(): RefIdDataInterface
-    {
-        return $this->refIdDataFactory->create()
-            ->setIdentifier((string) $this->getProduct()->getId())
-            ->setCustomerId($this->getCustomerId())
-            ->setTimestamp($this->getTimestamp());
-    }
-
-    /**
-     * @return string
-     */
-    public function getAllowedCountriesJson(): string
-    {
-        return $this->jsonSerializer->serialize(
-            array_keys($this->directoryHelper->getCountryCollection()->getItems())
-        );
-    }
-
-    /**
-     * @return array
-     */
-    public function getInitialDataAttributes(): array
-    {
-        $customer = $this->customerSession->getCustomer();
-
-        $defaultShippingAddress = $customer->getDefaultShippingAddress();
-        if (!$defaultShippingAddress) {
-            return [];
-        }
-
-        $initialAddress = $this->amwalAddressFactory->create();
-        $initialAddress->setCity($defaultShippingAddress->getCity() ?? '');
-        $initialAddress->setState($defaultShippingAddress->getRegionCode() ?? '');
-        $initialAddress->setPostcode($defaultShippingAddress->getPostcode() ?? '');
-        $initialAddress->setCountry($defaultShippingAddress->getCountryId() ?? '');
-        $initialAddress->setStreet1($defaultShippingAddress->getStreetLine(1) ?? '');
-        $initialAddress->setStreet2($defaultShippingAddress->getStreetLine(2) ?? '');
-        $initialAddress->setEmail($customer->getEmail() ?? '');
-
-        $attributes = [];
-        $attributes['initial-address'] = $initialAddress->toJson();
-        $attributes['initial-email'] = $customer->getEmail() ?? '';
-        $attributes['initial-phone'] = $defaultShippingAddress->getTelephone() ?? '';
-
-        return $attributes;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLimitedRegionCodesJson(): string
-    {
-        return $this->jsonSerializer->serialize(
-            $this->config->getLimitedRegionsArray()
-        );
-    }
-
-    /**
-     * @return string
-     */
-    public function getCityCodesJson(): string
-    {
-        $cityCodes = $this->cityHelper->getCityCodes();
-
-        if (!$cityCodes) {
+        if (!$formSelector) {
             return '';
         }
 
-        return $this->jsonSerializer->serialize($cityCodes);
+        if (strpos($formSelector, '%product_id%') && $product) {
+            $formSelector = str_replace('%product_id%', (string) $product->getId(), $formSelector);
+        }
+
+        return $formSelector;
     }
 }

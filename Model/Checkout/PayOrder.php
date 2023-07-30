@@ -153,6 +153,8 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastRealOrderId($order->getIncrementId())
             ->setLastOrderStatus($order->getStatus());
 
+        $this->checkoutSession->setQuoteId(null);
+
         $this->orderRepository->save($order);
 
         $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
