@@ -3,25 +3,13 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\ViewModel;
 
-use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
-use Amwal\Payments\Api\Data\RefIdDataInterface;
-use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
-use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config as AmwalConfig;
-use Amwal\Payments\Model\ThirdParty\CityHelper;
 use Magento\Catalog\Api\Data\ProductInterface;
-use Magento\Catalog\Model\Product;
-use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Magento\Customer\Model\Session;
-use Magento\Directory\Helper\Data as DirectoryHelper;
-use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
-use Magento\Framework\App\ResourceConnection;
+use Magento\Checkout\Model\SessionFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
-use Magento\Framework\Registry;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Magento\Framework\Locale\Resolver as LocaleResolver;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -43,15 +31,23 @@ class ExpressCheckoutButton implements ArgumentInterface
     private Random $random;
 
     /**
+     * @var SessionFactory
+     */
+    private SessionFactory $checkoutSessionFactory;
+
+    /**
      * @param AmwalConfig $config
      * @param Random $random
+     * @param SessionFactory $checkoutSessionFactory
      */
     public function __construct(
         AmwalConfig $config,
-        Random $random
+        Random $random,
+        SessionFactory $checkoutSessionFactory
     ) {
         $this->config = $config;
         $this->random = $random;
+        $this->checkoutSessionFactory = $checkoutSessionFactory;
     }
 
     /**
@@ -60,7 +56,19 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function shouldRender(string $triggerContext): bool
     {
-        return $this->isExpressCheckoutActive();
+        $shouldRender = $this->isExpressCheckoutActive();
+
+        // Don't render the quick checkout for Product listing or detail if there are already items in the cart.
+        try {
+            if (in_array($triggerContext, [self::TRIGGER_CONTEXT_PRODUCT_LIST, self::TRIGGER_CONTEXT_PRODUCT_DETAIL]) &&
+                $this->checkoutSessionFactory->create()->getQuote()->hasItems()) {
+                $shouldRender =  false;
+            }
+        } catch (NoSuchEntityException|LocalizedException $e) {
+            // No need to do anything
+        }
+
+        return $shouldRender;
     }
 
     /**
