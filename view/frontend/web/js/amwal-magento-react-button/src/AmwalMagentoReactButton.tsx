@@ -34,7 +34,8 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
     fetch('/rest/V1/amwal/button/cart', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
         refIdData: initalRefIdData
@@ -52,7 +53,8 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
     const response = await fetch('/rest/V1/amwal/get-quote', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
         ref_id: config?.ref_id,
@@ -102,7 +104,8 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
     fetch('/rest/V1/amwal/pay-order', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
         order_id: placedOrderId,
@@ -149,7 +152,8 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
     fetch('/rest/V1/amwal/place-order', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
         ref_id: config?.ref_id,
@@ -185,7 +189,8 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
       return await fetch('/rest/V1/amwal/button/cart', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({
           refIdData

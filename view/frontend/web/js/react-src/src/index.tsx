@@ -13,7 +13,10 @@ export const renderReactElement = (container: Element): void => {
       if (!formURL) throw new Error('Product form URL not found')
       await fetch(formURL, {
         method: 'POST',
-        body: new FormData(cartForm as HTMLFormElement)
+        body: new FormData(cartForm as HTMLFormElement),
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
       })
     }
     ReactDOM.render(
