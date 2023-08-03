@@ -6,9 +6,14 @@ import { type AmwalCheckoutButtonCustomEvent, type IAddress, type IShippingMetho
 interface AmwalMagentoReactButtonProps {
   triggerContext: string
   preCheckoutTask?: () => Promise<void>
+  emptyCartOnCancellation?: boolean
 }
 
-const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Element => {
+const AmwalMagentoReactButton = ({
+  triggerContext,
+  preCheckoutTask,
+  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page'
+}: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
   const [amount, setAmount] = React.useState(0)
@@ -60,7 +65,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
         ref_id: config?.ref_id,
         address_data: addressData,
         is_pre_checkout: false,
-        trigger_context: props.triggerContext,
+        trigger_context: triggerContext,
         ref_id_data: refIdData,
         order_items: []
       })
@@ -124,10 +129,13 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
       if (event.detail.orderId) {
         completeOrder(event.detail.orderId)
       }
-    } else if (props.triggerContext === 'product-listing-page') {
+    } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
       fetch('/rest/V1/amwal/clean-quote', {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
       }).finally(() => {
         buttonRef.current?.removeAttribute('disabled')
       })
@@ -161,7 +169,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
         quote_id: quoteId,
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
-        trigger_context: props.triggerContext,
+        trigger_context: triggerContext,
         has_amwal_address: true
       })
     }).then(async response => await response.json())
@@ -197,8 +205,8 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
         })
       })
     }
-    const preCheckoutPromise = (props.preCheckoutTask != null)
-      ? props.preCheckoutTask().then(async () => await getConfig())
+    const preCheckoutPromise = (preCheckoutTask != null)
+      ? preCheckoutTask().then(async () => await getConfig())
       : getConfig()
     preCheckoutPromise
       .then(async response => await response.json())
@@ -220,7 +228,7 @@ const AmwalMagentoReactButton = (props: AmwalMagentoReactButtonProps): JSX.Eleme
       buttonRef.current?.dispatchEvent(
         new CustomEvent('amwalPreCheckoutTriggerAck', {
           detail: {
-            order_position: props.triggerContext,
+            order_position: triggerContext,
             plugin_version: 'Magento ' + (config?.plugin_version ?? '')
           }
         })
