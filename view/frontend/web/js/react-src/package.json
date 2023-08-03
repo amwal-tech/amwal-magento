@@ -11,7 +11,7 @@
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "setup": "npm install --install-links",
+    "setup": "npm uninstall amwal-magento-react-button; npm install --install-links ../amwal-magento-react-button",
     "build": "rm -rf dist/*; webpack --mode production",
     "lint": "eslint src/*.ts*",
     "prepare": "cd ../../../../.. && husky install view/frontend/web/js/react-src/.husky"
