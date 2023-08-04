@@ -38,6 +38,12 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 if (self.triggerContext === 'minicart') {
                     self.initializeMiniCart();
                 }
+                
+                window.addEventListener('cartUpdateNeeded', function(e) {
+                    var sections = ['cart'];
+                    customerData.invalidate(sections);
+                    customerData.reload(sections, true);
+                });
             }
 
             return self;

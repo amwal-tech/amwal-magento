@@ -28,7 +28,7 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
                 "Amwal_Payments/js/checkout-button": {
                     "buttonId" : "<?= $buttonId ?>",
                     "triggerContext": "<?= $triggerContext ?>",
-                    "hideProceedToCheckout": <?= $viewModel->shouldHideProceedToCheckout() ?>
+                    "hideProceedToCheckout": <?= $viewModel->shouldHideProceedToCheckout()? "true": "false" ?>
                 }
             }
         }

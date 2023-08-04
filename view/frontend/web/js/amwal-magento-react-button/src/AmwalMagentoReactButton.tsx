@@ -118,6 +118,7 @@ const AmwalMagentoReactButton = ({
       })
     })
       .then(response => {
+        window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
         setFinishedUpdatingOrder(response.ok)
       })
       .catch(err => {

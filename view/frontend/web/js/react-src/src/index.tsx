@@ -7,6 +7,7 @@ export const renderReactElement = (container: Element): void => {
   const formSelector = container.getAttribute('form-selector')
   if (triggerContext) {
     const submitAddToCart = async (): Promise<void> => {
+      if (!formSelector) return
       const cartForm = document.querySelector(formSelector)
       if (cartForm == null) throw new Error('Product form not found')
       const formURL = cartForm.getAttribute('action') ?? window.location.href
