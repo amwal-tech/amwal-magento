@@ -11,7 +11,7 @@ use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
-use Magento\Customer\Model\SessionFactory;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
@@ -38,7 +38,7 @@ class PayOrder extends AmwalCheckoutAction
     private ManagerInterface $messageManager;
     private OrderPaymentRepositoryInterface $paymentRepository;
     private CustomerRepositoryInterface $customerRepository;
-    private SessionFactory $customerSessionFactory;
+    private CustomerSession $customerSession;
     private CustomerManagement $customerManagement;
     private OrderNotifier $orderNotifier;
 
@@ -51,7 +51,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param ManagerInterface $messageManager
      * @param OrderPaymentRepositoryInterface $paymentRepository
      * @param CustomerRepositoryInterface $customerRepository
-     * @param SessionFactory $customerSessionFactory
+     * @param CustomerSession $customerSession
      * @param CustomerManagement $customerManagement
      * @param ErrorReporter $errorReporter
      * @param Config $config
@@ -67,7 +67,7 @@ class PayOrder extends AmwalCheckoutAction
         ManagerInterface $messageManager,
         OrderPaymentRepositoryInterface $paymentRepository,
         CustomerRepositoryInterface $customerRepository,
-        SessionFactory $customerSessionFactory,
+        CustomerSession $customerSession,
         CustomerManagement $customerManagement,
         ErrorReporter $errorReporter,
         Config $config,
@@ -83,7 +83,7 @@ class PayOrder extends AmwalCheckoutAction
         $this->messageManager = $messageManager;
         $this->paymentRepository = $paymentRepository;
         $this->customerRepository = $customerRepository;
-        $this->customerSessionFactory = $customerSessionFactory;
+        $this->customerSession = $customerSession;
         $this->customerManagement = $customerManagement;
         $this->orderNotifier = $orderNotifier;
     }
@@ -125,7 +125,8 @@ class PayOrder extends AmwalCheckoutAction
             $this->logDebug('Creating new customer');
             try {
                 $newCustomer = $this->createCustomer($order);
-                $this->customerSessionFactory->create()->setCustomerDataAsLoggedIn($newCustomer);
+                $this->customerSession->setCustomerDataAsLoggedIn($newCustomer);
+                $this->checkoutSession->setCustomerData($newCustomer);
             } catch (LocalizedException $e) {
                 $message = sprintf(
                     'Error occurred while creating customer for order with ID %s. Exception %s',

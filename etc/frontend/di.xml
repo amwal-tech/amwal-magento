@@ -7,13 +7,4 @@
             </argument>
         </arguments>
     </type>
-    <type name="Amwal\Payments\Block\ExpressCheckoutMinicartButton">
-        <arguments>
-            <argument name="data" xsi:type="array">
-                <item name="template" xsi:type="string">Amwal_Payments::express/button-minicart.phtml</item>
-                <item name="alias" xsi:type="string">amwal.express.checkout.minicart</item>
-                <item name="view_model" xsi:type="object">Amwal\Payments\ViewModel\ExpressCheckoutButton</item>
-            </argument>
-        </arguments>
-    </type>
 </config>

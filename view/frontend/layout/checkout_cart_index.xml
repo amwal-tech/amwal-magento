@@ -4,11 +4,12 @@
         <referenceContainer name="checkout.cart.methods">
             <block class="Amwal\Payments\Block\ExpressCheckoutCartButton"
                    name="checkout.cart.methods.amwal.payments"
-                   template="Amwal_Payments::express/button-cart.phtml">
+                   template="Amwal_Payments::express/checkout-button.phtml">
                 <arguments>
                     <argument name="view_model" xsi:type="object">
-                        Amwal\Payments\ViewModel\ExpressCheckoutButtonCart
+                        Amwal\Payments\ViewModel\ExpressCheckoutButton
                     </argument>
+                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_CART</argument>
                 </arguments>
             </block>
         </referenceContainer>

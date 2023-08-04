@@ -12,48 +12,75 @@ use Amwal\Payments\Model\Config\Source\MerchantMode;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
+use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
 use Magento\Customer\Model\Session;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 
 class GetConfig
 {
     protected AmwalButtonConfigFactory $buttonConfigFactory;
     protected Config $config;
+    protected ExpressCheckoutButton $viewModel;
     protected StoreManagerInterface $storeManager;
     protected CustomerSessionFactory $customerSessionFactory;
     protected CheckoutSessionFactory $checkoutSessionFactory;
     protected CityHelper $cityHelper;
+    protected DirectoryHelper $directoryHelper;
     protected AmwalAddressInterfaceFactory $amwalAddressFactory;
     protected RefIdManagementInterface $refIdManagement;
     protected CartRepositoryInterface $cartRepository;
     protected ProductRepositoryInterface $productRepository;
+    protected Json $jsonSerializer;
 
+    /**
+     * @param AmwalButtonConfigFactory $buttonConfigFactory
+     * @param Config $config
+     * @param ExpressCheckoutButton $viewModel
+     * @param StoreManagerInterface $storeManager
+     * @param CustomerSessionFactory $customerSessionFactory
+     * @param CheckoutSessionFactory $checkoutSessionFactory
+     * @param CityHelper $cityHelper
+     * @param DirectoryHelper $directoryHelper
+     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
+     * @param RefIdManagementInterface $refIdManagement
+     * @param CartRepositoryInterface $cartRepository
+     * @param ProductRepositoryInterface $productRepository
+     * @param Json $jsonSerializer
+     */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
-        Config                   $config,
-        StoreManagerInterface    $storeManager,
-        CustomerSessionFactory   $customerSessionFactory,
-        CheckoutSessionFactory   $checkoutSessionFactory,
-        CityHelper               $cityHelper,
+        Config $config,
+        ExpressCheckoutButton $viewModel,
+        StoreManagerInterface $storeManager,
+        CustomerSessionFactory $customerSessionFactory,
+        CheckoutSessionFactory $checkoutSessionFactory,
+        CityHelper $cityHelper,
+        DirectoryHelper $directoryHelper,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        Json $jsonSerializer
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
+        $this->viewModel = $viewModel;
         $this->storeManager = $storeManager;
         $this->customerSessionFactory = $customerSessionFactory;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
         $this->cityHelper = $cityHelper;
+        $this->directoryHelper = $directoryHelper;
         $this->amwalAddressFactory = $amwalAddressFactory;
         $this->refIdManagement = $refIdManagement;
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
+        $this->jsonSerializer = $jsonSerializer;
     }
 
     /**
@@ -70,8 +97,13 @@ class GetConfig
         $buttonConfig->setAddressRequired(true);
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
-        $buttonConfig->setAllowedAddressStates($this->config->getLimitedRegionsArray());
-        $buttonConfig->setAllowedAddressCities($this->cityHelper->getCityCodes());
+        $buttonConfig->setAllowedAddressCountries(array_keys($this->directoryHelper->getCountryCollection()->getItems()));
+        if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
+            $buttonConfig->setAllowedAddressStates($limitedRegions);
+        }
+        if ($limitedCities = $this->getCityCodesJson()) {
+            $buttonConfig->setAllowedAddressCities($limitedCities);
+        }
         $buttonConfig->setLocale($this->config->getLocale());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
@@ -81,6 +113,7 @@ class GetConfig
         $buttonConfig->setMerchantId($this->config->getMerchantId());
         $buttonConfig->setRefId($this->refIdManagement->generateRefId($refIdData));
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
+        $buttonConfig->setPluginVersion($this->config->getVersion());
 
         $initialAddressData = $this->getInitialAddressData($customerSession);
         if ($initialAddressData) {
@@ -88,6 +121,30 @@ class GetConfig
             $buttonConfig->setInitialPhone($initialAddressData['phone']);
             $buttonConfig->setInitialEmail($initialAddressData['email']);
         }
+    }
+
+    /**
+     * @return string
+     */
+    protected function getLimitedRegionCodesJson(): string
+    {
+        return $this->jsonSerializer->serialize(
+            $this->config->getLimitedRegionsArray()
+        );
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCityCodesJson(): string
+    {
+        $cityCodes = $this->cityHelper->getCityCodes();
+
+        if (!$cityCodes) {
+            return '';
+        }
+
+        return $this->jsonSerializer->serialize($cityCodes);
     }
 
     /**
