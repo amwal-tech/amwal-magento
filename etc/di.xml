@@ -76,14 +76,11 @@
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>
     <preference for="Amwal\Payments\Api\Data\AmwalAddressInterface" type="Amwal\Payments\Model\Data\AmwalAddress"/>
+    <preference for="Amwal\Payments\Api\Data\AmwalButtonConfigInterface" type="Amwal\Payments\Model\Data\AmwalButtonConfig"/>
     <preference for="Amwal\Payments\Api\RefIdManagementInterface" type="Amwal\Payments\Model\RefIdManagement"/>
     <preference for="Amwal\Payments\Api\Data\RefIdDataInterface" type="Amwal\Payments\Model\Data\RefIdData"/>
 
     <!-- Plugins -->
-    <type name="Magento\Quote\Api\ChangeQuoteControlInterface">
-        <plugin name="amwal_payments_override_quote_update_validator"
-                type="Amwal\Payments\Plugin\Quote\Api\OverrideChangeQuoteValidation" sortOrder="10" />
-    </type>
     <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
         <plugin name="amwal_payments_prevent_email_on_order_submit"
                 type="Amwal\Payments\Plugin\Sales\Order\Email\PreventEmailForNewOrder" sortOrder="10" />

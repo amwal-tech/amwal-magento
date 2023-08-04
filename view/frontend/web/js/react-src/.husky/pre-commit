@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+cd view/frontend/web/js/amwal-magento-react-button
+npm install
+npm run build
+cd ../react-src
+npm run setup
+npm run lint
+npm run build

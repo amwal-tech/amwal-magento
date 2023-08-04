@@ -1,1 +1,20 @@
 .DS_Store
+
+# dependencies
+view/frontend/web/js/amwal-magento-react-button/node_modules
+view/frontend/web/js/amwal-magento-react-button/dist
+view/frontend/web/js/react-src/node_modules
+view/frontend/web/js/react-src//.pnp
+view/frontend/web/js/react-src/.pnp.js
+
+# testing
+view/frontend/web/js/react-src//coverage
+
+# production
+view/frontend/web/js/react-src//build
+
+# misc
+
+view/frontend/web/js/react-src/npm-debug.log*
+view/frontend/web/js/react-src/yarn-debug.log*
+view/frontend/web/js/react-src/yarn-error.log*
