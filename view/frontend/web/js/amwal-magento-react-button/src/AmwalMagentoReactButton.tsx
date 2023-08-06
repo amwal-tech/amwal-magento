@@ -118,7 +118,6 @@ const AmwalMagentoReactButton = ({
       })
     })
       .then(response => {
-        window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
         setFinishedUpdatingOrder(response.ok)
       })
       .catch(err => {
@@ -153,6 +152,7 @@ const AmwalMagentoReactButton = ({
 
   React.useEffect(() => {
     if (finishedUpdatingOrder && receivedSuccess) {
+      window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
       window.location.href = '/checkout/onepage/success'
     }
   }, [finishedUpdatingOrder, receivedSuccess])
