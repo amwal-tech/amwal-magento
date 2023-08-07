@@ -31,7 +31,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             if (window.renderReactElement) {
                 window.renderReactElement(self.productButtonContainer);
 
-                if (self.triggerContext === 'product-detail-page') {
+                if (self.triggerContext === 'product-detail-page' || self.triggerContext === 'product-listing-page') {
                     self.initializeProductDetail();
                 }
 
@@ -61,6 +61,13 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     addFormListeners();
                     amwalButtonObserver.disconnect();
                 }
+                const cart = customerData.get('cart');
+                cart.subscribe(function (updatedCartData) {
+                    console.log(updatedCartData.summary_count);
+                    if (updatedCartData.summary_count > 0) {
+                        self.productButtonContainer.classList.add('hidden');
+                    }
+                }, this);
             })
             amwalButtonObserver.observe(self.productButtonContainer, {
                 childList: true,
@@ -70,7 +77,6 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             });
 
             const addToCartForm = $('#product_addtocart_form');
-            const addToCartButton = document.getElementById('product-addtocart-button');
 
             /**
              * Check if the product form is valid
@@ -107,20 +113,6 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     updateButtonStatus();
                 });
             }
-
-            /**
-             * Listen to the "Add to Cart" button click.
-             */
-            addToCartButton.addEventListener('click', function (event) {
-                if (isProductFormValid()) {
-                    const cart = customerData.get('cart');
-                    cart.subscribe(function (updatedCartData) {
-                        if (updatedCartData.summary_count > 0) {
-                            self.productButtonContainer.classList.add('hidden');
-                        }
-                    }, this);
-                }
-            });
         },
 
         /**
