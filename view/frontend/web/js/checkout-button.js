@@ -58,7 +58,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 const amwalCheckoutButton = self.productButtonContainer.querySelector('amwal-checkout-button');
                 if (amwalCheckoutButton) {
                     amwalCheckoutButton.setAttribute('disabled', true);
-                    addFormListners();
+                    addFormListeners();
                     amwalButtonObserver.disconnect();
                 }
             })
@@ -70,6 +70,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             });
 
             const addToCartForm = $('#product_addtocart_form');
+            const addToCartButton = document.getElementById('product-addtocart-button');
 
             /**
              * Check if the product form is valid
@@ -97,7 +98,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             /**
              * Listen to form changes to update button status.
              */
-            const addFormListners = () => {
+            const addFormListeners = () => {
                 addToCartForm.ready(function() {
                     updateButtonStatus();
                 })
@@ -106,6 +107,20 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     updateButtonStatus();
                 });
             }
+
+            /**
+             * Listen to the "Add to Cart" button click.
+             */
+            addToCartButton.addEventListener('click', function (event) {
+                if (isProductFormValid()) {
+                    const cart = customerData.get('cart');
+                    customerData.reload(['cart'], true).done(function () {
+                        if (cart().summary_count > 0) {
+                            self.productButtonContainer.classList.add('hidden');
+                        }
+                    });
+                }
+            });
         },
 
         /**
