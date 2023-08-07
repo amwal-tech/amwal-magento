@@ -31,7 +31,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             if (window.renderReactElement) {
                 window.renderReactElement(self.productButtonContainer);
 
-                if (self.triggerContext === 'product-detail-page') {
+                if (self.triggerContext === 'product-detail-page' || self.triggerContext === 'product-listing-page') {
                     self.initializeProductDetail();
                 }
 
@@ -58,9 +58,16 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 const amwalCheckoutButton = self.productButtonContainer.querySelector('amwal-checkout-button');
                 if (amwalCheckoutButton) {
                     amwalCheckoutButton.setAttribute('disabled', true);
-                    addFormListners();
+                    addFormListeners();
                     amwalButtonObserver.disconnect();
                 }
+                const cart = customerData.get('cart');
+                cart.subscribe(function (updatedCartData) {
+                    console.log(updatedCartData.summary_count);
+                    if (updatedCartData.summary_count > 0) {
+                        self.productButtonContainer.classList.add('hidden');
+                    }
+                }, this);
             })
             amwalButtonObserver.observe(self.productButtonContainer, {
                 childList: true,
@@ -97,7 +104,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             /**
              * Listen to form changes to update button status.
              */
-            const addFormListners = () => {
+            const addFormListeners = () => {
                 addToCartForm.ready(function() {
                     updateButtonStatus();
                 })
