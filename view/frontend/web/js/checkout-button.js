@@ -114,11 +114,11 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             addToCartButton.addEventListener('click', function (event) {
                 if (isProductFormValid()) {
                     const cart = customerData.get('cart');
-                    customerData.reload(['cart'], true).done(function () {
-                        if (cart().summary_count > 0) {
+                    cart.subscribe(function (updatedCartData) {
+                        if (updatedCartData.summary_count > 0) {
                             self.productButtonContainer.classList.add('hidden');
                         }
-                    });
+                    }, this);
                 }
             });
         },
