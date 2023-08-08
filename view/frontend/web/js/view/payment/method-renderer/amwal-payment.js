@@ -6,17 +6,16 @@ define([
     'placeAmwalOrder',
     'payAmwalOrder',
     'mage/url',
-    'domReady!',
-    'uiComponent'
+    'domReady!'
 ],
 function ($, Component) {
     'use strict';
     return Component.extend({
         defaults: {
             template: 'Amwal_Payments/payment/amwal-payment/form',
-            triggerContext: null,
             amwalButtonId: 'amwal-place-order-button',
             amwalButtonContainer: null,
+            isInitialized: false,
         },
 
         initialize: function () {
@@ -41,6 +40,7 @@ function ($, Component) {
             if (window.renderReactElement) {
                 window.renderReactElement(self.amwalButtonContainer);
             }
+            self.isInitialized = true;
         },
     });
 });

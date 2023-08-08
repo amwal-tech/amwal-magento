@@ -63,9 +63,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 }
                 const cart = customerData.get('cart');
                 cart.subscribe(function (updatedCartData) {
-                    console.log(updatedCartData.summary_count);
                     if (updatedCartData.summary_count > 0) {
                         self.productButtonContainer.classList.add('hidden');
+                    }else {
+                        self.productButtonContainer.classList.remove('hidden');
                     }
                 }, this);
             })
