@@ -1,3 +1,4 @@
+
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <style>
         .checkout-container #opc-sidebar #co-place-order-area .osc-place-order-wrapper button.action.primary.checkout{
@@ -28,26 +29,9 @@
         </div>
         <div class="actions-toolbar">
             <div class="primary">
-                <div data-bind="
-                attr: {'id': getCode() + '-button'}">
-                    <amwal-checkout-button
-                        id="amwal-place-order-button"
-                        data-bind="attr: {
-                            'ref-id': getRefId(),
-                            'merchant-id': getMerchantId(),
-                            'country-code': getCountryCode(),
-                            'locale': getLocale(),
-                            'dark-mode': getDarkMode(),
-                            'test-environment': getTestEnvironment(),
-                            'allowed-address-countries': getAllowedCountries(),
-                            'enable-pre-checkout-trigger': true,
-                            'enable-pre-pay-trigger': true,
-                        }"
-                        amount="0"
-                        address-required="false">
-                    </amwal-checkout-button>
+                <div id="amwal-place-order-button" trigger-context="regular-checkout">
+
                 </div>
-                </button>
             </div>
         </div>
     </div>

@@ -29,6 +29,7 @@ interface AmwalButtonConfigInterface
     public const INITIAL_EMAIL = 'initial_email';
     public const INITIAL_PHONE = 'initial_phone';
     public const PLUGIN_VERSION = 'plugin_version';
+    public const QUOTE_ID = 'quote_id';
 
     /**
      * @return string
@@ -282,4 +283,15 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setPluginVersion(?string $pluginVersion): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getQuoteId(): ?string;
+
+    /**
+     * @param string|null $quoteId
+     * @return AmwalButtonConfigInterface
+     */
+    public function setQuoteId(?string $quoteId): AmwalButtonConfigInterface;
 }
