@@ -9,16 +9,21 @@ use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\ObjectManager;
+
+
 class GetCartButtonConfig extends GetConfig
 {
     /**
      * @param RefIdDataInterface $refIdData
+     * @param string $triggerContext
      * @param int|null $quoteId
      * @return AmwalButtonConfigInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute(RefIdDataInterface $refIdData, ?int $quoteId = null): AmwalButtonConfigInterface
+    public function execute(RefIdDataInterface $refIdData, string $triggerContext, ?int $quoteId = null): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
@@ -60,22 +65,17 @@ class GetCartButtonConfig extends GetConfig
      */
     private function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig): void
     {
-        $objectManager = ObjectManager::getInstance();
-        $customerSession = $objectManager->get(Session::class);
-        $customer = $objectManager->get(Customer::class);
-        $customerSession->getCustomer();
-        $customer->load($customerSession->getCustomer()->getId());
-
-        if ($customer->getDefaultShippingAddress()) {
-            $address = $customer->getDefaultShippingAddress();
-            $phone_number = $address->getTelephone();
-            $formatedAddress = json_encode(['street1' => $address->getStreet(), 'city' => $address->getCity(),'state' => $address->getRegion(), 'country' => $address->getCountryId(), 'postcode' => $address->getPostcode()]);
-        }
+        $objectManager   = ObjectManager::getInstance();
+        $checkoutSession = $objectManager->get(Session::class);
+        $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
+        $street          = $shippingAddress->getStreet()[0] ?? '';
+        $formatedAddress = json_encode(['street1' => $street, 'city' => $shippingAddress->getCity(),'state' => $shippingAddress->getRegion(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
+        $email = $checkoutSession->getQuote()->getCustomerEmail() ?? $checkoutSession->getQuote()->getBillingAddress()->getEmail();
 
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);
-        $buttonConfig->setInitialEmail($customer->getEmail());
-        $buttonConfig->setInitialPhone($phone_number ?? null);
+        $buttonConfig->setInitialEmail($email);
+        $buttonConfig->setInitialPhone($shippingAddress->getTelephone() ?? null);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }
