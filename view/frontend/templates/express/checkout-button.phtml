@@ -1,5 +1,4 @@
 <?php
-
 use Magento\Catalog\Block\Product\ProductList\Item\Block;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
@@ -7,6 +6,7 @@ use Magento\Customer\Model\Session;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\App\ObjectManager;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+use libphonenumber\PhoneNumberUtil;
 
 /**
  * @var Escaper $escaper
@@ -27,6 +27,13 @@ $customer->load($customerSession->getCustomer()->getId());
 if ($customer->getDefaultShippingAddress()) {
     $address = $customer->getDefaultShippingAddress();
     $phone_number = $address->getTelephone();
+    if (class_exists('libphonenumber\PhoneNumberUtil')) {
+        $phoneNumberUtil = PhoneNumberUtil::getInstance();
+        try {
+            $swissNumberProto = $phoneNumberUtil->parse($phone_number, $address->getCountryId());
+            $phone_number = $phoneNumberUtil->format($swissNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+        } catch (\libphonenumber\NumberParseException $e) {}
+    }
     $formatedAddress = json_encode(['street1' => $address->getStreet(), 'city' => $address->getCity(),'state' => $address->getRegion(), 'country' => $address->getCountryId(), 'postcode' => $address->getPostcode()]);
 }
 ?>

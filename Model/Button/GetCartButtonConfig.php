@@ -8,10 +8,9 @@ use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
-
+use libphonenumber\PhoneNumberUtil;
 
 class GetCartButtonConfig extends GetConfig
 {
@@ -75,7 +74,16 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);
         $buttonConfig->setInitialEmail($email);
-        $buttonConfig->setInitialPhone($shippingAddress->getTelephone() ?? null);
+        if (class_exists('libphonenumber\PhoneNumberUtil')) {
+            $phoneNumberUtil = PhoneNumberUtil::getInstance();
+            try {
+                $swissNumberProto = $phoneNumberUtil->parse($shippingAddress->getTelephone(), $shippingAddress->getCountryId());
+                $phone_number = $phoneNumberUtil->format($swissNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+            } catch (\libphonenumber\NumberParseException $e) {}
+        } else {
+            $phone_number = $shippingAddress->getTelephone();
+        }
+        $buttonConfig->setInitialPhone($phone_number ?? null);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }
