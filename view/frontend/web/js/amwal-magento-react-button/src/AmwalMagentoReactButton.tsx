@@ -43,13 +43,15 @@ const AmwalMagentoReactButton = ({
         'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
-        refIdData: initalRefIdData
+        refIdData: initalRefIdData,
+        triggerContext
       })
     })
       .then(async response => await response.json())
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
+        setQuoteId(data.quote_id)
       })
       .catch(err => { console.log(err) })
   }, [])
@@ -171,7 +173,7 @@ const AmwalMagentoReactButton = ({
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
         trigger_context: triggerContext,
-        has_amwal_address: true
+        has_amwal_address: !(triggerContext === 'regular-checkout')
       })
     }).then(async response => await response.json())
       .then(data => {
@@ -268,9 +270,9 @@ const AmwalMagentoReactButton = ({
         onAmwalAddressUpdate={handleAmwalAddressUpdate}
         onAmwalDismissed={handleAmwalDismissed}
         onAmwalCheckoutSuccess={handleAmwalCheckoutSuccess}
-        enablePrePayTrigger={true}
+        enablePrePayTrigger={config.enable_pre_pay_trigger}
         onAmwalPrePayTrigger={handleAmwalPrePayTrigger}
-        enablePreCheckoutTrigger={true}
+        enablePreCheckoutTrigger={config.enable_pre_checkout_trigger}
         onAmwalPreCheckoutTrigger={handleAmwalPreCheckoutTrigger}
         onUpdateOrderOnPaymentsuccess={handleUpdateOrderOnPaymentsuccess}
     />

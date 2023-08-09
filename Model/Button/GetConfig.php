@@ -114,6 +114,7 @@ class GetConfig
         $buttonConfig->setRefId($this->refIdManagement->generateRefId($refIdData));
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
         $buttonConfig->setPluginVersion($this->config->getVersion());
+        $buttonConfig->setQuoteId($this->checkoutSessionFactory->create()->getQuote()->getId());
 
         $initialAddressData = $this->getInitialAddressData($customerSession);
         if ($initialAddressData) {
