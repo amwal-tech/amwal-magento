@@ -17,13 +17,13 @@ class GetCartButtonConfig extends GetConfig
 {
     /**
      * @param RefIdDataInterface $refIdData
-     * @param string $triggerContext
+     * @param string|null $triggerContext
      * @param int|null $quoteId
      * @return AmwalButtonConfigInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute(RefIdDataInterface $refIdData, string $triggerContext, ?int $quoteId = null): AmwalButtonConfigInterface
+    public function execute(RefIdDataInterface $refIdData, string $triggerContext = null, ?int $quoteId = null): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();

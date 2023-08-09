@@ -7,7 +7,6 @@ define([
     'payAmwalOrder',
     'mage/url',
     'domReady!',
-    'uiComponent'
 ],
 function ($, Component) {
     'use strict';
