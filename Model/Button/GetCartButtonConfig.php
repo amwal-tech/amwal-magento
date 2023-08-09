@@ -8,22 +8,21 @@ use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
-
+use libphonenumber\PhoneNumberUtil;
 
 class GetCartButtonConfig extends GetConfig
 {
     /**
      * @param RefIdDataInterface $refIdData
-     * @param string $triggerContext
+     * @param string|null $triggerContext
      * @param int|null $quoteId
      * @return AmwalButtonConfigInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute(RefIdDataInterface $refIdData, string $triggerContext, ?int $quoteId = null): AmwalButtonConfigInterface
+    public function execute(RefIdDataInterface $refIdData, string $triggerContext = null, ?int $quoteId = null): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
@@ -75,7 +74,15 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);
         $buttonConfig->setInitialEmail($email);
-        $buttonConfig->setInitialPhone($shippingAddress->getTelephone() ?? null);
+        $phone_number = $shippingAddress->getTelephone();
+        if (class_exists('libphonenumber\PhoneNumberUtil')) {
+            $phoneNumberUtil = PhoneNumberUtil::getInstance();
+            try {
+                $phoneNumberProto = $phoneNumberUtil->parse($shippingAddress->getTelephone(), $shippingAddress->getCountryId());
+                $phone_number = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+            } catch (\libphonenumber\NumberParseException $e) {}
+        }
+        $buttonConfig->setInitialPhone($phone_number ?? null);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }

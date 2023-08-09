@@ -6,7 +6,7 @@ define([
     'placeAmwalOrder',
     'payAmwalOrder',
     'mage/url',
-    'domReady!'
+    'domReady!',
 ],
 function ($, Component) {
     'use strict';
