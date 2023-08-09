@@ -30,8 +30,8 @@ if ($customer->getDefaultShippingAddress()) {
     if (class_exists('libphonenumber\PhoneNumberUtil')) {
         $phoneNumberUtil = PhoneNumberUtil::getInstance();
         try {
-            $swissNumberProto = $phoneNumberUtil->parse($phone_number, $address->getCountryId());
-            $phone_number = $phoneNumberUtil->format($swissNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+            $phoneNumberProto = $phoneNumberUtil->parse($phone_number, $address->getCountryId());
+            $phone_number = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
         } catch (\libphonenumber\NumberParseException $e) {}
     }
     $formatedAddress = json_encode(['street1' => $address->getStreet(), 'city' => $address->getCity(),'state' => $address->getRegion(), 'country' => $address->getCountryId(), 'postcode' => $address->getPostcode()]);

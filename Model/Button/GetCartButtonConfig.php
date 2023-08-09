@@ -78,8 +78,8 @@ class GetCartButtonConfig extends GetConfig
         if (class_exists('libphonenumber\PhoneNumberUtil')) {
             $phoneNumberUtil = PhoneNumberUtil::getInstance();
             try {
-                $swissNumberProto = $phoneNumberUtil->parse($shippingAddress->getTelephone(), $shippingAddress->getCountryId());
-                $phone_number = $phoneNumberUtil->format($swissNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+                $phoneNumberProto = $phoneNumberUtil->parse($shippingAddress->getTelephone(), $shippingAddress->getCountryId());
+                $phone_number = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
             } catch (\libphonenumber\NumberParseException $e) {}
         }
         $buttonConfig->setInitialPhone($phone_number ?? null);
