@@ -74,14 +74,13 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);
         $buttonConfig->setInitialEmail($email);
+        $phone_number = $shippingAddress->getTelephone();
         if (class_exists('libphonenumber\PhoneNumberUtil')) {
             $phoneNumberUtil = PhoneNumberUtil::getInstance();
             try {
                 $swissNumberProto = $phoneNumberUtil->parse($shippingAddress->getTelephone(), $shippingAddress->getCountryId());
                 $phone_number = $phoneNumberUtil->format($swissNumberProto, \libphonenumber\PhoneNumberFormat::E164);
             } catch (\libphonenumber\NumberParseException $e) {}
-        } else {
-            $phone_number = $shippingAddress->getTelephone();
         }
         $buttonConfig->setInitialPhone($phone_number ?? null);
         $buttonConfig->setEnablePrePayTrigger(true);
