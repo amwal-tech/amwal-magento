@@ -26,7 +26,7 @@ function ($, Component) {
                 let applePayButton = document.getElementsByClassName('apple-pay');
                 setTimeout(function () {
                     applePayButton[0].classList.remove('apple-pay');
-                }, 100);
+                }, 350);
             }
             const eventListenerInterval = setInterval(function () {
                 if (self.isInitialized) {
