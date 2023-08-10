@@ -26,7 +26,6 @@ function ($, Component) {
                 if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
                     let applePayLogo = document.getElementById('apple-pay-logo');
                     if (applePayLogo) {
-                        console.log('Apple Pay is not supported on Safari');
                         applePayLogo.classList.remove('apple-pay');
                     }
                 }
