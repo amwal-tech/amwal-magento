@@ -22,6 +22,12 @@ function ($, Component) {
             let self = this;
             self._super();
 
+            if (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) {
+                let applePayButton = document.getElementsByClassName('apple-pay');
+                setTimeout(function () {
+                    applePayButton[0].classList.remove('apple-pay');
+                }, 100);
+            }
             const eventListenerInterval = setInterval(function () {
                 if (self.isInitialized) {
                     clearInterval(eventListenerInterval);
