@@ -35,7 +35,6 @@ function ($, Component) {
                 childList: true,
                 subtree: true
             });
-
             const eventListenerInterval = setInterval(function () {
                 if (self.isInitialized) {
                     clearInterval(eventListenerInterval);
