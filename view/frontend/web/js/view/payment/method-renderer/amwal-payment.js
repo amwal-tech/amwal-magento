@@ -24,10 +24,10 @@ function ($, Component) {
 
             const applePayObserver = new MutationObserver((mutations) => {
                 if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
-                    let applePayButton = document.getElementsByClassName('apple-pay');
-                    if (applePayButton[0]) {
-                        applePayButton[0].classList.remove('apple-pay');
-                        applePayObserver.disconnect()
+                    let applePayLogo = document.getElementById('apple-pay-logo');
+                    if (applePayLogo) {
+                        console.log('Apple Pay is not supported on Safari');
+                        applePayLogo.classList.remove('apple-pay');
                     }
                 }
             });
