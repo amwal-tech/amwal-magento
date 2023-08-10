@@ -22,12 +22,18 @@ function ($, Component) {
             let self = this;
             self._super();
 
-            if (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) {
-                let applePayButton = document.getElementsByClassName('apple-pay');
-                setTimeout(function () {
-                    applePayButton[0].classList.remove('apple-pay');
-                }, 100);
-            }
+            const applePayObserver = new MutationObserver((mutations) => {
+                if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+                    let applePayLogo = document.getElementById('apple-pay-logo');
+                    if (applePayLogo) {
+                        applePayLogo.classList.remove('apple-pay');
+                    }
+                }
+            });
+            applePayObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
             const eventListenerInterval = setInterval(function () {
                 if (self.isInitialized) {
                     clearInterval(eventListenerInterval);
@@ -35,7 +41,6 @@ function ($, Component) {
                     self.initializeAmwalButton();
                 }
             }, 250);
-
             return self;
         },
 
