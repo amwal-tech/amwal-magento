@@ -10,8 +10,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Store\Model\ScopeInterface;
+
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -38,10 +37,6 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     private SessionFactory $checkoutSessionFactory;
 
-    /**
-     * @var ScopeConfigInterface
-     */
-    protected $storeConfig;
 
     /**
      * @param AmwalConfig $config
@@ -52,12 +47,10 @@ class ExpressCheckoutButton implements ArgumentInterface
         AmwalConfig $config,
         Random $random,
         SessionFactory $checkoutSessionFactory,
-        ScopeConfigInterface $storeConfig
     ) {
         $this->config = $config;
         $this->random = $random;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
-        $this->storeConfig = $storeConfig;
     }
 
     /**
@@ -122,21 +115,5 @@ class ExpressCheckoutButton implements ArgumentInterface
         }
 
         return $formSelector;
-    }
-
-    /**
-     * @return array
-     */
-    public function getPostcodeOptionalCountries(): array
-    {
-        $optionalCountries = [];
-        $getOptionalCountries = $this->storeConfig->getValue(
-            'general/country/optional_zip_countries',
-            ScopeInterface::SCOPE_STORE
-        );
-        if ($getOptionalCountries) {
-            $optionalCountries = explode(',', $getOptionalCountries);
-        }
-        return $optionalCountries;
     }
 }
