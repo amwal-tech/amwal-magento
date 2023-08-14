@@ -25,6 +25,7 @@ export interface IAmwalButtonConfig {
   allowed_address_states: string // Record<string, StateSpecs>
   allowed_address_cities: string // Record<string, CitySpecs>
   allowed_address_countries: string[]
+  post_code_optional_countries: string[]
   initial_address: IAddress
   initial_email: string
   initial_phone: string

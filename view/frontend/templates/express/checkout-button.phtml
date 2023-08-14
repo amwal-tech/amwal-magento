@@ -17,12 +17,13 @@ $viewModel = $this->getViewModel();
 $buttonId = $viewModel->getUniqueId();
 $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
-
+$postcodeOptionalCountries = json_encode($viewModel->getPostcodeOptionalCountries());
 $objectManager = ObjectManager::getInstance();
 $customerSession = $objectManager->get(Session::class);
 $customer = $objectManager->get(Customer::class);
 $customerSession->getCustomer();
 $customer->load($customerSession->getCustomer()->getId());
+
 
 if ($customer->getDefaultShippingAddress()) {
     $address = $customer->getDefaultShippingAddress();
@@ -44,7 +45,7 @@ if ($customer->getDefaultShippingAddress()) {
         <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
          id="<?= $escaper->escapeHtmlAttr($buttonId) ?>" initial-email="<?= $escaper->escapeHtmlAttr($customer->getEmail()) ?>" initial-first-name="<?= $escaper->escapeHtmlAttr($customer->getFirstname()) ?>"
          initial-last-name="<?= $escaper->escapeHtmlAttr($customer->getLastname()) ?>" initial-phone-number="<?= $escaper->escapeHtmlAttr($phone_number ?? '') ?>"
-         initial-address="<?= $escaper->escapeHtmlAttr($formatedAddress ?? '') ?>">
+         initial-address="<?= $escaper->escapeHtmlAttr($formatedAddress ?? '') ?>" post-code-optional-countries="<?= $escaper->escapeHtmlAttr($postcodeOptionalCountries) ?>">
     </div>
     <script type="text/x-magento-init">
         {

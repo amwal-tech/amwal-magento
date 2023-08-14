@@ -23,6 +23,7 @@ interface AmwalButtonConfigInterface
     public const ID = 'id';
     public const TEST_ENVIRONMENT = 'test_environment';
     public const ALLOWED_ADDRESS_COUNTRIES = 'allowed_address_countries';
+    public const POSTCODE_OPTIONAL_COUNTRIES = 'postcode_optional_countries';
     public const ALLOWED_ADDRESS_STATES = 'allowed_address_states';
     public const ALLOWED_ADDRESS_CITIES = 'allowed_address_cities';
     public const INITIAL_ADDRESS = 'initial_address';
@@ -294,4 +295,16 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setQuoteId(?string $quoteId): AmwalButtonConfigInterface;
+
+
+    /**
+     * @return array|null
+     */
+    public function getPostCodeOptionalCountries(): ?array;
+
+    /**
+     * @param array|null $postCodeOptionalCountries
+     * @return AmwalButtonConfigInterface
+     */
+    public function setPostCodeOptionalCountries(?array $postCodeOptionalCountries): AmwalButtonConfigInterface;
 }

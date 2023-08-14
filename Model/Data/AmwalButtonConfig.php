@@ -392,4 +392,22 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     {
         return $this->setData(self::QUOTE_ID, $quoteId);
     }
+
+
+
+    /**
+     * @inheritDoc
+     */
+    public function getPostCodeOptionalCountries(): ?array
+    {
+        return $this->getData(self::POSTCODE_OPTIONAL_COUNTRIES);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setPostCodeOptionalCountries(?array $postCodeOptionalCountries): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::POSTCODE_OPTIONAL_COUNTRIES, $postCodeOptionalCountries);
+    }
 }

@@ -85,5 +85,6 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setInitialPhone($phone_number ?? null);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
+        $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
     }
 }
