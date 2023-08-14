@@ -1,14 +1,17 @@
 define([
     'jquery',
     'Magento_Checkout/js/view/payment/default',
+    'mage/translate',
+    'mage/cookies',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/totals',
+    'Magento_Customer/js/customer-data',
     'placeAmwalOrder',
     'payAmwalOrder',
     'mage/url',
     'domReady!',
 ],
-function ($, Component) {
+function ($, Component, $t) {
     'use strict';
     return Component.extend({
         defaults: {
@@ -21,12 +24,15 @@ function ($, Component) {
         initialize: function () {
             let self = this;
             self._super();
-
             const applePayObserver = new MutationObserver((mutations) => {
                 if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
                     let applePayLogo = document.getElementById('apple-pay-logo');
+                    let secureText = document.getElementById('secure-text');
                     if (applePayLogo) {
                         applePayLogo.classList.remove('apple-pay');
+                        if (secureText && secureText.innerHTML.indexOf('Apple Pay') === -1) {
+                            secureText.innerHTML = $t('Pay securely with MADA, credit cards or with Apple Pay');
+                        }
                     }
                 }
             });
@@ -41,6 +47,7 @@ function ($, Component) {
                     self.initializeAmwalButton();
                 }
             }, 250);
+
             return self;
         },
 
