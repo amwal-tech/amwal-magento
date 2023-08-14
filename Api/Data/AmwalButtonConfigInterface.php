@@ -32,6 +32,10 @@ interface AmwalButtonConfigInterface
     public const PLUGIN_VERSION = 'plugin_version';
     public const QUOTE_ID = 'quote_id';
 
+    public const INITIAL_FIRST_NAME = 'initial_first_name';
+
+    public const INITIAL_LAST_NAME = 'initial_last_name';
+
     /**
      * @return string
      */
@@ -307,4 +311,26 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setPostCodeOptionalCountries(?array $postCodeOptionalCountries): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getInitialFirstName(): ?string;
+
+    /**
+     * @param string|null $initialFirstName
+     * @return AmwalButtonConfigInterface
+     */
+    public function setInitialFirstName(?string $initialFirstName): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getInitialLastName(): ?string;
+
+    /**
+     * @param string|null $initialLastName
+     * @return AmwalButtonConfigInterface
+     */
+    public function setInitialLastName(?string $initialLastName): AmwalButtonConfigInterface;
 }

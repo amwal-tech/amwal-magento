@@ -2,11 +2,7 @@
 use Magento\Catalog\Block\Product\ProductList\Item\Block;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
-use Magento\Customer\Model\Session;
-use Magento\Customer\Model\Customer;
-use Magento\Framework\App\ObjectManager;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
-use libphonenumber\PhoneNumberUtil;
 
 /**
  * @var Escaper $escaper
@@ -17,35 +13,13 @@ $viewModel = $this->getViewModel();
 $buttonId = $viewModel->getUniqueId();
 $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
-$postcodeOptionalCountries = json_encode($viewModel->getPostcodeOptionalCountries());
-$objectManager = ObjectManager::getInstance();
-$customerSession = $objectManager->get(Session::class);
-$customer = $objectManager->get(Customer::class);
-$customerSession->getCustomer();
-$customer->load($customerSession->getCustomer()->getId());
-
-
-if ($customer->getDefaultShippingAddress()) {
-    $address = $customer->getDefaultShippingAddress();
-    $phone_number = $address->getTelephone();
-    if (class_exists('libphonenumber\PhoneNumberUtil')) {
-        $phoneNumberUtil = PhoneNumberUtil::getInstance();
-        try {
-            $phoneNumberProto = $phoneNumberUtil->parse($phone_number, $address->getCountryId());
-            $phone_number = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
-        } catch (\libphonenumber\NumberParseException $e) {}
-    }
-    $formatedAddress = json_encode(['street1' => $address->getStreet(), 'city' => $address->getCity(),'state' => $address->getRegion(), 'country' => $address->getCountryId(), 'postcode' => $address->getPostcode()]);
-}
 ?>
 
 <?php if ($viewModel->shouldRender($triggerContext)): ?>
     <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?>"
          trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
         <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
-         id="<?= $escaper->escapeHtmlAttr($buttonId) ?>" initial-email="<?= $escaper->escapeHtmlAttr($customer->getEmail()) ?>" initial-first-name="<?= $escaper->escapeHtmlAttr($customer->getFirstname()) ?>"
-         initial-last-name="<?= $escaper->escapeHtmlAttr($customer->getLastname()) ?>" initial-phone-number="<?= $escaper->escapeHtmlAttr($phone_number ?? '') ?>"
-         initial-address="<?= $escaper->escapeHtmlAttr($formatedAddress ?? '') ?>" post-code-optional-countries="<?= $escaper->escapeHtmlAttr($postcodeOptionalCountries) ?>">
+         id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
     </div>
     <script type="text/x-magento-init">
         {

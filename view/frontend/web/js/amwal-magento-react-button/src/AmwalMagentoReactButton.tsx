@@ -239,7 +239,7 @@ const AmwalMagentoReactButton = ({
       setTriggerPreCheckoutAck(false)
     }
   }, [triggerPreCheckoutAck])
-    
+
   return (config != null)
     ? <AmwalCheckoutButton
         ref={buttonRef}
@@ -262,9 +262,9 @@ const AmwalMagentoReactButton = ({
         initialEmail={config.initial_email}
         initialPhoneNumber={config.initial_phone}
         initialAddress={config.initial_address}
-        allowedAddressCities={config.allowed_address_cities as any}
-        allowedAddressStates={config.allowed_address_states as any}
-        allowedAddressCountries={JSON.stringify(config.allowed_address_countries) as any}
+        allowedAddressCities={config.allowed_address_cities}
+        allowedAddressStates={config.allowed_address_states}
+        allowedAddressCountries={config.allowed_address_countries}
         test-environment={config.test_environment}
         addressHandshake={true}
         onAmwalAddressUpdate={handleAmwalAddressUpdate}
@@ -275,7 +275,9 @@ const AmwalMagentoReactButton = ({
         enablePreCheckoutTrigger={config.enable_pre_checkout_trigger}
         onAmwalPreCheckoutTrigger={handleAmwalPreCheckoutTrigger}
         onUpdateOrderOnPaymentsuccess={handleUpdateOrderOnPaymentsuccess}
-        postcodeOptionalCountries={JSON.stringify(config.post_code_optional_countries) as any}
+        postcodeOptionalCountries={config.post_code_optional_countries}
+        initialFirstName={config.initial_first_name}
+        initialLastName={config.initial_last_name}
     />
     : <></>
 }
