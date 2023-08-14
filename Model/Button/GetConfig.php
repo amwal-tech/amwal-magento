@@ -121,7 +121,7 @@ class GetConfig
         $initialAddressData = $this->getInitialAddressData($customerSession);
         if ($initialAddressData) {
             $buttonConfig->setInitialAddress($initialAddressData['address']);
-            $buttonConfig->setInitialPhone($this->phoneFormat($initialAddressData['phone'], $initialAddressData['country_id']));
+            $buttonConfig->setInitialPhone($this->phoneFormat($initialAddressData['phone'], $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getCountryId() ));
             $buttonConfig->setInitialEmail($initialAddressData['email']);
             $buttonConfig->setInitialFirstName($customerSession->getCustomer()->getFirstname() ? $customerSession->getCustomer()->getFirstname() : $initialAddressData['firstname']);
             $buttonConfig->setInitialLastName($customerSession->getCustomer()->getLastname() ? $customerSession->getCustomer()->getLastname() : $initialAddressData['lastname']);
