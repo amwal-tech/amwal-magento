@@ -275,7 +275,7 @@ const AmwalMagentoReactButton = ({
         enablePreCheckoutTrigger={config.enable_pre_checkout_trigger}
         onAmwalPreCheckoutTrigger={handleAmwalPreCheckoutTrigger}
         onUpdateOrderOnPaymentsuccess={handleUpdateOrderOnPaymentsuccess}
-        postcodeOptionalCountries={JSON.stringify(config.post_code_optional_countries) as any}
+        postcodeOptionalCountries={config.post_code_optional_countries}
     />
     : <></>
 }
