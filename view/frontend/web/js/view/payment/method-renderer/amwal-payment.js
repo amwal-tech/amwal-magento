@@ -2,10 +2,8 @@ define([
     'jquery',
     'Magento_Checkout/js/view/payment/default',
     'mage/translate',
-    'mage/cookies',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/totals',
-    'Magento_Customer/js/customer-data',
     'placeAmwalOrder',
     'payAmwalOrder',
     'mage/url',
@@ -24,18 +22,25 @@ function ($, Component, $t) {
         initialize: function () {
             let self = this;
             self._super();
+            
             const applePayObserver = new MutationObserver((mutations) => {
-                if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
-                    let applePayLogo = document.getElementById('apple-pay-logo');
-                    let secureText = document.getElementById('secure-text');
-                    if (applePayLogo) {
-                        applePayLogo.classList.remove('apple-pay');
-                        if (secureText && secureText.innerHTML.indexOf('Apple Pay') === -1) {
-                            secureText.innerHTML = $t('Pay securely with MADA, credit cards or with Apple Pay');
+                applePayObserver.disconnect();
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+                            handleApplePayLogo();
+                        }else{
+                            updateSecureTextContent($t('Pay securely with MADA and credit cards'));
                         }
                     }
-                }
-            });
+                });
+                // Reconnect the observer after handling changes
+                applePayObserver.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }); 
+            // Initial observation setup
             applePayObserver.observe(document.body, {
                 childList: true,
                 subtree: true
@@ -47,6 +52,21 @@ function ($, Component, $t) {
                     self.initializeAmwalButton();
                 }
             }, 250);
+
+            function updateSecureTextContent(newContent) {
+                const secureText = document.getElementById('secure-text');
+                if (secureText) {
+                    secureText.innerHTML = newContent;
+                }
+            }
+            
+            function handleApplePayLogo() {
+                const applePayLogo = document.getElementById('apple-pay-logo');
+                if (applePayLogo) {
+                    applePayLogo.classList.remove('apple-pay');
+                    updateSecureTextContent($t('Pay securely with MADA, credit cards or with Apple Pay'));
+                }
+            }
 
             return self;
         },
