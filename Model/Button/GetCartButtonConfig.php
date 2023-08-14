@@ -67,6 +67,7 @@ class GetCartButtonConfig extends GetConfig
         $objectManager   = ObjectManager::getInstance();
         $checkoutSession = $objectManager->get(Session::class);
         $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
+
         $street          = $shippingAddress->getStreet()[0] ?? '';
         $formatedAddress = json_encode(['street1' => $street, 'city' => $shippingAddress->getCity(),'state' => $shippingAddress->getRegion(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
         $email = $checkoutSession->getQuote()->getCustomerEmail() ?? $checkoutSession->getQuote()->getBillingAddress()->getEmail();
@@ -74,15 +75,6 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);
         $buttonConfig->setInitialEmail($email);
-        $phone_number = $shippingAddress->getTelephone();
-        if (class_exists('libphonenumber\PhoneNumberUtil')) {
-            $phoneNumberUtil = PhoneNumberUtil::getInstance();
-            try {
-                $phoneNumberProto = $phoneNumberUtil->parse($shippingAddress->getTelephone(), $shippingAddress->getCountryId());
-                $phone_number = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
-            } catch (\libphonenumber\NumberParseException $e) {}
-        }
-        $buttonConfig->setInitialPhone($phone_number ?? null);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }

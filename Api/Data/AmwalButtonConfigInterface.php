@@ -23,6 +23,7 @@ interface AmwalButtonConfigInterface
     public const ID = 'id';
     public const TEST_ENVIRONMENT = 'test_environment';
     public const ALLOWED_ADDRESS_COUNTRIES = 'allowed_address_countries';
+    public const POSTCODE_OPTIONAL_COUNTRIES = 'postcode_optional_countries';
     public const ALLOWED_ADDRESS_STATES = 'allowed_address_states';
     public const ALLOWED_ADDRESS_CITIES = 'allowed_address_cities';
     public const INITIAL_ADDRESS = 'initial_address';
@@ -30,6 +31,10 @@ interface AmwalButtonConfigInterface
     public const INITIAL_PHONE = 'initial_phone';
     public const PLUGIN_VERSION = 'plugin_version';
     public const QUOTE_ID = 'quote_id';
+
+    public const INITIAL_FIRST_NAME = 'initial_first_name';
+
+    public const INITIAL_LAST_NAME = 'initial_last_name';
 
     /**
      * @return string
@@ -294,4 +299,38 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setQuoteId(?string $quoteId): AmwalButtonConfigInterface;
+
+
+    /**
+     * @return array|null
+     */
+    public function getPostCodeOptionalCountries(): ?array;
+
+    /**
+     * @param array|null $postCodeOptionalCountries
+     * @return AmwalButtonConfigInterface
+     */
+    public function setPostCodeOptionalCountries(?array $postCodeOptionalCountries): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getInitialFirstName(): ?string;
+
+    /**
+     * @param string|null $initialFirstName
+     * @return AmwalButtonConfigInterface
+     */
+    public function setInitialFirstName(?string $initialFirstName): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getInitialLastName(): ?string;
+
+    /**
+     * @param string|null $initialLastName
+     * @return AmwalButtonConfigInterface
+     */
+    public function setInitialLastName(?string $initialLastName): AmwalButtonConfigInterface;
 }

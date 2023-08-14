@@ -21,6 +21,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+use libphonenumber\PhoneNumberUtil;
 
 class GetConfig
 {
@@ -115,12 +116,20 @@ class GetConfig
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
         $buttonConfig->setPluginVersion($this->config->getVersion());
         $buttonConfig->setQuoteId($this->checkoutSessionFactory->create()->getQuote()->getId());
+        $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
 
         $initialAddressData = $this->getInitialAddressData($customerSession);
         if ($initialAddressData) {
             $buttonConfig->setInitialAddress($initialAddressData['address']);
-            $buttonConfig->setInitialPhone($initialAddressData['phone']);
+            $buttonConfig->setInitialPhone($this->phoneFormat($initialAddressData['phone'], $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getCountryId() ));
             $buttonConfig->setInitialEmail($initialAddressData['email']);
+            $buttonConfig->setInitialFirstName($customerSession->getCustomer()->getFirstname() ? $customerSession->getCustomer()->getFirstname() : $initialAddressData['firstname']);
+            $buttonConfig->setInitialLastName($customerSession->getCustomer()->getLastname() ? $customerSession->getCustomer()->getLastname() : $initialAddressData['lastname']);
+        }else{
+            $buttonConfig->setInitialPhone($this->phoneFormat($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getTelephone(), $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getCountryId()));
+            $buttonConfig->setInitialEmail($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getEmail());
+            $buttonConfig->setInitialFirstName($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getFirstname());
+            $buttonConfig->setInitialLastName($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getLastname());
         }
     }
 
@@ -190,5 +199,18 @@ class GetConfig
         }
 
         return $id . 'newquote';
+    }
+
+
+    protected function phoneFormat($phone_number, $country)
+    {
+        if (class_exists('libphonenumber\PhoneNumberUtil')) {
+            $phoneNumberUtil = PhoneNumberUtil::getInstance();
+            try {
+                $phoneNumberProto = $phoneNumberUtil->parse($phone_number, $country);
+                $phone_number = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+            } catch (\libphonenumber\NumberParseException $e) {}
+        }
+        return $phone_number;
     }
 }

@@ -11,6 +11,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
+
 class ExpressCheckoutButton implements ArgumentInterface
 {
     public const TRIGGER_CONTEXT_PRODUCT_LIST = 'product-listing-page';
@@ -19,6 +20,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     public const TRIGGER_CONTEXT_CART = 'cart';
 
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
+
 
     /**
      * @var AmwalConfig
@@ -35,6 +37,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     private SessionFactory $checkoutSessionFactory;
 
+
     /**
      * @param AmwalConfig $config
      * @param Random $random
@@ -43,7 +46,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function __construct(
         AmwalConfig $config,
         Random $random,
-        SessionFactory $checkoutSessionFactory
+        SessionFactory $checkoutSessionFactory,
     ) {
         $this->config = $config;
         $this->random = $random;

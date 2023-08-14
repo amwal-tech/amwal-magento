@@ -311,4 +311,20 @@ class Config
         $packages = $this->composerInformation->getInstalledMagentoPackages();
         return $packages['amwal/payments']['version'] ?? 'unknown';
     }
+
+    /**
+     * @return array
+     */
+    public function getPostcodeOptionalCountries(): array
+    {
+        $optionalCountries = [];
+        $getOptionalCountries = $this->scopeConfig->getValue(
+            'general/country/optional_zip_countries',
+            ScopeInterface::SCOPE_STORE
+        );
+        if ($getOptionalCountries) {
+            $optionalCountries = explode(',', $getOptionalCountries);
+        }
+        return $optionalCountries;
+    }
 }
