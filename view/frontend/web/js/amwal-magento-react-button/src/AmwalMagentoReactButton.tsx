@@ -56,8 +56,8 @@ const AmwalMagentoReactButton = ({
       .catch(err => { console.log(err) })
   }, [])
 
-  const getQuote = (addressData?: IAddress): Promise<void> => {
-    return fetch('/rest/V1/amwal/get-quote', {
+  const getQuote = async (addressData?: IAddress): Promise<void> => {
+    const response = await fetch('/rest/V1/amwal/get-quote', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,45 +72,33 @@ const AmwalMagentoReactButton = ({
         order_items: []
       })
     })
-      .then(response => response.json())
-      .then(data => {
-        if (data instanceof Array && data.length > 0) {
-          const quote = data[0];
-          setQuoteId(quote.quote_id);
-          const subtotal =
-            parseFloat(quote.amount) -
+    if (!response.ok) throw new Error(response.statusText)
+    
+    const data = await response.json()
+    if (data instanceof Array && data.length > 0) {
+      const quote = data[0]
+      setQuoteId(quote.quote_id)
+      const subtotal = parseFloat(quote.amount) -
             parseFloat(quote.tax_amount) -
             parseFloat(quote.shipping_amount) +
-            parseFloat(quote.discount_amount);
-          setAmount(subtotal);
-          setTaxes(quote.tax_amount);
-          setDiscount(quote.discount_amount);
-          setFees(quote.additional_fee_amount);
-          setFeesDescription(quote.additional_fee_description);
-          setShippingMethods(Object.entries(quote.available_rates).map<IShippingMethod>(([id, rate]) => {
-            return {
-              id,
-              label: (rate as any).carrier_title,
-              price: (rate as any).price
-            }
-          }))
-          return quote;
+            parseFloat(quote.discount_amount)
+      setAmount(subtotal)
+      setTaxes(quote.tax_amount)
+      setDiscount(quote.discount_amount)
+      setFees(quote.additional_fee_amount)
+      setFeesDescription(quote.additional_fee_description)
+      setShippingMethods(Object.entries(quote.available_rates).map<IShippingMethod>(([id, rate]) => {
+        return {
+          id,
+          label: (rate as any).carrier_title,
+          price: (rate as any).price
         }
-        throw new Error(`Unexpected get-quote result ${JSON.stringify(data)}`);
-      })
-      .catch(error => {
-        buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
-          detail: {
-            description: "Error in getting shipping methods cost",
-            error: error?.toString()
-          }
-        }))
-        console.error("Error in getQuote:", error);
-        throw error;
-      });
-  };
+      }))
+      return quote
+    }
+    throw new Error(`Unexpected get-quote result ${JSON.stringify(data)}`)
+  }
   
-
   const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
     getQuote(event.detail)
       .then(() => {
