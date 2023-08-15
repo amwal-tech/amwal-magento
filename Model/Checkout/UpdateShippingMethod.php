@@ -44,6 +44,7 @@ class UpdateShippingMethod extends AmwalCheckoutAction
 
         try {
             $this->shippingMethodManagement->set($quote->getId(), $carrier, $method);
+
         } catch (CouldNotSaveException|InputException|NoSuchEntityException|StateException $e) {
             $this->logger->error(sprintf(
                 'Unable to set shipping method for quote with ID %s. Error: %s',

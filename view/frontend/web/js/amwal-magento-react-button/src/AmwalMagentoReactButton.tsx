@@ -56,8 +56,8 @@ const AmwalMagentoReactButton = ({
       .catch(err => { console.log(err) })
   }, [])
 
-  const getQuote = async (addressData?: IAddress): Promise<void> => {
-    const response = await fetch('/rest/V1/amwal/get-quote', {
+  const getQuote = (addressData?: IAddress): Promise<void> => {
+    return fetch('/rest/V1/amwal/get-quote', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,37 +72,57 @@ const AmwalMagentoReactButton = ({
         order_items: []
       })
     })
-    const data = await response.json()
-    if (data instanceof Array && data.length > 0) {
-      const quote = data[0]
-      setQuoteId(quote.quote_id)
-      const subtotal = parseFloat(quote.amount) -
+      .then(response => response.json())
+      .then(data => {
+        if (data instanceof Array && data.length > 0) {
+          const quote = data[0];
+          setQuoteId(quote.quote_id);
+          const subtotal =
+            parseFloat(quote.amount) -
             parseFloat(quote.tax_amount) -
             parseFloat(quote.shipping_amount) +
-            parseFloat(quote.discount_amount)
-      setAmount(subtotal)
-      setTaxes(quote.tax_amount)
-      setDiscount(quote.discount_amount)
-      setFees(quote.additional_fee_amount)
-      setFeesDescription(quote.additional_fee_description)
-      setShippingMethods(Object.entries(quote.available_rates).map<IShippingMethod>(([id, rate]) => {
-        return {
-          id,
-          label: (rate as any).carrier_title,
-          price: (rate as any).price
+            parseFloat(quote.discount_amount);
+          setAmount(subtotal);
+          setTaxes(quote.tax_amount);
+          setDiscount(quote.discount_amount);
+          setFees(quote.additional_fee_amount);
+          setFeesDescription(quote.additional_fee_description);
+          setShippingMethods(Object.entries(quote.available_rates).map<IShippingMethod>(([id, rate]) => {
+            return {
+              id,
+              label: (rate as any).carrier_title,
+              price: (rate as any).price
+            }
+          }))
+          return quote;
         }
-      }))
-      return quote
-    }
-    throw new Error(`Unexpected get-quote result ${JSON.stringify(data)}`)
-  }
+        throw new Error(`Unexpected get-quote result ${JSON.stringify(data)}`);
+      })
+      .catch(error => {
+        buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
+          detail: {
+            description: "Error in getting shipping methods cost",
+            error: error?.toString()
+          }
+        }))
+        console.error("Error in getQuote:", error);
+        throw error;
+      });
+  };
+  
 
   const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
     getQuote(event.detail)
       .then(() => {
-        buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
+            buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
       })
       .catch(err => {
+        buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
+          detail: {
+            description: "Error in updating address",
+            error: err?.toString()
+          }
+        }))
         console.log(err)
       })
   }
@@ -126,6 +146,7 @@ const AmwalMagentoReactButton = ({
         console.log(err)
       })
   }
+
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
     if (event.detail.paymentSuccessful) {
       if (event.detail.orderId) {
