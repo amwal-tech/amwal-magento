@@ -385,10 +385,12 @@ class GetQuote extends AmwalCheckoutAction
 
         foreach ($rates as $rate) {
             $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
-            $availableRates[$id] = [
-                'carrier_title' => $rate->getMethodTitle(),
-                'price' => number_format((float)$rate->getPriceInclTax(), 2)
-            ];
+            if (!empty($rate->getMethodTitle())) {
+                $availableRates[$id] = [
+                    'carrier_title' => $rate->getMethodTitle(),
+                    'price' => number_format((float)$rate->getPriceInclTax(), 2)
+                ];
+            }
         }
         try {
             $this->logDebug(sprintf(
@@ -477,7 +479,7 @@ class GetQuote extends AmwalCheckoutAction
             $extraFee = $totals['amasty_extrafee']->getValueInclTax();
             $grandTotal -= $extraFee;
         }
-        
+
         if (!$grandTotal) {
             throw new LocalizedException(__('Unable to calculate order total'));
         }
