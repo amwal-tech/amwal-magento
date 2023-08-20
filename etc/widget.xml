@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:codetheatres:Magento_Widget:etc/widget.xsd">
+    <widget class="Amwal\Payments\Block\Widget\ExpressCheckoutButton" id="amwal_payments_express_checkout_button">
+        <label>Amwal express checkout button</label>
+        <description>Show Amwal express checkout button on any page</description>
+        <parameters>
+            <parameter name="Title" xsi:type="text" required="false" visible="true" sort_order="40">
+                <label translate="true">Title </label>
+            </parameter>
+            <parameter name="product_id" xsi:type="block" visible="true" required="true" sort_order="30">
+                <label translate="true">Product</label>
+                <block class="Magento\Catalog\Block\Adminhtml\Product\Widget\Chooser">
+                    <data>
+                        <item name="button" xsi:type="array">
+                            <item name="open" xsi:type="string">Select Product...</item>
+                        </item>
+                    </data>
+                </block>
+            </parameter>
+        </parameters>
+    </widget>
+</widgets>

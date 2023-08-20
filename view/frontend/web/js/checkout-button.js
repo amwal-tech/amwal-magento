@@ -38,7 +38,11 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 if (self.triggerContext === 'minicart') {
                     self.initializeMiniCart();
                 }
-                
+
+                if (self.triggerContext === 'amwal-widget') {
+                    self.initializeAmwalWidget();
+                }
+
                 window.addEventListener('cartUpdateNeeded', function(e) {
                     var sections = ['cart'];
                     customerData.invalidate(sections);
@@ -139,6 +143,66 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 attributes: false,
                 characterData: false
             });
+        },
+
+        /**
+         * initializeAmwalWidget
+         */
+
+        initializeAmwalWidget: function () {
+            let self = this;
+            const amwalButtonObserver = new MutationObserver((mutations) => {
+                const amwalCheckoutButton = self.productButtonContainer.querySelector('amwal-checkout-button');
+                if (amwalCheckoutButton) {
+                    amwalCheckoutButton.setAttribute('disabled', true);
+                    addFormListeners();
+                    amwalButtonObserver.disconnect();
+                }
+            })
+            amwalButtonObserver.observe(self.productButtonContainer, {
+                childList: true,
+                subtree: true,
+                attributes: false,
+                characterData: false
+            });
+
+            const addToCartForm = $("#form-" + self.buttonId +"");
+
+            /**
+             * Check if the product form is valid
+             * @return Boolean
+             */
+            const isProductFormValid = () => {
+                addToCartForm.validation();
+                const formIsValid = addToCartForm.validation('isValid');
+                addToCartForm.validation('clearError');
+                return formIsValid;
+            }
+
+            /**
+             * Toggle the button disabled attribute based on form status
+             */
+            const updateButtonStatus = () => {
+                const amwalButton = $("#" + self.buttonId +" amwal-checkout-button");
+                if (isProductFormValid()) {
+                    amwalButton.removeAttr('disabled');
+                } else {
+                    amwalButton.attr('disabled', true);
+                }
+            }
+
+            /**
+             * Listen to form changes to update button status.
+             */
+            const addFormListeners = () => {
+                addToCartForm.ready(function() {
+                    updateButtonStatus();
+                })
+
+                addToCartForm.on('change', function() {
+                    updateButtonStatus();
+                });
+            }
         }
     });
 });
