@@ -12,7 +12,7 @@ interface AmwalMagentoReactButtonProps {
 const AmwalMagentoReactButton = ({
   triggerContext,
   preCheckoutTask,
-  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'amwal-widget'
+  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'amwal-widget' || triggerContext === 'product-list-widget'
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
