@@ -32,15 +32,13 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 window.renderReactElement(self.productButtonContainer);
 
                 if (self.triggerContext === 'product-detail-page' || self.triggerContext === 'product-listing-page') {
-                    self.initializeProductDetail();
+                    self.initializeProductDetail('product_addtocart_form');
                 }
-
+                if (self.triggerContext === 'amwal-widget') {
+                    self.initializeProductDetail('form-' + self.buttonId);
+                }
                 if (self.triggerContext === 'minicart') {
                     self.initializeMiniCart();
-                }
-
-                if (self.triggerContext === 'amwal-widget') {
-                    self.initializeAmwalWidget();
                 }
 
                 window.addEventListener('cartUpdateNeeded', function(e) {
@@ -56,7 +54,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
         /**
          * Initializes the Product Detail Page specific actions
          */
-        initializeProductDetail: function () {
+        initializeProductDetail: function (formID) {
             let self = this;
             const amwalButtonObserver = new MutationObserver((mutations) => {
                 const amwalCheckoutButton = self.productButtonContainer.querySelector('amwal-checkout-button');
@@ -81,7 +79,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 characterData: false
             });
 
-            const addToCartForm = $('#product_addtocart_form');
+            const addToCartForm = $("#" + formID);
 
             /**
              * Check if the product form is valid
@@ -143,69 +141,6 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 attributes: false,
                 characterData: false
             });
-        },
-
-        /**
-         * initializeAmwalWidget
-         */
-
-        initializeAmwalWidget: function () {
-            let self = this;
-            const amwalButtonObserver = new MutationObserver((mutations) => {
-                const amwalCheckoutButton = self.productButtonContainer.querySelector('amwal-checkout-button');
-                if (amwalCheckoutButton) {
-                    const amwalButton = $("#" + self.buttonId);
-                    if (amwalButton.attr('disabled')) {
-                        amwalCheckoutButton.setAttribute('disabled', true);
-                    }
-                    addFormListeners();
-                    amwalButtonObserver.disconnect();
-                }
-            })
-            amwalButtonObserver.observe(self.productButtonContainer, {
-                childList: true,
-                subtree: true,
-                attributes: false,
-                characterData: false
-            });
-
-            const addToCartForm = $("#form-" + self.buttonId +"");
-
-            /**
-             * Check if the product form is valid
-             * @return Boolean
-             */
-            const isProductFormValid = () => {
-                addToCartForm.validation();
-                const formIsValid = addToCartForm.validation('isValid');
-                addToCartForm.validation('clearError');
-                return formIsValid;
-            }
-
-            /**
-             * Toggle the button disabled attribute based on form status
-             */
-            const updateButtonStatus = () => {
-                const amwalButton = $("#" + self.buttonId +" amwal-checkout-button");
-                if (isProductFormValid()) {
-                    amwalButton.removeAttr('disabled');
-                } else {
-                    amwalButton.attr('disabled', true);
-                }
-            }
-
-            /**
-             * Listen to form changes to update button status.
-             */
-            const addFormListeners = () => {
-                addToCartForm.ready(function() {
-                    updateButtonStatus();
-                })
-
-                addToCartForm.on('change', function() {
-                    updateButtonStatus();
-                });
-            }
         }
     });
 });
