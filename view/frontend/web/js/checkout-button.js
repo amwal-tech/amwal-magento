@@ -32,13 +32,15 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 window.renderReactElement(self.productButtonContainer);
 
                 if (self.triggerContext === 'product-detail-page' || self.triggerContext === 'product-listing-page') {
-                    self.initializeProductDetail();
+                    self.initializeProductDetail('product_addtocart_form');
                 }
-
+                if (self.triggerContext === 'amwal-widget') {
+                    self.initializeProductDetail('form-' + self.buttonId);
+                }
                 if (self.triggerContext === 'minicart') {
                     self.initializeMiniCart();
                 }
-                
+
                 window.addEventListener('cartUpdateNeeded', function(e) {
                     var sections = ['cart'];
                     customerData.invalidate(sections);
@@ -52,7 +54,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
         /**
          * Initializes the Product Detail Page specific actions
          */
-        initializeProductDetail: function () {
+        initializeProductDetail: function (formID) {
             let self = this;
             const amwalButtonObserver = new MutationObserver((mutations) => {
                 const amwalCheckoutButton = self.productButtonContainer.querySelector('amwal-checkout-button');
@@ -77,7 +79,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 characterData: false
             });
 
-            const addToCartForm = $('#product_addtocart_form');
+            const addToCartForm = $("#" + formID);
 
             /**
              * Check if the product form is valid

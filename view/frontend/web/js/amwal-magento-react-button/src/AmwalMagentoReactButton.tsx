@@ -12,7 +12,7 @@ interface AmwalMagentoReactButtonProps {
 const AmwalMagentoReactButton = ({
   triggerContext,
   preCheckoutTask,
-  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page'
+  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'amwal-widget' || triggerContext === 'product-list-widget'
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -73,7 +73,7 @@ const AmwalMagentoReactButton = ({
       })
     })
     if (!response.ok) throw new Error(response.statusText)
-    
+
     const data = await response.json()
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
@@ -98,7 +98,7 @@ const AmwalMagentoReactButton = ({
     }
     throw new Error(`Unexpected get-quote result ${JSON.stringify(data)}`)
   }
-  
+
   const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
     getQuote(event.detail)
       .then(() => {
