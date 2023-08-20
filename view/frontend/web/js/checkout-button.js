@@ -154,7 +154,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             const amwalButtonObserver = new MutationObserver((mutations) => {
                 const amwalCheckoutButton = self.productButtonContainer.querySelector('amwal-checkout-button');
                 if (amwalCheckoutButton) {
-                    amwalCheckoutButton.setAttribute('disabled', true);
+                    const amwalButton = $("#" + self.buttonId);
+                    if (amwalButton.attr('disabled')) {
+                        amwalCheckoutButton.setAttribute('disabled', true);
+                    }
                     addFormListeners();
                     amwalButtonObserver.disconnect();
                 }
