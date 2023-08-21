@@ -54,9 +54,9 @@ interface AmwalAddressInterface
     public function getCountry(): string;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPostcode(): string;
+    public function getPostcode(): ?string;
 
     /**
      * @return string
@@ -120,10 +120,10 @@ interface AmwalAddressInterface
     public function setCountry(string $country): AmwalAddressInterface;
 
     /**
-     * @param string $postcode
+     * @param string|null $postcode
      * @return AmwalAddressInterface
      */
-    public function setPostcode(string $postcode): AmwalAddressInterface;
+    public function setPostcode(?string $postcode = null): AmwalAddressInterface;
 
     /**
      * @param string $state

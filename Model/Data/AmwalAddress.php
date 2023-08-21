@@ -68,7 +68,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     /**
      * @inheritDoc
      */
-    public function getPostcode(): string
+    public function getPostcode(): ?string
     {
         return $this->getData(self::POSTCODE);
     }
@@ -164,7 +164,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     /**
      * @inheritDoc
      */
-    public function setPostcode(string $postcode): AmwalAddressInterface
+    public function setPostcode(?string $postcode = null): AmwalAddressInterface
     {
         return $this->setData(self::POSTCODE, $postcode);
     }
