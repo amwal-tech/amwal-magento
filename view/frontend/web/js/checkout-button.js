@@ -35,6 +35,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.initializeProductDetail('product_addtocart_form');
                 }
                 if (self.triggerContext === 'amwal-widget' || self.triggerContext === 'product-list-widget') {
+
                     self.initializeProductDetail('form-' + self.buttonId);
                 }
                 if (self.triggerContext === 'minicart') {
