@@ -70,6 +70,11 @@ use Magento\Framework\App\Action\Action;
                                                             <input type="hidden" name="product" value="<?= $block->escapeHtmlAttr($postParams['data']['product']) ?>">
                                                             <input type="hidden" name="<?= /* @noEscape */ Action::PARAM_NAME_URL_ENCODED ?>" value="<?= /* @noEscape */ $postParams['data'][Action::PARAM_NAME_URL_ENCODED] ?>">
                                                             <?= $block->getBlockHtml('formkey') ?>
+                                                            <button type="submit"
+                                                                    title="<?= $block->escapeHtml(__('Add to Cart')) ?>"
+                                                                    class="action tocart primary">
+                                                                <span><?= $block->escapeHtml(__('Add to Cart')) ?></span>
+                                                            </button>
                                                         </form>
                                                         <div class="amwal-express-checkout-button"
                                                              trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
