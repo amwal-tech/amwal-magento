@@ -34,7 +34,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 if (self.triggerContext === 'product-detail-page' || self.triggerContext === 'product-listing-page') {
                     self.initializeProductDetail('product_addtocart_form');
                 }
-                if (self.triggerContext === 'amwal-widget') {
+                if (self.triggerContext === 'amwal-widget' || self.triggerContext === 'product-list-widget') {
                     self.initializeProductDetail('form-' + self.buttonId);
                 }
                 if (self.triggerContext === 'minicart') {
