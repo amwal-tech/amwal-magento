@@ -122,20 +122,12 @@ class GetConfig
         if ($initialAddressData) {
             $buttonConfig->setInitialAddress($initialAddressData['address']);
             $buttonConfig->setInitialPhone($initialAddressData['phone']);
-
-            $address = json_decode($initialAddressData['address'], true);
-            if (isset($address['country'])) {
-                $buttonConfig->setInitialPhone($this->phoneFormat($initialAddressData['phone'], $address['country'] ));
+            if (isset($initialAddressData['country'])) {
+                $buttonConfig->setInitialPhone($this->phoneFormat($initialAddressData['phone'], $initialAddressData['country'] ));
             }
-            
             $buttonConfig->setInitialEmail($initialAddressData['email']);
-            $buttonConfig->setInitialFirstName($customerSession->getCustomer()->getFirstname() ? $customerSession->getCustomer()->getFirstname() : $initialAddressData['firstname']);
-            $buttonConfig->setInitialLastName($customerSession->getCustomer()->getLastname() ? $customerSession->getCustomer()->getLastname() : $initialAddressData['lastname']);
-        }else{
-            $buttonConfig->setInitialPhone($this->phoneFormat($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getTelephone(), $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getCountryId()));
-            $buttonConfig->setInitialEmail($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getEmail());
-            $buttonConfig->setInitialFirstName($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getFirstname());
-            $buttonConfig->setInitialLastName($this->checkoutSessionFactory->create()->getQuote()->getBillingAddress()->getLastname());
+            $buttonConfig->setInitialFirstName($initialAddressData['firstname']);
+            $buttonConfig->setInitialLastName($initialAddressData['lastname']);
         }
     }
 
@@ -171,24 +163,26 @@ class GetConfig
     {
         $customer = $customerSession->getCustomer();
 
-        $defaultShippingAddress = $customer->getDefaultShippingAddress();
-        if (!$defaultShippingAddress) {
-            return [];
+        $addressData = $this->checkoutSessionFactory->create()->getQuote()->getShippingAddress();
+        if (!$addressData->getCity()) {
+            $addressData = $customer->getDefaultShippingAddress();
         }
-
         $initialAddress = $this->amwalAddressFactory->create();
-        $initialAddress->setCity($defaultShippingAddress->getCity() ?? '');
-        $initialAddress->setState($defaultShippingAddress->getRegionCode() ?? '');
-        $initialAddress->setPostcode($defaultShippingAddress->getPostcode() ?? '');
-        $initialAddress->setCountry($defaultShippingAddress->getCountryId() ?? '');
-        $initialAddress->setStreet1($defaultShippingAddress->getStreetLine(1) ?? '');
-        $initialAddress->setStreet2($defaultShippingAddress->getStreetLine(2) ?? '');
+        $initialAddress->setCity($addressData->getCity() ?? '');
+        $initialAddress->setState($addressData->getRegionCode() ?? '');
+        $initialAddress->setPostcode($addressData->getPostcode() ?? '');
+        $initialAddress->setCountry($addressData->getCountryId() ?? '');
+        $initialAddress->setStreet1($addressData->getStreetLine(1) ?? '');
+        $initialAddress->setStreet2($addressData->getStreetLine(2) ?? '');
         $initialAddress->setEmail($customer->getEmail() ?? '');
 
         $attributes = [];
-        $attributes['address'] = $initialAddress->toJson();
-        $attributes['email'] = $customer->getEmail() ?? '';
-        $attributes['phone'] = $defaultShippingAddress->getTelephone() ?? '';
+        $attributes['address']   = $initialAddress->toJson();
+        $attributes['email']     = $customer->getEmail() ?? '';
+        $attributes['phone']     = $addressData->getTelephone() ?? '';
+        $attributes['country']   = $addressData->getCountryId() ?? '';
+        $attributes['firstname'] = $addressData->getFirstname() ?? '';
+        $attributes['lastname']  = $addressData->getLastname() ?? '';
 
         return $attributes;
     }
