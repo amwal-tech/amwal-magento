@@ -204,6 +204,9 @@ class GetConfig
 
     protected function phoneFormat($phone_number, $country)
     {
+        if (strpos($phone_number, '+')) {
+            return $phone_number;
+        }
         if (class_exists('libphonenumber\PhoneNumberUtil')) {
             $phoneNumberUtil = PhoneNumberUtil::getInstance();
             try {
