@@ -164,9 +164,14 @@ class GetConfig
         $customer = $customerSession->getCustomer();
 
         $addressData = $this->checkoutSessionFactory->create()->getQuote()->getShippingAddress();
+
         if (!$addressData->getCity()) {
             $addressData = $customer->getDefaultShippingAddress();
+            if (!$addressData) {
+                return [];
+            }
         }
+
         $initialAddress = $this->amwalAddressFactory->create();
         $initialAddress->setCity($addressData->getCity() ?? '');
         $initialAddress->setState($addressData->getRegionCode() ?? '');

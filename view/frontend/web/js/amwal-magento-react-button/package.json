@@ -34,6 +34,6 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "amwal-checkout-button-react": "0.0.50-alpha"
+    "amwal-checkout-button-react": "0.0.51-alpha"
   }
 }
