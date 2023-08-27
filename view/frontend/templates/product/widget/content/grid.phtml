@@ -1,9 +1,13 @@
 <?php
 
+use Magento\Framework\Escaper;
 use Magento\Framework\App\Action\Action;
+use Magento\Catalog\Block\Product\ListProduct as ProductsList;
+use Magento\Checkout\Model\Cart;
 
-/** @var \Magento\CatalogWidget\Block\Product\ProductsList $block */
+/** @var ProductsList $block */
 /** @var Escaper $escaper */
+
 // phpcs:disable Generic.Files.LineLength.TooLong
 // phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
 ?>
@@ -21,6 +25,12 @@ use Magento\Framework\App\Action\Action;
     $showCart = true;
     $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
     $description = false;
+
+    // check the mini cart has items or not
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $cart = $objectManager->get(Cart::class);
+    $itemsCount = $cart->getQuote()->getItemsCount();
+    $isMinicartEmpty = $itemsCount == 0;
     ?>
     <div class="block widget block-products-list <?= /* @noEscape */ $mode ?>">
         <?php if ($block->getTitle()): ?>
@@ -76,6 +86,7 @@ use Magento\Framework\App\Action\Action;
                                                                 <span><?= $block->escapeHtml(__('Add to Cart')) ?></span>
                                                             </button>
                                                         </form>
+                                                        <?php if($isMinicartEmpty): ?>
                                                         <div class="amwal-express-checkout-button"
                                                              trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
                                                              form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
@@ -91,6 +102,8 @@ use Magento\Framework\App\Action\Action;
                                                                 }
                                                             }
                                                         </script>
+                                                        <?php endif; ?>
+
                                                     <?php else: ?>
                                                         <?php if ($_item->isAvailable()): ?>
                                                             <div class="stock available"><span><?= $block->escapeHtml(__('In stock')) ?></span></div>

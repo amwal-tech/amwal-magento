@@ -12,7 +12,7 @@ interface AmwalMagentoReactButtonProps {
 const AmwalMagentoReactButton = ({
   triggerContext,
   preCheckoutTask,
-  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'amwal-widget' || triggerContext === 'product-list-widget'
+  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget'
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -134,23 +134,23 @@ const AmwalMagentoReactButton = ({
         console.log(err)
       })
   }
-
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
-    if (event.detail.paymentSuccessful) {
-      if (event.detail.orderId) {
-        completeOrder(event.detail.orderId)
+      if (event.detail.paymentSuccessful) {
+          if (event.detail.orderId) {
+              completeOrder(event.detail.orderId)
+          }
+      } else if (emptyCartOnCancellation) {
+          buttonRef.current?.setAttribute('disabled', 'true')
+          fetch('/rest/V1/amwal/clean-quote', {
+              method: 'POST',
+              headers: {
+                  'X-Requested-With': 'XMLHttpRequest'
+              }
+          }).finally(() => {
+              buttonRef.current?.removeAttribute('disabled')
+              window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
+          })
       }
-    } else if (emptyCartOnCancellation) {
-      buttonRef.current?.setAttribute('disabled', 'true')
-      fetch('/rest/V1/amwal/clean-quote', {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      }).finally(() => {
-        buttonRef.current?.removeAttribute('disabled')
-      })
-    }
   }
 
   const handleUpdateOrderOnPaymentsuccess = (event: AmwalCheckoutButtonCustomEvent<AmwalCheckoutStatus>): void => {
