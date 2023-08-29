@@ -57,7 +57,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         }
         $status = $amwalOrderData['status'];
 
-        if (!$this->isValidStatus($amwalOrderId)) {
+        if (!$this->isPayValid($amwalOrderId)) {
             return false;
         }
 
@@ -106,7 +106,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         return $order;
     }
 
-    private function isValidStatus($amwalOrderId)
+    private function isPayValid($amwalOrderId)
     {
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
         $orderState = $order->getState();
