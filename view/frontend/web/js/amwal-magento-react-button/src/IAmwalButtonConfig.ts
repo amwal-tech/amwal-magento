@@ -32,6 +32,7 @@ export interface IAmwalButtonConfig {
   plugin_version: string
   initial_first_name: string
   initial_last_name: string
+  installment_options_url: string
 }
 
 export interface IRefIdData {

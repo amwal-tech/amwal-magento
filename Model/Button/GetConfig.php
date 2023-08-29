@@ -117,6 +117,7 @@ class GetConfig
         $buttonConfig->setPluginVersion($this->config->getVersion());
         $buttonConfig->setQuoteId($this->checkoutSessionFactory->create()->getQuote()->getId());
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
+        $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());
 
         $initialAddressData = $this->getInitialAddressData($customerSession);
         if ($initialAddressData) {
@@ -129,6 +130,7 @@ class GetConfig
             $buttonConfig->setInitialFirstName($initialAddressData['firstname']);
             $buttonConfig->setInitialLastName($initialAddressData['lastname']);
         }
+
     }
 
     /**
@@ -164,14 +166,12 @@ class GetConfig
         $customer = $customerSession->getCustomer();
 
         $addressData = $this->checkoutSessionFactory->create()->getQuote()->getShippingAddress();
-
         if (!$addressData->getCity()) {
             $addressData = $customer->getDefaultShippingAddress();
             if (!$addressData) {
                 return [];
             }
         }
-
         $initialAddress = $this->amwalAddressFactory->create();
         $initialAddress->setCity($addressData->getCity() ?? '');
         $initialAddress->setState($addressData->getRegionCode() ?? '');

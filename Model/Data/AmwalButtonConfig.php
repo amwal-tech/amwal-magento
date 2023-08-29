@@ -411,6 +411,23 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
         return $this->setData(self::POSTCODE_OPTIONAL_COUNTRIES, $postCodeOptionalCountries);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getInstallmentOptionsUrl(): ?string
+    {
+        return $this->getData(self::INSTALLMENT_OPTIONS_URL);
+    }
+
+    /**
+     * @inheritDoc
+     */
+
+    public function setInstallmentOptionsUrl(?string $installmentOptionsUrl): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::INSTALLMENT_OPTIONS_URL, $installmentOptionsUrl);
+    }
+
 
     /**
      * @inheritDoc
