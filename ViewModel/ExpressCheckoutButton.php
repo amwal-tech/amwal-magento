@@ -46,7 +46,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function __construct(
         AmwalConfig $config,
         Random $random,
-        SessionFactory $checkoutSessionFactory,
+        SessionFactory $checkoutSessionFactory
     ) {
         $this->config = $config;
         $this->random = $random;
