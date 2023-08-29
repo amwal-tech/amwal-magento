@@ -287,6 +287,7 @@ const AmwalMagentoReactButton = ({
         postcodeOptionalCountries={JSON.stringify(config.post_code_optional_countries) as any}
         initialFirstName={config.initial_first_name}
         initialLastName={config.initial_last_name}
+        installmentOptionsUrl={config.installment_options_url}
     />
     : <></>
 }
