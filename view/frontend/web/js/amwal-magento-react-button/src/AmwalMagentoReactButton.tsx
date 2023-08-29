@@ -7,12 +7,14 @@ interface AmwalMagentoReactButtonProps {
   triggerContext: string
   preCheckoutTask?: () => Promise<void>
   emptyCartOnCancellation?: boolean
+  baseUrl?: string
 }
 
 const AmwalMagentoReactButton = ({
   triggerContext,
   preCheckoutTask,
-  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget'
+  emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
+  baseUrl = '/rest/V1/amwal'
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -36,7 +38,7 @@ const AmwalMagentoReactButton = ({
       timestamp: Date.now()
     }
     setRefIdData(initalRefIdData)
-    fetch('/rest/V1/amwal/button/cart', {
+    fetch(`${baseUrl}/button/cart`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,7 +59,7 @@ const AmwalMagentoReactButton = ({
   }, [])
 
   const getQuote = async (addressData?: IAddress): Promise<void> => {
-    const response = await fetch('/rest/V1/amwal/get-quote', {
+    const response = await fetch(`${baseUrl}/get-quote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -116,7 +118,7 @@ const AmwalMagentoReactButton = ({
   }
 
   const completeOrder = (amwalOrderId: string): void => {
-    fetch('/rest/V1/amwal/pay-order', {
+    fetch(`${baseUrl}/pay-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,7 +143,7 @@ const AmwalMagentoReactButton = ({
       }
     } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
-      fetch('/rest/V1/amwal/clean-quote', {
+      fetch(`${baseUrl}/clean-quote`, {
         method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
@@ -169,7 +171,7 @@ const AmwalMagentoReactButton = ({
   }, [finishedUpdatingOrder, receivedSuccess])
 
   const handleAmwalPrePayTrigger = (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
-    fetch('/rest/V1/amwal/place-order', {
+    fetch(`${baseUrl}/place-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -206,7 +208,7 @@ const AmwalMagentoReactButton = ({
 
   const handleAmwalPreCheckoutTrigger = (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
     const getConfig = async (): Promise<Response> => {
-      return await fetch('/rest/V1/amwal/button/cart', {
+      return await fetch(`${baseUrl}/button/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
