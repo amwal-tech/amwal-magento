@@ -39,7 +39,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         CategoryRepositoryInterface $categoryRepository,
         Config                      $config,
         Random                      $random,
-        Data                        $urlHelper, array $data = [],
+        Data                        $urlHelper, array $data = []
     )
     {
         $this->_productFactory = $productFactory;
