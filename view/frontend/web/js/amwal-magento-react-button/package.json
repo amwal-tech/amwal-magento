@@ -1,7 +1,7 @@
 {
   "name": "amwal-magento-react-button",
   "sideEffects": false,
-  "version": "0.0.2",
+  "version": "0.0.14",
   "description": "Amwal React Button with Magento Backend",
   "repository": {
     "type": "git",
@@ -12,8 +12,7 @@
     "clean": "rm -rf dist",
     "compile": "npm run tsc",
     "tsc": "tsc -p .",
-    "rollup": "rollup -c",
-    "publish": "npm version patch && npm publish"
+    "rollup": "rollup -c"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
