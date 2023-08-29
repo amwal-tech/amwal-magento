@@ -102,12 +102,12 @@ const AmwalMagentoReactButton = ({
   const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
     getQuote(event.detail)
       .then(() => {
-            buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
+        buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
       })
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
           detail: {
-            description: "Error in updating address",
+            description: 'Error in updating address',
             error: err?.toString()
           }
         }))
@@ -151,6 +151,18 @@ const AmwalMagentoReactButton = ({
               window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
           })
       }
+    } else if (emptyCartOnCancellation) {
+      buttonRef.current?.setAttribute('disabled', 'true')
+      fetch('/rest/V1/amwal/clean-quote', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }).finally(() => {
+        buttonRef.current?.removeAttribute('disabled')
+        window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
+      })
+    }
   }
 
   const handleUpdateOrderOnPaymentsuccess = (event: AmwalCheckoutButtonCustomEvent<AmwalCheckoutStatus>): void => {
@@ -287,6 +299,7 @@ const AmwalMagentoReactButton = ({
         postcodeOptionalCountries={JSON.stringify(config.post_code_optional_countries) as any}
         initialFirstName={config.initial_first_name}
         initialLastName={config.initial_last_name}
+        installmentOptionsUrl={config.installment_options_url}
     />
     : <></>
 }

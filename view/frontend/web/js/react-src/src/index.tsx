@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import AmwalMagentoReactButton from 'amwal-magento-react-button'
 
 export const renderReactElement = (container: Element): void => {
@@ -20,12 +20,12 @@ export const renderReactElement = (container: Element): void => {
         }
       })
     }
-    ReactDOM.render(
+    const root = createRoot(container) // createRoot(container!) if you use TypeScript
+    root.render(
         <AmwalMagentoReactButton
             triggerContext={triggerContext}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
-        />
-        , container)
+        />)
   }
 }
 
