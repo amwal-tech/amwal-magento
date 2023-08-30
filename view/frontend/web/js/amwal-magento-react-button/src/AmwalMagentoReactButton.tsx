@@ -101,22 +101,22 @@ const AmwalMagentoReactButton = ({
     throw new Error(`Unexpected get-quote result ${JSON.stringify(data)}`)
   }
 
-    const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
-        getQuote(event.detail)
-            .catch(err => {
-                buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
-                    detail: {
-                        description: 'Error in updating address',
-                        error: err?.toString()
-                    }
-                }))
-                console.log(err)
-            })
-    }
+  const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
+    getQuote(event.detail)
+      .catch(err => {
+        buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
+          detail: {
+            description: 'Error in updating address',
+            error: err?.toString()
+          }
+        }))
+        console.log(err)
+      })
+  }
 
-    React.useEffect(() => {
-        buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
-    }, [shippingMethods])
+  React.useEffect(() => {
+    buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
+  }, [shippingMethods])
 
   const completeOrder = (amwalOrderId: string): void => {
     fetch(`${baseUrl}/amwal/pay-order`, {
