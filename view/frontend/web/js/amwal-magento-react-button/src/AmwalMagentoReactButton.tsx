@@ -103,9 +103,6 @@ const AmwalMagentoReactButton = ({
 
   const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
     getQuote(event.detail)
-      .then(() => {
-        buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
-      })
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
           detail: {
@@ -116,6 +113,10 @@ const AmwalMagentoReactButton = ({
         console.log(err)
       })
   }
+
+  React.useEffect(() => {
+    buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
+  }, [shippingMethods])
 
   const completeOrder = (amwalOrderId: string): void => {
     fetch(`${baseUrl}/amwal/pay-order`, {
