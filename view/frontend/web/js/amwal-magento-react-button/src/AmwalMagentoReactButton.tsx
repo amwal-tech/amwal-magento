@@ -103,9 +103,6 @@ const AmwalMagentoReactButton = ({
 
   const handleAmwalAddressUpdate = (event: AmwalCheckoutButtonCustomEvent<IAddress>): void => {
     getQuote(event.detail)
-      .then(() => {
-        buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
-      })
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
           detail: {
@@ -116,6 +113,10 @@ const AmwalMagentoReactButton = ({
         console.log(err)
       })
   }
+
+  React.useEffect(() => {
+    buttonRef.current?.dispatchEvent(new Event('amwalAddressAck'))
+  }, [shippingMethods])
 
   const completeOrder = (amwalOrderId: string): void => {
     fetch(`${baseUrl}/amwal/pay-order`, {
@@ -137,9 +138,21 @@ const AmwalMagentoReactButton = ({
       })
   }
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
-    if (event.detail.paymentSuccessful) {
-      if (event.detail.orderId) {
-        completeOrder(event.detail.orderId)
+      if (event.detail.paymentSuccessful) {
+          if (event.detail.orderId) {
+              completeOrder(event.detail.orderId)
+          }
+      } else if (emptyCartOnCancellation) {
+          buttonRef.current?.setAttribute('disabled', 'true')
+          fetch('/rest/V1/amwal/clean-quote', {
+              method: 'POST',
+              headers: {
+                  'X-Requested-With': 'XMLHttpRequest'
+              }
+          }).finally(() => {
+              buttonRef.current?.removeAttribute('disabled')
+              window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
+          })
       }
     } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
