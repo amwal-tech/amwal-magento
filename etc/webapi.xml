@@ -37,4 +37,22 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/amwal/order/details/:amwal_order_id" method="GET">
+        <service class="Amwal\Payments\Api\Data\AmwalOrderInterface" method="getOrderDetails"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/amwal/order/status" method="POST">
+        <service class="Amwal\Payments\Api\Data\AmwalOrderInterface" method="updateOrderStatus"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/amwal/refand" method="POST">
+        <service class="Amwal\Payments\Model\Refund\Refund" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>
