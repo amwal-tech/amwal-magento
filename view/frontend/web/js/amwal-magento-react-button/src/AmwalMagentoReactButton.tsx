@@ -138,9 +138,21 @@ const AmwalMagentoReactButton = ({
       })
   }
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
-    if (event.detail.paymentSuccessful) {
-      if (event.detail.orderId) {
-        completeOrder(event.detail.orderId)
+      if (event.detail.paymentSuccessful) {
+          if (event.detail.orderId) {
+              completeOrder(event.detail.orderId)
+          }
+      } else if (emptyCartOnCancellation) {
+          buttonRef.current?.setAttribute('disabled', 'true')
+          fetch('/rest/V1/amwal/clean-quote', {
+              method: 'POST',
+              headers: {
+                  'X-Requested-With': 'XMLHttpRequest'
+              }
+          }).finally(() => {
+              buttonRef.current?.removeAttribute('disabled')
+              window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
+          })
       }
     } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')

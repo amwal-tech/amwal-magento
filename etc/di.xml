@@ -79,6 +79,7 @@
     <preference for="Amwal\Payments\Api\Data\AmwalButtonConfigInterface" type="Amwal\Payments\Model\Data\AmwalButtonConfig"/>
     <preference for="Amwal\Payments\Api\RefIdManagementInterface" type="Amwal\Payments\Model\RefIdManagement"/>
     <preference for="Amwal\Payments\Api\Data\RefIdDataInterface" type="Amwal\Payments\Model\Data\RefIdData"/>
+    <preference for="Amwal\Payments\Api\Data\AmwalOrderInterface" type="Amwal\Payments\Model\Data\AmwalOrderDetails" />
 
     <preference for="Magento\CatalogWidget\Block\Product\ProductsList" type="Amwal\Payments\Block\Product\ProductsList" />
 

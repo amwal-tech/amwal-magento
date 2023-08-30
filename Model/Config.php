@@ -39,6 +39,7 @@ class Config
     public const XML_CONFIG_PATH_TEST_API_BASE_URL = 'payment/amwal_payments/test_api_base_url';
     public const XML_CONFIG_PATH_PROD_API_BASE_URL = 'payment/amwal_payments/prod_api_base_url';
     public const XML_CONFIG_PATH_STREET_LINE_COUNT = 'customer/address/street_lines';
+    public const XML_CONFIG_PATH_SECRET_KEY = 'payment/amwal_payments/secret_key';
     public const XML_CONFIG_PATH_INSTALLMENT_CALLBACK = 'payment/amwal_payments/installment_callback';
 
 
@@ -328,6 +329,14 @@ class Config
             $optionalCountries = explode(',', $getOptionalCountries);
         }
         return $optionalCountries;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecretKey(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_SECRET_KEY, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
