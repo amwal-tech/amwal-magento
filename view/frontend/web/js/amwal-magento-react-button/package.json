@@ -1,7 +1,7 @@
 {
   "name": "amwal-magento-react-button",
   "sideEffects": false,
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Amwal React Button with Magento Backend",
   "repository": {
     "type": "git",
