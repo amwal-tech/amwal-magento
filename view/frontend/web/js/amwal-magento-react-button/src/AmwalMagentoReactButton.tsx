@@ -50,8 +50,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         refIdData: initalRefIdData,
         triggerContext
-      }),
-      credentials: 'include'
+      })
     })
       .then(async response => await response.json())
       .then(data => {
@@ -77,8 +76,7 @@ const AmwalMagentoReactButton = ({
         trigger_context: triggerContext,
         ref_id_data: refIdData,
         order_items: []
-      }),
-      credentials: 'include'
+      })
     })
     if (!response.ok) throw new Error(response.statusText)
 
@@ -135,8 +133,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         order_id: placedOrderId,
         amwal_order_id: amwalOrderId
-      }),
-      credentials: 'include'
+      })
     })
       .then(response => {
         setFinishedUpdatingOrder(response.ok)
@@ -196,8 +193,7 @@ const AmwalMagentoReactButton = ({
         ref_id_data: refIdData,
         trigger_context: triggerContext,
         has_amwal_address: !(triggerContext === 'regular-checkout')
-      }),
-      credentials: 'include'
+      })
     }).then(async response => await response.json())
       .then(data => {
         setPlacedOrderId(data.entity_id)
@@ -229,8 +225,7 @@ const AmwalMagentoReactButton = ({
         },
         body: JSON.stringify({
           refIdData
-        }),
-        credentials: 'include'
+        })
       })
     }
     const preCheckoutPromise = (preCheckoutTask != null)
