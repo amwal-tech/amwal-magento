@@ -9,6 +9,8 @@ interface AmwalMagentoReactButtonProps {
   emptyCartOnCancellation?: boolean
   baseUrl?: string
   extraHeaders?: Record<string, string>
+  overrideQuoteId?: string
+  redirectURL?: string
 }
 
 const AmwalMagentoReactButton = ({
@@ -16,7 +18,9 @@ const AmwalMagentoReactButton = ({
   preCheckoutTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
   baseUrl = '/rest/V1',
-  extraHeaders
+  extraHeaders,
+  overrideQuoteId,
+  redirectURL = '/checkout/onepage/success'
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -49,7 +53,8 @@ const AmwalMagentoReactButton = ({
       },
       body: JSON.stringify({
         refIdData: initalRefIdData,
-        triggerContext
+        triggerContext,
+        quoteId: overrideQuoteId ?? quoteId
       })
     })
       .then(async response => await response.json())
@@ -75,7 +80,8 @@ const AmwalMagentoReactButton = ({
         is_pre_checkout: false,
         trigger_context: triggerContext,
         ref_id_data: refIdData,
-        order_items: []
+        order_items: [],
+        quote_id: overrideQuoteId ?? quoteId
       })
     })
     if (!response.ok) throw new Error(response.statusText)
@@ -173,7 +179,7 @@ const AmwalMagentoReactButton = ({
   React.useEffect(() => {
     if (finishedUpdatingOrder && receivedSuccess) {
       window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
-      window.location.href = '/checkout/onepage/success'
+      window.location.href = redirectURL
     }
   }, [finishedUpdatingOrder, receivedSuccess])
 
@@ -188,7 +194,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         ref_id: config?.ref_id,
         address_data: event.detail,
-        quote_id: quoteId,
+        quote_id: overrideQuoteId ?? quoteId,
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
         trigger_context: triggerContext,
@@ -224,7 +230,8 @@ const AmwalMagentoReactButton = ({
           'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({
-          refIdData
+          refIdData,
+          quoteId: overrideQuoteId ?? quoteId,
         })
       })
     }
