@@ -10,6 +10,7 @@ interface AmwalMagentoReactButtonProps {
   baseUrl?: string
   extraHeaders?: Record<string, string>
   overrideQuoteId?: string
+  redirectURL?: string
 }
 
 const AmwalMagentoReactButton = ({
@@ -18,7 +19,8 @@ const AmwalMagentoReactButton = ({
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
   baseUrl = '/rest/V1',
   extraHeaders,
-  overrideQuoteId
+  overrideQuoteId,
+  redirectURL = '/checkout/onepage/success'
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -177,7 +179,7 @@ const AmwalMagentoReactButton = ({
   React.useEffect(() => {
     if (finishedUpdatingOrder && receivedSuccess) {
       window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
-      window.location.href = '/checkout/onepage/success'
+      window.location.href = redirectURL
     }
   }, [finishedUpdatingOrder, receivedSuccess])
 

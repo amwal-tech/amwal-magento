@@ -41,6 +41,7 @@ const ReactPage= () => {
           'x-access-token': 'abc'
         }}
         overrideQuoteId={quoteId}
+        redirectURL={redirectURL}
     />
     ...
 }
@@ -55,6 +56,6 @@ const ReactPage= () => {
 | baseUrl | string \| undefined                  | base URL for the magento backend. Defaults to `/rest/V1`                                                                                                                      |
 | extraHeaders | Record<string, string> \| undefined                  | extra headers in JSON format to send with fetch requests                                                                                                                      |
 | overrideQuoteId | string \| undefined                  | Useful when you want to provide your own quoteId.                                                                                                       |
-
+| redirectURL | string \| undefined                  | URL to redirect to after checkout is completed.                                                                                                       |
 
 
