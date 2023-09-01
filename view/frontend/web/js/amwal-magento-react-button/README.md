@@ -40,6 +40,7 @@ const ReactPage= () => {
         extraHeaders={{
           'x-access-token': 'abc'
         }}
+        overrideQuoteId={quoteId}
     />
     ...
 }
@@ -48,8 +49,12 @@ const ReactPage= () => {
 ## Properties
 | Property                | Type                                  | Description                                                                                                                                                                   |
 |-------------------------|---------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| triggerContext          | string                                | Context where the button is instantiated. possible values `product-listing-page`, `regular-checkout`, .. etc.                                                                                                                    |
+| triggerContext          | string                                | Context where the button is instantiated. possible values `product-listing-page`, `regular-checkout`, .. etc.                                                                 |
 | preCheckoutTask         | ()  =>   Promise < void >\| undefined | An asynchronous function that is fired when the button is clicked on checkout. Possible Uses are for performing operations such as adding product to cart if on product page. |
 | emptyCartOnCancellation | boolean \| undefined                  | controls behavior if Cart is emptied when the user cancels the checkout                                                                                                       |
-| baseUrl | string \| undefined                  | base URL for the magento backend. Defaults to `/rest/V1`                                                                                                       |
-| extraHeaders | Record<string, string> \| undefined                  | extra headers in JSON format to send with fetch requests                                                                                                      |
+| baseUrl | string \| undefined                  | base URL for the magento backend. Defaults to `/rest/V1`                                                                                                                      |
+| extraHeaders | Record<string, string> \| undefined                  | extra headers in JSON format to send with fetch requests                                                                                                                      |
+| overrideQuoteId | string \| undefined                  | Useful when you want to provide your own quoteId.                                                                                                       |
+
+
+
