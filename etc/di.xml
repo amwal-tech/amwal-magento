@@ -83,10 +83,15 @@
 
     <preference for="Magento\CatalogWidget\Block\Product\ProductsList" type="Amwal\Payments\Block\Product\ProductsList" />
 
-
     <!-- Plugins -->
     <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
-        <plugin name="amwal_payments_prevent_email_on_order_submit"
-                type="Amwal\Payments\Plugin\Sales\Order\Email\PreventEmailForNewOrder" sortOrder="10" />
+        <plugin name="amwal_payments_prevent_email_on_order_submit" type="Amwal\Payments\Plugin\Sales\Order\Email\PreventEmailForNewOrder" sortOrder="10" />
+    </type>
+    <type name="Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Items">
+        <plugin name="amwal_refund_button" type="Amwal\Payments\Plugin\Sales\Order\Creditmemo\RefundButton" sortOrder="10" />
+    </type>
+
+    <type name="Magento\Sales\Block\Adminhtml\Order\View">
+        <plugin name="amwal_order_details" type="Amwal\Payments\Plugin\Sales\Order\View\Details" sortOrder="10" />
     </type>
 </config>
