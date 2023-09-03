@@ -204,6 +204,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
+
+
+
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
 
         $this->orderRepository->save($order);
@@ -245,6 +248,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
         $order->setAmwalOrderId($amwalOrderId);
+        $order->addStatusHistoryComment('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
 
         return $order;

@@ -139,12 +139,16 @@ class PayOrder extends AmwalCheckoutAction
         }
 
         $this->addAdditionalPaymentInformation($amwalOrderData, $order);
+        $amwalOrderStatus = $amwalOrderData->getStatus();
 
-        $order->setState($this->config->getOrderConfirmedStatus());
-        $order->setStatus($this->config->getOrderConfirmedStatus());
-
-        $order->setSendEmail(true);
-        $this->orderNotifier->notify($order);
+        if($amwalOrderStatus == 'success') {
+            $order->setState($this->config->getOrderConfirmedStatus());
+            $order->setStatus($this->config->getOrderConfirmedStatus());
+            $order->setSendEmail(true);
+            $this->orderNotifier->notify($order);
+        }else{
+            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been failed, status: (' . $amwalOrderStatus . ')');
+        }
 
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
@@ -156,7 +160,9 @@ class PayOrder extends AmwalCheckoutAction
 
         $this->orderRepository->save($order);
 
-        $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+        if($amwalOrderStatus == 'success') {
+            $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+        }
 
         return true;
     }
