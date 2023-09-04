@@ -109,7 +109,6 @@ class Refund extends AmwalCheckoutAction
                 ]
             );
             $responseBody = $this->jsonSerializer->unserialize($response->getBody());
-
             if ($response->getStatusCode() === 200 && $responseBody['status'] === 'success') {
                 return [
                     'data' => [
@@ -121,7 +120,7 @@ class Refund extends AmwalCheckoutAction
             }
         } catch (ClientException $e) {
             $responseBody = $this->jsonSerializer->unserialize($e->getResponse()->getBody());
-            if ($response->getStatusCode() === 400) {
+            if ($e->getResponse()->getStatusCode() === 400) {
                 return [
                     'data' => [
                         'status' => false,
