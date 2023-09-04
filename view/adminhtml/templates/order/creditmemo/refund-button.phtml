@@ -59,10 +59,12 @@ $orderId = $this->getData('orderId');
                 })
                 .then((response) => response.json())
                 .then(function (response) {
-                    if (response) {
+                    response = response[0] || response;
+                    console.log(response);
+                    if (response.status) {
                         window.history.back();
                     } else {
-                        alert('<?= __('Something went wrong while refunding the order. Please try again later.') ?>');
+                        alert(response.message);
                     }
                 }).catch(function (response) {
                     console.log(response);

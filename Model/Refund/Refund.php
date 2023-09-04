@@ -54,7 +54,7 @@ class Refund extends AmwalCheckoutAction
     /**
      * Executes the refund request.
      *
-     * @return bool Whether the refund was successful.
+     * @return mixed[] The response body.
      */
     public function execute()
     {
@@ -71,22 +71,18 @@ class Refund extends AmwalCheckoutAction
             'transactions_id' => $order->getAmwalOrderId()
         ];
         $refundSuccessful = $this->refundRequest($order, $requestBody);
-        if ($refundSuccessful) {
+        if ($refundSuccessful['data']['status']) {
             $creditMemo = $this->refundHandler->initiateCreditMemo($order, $refundItems, $refundAmount, $refundShippingAmount);
             if ($creditMemo) {
-                return true;
-            } else {
-                $message = sprintf(
-                    'Unable to initiate credit memo for order with ID "%s".',
-                    $orderId
-                );
-                $this->reportError($orderId, $message);
-                $this->logger->error($message);
-                return false;
+                return [
+                    'data' => $this->jsonResponse([
+                        'status' => true,
+                        'message' => __('The refund was successful.')
+                    ])
+                ];
             }
-        } else {
-            return false;
         }
+        return $refundSuccessful;
     }
 
     /**
@@ -94,9 +90,10 @@ class Refund extends AmwalCheckoutAction
      *
      * @param \Magento\Sales\Model\Order $order The order object for which to initiate the refund.
      * @param array $requestBody The request body containing refund details.
-     * @return bool Whether the refund request was successful.
+     * @return mixed[] The response body.
      */
-    public function refundRequest($order, $requestBody) {
+    public function refundRequest($order, $requestBody)
+    {
         $transactionId = $order->getAmwalOrderId();
         $headers = ['Authorization' => $this->config->getSecretKey()];
         $amwalClient = $this->amwalClientFactory->create();
@@ -108,11 +105,24 @@ class Refund extends AmwalCheckoutAction
                     RequestOptions::HEADERS => $headers
                 ]
             );
-            if ($response->getStatusCode() === 200) {
-                $responseBody = $this->jsonSerializer->unserialize($response->getBody());
-                if ($responseBody['status'] === 'success') {
-                    return true;
-                }
+            $responseBody = $this->jsonSerializer->unserialize($response->getBody());
+
+            if ($response->getStatusCode() === 200 && $responseBody['status'] === 'success') {
+                return [
+                    'data' => $this->jsonResponse([
+                        'status' => true,
+                        'message' => __('The refund was successful.')
+                    ])
+                ];
+            }
+            if ($response->getStatusCode() === 400) {
+
+                return [
+                    'data' => $this->jsonResponse([
+                        'status' => false,
+                        'message' => $responseBody['message']
+                    ])
+                ];
             }
         } catch (GuzzleException $e) {
             $message = sprintf(
@@ -122,7 +132,18 @@ class Refund extends AmwalCheckoutAction
             );
             $this->reportError($transactionId, $message);
             $this->logger->error($message);
-            return false;
+            return [
+                'data' => $this->jsonResponse([
+                    'status' => false,
+                    'message' => __('Something went wrong while refunding the order. Please try again later.')
+                ])
+            ];
         }
+    }
+
+
+    protected function jsonResponse($data)
+    {
+        return $data;
     }
 }
