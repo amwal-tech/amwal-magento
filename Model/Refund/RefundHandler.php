@@ -57,7 +57,7 @@ class RefundHandler
             }
         }
         $order->setTotalRefunded($order->getTotalRefunded() + $refundAmount);
-        $order->addStatusHistoryComment('We refunded ' . $refundAmountFormatted . ' online by Amwal Payments.');
+        $order->addStatusHistoryComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
 
         $creditMemo->save();
         $order->save();
