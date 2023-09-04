@@ -67,7 +67,7 @@ class Refund extends AmwalCheckoutAction
         $order = $this->orderRepository->get($orderId);
         $requestBody = [
             'refund_amount' => $refundAmount,
-            'metadata' => ['reason' => !empty($refundReason) ? $refundReason : 'Refund request from Magento by Amwal Payments'],
+            'metadata' => ['reason' => !empty($refundReason) ? $refundReason : __('Refund request from Magento by Amwal Payments')],
             'transactions_id' => $order->getAmwalOrderId()
         ];
         $refundSuccessful = $this->refundRequest($order, $requestBody);
