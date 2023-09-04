@@ -56,11 +56,13 @@ $orderId = $this->getData('orderId');
                     headers: {
                         'Content-Type': 'application/json'
                     }
-                }).then(function (response) {
-                    if (response.ok) {
+                })
+                .then((response) => response.json())
+                .then(function (response) {
+                    if (response) {
                         window.history.back();
                     } else {
-                        alert('<?= __('An error occurred while refunding the order.') ?>');
+                        alert('<?= __('Something went wrong while refunding the order. Please try again later.') ?>');
                     }
                 }).catch(function (response) {
                     console.log(response);

@@ -52,55 +52,40 @@ class Refund extends AmwalCheckoutAction
     }
 
     /**
-     * @return void
+     * Executes the refund request.
+     *
+     * @return bool Whether the refund was successful.
      */
-    public function execute(): void
+    public function execute()
     {
-        try {
-            $requestBody = $this->restRequest->getBodyParams();
-            $orderId = $requestBody['order_id'];
-            $refundReason = $requestBody['refund_reason'];
-            $refundAmount = (float)$requestBody['refund_amount'];
-            $refundShippingAmount = (float)$requestBody['refund_shipping_amount'];
-            $refundItems = $requestBody['refund_items'];
-            $order = $this->orderRepository->get($orderId);
-            $requestBody = [
-                'refund_amount' => $refundAmount,
-                'metadata' => ['reason' => !empty($refundReason) ? $refundReason : 'Refund request from Magento by Amwal Payments'],
-                'transactions_id' => $order->getAmwalOrderId()
-            ];
-            $refundSuccessful = $this->refundRequest($order, $requestBody);
-            if ($refundSuccessful) {
-                $creditMemoId = $this->refundHandler->initiateCreditMemo($order, $refundItems, $refundAmount, $refundShippingAmount);
-                if ($creditMemoId) {
-                    return;
-                } else {
-                    $message = sprintf(
-                        'Unable to initiate credit memo for order with ID "%s".',
-                        $orderId
-                    );
-                    $this->reportError($orderId, $message);
-                    $this->logger->error($message);
-                    return;
-                }
+        $requestBody = $this->restRequest->getBodyParams();
+        $orderId = $requestBody['order_id'];
+        $refundReason = $requestBody['refund_reason'];
+        $refundAmount = (float)$requestBody['refund_amount'];
+        $refundShippingAmount = (float)$requestBody['refund_shipping_amount'];
+        $refundItems = $requestBody['refund_items'];
+        $order = $this->orderRepository->get($orderId);
+        $requestBody = [
+            'refund_amount' => $refundAmount,
+            'metadata' => ['reason' => !empty($refundReason) ? $refundReason : 'Refund request from Magento by Amwal Payments'],
+            'transactions_id' => $order->getAmwalOrderId()
+        ];
+        $refundSuccessful = $this->refundRequest($order, $requestBody);
+        if ($refundSuccessful) {
+            $creditMemo = $this->refundHandler->initiateCreditMemo($order, $refundItems, $refundAmount, $refundShippingAmount);
+            if ($creditMemo) {
+                return true;
             } else {
                 $message = sprintf(
-                    'Unable to initiate refund request for order with ID "%s".',
+                    'Unable to initiate credit memo for order with ID "%s".',
                     $orderId
                 );
                 $this->reportError($orderId, $message);
                 $this->logger->error($message);
-                return;
+                return false;
             }
-        } catch (\Throwable $e) {
-            $message = sprintf(
-                'Unable to initiate refund for order with ID "%s". Exception: %s',
-                $orderId,
-                $e->getMessage()
-            );
-            $this->reportError($orderId, $message);
-            $this->logger->error($message);
-            return;
+        } else {
+            return false;
         }
     }
 
@@ -111,8 +96,7 @@ class Refund extends AmwalCheckoutAction
      * @param array $requestBody The request body containing refund details.
      * @return bool Whether the refund request was successful.
      */
-    public function refundRequest($order, $requestBody)
-    {
+    public function refundRequest($order, $requestBody) {
         $transactionId = $order->getAmwalOrderId();
         $headers = ['Authorization' => $this->config->getSecretKey()];
         $amwalClient = $this->amwalClientFactory->create();
