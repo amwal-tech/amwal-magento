@@ -151,9 +151,8 @@ const AmwalMagentoReactButton = ({
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
     if (!event.detail.orderId) return
     if (event.detail.paymentSuccessful) {
-        completeOrder(event.detail.orderId)
+      completeOrder(event.detail.orderId)
     } else if (emptyCartOnCancellation) {
-      console.log('emptyCartOnCancellation', triggerContext);
       buttonRef.current?.setAttribute('disabled', 'true')
       fetch(`${baseUrl}/amwal/clean-quote`, {
         method: 'POST',
@@ -232,7 +231,7 @@ const AmwalMagentoReactButton = ({
         body: JSON.stringify({
           refIdData,
           triggerContext,
-          quoteId: overrideQuoteId ?? quoteId,
+          quoteId: overrideQuoteId ?? quoteId
         })
       })
     }
