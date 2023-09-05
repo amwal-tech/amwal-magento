@@ -72,7 +72,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
                 }
                 $order->addStatusHistoryComment('Failure Reason: ' . $failure_reason);
             }else{
-                $order->setStatus($status);
+                $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment('Order status updated to ' . $status . ' by Amwal Payments.');
             }
 
@@ -117,16 +117,9 @@ class AmwalOrderDetails implements AmwalOrderInterface
         }
 
         $orderStates = [
-            'pending_payment',
-            'new',
-            'holded',
-            'canceled',
+            'pending_payment'
         ];
-
-        if (!in_array($orderState, $orderStates)) {
-            return false;
-        }
-        return true;
+        return in_array($orderState, $orderStates);
     }
 
     private function getOrderUrl($order)

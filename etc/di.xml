@@ -90,4 +90,8 @@
     <type name="Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Items">
         <plugin name="amwal_refund_button" type="Amwal\Payments\Plugin\Sales\Order\Creditmemo\RefundButton" sortOrder="10" />
     </type>
+
+    <type name="Magento\Sales\Block\Adminhtml\Order\View">
+        <plugin name="amwal_order_details" type="Amwal\Payments\Plugin\Sales\Order\View\Details" sortOrder="10" />
+    </type>
 </config>
