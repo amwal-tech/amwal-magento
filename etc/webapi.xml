@@ -49,4 +49,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/amwal/refand" method="POST">
+        <service class="Amwal\Payments\Model\Refund\Refund" method="execute"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

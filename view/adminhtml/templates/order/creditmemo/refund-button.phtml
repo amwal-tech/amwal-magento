@@ -1,0 +1,74 @@
+<?php
+/** @var int $orderId */
+$orderId = $this->getData('orderId');
+?>
+<button class="action-default scalable primary amwal-refund-button" type="button" data-order-id="<?= $orderId ?>">
+    <?= __('Refund with Amwal') ?>
+</button>
+
+<script>
+    require(['jquery', 'mage/translate'], function ($, $t) {
+        $(document).ready(function () {
+            $('.amwal-refund-button').click(function () {
+
+                let orderId = $(this).data('orderId');
+                let refundReason = $('textarea[name="creditmemo[comment_text]"]').val();
+                let refundShippingAmount = parseFloat($('input[name="creditmemo[shipping_amount]"]').val());
+                let refundAmount = 0;
+                refundAmount += refundShippingAmount;
+                refundAmount += parseFloat($('input[name="creditmemo[adjustment_positive]"]').val());
+                refundAmount -= parseFloat($('input[name="creditmemo[adjustment_negative]"]').val());
+
+                $('table.order-creditmemo-tables tbody tr td.col-total.last').each(function () {
+                    // check if the qty-input is 0 or not to avoid refunding the whole item qty
+                    if ($(this).parent().find('input.qty-input').val() === '0') {
+                        return;
+                    }
+                    refundAmount += parseFloat($(this).text().replace(/[^0-9.-]+/g, ""));
+                });
+                if (!confirm($t('Are you sure you want to refund ' + refundAmount + ' with Amwal Payments?'))) {
+                    return;
+                }
+                let refundItems = [];
+                $('input[name^="creditmemo[items]"]').each(function () {
+                    if ($(this).attr('name').indexOf('qty') === -1 || $(this).val() === '0') {
+                        return;
+                    }
+                    let itemId = $(this).attr('name').replace('creditmemo[items][', '').replace(']', '');
+                    itemId = itemId.replace(/\[[^\]]*\]/g, '');
+
+                    let itemQty = $(this).val();
+                    refundItems.push({
+                        item_id: itemId,
+                        qty: itemQty
+                    });
+                });
+
+                fetch('/rest/V1/amwal/refand', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        refund_shipping_amount: refundShippingAmount,
+                        refund_amount: refundAmount,
+                        refund_items: refundItems,
+                        refund_reason: refundReason
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then((response) => response.json())
+                .then(function (response) {
+                    response = response[0] || response;
+                    if (response.status) {
+                        window.history.back();
+                    } else {
+                        alert(response.message);
+                    }
+                }).catch(function (response) {
+                    console.log(response);
+                });
+            });
+        });
+    });
+</script>
