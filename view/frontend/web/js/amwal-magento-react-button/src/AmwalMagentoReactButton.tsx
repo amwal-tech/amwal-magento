@@ -145,7 +145,7 @@ const AmwalMagentoReactButton = ({
     })
       .then(response => {
         setFinishedUpdatingOrder(response.ok)
-        if (onSuccessTask) {
+        if (response.ok && onSuccessTask) {
           onSuccessTask()
             .catch(err => {
               console.log(err)
