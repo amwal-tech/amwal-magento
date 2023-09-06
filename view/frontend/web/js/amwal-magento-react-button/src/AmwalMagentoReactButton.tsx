@@ -6,6 +6,7 @@ import { type AmwalCheckoutButtonCustomEvent, type IAddress, type IShippingMetho
 interface AmwalMagentoReactButtonProps {
   triggerContext: string
   preCheckoutTask?: () => Promise<void>
+  onSuccessTask?: () => Promise<void>
   emptyCartOnCancellation?: boolean
   baseUrl?: string
   extraHeaders?: Record<string, string>
@@ -16,6 +17,7 @@ interface AmwalMagentoReactButtonProps {
 const AmwalMagentoReactButton = ({
   triggerContext,
   preCheckoutTask,
+  onSuccessTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
   baseUrl = '/rest/V1',
   extraHeaders,
@@ -143,6 +145,12 @@ const AmwalMagentoReactButton = ({
     })
       .then(response => {
         setFinishedUpdatingOrder(response.ok)
+        if (response.ok && onSuccessTask) {
+          onSuccessTask()
+            .catch(err => {
+              console.log(err)
+            })
+        }
       })
       .catch(err => {
         console.log(err)
