@@ -33,7 +33,7 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setId($this->getButtonId($quoteId));
 
         if ($triggerContext == 'regular-checkout') {
-            $this->addRegularCheckoutButtonConfig($buttonConfig, $quoteId);
+            $this->addRegularCheckoutButtonConfig($buttonConfig);
         }
 
         return $buttonConfig;
@@ -62,21 +62,15 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, $quoteId): void
+    private function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig): void
     {
-        if($quoteId){
-            $quote = $this->cartRepository->get($quoteId);
-            $shippingAddress = $quote->getShippingAddress();
-            $email = $shippingAddress->getEmail() ?? '';
-        }else{
-            $objectManager   = ObjectManager::getInstance();
-            $checkoutSession = $objectManager->get(Session::class);
-            $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
-            $email = $checkoutSession->getQuote()->getCustomerEmail() ?? $checkoutSession->getQuote()->getBillingAddress()->getEmail();
-        }
+        $objectManager   = ObjectManager::getInstance();
+        $checkoutSession = $objectManager->get(Session::class);
+        $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
 
         $street          = $shippingAddress->getStreet()[0] ?? '';
         $formatedAddress = json_encode(['street1' => $street, 'city' => $shippingAddress->getCity(),'state' => $shippingAddress->getRegion(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
+        $email = $checkoutSession->getQuote()->getCustomerEmail() ?? $checkoutSession->getQuote()->getBillingAddress()->getEmail();
 
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);
