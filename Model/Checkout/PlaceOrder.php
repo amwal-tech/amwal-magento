@@ -144,6 +144,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $quoteId = (int) $quoteId;
         $quote = $this->quoteRepository->get($quoteId);
 
+        $quote->setPaymentMethod(ConfigProvider::CODE);
+        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+
         $customerAddress = null;
         if ($hasAmwalAddress) {
             try {
@@ -200,9 +203,6 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
-
-        $quote->setPaymentMethod(ConfigProvider::CODE);
-        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
