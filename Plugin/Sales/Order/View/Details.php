@@ -76,6 +76,7 @@ class Details
             return;
         }
     }
+
     private function isPayValid($orderState, $amwalOrderStatus)
     {
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
