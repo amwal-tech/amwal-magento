@@ -119,7 +119,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $orderStates = [
             'pending_payment'
         ];
-        return in_array($orderState, $orderStates);
+        return $orderState === 'pending_payment';
     }
 
     private function getOrderUrl($order)
