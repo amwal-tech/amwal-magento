@@ -28,8 +28,7 @@ class Details
         RequestInterface   $request,
         AmwalClientFactory $amwalClientFactory,
         Config             $config
-    )
-    {
+    ) {
         $this->authSession = $authSession;
         $this->urlBuilder = $urlBuilder;
         $this->order = $order;
