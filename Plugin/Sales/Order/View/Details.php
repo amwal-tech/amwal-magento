@@ -87,9 +87,6 @@ class Details
         if($amwalOrderStatus !== 'success') {
             return false;
         }
-        $orderStates = [
-            'pending_payment'
-        ];
-        return in_array($orderState, $orderStates);
+        return $orderState === 'pending_payment';
     }
 }
