@@ -115,10 +115,6 @@ class AmwalOrderDetails implements AmwalOrderInterface
         if ($orderState === $defaultOrderStatus) {
             return false;
         }
-
-        $orderStates = [
-            'pending_payment'
-        ];
         return $orderState === 'pending_payment';
     }
 
