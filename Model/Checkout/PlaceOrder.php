@@ -7,6 +7,7 @@ use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
@@ -199,6 +200,9 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
+
+        $quote->setPaymentMethod(ConfigProvider::CODE);
+        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
