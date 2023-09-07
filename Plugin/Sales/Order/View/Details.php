@@ -14,12 +14,12 @@ use Amwal\Payments\Model\Config;
 
 class Details
 {
-    protected $authSession;
-    protected $urlBuilder;
-    protected $order;
-    protected $request;
-    protected $amwalClientFactory;
-    private $config;
+    protected Session $authSession;
+    protected UrlInterface $urlBuilder;
+    protected OrderInterface $order;
+    protected RequestInterface $request;
+    protected AmwalClientFactory $amwalClientFactory;
+    private Config $config;
 
     public function __construct(
         Session            $authSession,
