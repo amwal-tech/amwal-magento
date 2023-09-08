@@ -1,6 +1,7 @@
-const path = require('path')
+import path from 'path'
+import type webpack from 'webpack'
 
-module.exports = {
+const config: webpack.Configuration = {
   entry: './src/index.tsx',
   module: {
     rules: [
@@ -12,9 +13,9 @@ module.exports = {
             presets: [
               '@babel/preset-env',
               '@babel/preset-react',
-              '@babel/preset-typescript',
-            ],
-          },
+              '@babel/preset-typescript'
+            ]
+          }
         },
         exclude: /node_modules/
       }
@@ -28,3 +29,4 @@ module.exports = {
     path: path.resolve(__dirname, 'dist')
   }
 }
+export default config
