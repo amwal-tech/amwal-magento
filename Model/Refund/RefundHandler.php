@@ -56,6 +56,7 @@ class RefundHandler
 
                 if ($orderItem->getDiscountAmount() > 0) {
                     $itemPrice -= $orderItem->getDiscountAmount() * ($refundQty / $orderItem->getQtyOrdered());
+                    $itemPrice += $orderItem->getTaxAmount() * ($refundQty / $orderItem->getQtyOrdered());
                 }
                 $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
             }
