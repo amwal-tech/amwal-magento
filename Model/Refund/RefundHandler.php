@@ -28,7 +28,7 @@ class RefundHandler
     }
 
 
-    public function initiateCreditMemo(OrderInterface $order, array $refundItems, float $refundAmount)
+    public function initiateCreditMemo(OrderInterface $order, array $refundItems, float $refundAmount, float $shippingAmount, float $adjustmentPositive, float $adjustmentNegative)
     {
 
         $refundItems = $this->getItemsToRefund($order, $refundItems);
@@ -46,6 +46,9 @@ class RefundHandler
         $creditMemo->addComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
         $creditMemo->setState(Creditmemo::STATE_REFUNDED);
         $creditMemo->setGrandTotal($refundAmount);
+        $creditMemo->setShippingAmount($shippingAmount);
+        $creditMemo->setAdjustmentPositive($adjustmentPositive);
+        $creditMemo->setAdjustmentNegative($adjustmentNegative);
 
         foreach ($order->getAllItems() as $orderItem) {
             $itemId = $orderItem->getId();
@@ -56,6 +59,7 @@ class RefundHandler
                     $itemPrice -= $orderItem->getDiscountAmount() * ($refundQty / $orderItem->getQtyOrdered());
                     $itemPrice += $orderItem->getTaxAmount() * ($refundQty / $orderItem->getQtyOrdered());
                 }
+
                 $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
                 $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundQty);
             }

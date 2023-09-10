@@ -14,6 +14,9 @@ $orderId = $this->getData('orderId');
                 let orderId = $(this).data('orderId');
                 let refundReason = $('textarea[name="creditmemo[comment_text]"]').val();
                 let refundAmount = 0;
+                let shippingAmount = $('input[name="creditmemo[shipping_amount]"]').val();
+                let adjustmentPositive = $('input[name="creditmemo[adjustment_positive]"]').val();
+                let adjustmentNegative = $('input[name="creditmemo[adjustment_negative]"]').val();
                 $('table.order-subtotal-table tfoot span.price').each(function () {
                     refundAmount = $(this).text().replace(/[^0-9.-]+/g, "");
                 });
@@ -41,6 +44,9 @@ $orderId = $this->getData('orderId');
                     body: JSON.stringify({
                         order_id: orderId,
                         refund_amount: refundAmount,
+                        shipping_amount: shippingAmount,
+                        adjustment_positive: adjustmentPositive,
+                        adjustment_negative: adjustmentNegative,
                         refund_items: refundItems,
                         refund_reason: refundReason
                     }),
