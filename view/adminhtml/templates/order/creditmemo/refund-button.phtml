@@ -13,19 +13,11 @@ $orderId = $this->getData('orderId');
 
                 let orderId = $(this).data('orderId');
                 let refundReason = $('textarea[name="creditmemo[comment_text]"]').val();
-                let refundShippingAmount = parseFloat($('input[name="creditmemo[shipping_amount]"]').val());
                 let refundAmount = 0;
-                refundAmount += refundShippingAmount;
-                refundAmount += parseFloat($('input[name="creditmemo[adjustment_positive]"]').val());
-                refundAmount -= parseFloat($('input[name="creditmemo[adjustment_negative]"]').val());
-
-                $('table.order-creditmemo-tables tbody tr td.col-total.last').each(function () {
-                    // check if the qty-input is 0 or not to avoid refunding the whole item qty
-                    if ($(this).parent().find('input.qty-input').val() === '0') {
-                        return;
-                    }
-                    refundAmount += parseFloat($(this).text().replace(/[^0-9.-]+/g, ""));
+                $('table.order-subtotal-table tfoot span.price').each(function () {
+                    refundAmount = $(this).text().replace(/[^0-9.-]+/g, "");
                 });
+
                 if (!confirm($t('Are you sure you want to refund ' + refundAmount + ' with Amwal Payments?'))) {
                     return;
                 }
@@ -48,7 +40,6 @@ $orderId = $this->getData('orderId');
                     method: 'POST',
                     body: JSON.stringify({
                         order_id: orderId,
-                        refund_shipping_amount: refundShippingAmount,
                         refund_amount: refundAmount,
                         refund_items: refundItems,
                         refund_reason: refundReason

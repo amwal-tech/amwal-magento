@@ -28,7 +28,7 @@ class RefundHandler
     }
 
 
-    public function initiateCreditMemo(OrderInterface $order, array $refundItems, float $refundAmount, float $refundShippingAmount)
+    public function initiateCreditMemo(OrderInterface $order, array $refundItems, float $refundAmount)
     {
 
         $refundItems = $this->getItemsToRefund($order, $refundItems);
@@ -41,26 +41,31 @@ class RefundHandler
         foreach ($creditMemo->getAllItems() as $creditmemoItem) {
             $creditmemoItem->setQty($creditmemoItem->getQty());
         }
-        $this->creditmemoRepository->save($creditMemo);
 
         $refundAmountFormatted = $order->getBaseCurrency()->formatTxt($refundAmount);
-
-        $creditMemo->addComment('We refunded ' . $refundAmountFormatted . ' online by Amwal Payments.');
+        $creditMemo->addComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
         $creditMemo->setState(Creditmemo::STATE_REFUNDED);
-        $creditMemo->setBaseGrandTotal($refundAmount);
         $creditMemo->setGrandTotal($refundAmount);
 
         foreach ($order->getAllItems() as $orderItem) {
-            if (isset($refundItems['qtys'][$orderItem->getId()]) && $refundItems['qtys'][$orderItem->getId()] > 0) {
-                $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundItems['qtys'][$orderItem->getId()]);
-                $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $refundAmount);
+            $itemId = $orderItem->getId();
+            if (isset($refundItems['qtys'][$itemId]) && $refundQty = $refundItems['qtys'][$itemId]) {
+                $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundQty);
+
+                $itemPrice = $orderItem->getPrice() * $refundQty;
+
+                if ($orderItem->getDiscountAmount() > 0) {
+                    $itemPrice -= $orderItem->getDiscountAmount() * ($refundQty / $orderItem->getQtyOrdered());
+                }
+                $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
             }
         }
+
         $order->setTotalRefunded($order->getTotalRefunded() + $refundAmount);
         $order->addStatusHistoryComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
 
-        $creditMemo->save();
         $order->save();
+        $this->creditmemoRepository->save($creditMemo);
 
         return true;
     }
@@ -94,7 +99,6 @@ class RefundHandler
         $creditmemoItem->setOrderItemId($orderItem->getId());
         $creditmemoItem->setQty($refundQty);
         $creditmemoItem->setPrice($orderItem->getPrice());
-
         return $creditmemoItem;
     }
 

@@ -63,7 +63,6 @@ class Refund extends AmwalCheckoutAction
         $orderId = $requestBody['order_id'];
         $refundReason = $requestBody['refund_reason'];
         $refundAmount = (float)$requestBody['refund_amount'];
-        $refundShippingAmount = (float)$requestBody['refund_shipping_amount'];
         $refundItems = $requestBody['refund_items'];
         $order = $this->orderRepository->get($orderId);
         $requestBody = [
@@ -73,7 +72,7 @@ class Refund extends AmwalCheckoutAction
         ];
         $refundSuccessful = $this->refundRequest($order, $requestBody);
         if ($refundSuccessful['data']['status']) {
-            $creditMemo = $this->refundHandler->initiateCreditMemo($order, $refundItems, $refundAmount, $refundShippingAmount);
+            $creditMemo = $this->refundHandler->initiateCreditMemo($order, $refundItems, $refundAmount);
             if ($creditMemo) {
                 return [
                     'data' => [
