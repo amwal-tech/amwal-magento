@@ -49,7 +49,8 @@ class RefundHandler
 
         foreach ($order->getAllItems() as $orderItem) {
             $itemId = $orderItem->getId();
-            if (isset($refundItems['qtys'][$itemId]) && $refundQty = $refundItems['qtys'][$itemId]) {
+            if (isset($refundItems['qtys'][$itemId]) && $refundItems['qtys'][$itemId] > 0) {
+                $refundQty = $refundItems['qtys'][$itemId];
                 $itemPrice = $orderItem->getPrice() * $refundQty;
                 if ($orderItem->getDiscountAmount() > 0) {
                     $itemPrice -= $orderItem->getDiscountAmount() * ($refundQty / $orderItem->getQtyOrdered());
