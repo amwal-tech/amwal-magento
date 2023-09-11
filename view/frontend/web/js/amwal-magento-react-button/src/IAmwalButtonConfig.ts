@@ -40,3 +40,8 @@ export interface IRefIdData {
   customer_id: string
   timestamp: number
 }
+
+export interface ISuccessInfo {
+  order_id?: string
+  amwal_transaction_id: string
+}

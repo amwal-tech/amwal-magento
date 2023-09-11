@@ -1,12 +1,12 @@
 import React from 'react'
 import { AmwalCheckoutButton } from 'amwal-checkout-button-react'
-import { type IRefIdData, type IAmwalButtonConfig } from './IAmwalButtonConfig'
+import { type IRefIdData, type IAmwalButtonConfig, type ISuccessInfo } from './IAmwalButtonConfig'
 import { type AmwalCheckoutButtonCustomEvent, type IAddress, type IShippingMethod, type AmwalDismissalStatus, type AmwalCheckoutStatus, type ITransactionDetails } from 'amwal-checkout-button'
 
 interface AmwalMagentoReactButtonProps {
   triggerContext: string
   preCheckoutTask?: () => Promise<void>
-  onSuccessTask?: () => Promise<void>
+  onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
   baseUrl?: string
   extraHeaders?: Record<string, string>
@@ -146,7 +146,7 @@ const AmwalMagentoReactButton = ({
       .then(response => {
         if (!response.ok) return
         if (onSuccessTask) {
-          onSuccessTask()
+          onSuccessTask({ order_id: placedOrderId, amwal_transaction_id: amwalOrderId })
             .catch(err => {
               console.log(err)
             })
