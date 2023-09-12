@@ -52,7 +52,7 @@ class RefundHandler
         $creditMemo->setSubtotalInclTax($refundAmount);
         $creditMemo->setBaseSubtotalInclTax($refundAmount);
         $creditMemo->setGrandTotal($refundAmount);
-        $totalTax = $creditMemo->getTaxAmount();
+        $totalTax = 0;
         $totalDiscount = $creditMemo->getDiscountAmount();
 
         foreach ($order->getAllItems() as $orderItem) {
@@ -69,7 +69,8 @@ class RefundHandler
                 }
                 $orderItem->setAmountRefunded($itemPrice);
                 $orderItem->setQtyRefunded($refundQty);
-                $orderItem->setTaxRefunded($totalTax);
+                $orderItem->setTaxRefunded($orderItem->getTaxAmount());
+                $totalTax += $orderItem->getTaxAmount();
             }
         }
         if ($shippingAmount > 0) {
