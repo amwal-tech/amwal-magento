@@ -52,25 +52,25 @@ class RefundHandler
         $creditMemo->setSubtotalInclTax($refundAmount);
         $creditMemo->setBaseSubtotalInclTax($refundAmount);
         $creditMemo->setGrandTotal($refundAmount);
-        $totalTax = 0;
-        $totalDiscount = $creditMemo->getDiscountAmount();
+        $totalTax = 0; $totalDiscount = 0;
 
         foreach ($order->getAllItems() as $orderItem) {
             $itemId = $orderItem->getId();
             if (isset($refundItems['qtys'][$itemId]) && $refundItems['qtys'][$itemId] > 0) {
                 $refundQty = $refundItems['qtys'][$itemId];
                 if ($orderItem->getDiscountAmount() > 0) {
-                    $itemPrice = $orderItem->getPrice() * $refundQty;
-                    $currentQty = $orderItem->getQtyOrdered() - $orderItem->getQtyRefunded();
-                    $itemDiscount = ($orderItem->getDiscountAmount() / $currentQty) * $refundQty;
-                    $itemPrice -= $itemDiscount;
+                    $itemPrice     = $orderItem->getPrice() * $refundQty;
+                    $currentQty    = $orderItem->getQtyOrdered() - $orderItem->getQtyRefunded();
+                    $itemDiscount  = ($orderItem->getDiscountAmount() / $currentQty) * $refundQty;
+                    $itemPrice    -= $itemDiscount;
+                    $totalDiscount+= $orderItem->getDiscountAmount();
                 }else{
-                    $itemPrice = $orderItem->getPrice() * $refundQty;
+                    $itemPrice     = $orderItem->getPrice() * $refundQty;
                 }
-                $orderItem->setAmountRefunded($itemPrice);
-                $orderItem->setQtyRefunded($refundQty);
-                $orderItem->setTaxRefunded($orderItem->getTaxAmount());
-                $totalTax += $orderItem->getTaxAmount();
+                $totalTax     += $orderItem->getTaxAmount() / $orderItem->getQtyOrdered();
+                $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundQty);
+                $orderItem->setTaxRefunded($orderItem->getTaxRefunded() + $totalTax);
+                $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
             }
         }
         if ($shippingAmount > 0) {
@@ -79,15 +79,21 @@ class RefundHandler
             $order->setShippingTaxAmount($creditMemo->getShippingTaxAmount());
         }
         if($totalTax > 0) {
-            $order->setBaseTaxAmount($totalTax);
-            $order->setTaxRefunded($totalTax);
+            $order->setBaseTaxAmount($order->getBaseTaxAmount() - $totalTax);
+            $order->setTaxRefunded($order->getTaxRefunded() + $totalTax);
         }
         if($totalDiscount > 0){
-            $order->setDiscountRefunded($totalDiscount);
+            $order->setBaseDiscountAmount($totalDiscount);
+            $order->setDiscountRefunded($order->getDiscountRefunded() + $totalDiscount);
         }
-        $order->setTotalRefunded($order->getTotalRefunded() + $refundAmount);
-        $order->addStatusHistoryComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
 
+        if ($order->getTotalRefunded() == 0) {
+            $order->setTotalRefunded($refundAmount);
+        }else{
+            $order->setTotalRefunded($order->getTotalRefunded() + $refundAmount);
+        }
+
+        $order->addStatusHistoryComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
         $order->save();
         $this->creditmemoRepository->save($creditMemo);
 
