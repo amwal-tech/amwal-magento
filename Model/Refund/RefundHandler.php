@@ -12,9 +12,9 @@ use Magento\Sales\Model\Order\Creditmemo;
 
 class RefundHandler
 {
-    protected $creditmemoRepository;
-    protected $creditmemoFactory;
-    protected $creditmemoItemFactory;
+    protected CreditmemoRepositoryInterface $creditmemoRepository;
+    protected CreditmemoFactory $creditmemoFactory;
+    protected ItemFactory $creditmemoItemFactory;
 
     public function __construct(
         CreditmemoRepositoryInterface $creditmemoRepository,
@@ -40,31 +40,50 @@ class RefundHandler
 
         foreach ($creditMemo->getAllItems() as $creditmemoItem) {
             $creditmemoItem->setQty($creditmemoItem->getQty());
+            $creditmemoItem->setTaxAmount($creditmemoItem->getTaxAmount());
         }
 
         $refundAmountFormatted = $order->getBaseCurrency()->formatTxt($refundAmount);
         $creditMemo->addComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
         $creditMemo->setState(Creditmemo::STATE_REFUNDED);
-        $creditMemo->setGrandTotal($refundAmount);
         $creditMemo->setShippingAmount($shippingAmount);
         $creditMemo->setAdjustmentPositive($adjustmentPositive);
         $creditMemo->setAdjustmentNegative($adjustmentNegative);
+        $creditMemo->setSubtotalInclTax($refundAmount);
+        $creditMemo->setBaseSubtotalInclTax($refundAmount);
+        $creditMemo->setGrandTotal($refundAmount);
+        $totalTax = $creditMemo->getTaxAmount();
+        $totalDiscount = $creditMemo->getDiscountAmount();
 
         foreach ($order->getAllItems() as $orderItem) {
             $itemId = $orderItem->getId();
             if (isset($refundItems['qtys'][$itemId]) && $refundItems['qtys'][$itemId] > 0) {
                 $refundQty = $refundItems['qtys'][$itemId];
-                $itemPrice = $orderItem->getPrice() * $refundQty;
                 if ($orderItem->getDiscountAmount() > 0) {
-                    $itemPrice -= $orderItem->getDiscountAmount() * ($refundQty / $orderItem->getQtyOrdered());
-                    $itemPrice += $orderItem->getTaxAmount() * ($refundQty / $orderItem->getQtyOrdered());
+                    $itemPrice = round($orderItem->getPrice() * $refundQty, 2);
+                    $currentQty = $orderItem->getQtyOrdered() - $orderItem->getQtyRefunded();
+                    $itemDiscount = round(($orderItem->getDiscountAmount() / $currentQty) * $refundQty, 2);
+                    $itemPrice -= $itemDiscount;
+                }else{
+                    $itemPrice = round($orderItem->getPrice() * $refundQty, 2);
                 }
-
-                $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
-                $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundQty);
+                $orderItem->setAmountRefunded($itemPrice);
+                $orderItem->setQtyRefunded($refundQty);
+                $orderItem->setTaxRefunded($totalTax);
             }
         }
-
+        if ($shippingAmount > 0) {
+            $order->setShippingAmount($creditMemo->getShippingAmount() - $shippingAmount);
+            $order->setBaseShippingAmount($creditMemo->getBaseShippingAmount() - $shippingAmount);
+            $order->setShippingTaxAmount($creditMemo->getShippingTaxAmount());
+        }
+        if($totalTax > 0) {
+            $order->setBaseTaxAmount($totalTax);
+            $order->setTaxRefunded($totalTax);
+        }
+        if($totalDiscount > 0){
+            $order->setDiscountRefunded($totalDiscount);
+        }
         $order->setTotalRefunded($order->getTotalRefunded() + $refundAmount);
         $order->addStatusHistoryComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
 
@@ -92,7 +111,6 @@ class RefundHandler
             $qtys[$item->getOrderItemId()] = $item->getQty();
         }
         $refundableItems['qtys'] = $qtys;
-        $refundableItems['shipping_amount'] = $order->getShippingAmount();
 
         return $refundableItems;
     }
