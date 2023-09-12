@@ -67,7 +67,7 @@ class RefundHandler
                 }else{
                     $itemPrice     = $orderItem->getPrice() * $refundQty;
                 }
-                $totalTax     += $orderItem->getTaxAmount() / $orderItem->getQtyOrdered();
+                $totalTax     += $orderItem->getTaxAmount() / $orderItem->getQtyOrdered() * $refundQty;
                 $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundQty);
                 $orderItem->setTaxRefunded($orderItem->getTaxRefunded() + $totalTax);
                 $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
