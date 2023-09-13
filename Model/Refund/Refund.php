@@ -5,7 +5,6 @@ namespace Amwal\Payments\Model\Refund;
 use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\ErrorReporter;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -26,7 +25,6 @@ class Refund extends AmwalCheckoutAction
     private OrderRepositoryInterface $orderRepository;
 
     private Json $jsonSerializer;
-
     /**
      * @param AmwalClientFactory $amwalClientFactory
      * @param ErrorReporter $errorReporter
@@ -68,6 +66,9 @@ class Refund extends AmwalCheckoutAction
         $adjustmentNegative = (float)$requestBody['adjustment_negative'];
         $refundItems = $requestBody['refund_items'];
         $order = $this->orderRepository->get($orderId);
+        if($refundAmount > ($order->getTotalPaid() - $order->getTotalRefunded())){
+            $refundAmount = ($order->getTotalPaid() - $order->getTotalRefunded());
+        }
         $requestBody = [
             'refund_amount' => $refundAmount,
             'metadata' => ['reason' => !empty($refundReason) ? $refundReason : __('Refund request from Magento by Amwal Payments')],
