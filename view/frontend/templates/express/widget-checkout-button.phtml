@@ -1,0 +1,130 @@
+<?php
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Catalog\Block\Product\ProductList\Item\Block;
+use Amwal\Payments\Block\Product\ProductsList;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\Action\Action;
+
+/** @var Escaper $escaper */
+/** @var Template|Block $block */
+?>
+
+<?php
+$buttonId = $block->getUniqueId();
+$product = $block->getProduct();
+$productId = $product->getId();
+$titleWidget = $block->getTitle();
+
+$triggerContext = $block->getTriggerContext();
+$productsList = ObjectManager::getInstance()->get(ProductsList::class);
+$postParams = $productsList->getAddToCartPostParams($product);
+$templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
+?>
+<style>
+    .product-image-photo {
+        bottom: 0;
+        display: block;
+        left: 0;
+        margin: auto;
+        position: static;
+        right: 0;
+        top: 0;
+        width: 500px;
+    }
+    .product-media{
+        width: 50%;
+    }
+    .control.qty{
+        width: 25%;
+    }
+</style>
+
+<div class="amwal-widget">
+    <div class="product-info-main">
+        <div class="page-title-wrapper product">
+            <h1 class="page-title">
+                <span class="base" data-ui-id="page-title-wrapper" itemprop="name">
+                    <?= $escaper->escapeHtml($product->getName()) ?>
+                </span>
+            </h1>
+            <?= $productsList->getReviewsSummaryHtml($product, $templateType) ?>
+        </div>
+        <div class="product-info-price">
+            <?= $block->getProductPrice($product) ?>
+            <div class="product-info-stock-sku">
+                <div class="stock <?= $escaper->escapeHtml($block->getProductStockStatus($product)) ?>"
+                     title="Availability">
+                    <span><?= $escaper->escapeHtml($block->getProductStockStatus($product)) ?></span>
+                </div>
+                <div class="availability">
+                    <?= $escaper->escapeHtml($block->getProductAvailability($product)) ?>
+                </div>
+                <div class="product attribute sku">
+                    <strong class="type"><?= __('SKU') ?></strong>
+                    <div class="value" itemprop="sku"><?= $escaper->escapeHtml($product->getSku()) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="product-add-form">
+            <div class="product attribute description">
+                <strong class="type"><?= __('Description') ?></strong>
+                <div class="value" itemprop="description">
+                    <?= $escaper->escapeHtml($product->getDescription()) ?>
+                </div>
+            </div>
+
+
+            <?php if ($product->isSaleable()): ?>
+                <form data-role="tocart-form" data-product-sku="<?= $block->escapeHtml($product->getSku()) ?>" action="<?= $block->escapeUrl($postParams['action']) ?>" method="post" id="form-<?= $escaper->escapeHtmlAttr($buttonId) ?>">
+                    <input type="hidden" name="product" value="<?= $block->escapeHtmlAttr($postParams['data']['product']) ?>">
+                    <input type="hidden" name="<?= /* @noEscape */ Action::PARAM_NAME_URL_ENCODED ?>" value="<?= /* @noEscape */ $postParams['data'][Action::PARAM_NAME_URL_ENCODED] ?>">
+                    <?= $block->getBlockHtml('formkey') ?>
+
+                    <?= $productsList->getProductDetailsHtml($product) ?>
+
+                    <div class="product-add-to-cart">
+                        <div class="control qty">
+                            <label class="label" for="qty"><span><?= __('Qty') ?></span></label>
+                            <input type="number" name="qty" class="input-text qty" value="1"
+                                   title="<?= __('Qty') ?>" data-validate="{'required-number':true}" pattern="\d*"
+                                   inputmode="numeric">
+                        </div>
+                    </div>
+                </form>
+                <div class="amwal-express-checkout-button"
+                     trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
+                     form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                     id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                >
+                </div>
+                <script type="text/x-magento-init">
+                    {
+                        "#<?= $buttonId ?>": {
+                            "Amwal_Payments/js/checkout-button": {
+                                "buttonId" : "<?= $buttonId ?>",
+                                "triggerContext": "<?= $triggerContext ?>"
+                            }
+                        }
+                    }
+                </script>
+            <?php else: ?>
+            <?php if ($product->isAvailable()): ?>
+                <div class="stock available"><span><?= $block->escapeHtml(__('In stock')) ?></span></div>
+            <?php else: ?>
+                <div class="stock unavailable"><span><?= $block->escapeHtml(__('Out of stock')) ?></span></div>
+            <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+    <div class="product-media">
+        <div class="product-image-gallery">
+            <img src="<?= $escaper->escapeUrl($block->getImage($product, 'product_base_image')->getImageUrl()) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+                 title="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+                 class="product-image-photo"
+            />
+        </div>
+    </div>
+</div>

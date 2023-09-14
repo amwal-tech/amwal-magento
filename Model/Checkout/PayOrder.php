@@ -9,13 +9,9 @@ use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Customer\Api\AccountManagementInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
-use Magento\Customer\Api\Data\CustomerInterfaceFactory;
-use Magento\Customer\Model\Data\Customer;
-use Magento\Customer\Model\SessionFactory;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
@@ -24,12 +20,11 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\CustomerManagement;
-use Magento\Sales\Model\Order\OrderCustomerExtractor;
+use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
 
 class PayOrder extends AmwalCheckoutAction
@@ -43,11 +38,9 @@ class PayOrder extends AmwalCheckoutAction
     private ManagerInterface $messageManager;
     private OrderPaymentRepositoryInterface $paymentRepository;
     private CustomerRepositoryInterface $customerRepository;
-    private CustomerInterfaceFactory $customerFactory;
-    private AccountManagementInterface $accountManagement;
-    private SessionFactory $customerSessionFactory;
-    private OrderCustomerExtractor $orderCustomerExtractor;
+    private CustomerSession $customerSession;
     private CustomerManagement $customerManagement;
+    private OrderNotifier $orderNotifier;
 
     /**
      * @param CartRepositoryInterface $quoteRepository
@@ -58,12 +51,11 @@ class PayOrder extends AmwalCheckoutAction
      * @param ManagerInterface $messageManager
      * @param OrderPaymentRepositoryInterface $paymentRepository
      * @param CustomerRepositoryInterface $customerRepository
-     * @param CustomerInterfaceFactory $customerFactory
-     * @param AccountManagementInterface $accountManagement
-     * @param SessionFactory $customerSessionFactory
+     * @param CustomerSession $customerSession
      * @param CustomerManagement $customerManagement
      * @param ErrorReporter $errorReporter
      * @param Config $config
+     * @param OrderNotifier $orderNotifier
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -75,12 +67,11 @@ class PayOrder extends AmwalCheckoutAction
         ManagerInterface $messageManager,
         OrderPaymentRepositoryInterface $paymentRepository,
         CustomerRepositoryInterface $customerRepository,
-        CustomerInterfaceFactory $customerFactory,
-        AccountManagementInterface $accountManagement,
-        SessionFactory $customerSessionFactory,
+        CustomerSession $customerSession,
         CustomerManagement $customerManagement,
         ErrorReporter $errorReporter,
         Config $config,
+        OrderNotifier $orderNotifier,
         LoggerInterface $logger
     ) {
         parent::__construct($errorReporter, $config, $logger);
@@ -92,10 +83,9 @@ class PayOrder extends AmwalCheckoutAction
         $this->messageManager = $messageManager;
         $this->paymentRepository = $paymentRepository;
         $this->customerRepository = $customerRepository;
-        $this->customerFactory = $customerFactory;
-        $this->accountManagement = $accountManagement;
-        $this->customerSessionFactory = $customerSessionFactory;
+        $this->customerSession = $customerSession;
         $this->customerManagement = $customerManagement;
+        $this->orderNotifier = $orderNotifier;
     }
 
     /**
@@ -135,7 +125,8 @@ class PayOrder extends AmwalCheckoutAction
             $this->logDebug('Creating new customer');
             try {
                 $newCustomer = $this->createCustomer($order);
-                $this->customerSessionFactory->create()->setCustomerDataAsLoggedIn($newCustomer);
+                $this->customerSession->setCustomerDataAsLoggedIn($newCustomer);
+                $this->checkoutSession->setCustomerData($newCustomer);
             } catch (LocalizedException $e) {
                 $message = sprintf(
                     'Error occurred while creating customer for order with ID %s. Exception %s',
@@ -148,9 +139,16 @@ class PayOrder extends AmwalCheckoutAction
         }
 
         $this->addAdditionalPaymentInformation($amwalOrderData, $order);
+        $amwalOrderStatus = $amwalOrderData->getStatus();
 
-        $order->setState($this->config->getOrderConfirmedStatus());
-        $order->setStatus($this->config->getOrderConfirmedStatus());
+        if($amwalOrderStatus == 'success') {
+            $order->setState($this->config->getOrderConfirmedStatus());
+            $order->setStatus($this->config->getOrderConfirmedStatus());
+            $order->setSendEmail(true);
+            $this->orderNotifier->notify($order);
+        }else{
+            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been failed, status: (' . $amwalOrderStatus . ')');
+        }
 
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
@@ -162,7 +160,9 @@ class PayOrder extends AmwalCheckoutAction
 
         $this->orderRepository->save($order);
 
-        $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+        if($amwalOrderStatus == 'success') {
+            $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+        }
 
         return true;
     }

@@ -2,11 +2,13 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name="category.product.addto">
-            <block ifconfig="payment/amwal_payments/express_checkout_active" class="Magento\Catalog\Block\Product\ProductList\Item\Block" name="amwal.express-checkout.button.listing" template="Amwal_Payments::express/button-listing.phtml" cacheable="false">
+            <block ifconfig="payment/amwal_payments/express_checkout_active" class="Magento\Catalog\Block\Product\ProductList\Item\Block" name="amwal.express-checkout.button.listing" template="Amwal_Payments::express/checkout-button.phtml" cacheable="false">
                 <arguments>
                     <argument name="view_model" xsi:type="object">
                         Amwal\Payments\ViewModel\ExpressCheckoutButton
                     </argument>
+                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_LIST</argument>
+                    <argument name="form_selector" xsi:type="string">#product-item-info_%product_id% form[data-role="tocart-form"]</argument>
                 </arguments>
             </block>
         </referenceBlock>

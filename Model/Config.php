@@ -39,6 +39,9 @@ class Config
     public const XML_CONFIG_PATH_TEST_API_BASE_URL = 'payment/amwal_payments/test_api_base_url';
     public const XML_CONFIG_PATH_PROD_API_BASE_URL = 'payment/amwal_payments/prod_api_base_url';
     public const XML_CONFIG_PATH_STREET_LINE_COUNT = 'customer/address/street_lines';
+    public const XML_CONFIG_PATH_SECRET_KEY = 'payment/amwal_payments/secret_key';
+    public const XML_CONFIG_PATH_INSTALLMENT_CALLBACK = 'payment/amwal_payments/installment_callback';
+
 
     /** @var ScopeConfigInterface  */
     private ScopeConfigInterface $scopeConfig;
@@ -310,5 +313,37 @@ class Config
     {
         $packages = $this->composerInformation->getInstalledMagentoPackages();
         return $packages['amwal/payments']['version'] ?? 'unknown';
+    }
+
+    /**
+     * @return array
+     */
+    public function getPostcodeOptionalCountries(): array
+    {
+        $optionalCountries = [];
+        $getOptionalCountries = $this->scopeConfig->getValue(
+            'general/country/optional_zip_countries',
+            ScopeInterface::SCOPE_STORE
+        );
+        if ($getOptionalCountries) {
+            $optionalCountries = explode(',', $getOptionalCountries);
+        }
+        return $optionalCountries;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecretKey(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_SECRET_KEY, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getInstallmentOptionsUrl(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_INSTALLMENT_CALLBACK, ScopeInterface::SCOPE_WEBSITE);
     }
 }

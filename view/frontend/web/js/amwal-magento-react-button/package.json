@@ -1,0 +1,45 @@
+{
+  "name": "amwal-magento-react-button",
+  "sideEffects": false,
+  "version": "0.0.22",
+  "description": "Amwal React Button with Magento Backend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amwal-tech/amwal-magento"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf dist",
+    "compile:cjs": "tsc --project tsconfig.cjs.json",
+    "compile:esm": "tsc --project tsconfig.esm.json",
+    "compile": "npm run compile:cjs && npm run compile:esm",
+    "rollup": "rollup -c"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "eslint": "^8.45.0",
+    "eslint-config-standard-with-typescript": "^37.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^16.0.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.33.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.1.6"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*"
+  },
+  "dependencies": {
+    "amwal-checkout-button": "0.0.52-alpha-11",
+    "amwal-checkout-button-react": "0.0.52-alpha-11"
+  }
+}

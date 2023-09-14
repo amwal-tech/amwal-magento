@@ -1,7 +1,8 @@
 {
     "sales_order": {
         "column": {
-            "amwal_order_id": true
+            "amwal_order_id": true,
+            "ref_id": true
         }
     }
 }

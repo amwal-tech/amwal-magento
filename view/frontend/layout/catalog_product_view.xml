@@ -2,16 +2,29 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name="product.info.addtocart">
-            <block ifconfig="payment/amwal_payments/express_checkout_active" class="Magento\Framework\View\Element\Template" name="amwal.express-checkout.button" template="Amwal_Payments::express/button.phtml" cacheable="false">
+            <block ifconfig="payment/amwal_payments/express_checkout_active" class="Magento\Framework\View\Element\Template" name="amwal.express-checkout.button" template="Amwal_Payments::express/checkout-button.phtml" cacheable="false">
                 <arguments>
                     <argument name="view_model" xsi:type="object">Amwal\Payments\ViewModel\ExpressCheckoutButton</argument>
+                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_DETAIL</argument>
+                    <argument name="form_selector" xsi:type="string">form#product_addtocart_form</argument>
                 </arguments>
             </block>
         </referenceBlock>
         <referenceBlock name="product.info.addtocart.additional">
-            <block ifconfig="payment/amwal_payments/express_checkout_active" class="Magento\Framework\View\Element\Template" name="amwal.express-checkout.button.configurable" template="Amwal_Payments::express/button.phtml" cacheable="false">
+            <block ifconfig="payment/amwal_payments/express_checkout_active" class="Magento\Framework\View\Element\Template" name="amwal.express-checkout.button.configurable" template="Amwal_Payments::express/checkout-button.phtml" cacheable="false">
                 <arguments>
                     <argument name="view_model" xsi:type="object">Amwal\Payments\ViewModel\ExpressCheckoutButton</argument>
+                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_DETAIL</argument>
+                    <argument name="form_selector" xsi:type="string">form#product_addtocart_form</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <referenceBlock name="product.info.addtocart.bundle">
+            <block ifconfig="payment/amwal_payments/express_checkout_active" class="Magento\Framework\View\Element\Template" name="amwal.express-checkout.button.bundle" template="Amwal_Payments::express/checkout-button.phtml" cacheable="false">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Amwal\Payments\ViewModel\ExpressCheckoutButton</argument>
+                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_DETAIL</argument>
+                    <argument name="form_selector" xsi:type="string">form#product_addtocart_form</argument>
                 </arguments>
             </block>
         </referenceBlock>

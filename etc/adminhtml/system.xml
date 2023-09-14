@@ -31,6 +31,15 @@
                         <label/>
                         <config_path>payment/amwal_payments/merchant_id_valid</config_path>
                     </field>
+                    <field id="secret_key" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Secret Key</label>
+                        <config_path>payment/amwal_payments/secret_key</config_path>
+                    </field>
+                    <field id="installment_callback" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Installment Callback URL</label>
+                        <config_path>payment/amwal_payments/installment_callback</config_path>
+                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Make sure the URL starts with the "http" or "https" protocol.]]></comment>
+                    </field>
                     <field id="express_checkout_active" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Enable Express checkout</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

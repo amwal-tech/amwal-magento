@@ -7,6 +7,7 @@ use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
@@ -143,6 +144,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $quoteId = (int) $quoteId;
         $quote = $this->quoteRepository->get($quoteId);
 
+        $quote->setPaymentMethod(ConfigProvider::CODE);
+        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+
         $customerAddress = null;
         if ($hasAmwalAddress) {
             try {
@@ -204,7 +208,10 @@ class PlaceOrder extends AmwalCheckoutAction
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
-        $order = $this->createOrder($quote, $amwalOrderId);
+
+
+
+        $order = $this->createOrder($quote, $amwalOrderId, $refId);
 
         $this->orderRepository->save($order);
 
@@ -216,10 +223,11 @@ class PlaceOrder extends AmwalCheckoutAction
     /**
      * @param Quote $quote
      * @param string $amwalOrderId
+     * @param string $refId
      * @return OrderInterface
      * @throws LocalizedException
      */
-    public function createOrder(Quote $quote, string $amwalOrderId): OrderInterface
+    public function createOrder(Quote $quote, string $amwalOrderId, string $refId): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->quoteManagement->submit($quote);
@@ -232,7 +240,6 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->throwException();
         }
 
-        $order->setEmailSent(0);
         if (!$order->getEntityId()) {
             $message = sprintf('Order could not be created from quote with ID "%s"', $quote->getId());
             $this->reportError($amwalOrderId, $message);
@@ -245,6 +252,8 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
         $order->setAmwalOrderId($amwalOrderId);
+        $order->addStatusHistoryComment('Amwal Transaction ID: ' . $amwalOrderId);
+        $order->setRefId($refId);
 
         return $order;
     }

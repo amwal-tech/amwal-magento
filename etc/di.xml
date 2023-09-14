@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-
     <virtualType name="AmwalPaymentMethodFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Amwal\Payments\Model\Config\Checkout\ConfigProvider::CODE</argument>
             <argument name="valueHandlerPool" xsi:type="object">AmwalPaymentValueHandlerPool</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
+            <argument name="commandPool" xsi:type="object">AmwalCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AmwalPaymentDefaultValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
@@ -23,6 +23,13 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">AmwalPaymentDefaultValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AmwalCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="refund" xsi:type="string">Amwal\Payments\Model\Refund\Command</item>
             </argument>
         </arguments>
     </virtualType>
@@ -73,16 +80,27 @@
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
         </arguments>
     </type>
+    <type name="Amwal\Payments\Model\Refund\Command">
+        <arguments>
+            <argument name="logger" xsi:type="object">AmwalLogger</argument>
+        </arguments>
+    </type>
 
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>
     <preference for="Amwal\Payments\Api\Data\AmwalAddressInterface" type="Amwal\Payments\Model\Data\AmwalAddress"/>
+    <preference for="Amwal\Payments\Api\Data\AmwalButtonConfigInterface" type="Amwal\Payments\Model\Data\AmwalButtonConfig"/>
     <preference for="Amwal\Payments\Api\RefIdManagementInterface" type="Amwal\Payments\Model\RefIdManagement"/>
     <preference for="Amwal\Payments\Api\Data\RefIdDataInterface" type="Amwal\Payments\Model\Data\RefIdData"/>
+    <preference for="Amwal\Payments\Api\Data\AmwalOrderInterface" type="Amwal\Payments\Model\Data\AmwalOrderDetails" />
+
+    <preference for="Magento\CatalogWidget\Block\Product\ProductsList" type="Amwal\Payments\Block\Product\ProductsList" />
 
     <!-- Plugins -->
-    <type name="Magento\Quote\Api\ChangeQuoteControlInterface">
-        <plugin name="amwal_payments_override_quote_update_validator"
-                type="Amwal\Payments\Plugin\Quote\Api\OverrideChangeQuoteValidation" sortOrder="10" />
+    <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
+        <plugin name="amwal_payments_prevent_email_on_order_submit" type="Amwal\Payments\Plugin\Sales\Order\Email\PreventEmailForNewOrder" sortOrder="10" />
+    </type>
+    <type name="Magento\Sales\Block\Adminhtml\Order\View">
+        <plugin name="amwal_order_details" type="Amwal\Payments\Plugin\Sales\Order\View\Details" sortOrder="10" />
     </type>
 </config>

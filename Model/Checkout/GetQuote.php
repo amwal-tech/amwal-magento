@@ -385,10 +385,12 @@ class GetQuote extends AmwalCheckoutAction
 
         foreach ($rates as $rate) {
             $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
-            $availableRates[$id] = [
-                'carrier_title' => $rate->getMethodTitle(),
-                'price' => number_format((float)$rate->getPriceInclTax(), 2)
-            ];
+            if (!empty($rate->getMethodTitle())) {
+                $availableRates[$id] = [
+                    'carrier_title' => $rate->getMethodTitle(),
+                    'price' => number_format((float)$rate->getPriceInclTax(), 2)
+                ];
+            }
         }
         try {
             $this->logDebug(sprintf(
@@ -416,11 +418,83 @@ class GetQuote extends AmwalCheckoutAction
         return [
             'quote_id' => $quote->getId(),
             'available_rates' => $availableRates,
-            'amount' => $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal(),
-            'subtotal' => ($useBaseCurrency ? $shippingAddress->getBaseSubtotalTotalInclTax() : $shippingAddress->getSubtotalInclTax()) - $taxAmount,
+            'amount' => $this->getAmount($quote, $useBaseCurrency),
+            'subtotal' => $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency),
             'tax_amount' => $taxAmount,
             'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
-            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount())
+            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
+            'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
+            'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
         ];
+    }
+
+    /**
+     * This method can be extended to pass any additional fees that should be displayed in the Amwal amount summary
+     * Currently we have built-in support for the Amasty Extrafee extension
+     * @param CartInterface $quote
+     * @return float
+     * @see getAdditionalFeeDescription()
+     */
+    public function getAdditionalFeeAmount(CartInterface $quote): float
+    {
+        $extraFee = 0;
+        $totals = $quote->getTotals();
+        if (isset($totals['amasty_extrafee'])) {
+            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
+        }
+
+        return $extraFee;
+    }
+
+    /**
+     * This method can be overwritten to provide a description for any additional fees that should be displayed in the Amwal amount summary
+     * Currently we have built-in support for the Amasty Extrafee extension
+     * @param CartInterface $quote
+     * @return Phrase|string
+     * @see getAdditionalFeeAmount()
+     */
+    public function getAdditionalFeeDescription(CartInterface $quote)
+    {
+        $feeDescription = '';
+        $totals = $quote->getTotals();
+        if ($quote->getData('applied_amasty_fee_flag') && isset($totals['amasty_extrafee'])) {
+            $feeArguments = $totals['amasty_extrafee']->getTitle()->getArguments();
+            $feeDescription = reset($feeArguments);
+        }
+
+        return $feeDescription;
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @param bool $useBaseCurrency
+     * @return float
+     */
+    public function getAmount(CartInterface $quote, bool $useBaseCurrency): float
+    {
+        $grandTotal = $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal();
+
+        $totals = $quote->getTotals();
+        if ($quote->getData('applied_amasty_fee_flag') && isset($totals['amasty_extrafee'])) {
+            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
+            $grandTotal -= $extraFee;
+        }
+
+        if (!$grandTotal) {
+            throw new LocalizedException(__('Unable to calculate order total'));
+        }
+
+        return $grandTotal;
+    }
+
+    /**
+     * @param Address $shippingAddress
+     * @param float $taxAmount
+     * @param bool $useBaseCurrency
+     * @return float
+     */
+    public function getSubtotal(Address $shippingAddress, float $taxAmount, bool $useBaseCurrency): float
+    {
+        return ($useBaseCurrency ? $shippingAddress->getBaseSubtotalTotalInclTax() : $shippingAddress->getSubtotalInclTax()) - $taxAmount;
     }
 }
