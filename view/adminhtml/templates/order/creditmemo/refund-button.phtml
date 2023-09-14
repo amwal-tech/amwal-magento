@@ -17,10 +17,23 @@ $orderId = $this->getData('orderId');
                 let shippingAmount = $('input[name="creditmemo[shipping_amount]"]').val();
                 let adjustmentPositive = $('input[name="creditmemo[adjustment_positive]"]').val();
                 let adjustmentNegative = $('input[name="creditmemo[adjustment_negative]"]').val();
+
+                let totalDiscount = 0;
+                $('table.order-creditmemo-tables td.col-discont span.price').each(function () {
+                    totalDiscount = $(this).text().replace(/[^0-9.-]+/g, "");
+                });
+
+                let totalTax = 0;
+                $('table.order-creditmemo-tables td.col-tax-amount span.price').each(function () {
+                    totalTax = $(this).text().replace(/[^0-9.-]+/g, "");
+                });
+
                 $('table.order-subtotal-table tfoot span.price').each(function () {
                     refundAmount = $(this).text().replace(/[^0-9.-]+/g, "");
                 });
-
+                if (shippingAmount > 0) {
+                    alert($t('The shipping amount will not be returned until the last time the refund is made.'));
+                }
                 if (!confirm($t('Are you sure you want to refund ' + refundAmount + ' with Amwal Payments?'))) {
                     return;
                 }
@@ -33,9 +46,16 @@ $orderId = $this->getData('orderId');
                     itemId = itemId.replace(/\[[^\]]*\]/g, '');
 
                     let itemQty = $(this).val();
+                    let itemTax = $(this).parent().next().next().text().replace(/[^0-9.-]+/g, "");
+                    let discountAmount = $(this).parent().next().next().next().text().replace(/[^0-9.-]+/g, "");
+                    let itemPrice = $(this).parent().next().next().next().next().text().replace(/[^0-9.-]+/g, "");
+
                     refundItems.push({
                         item_id: itemId,
-                        qty: itemQty
+                        qty: itemQty,
+                        tax: itemTax,
+                        discount_amount: discountAmount,
+                        price: itemPrice
                     });
                 });
 
@@ -47,6 +67,8 @@ $orderId = $this->getData('orderId');
                         shipping_amount: shippingAmount,
                         adjustment_positive: adjustmentPositive,
                         adjustment_negative: adjustmentNegative,
+                        total_discount: totalDiscount,
+                        total_tax: totalTax,
                         refund_items: refundItems,
                         refund_reason: refundReason
                     }),

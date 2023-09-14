@@ -34,69 +34,55 @@ class RefundHandler
      * @param float $shippingAmount
      * @param float $adjustmentPositive
      * @param float $adjustmentNegative
+     * @param float $totalDiscount
+     * @param float $totalTax
      * @return bool
      * @throws \Exception
      */
     public function initiateCreditMemo(
         OrderInterface $order,
-        array $refundItems,
-        float $refundAmount,
-        float $shippingAmount,
-        float $adjustmentPositive,
-        float $adjustmentNegative
+        array          $refundItems,
+        float          $refundAmount,
+        float          $shippingAmount,
+        float          $adjustmentPositive,
+        float          $adjustmentNegative,
+        float          $totalDiscount,
+        float          $totalTax
     ): bool
     {
         $refundItems = $this->getItemsToRefund($order, $refundItems);
-        $invoice = $order->getInvoiceCollection()->getFirstItem();
-        $creditMemo = $this->creditmemoFactory->createByInvoice(
-            $invoice,
-            $refundItems
-        );
-        $totalTax = 0;
-        $totalDiscount = 0;
+        $creditMemo = $this->creditmemoFactory->createByOrder($order, $refundItems);
 
         foreach ($order->getAllItems() as $orderItem) {
             $itemId = $orderItem->getId();
-            if (isset($refundItems['qtys'][$itemId]) && $refundItems['qtys'][$itemId] > 0) {
-                $refundQty = $refundItems['qtys'][$itemId];
-                if ($orderItem->getDiscountAmount() > 0) {
-                    $itemPrice = $orderItem->getPrice() * $refundQty;
-                    $currentQty = $orderItem->getQtyOrdered() - $orderItem->getQtyRefunded();
-                    $itemDiscount = (($orderItem->getDiscountAmount() / $currentQty) * $refundQty);
-                    $totalDiscount += ($orderItem->getDiscountAmount() / $orderItem->getQtyOrdered() * $refundQty);
-                    $itemPrice -= $itemDiscount;
-                    $orderItem->setDiscountRefunded($orderItem->getDiscountRefunded() + $totalDiscount);
-                } else {
-                    $itemPrice = $orderItem->getPrice() * $refundQty;
-                }
-                $totalTax += ($orderItem->getTaxAmount() / $orderItem->getQtyOrdered() * $refundQty);
-
+            if (isset($refundItems[$itemId]) && $refundItems[$itemId]['qty'] > 0) {
+                $refundQty = $refundItems[$itemId]['qty'];
+                $itemPrice = $refundItems[$itemId]['price'];
                 $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundQty);
-                $orderItem->setTaxRefunded($orderItem->getTaxRefunded() + $totalTax);
                 $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
+                $orderItem->setBaseAmountRefunded($orderItem->getBaseAmountRefunded() + $itemPrice);
             }
         }
+
         // Set credit memo properties
         $creditMemo->setState(Creditmemo::STATE_REFUNDED);
+        $creditMemo->setShippingAmount($shippingAmount);
+        $creditMemo->setBaseGrandTotal($refundAmount);
+        $creditMemo->setGrandTotal($refundAmount);
         $creditMemo->setAdjustmentPositive($adjustmentPositive);
         $creditMemo->setAdjustmentNegative($adjustmentNegative);
-        $creditMemo->setShippingAmount($shippingAmount);
-        $creditMemo->setShippingInclTax($shippingAmount);
-        $creditMemo->setGrandTotal($refundAmount);
+        $creditMemo->setDiscountAmount($totalDiscount);
 
         // Format refund amount for display
         $refundAmountFormatted = $order->getBaseCurrency()->formatTxt($refundAmount);
         $creditMemo->addComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
 
-        // Update order-level tax and discount refunded, as well as shipping amount and total refunded
-        $order->setTaxRefunded($order->getTaxRefunded() + $totalTax);
-        if ($totalDiscount > 0){
+        if ($totalDiscount > 0) {
             $order->setDiscountRefunded($order->getDiscountRefunded() + $totalDiscount);
         }
-        if($shippingAmount > 0){
+        if ($shippingAmount > 0) {
             $order->setBaseShippingRefunded(abs($order->getBaseShippingRefunded() - $shippingAmount));
             $order->setShippingRefunded(abs($order->getShippingRefunded() - $shippingAmount));
-
         }
         $order->setTotalRefunded($order->getTotalRefunded() + $refundAmount);
         $order->setBaseTotalRefunded($order->getBaseTotalRefunded() + $refundAmount);
@@ -113,31 +99,30 @@ class RefundHandler
     protected function getItemsToRefund($order, array $refundItems): array
     {
         $refundableItems = [];
-        $qtys = [];
         foreach ($refundItems as $refundItemData) {
             $itemId = $refundItemData['item_id'];
             $refundQty = $refundItemData['qty'];
+            $tax = $refundItemData['tax'];
+            $discountAmount = $refundItemData['discount_amount'];
+            $price = $refundItemData['price'];
+
             $orderItem = $this->getOrderItemById($order, $itemId);
             if ($orderItem) {
-                $creditmemoItem = $this->createCreditMemoItem($orderItem, $refundQty);
-                $refundableItems[] = $creditmemoItem;
+                $creditmemoItem = $this->createCreditMemoItem($orderItem, $refundQty, $tax, $discountAmount, $price);
+                $refundableItems[$itemId] = $creditmemoItem;
             }
         }
-
-        foreach ($refundableItems as $item) {
-            $qtys[$item->getOrderItemId()] = $item->getQty();
-        }
-        $refundableItems['qtys'] = $qtys;
-
         return $refundableItems;
     }
 
-    protected function createCreditMemoItem($orderItem, $refundQty)
+    protected function createCreditMemoItem($orderItem, $refundQty, $tax, $discountAmount, $price)
     {
         $creditmemoItem = $this->creditmemoItemFactory->create();
         $creditmemoItem->setOrderItemId($orderItem->getId());
         $creditmemoItem->setQty($refundQty);
-        $creditmemoItem->setPrice($orderItem->getPrice());
+        $creditmemoItem->setTaxAmount($tax);
+        $creditmemoItem->setDiscountAmount($discountAmount);
+        $creditmemoItem->setPrice($price);
         return $creditmemoItem;
     }
 

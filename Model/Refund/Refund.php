@@ -25,6 +25,7 @@ class Refund extends AmwalCheckoutAction
     private OrderRepositoryInterface $orderRepository;
 
     private Json $jsonSerializer;
+
     /**
      * @param AmwalClientFactory $amwalClientFactory
      * @param ErrorReporter $errorReporter
@@ -64,11 +65,10 @@ class Refund extends AmwalCheckoutAction
         $shippingAmount = (float)$requestBody['shipping_amount'];
         $adjustmentPositive = (float)$requestBody['adjustment_positive'];
         $adjustmentNegative = (float)$requestBody['adjustment_negative'];
+        $totalDiscount = (float)$requestBody['total_discount'];
+        $totalTax = (float)$requestBody['total_tax'];
         $refundItems = $requestBody['refund_items'];
         $order = $this->orderRepository->get($orderId);
-        if($refundAmount > ($order->getTotalPaid() - $order->getTotalRefunded())){
-            $refundAmount = ($order->getTotalPaid() - $order->getTotalRefunded());
-        }
         $requestBody = [
             'refund_amount' => $refundAmount,
             'metadata' => ['reason' => !empty($refundReason) ? $refundReason : __('Refund request from Magento by Amwal Payments')],
@@ -76,7 +76,7 @@ class Refund extends AmwalCheckoutAction
         ];
         $refundSuccessful = $this->refundRequest($order, $requestBody);
         if ($refundSuccessful['data']['status']) {
-            $creditMemo = $this->refundHandler->initiateCreditMemo($order, $refundItems, $refundAmount, $shippingAmount, $adjustmentPositive, $adjustmentNegative);
+            $creditMemo = $this->refundHandler->initiateCreditMemo($order, $refundItems, $refundAmount, $shippingAmount, $adjustmentPositive, $adjustmentNegative, $totalDiscount, $totalTax);
             if ($creditMemo) {
                 return [
                     'data' => [
