@@ -15,6 +15,9 @@
                 <phone_number_format>raw</phone_number_format>
                 <phone_number_trim_whitespace>0</phone_number_trim_whitespace>
                 <use_base_currency>0</use_base_currency>
+                <regular_checkout_active>1</regular_checkout_active>
+                <hide_proceed_to_checkout>1</hide_proceed_to_checkout>
+                <express_checkout_active>1</express_checkout_active>
             </amwal_payments>
         </payment>
     </default>

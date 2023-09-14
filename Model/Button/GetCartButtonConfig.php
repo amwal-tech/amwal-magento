@@ -76,7 +76,8 @@ class GetCartButtonConfig extends GetConfig
         }
 
         $street          = $shippingAddress->getStreet()[0] ?? '';
-        $formatedAddress = json_encode(['street1' => $street, 'city' => $shippingAddress->getCity(),'state' => $shippingAddress->getRegion(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
+        $street2         = $shippingAddress->getStreet()[1] ?? '';
+        $formatedAddress = json_encode(['street1' => $street, 'street2' => $street2, 'city' => $shippingAddress->getCity(),'state' => $shippingAddress->getRegion() ?? $shippingAddress->getCity(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
 
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);

@@ -22,6 +22,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
+use Magento\Framework\Locale\ResolverInterface;
 
 class GetConfig
 {
@@ -38,6 +39,7 @@ class GetConfig
     protected CartRepositoryInterface $cartRepository;
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
+    protected ResolverInterface $localeResolver;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -53,6 +55,7 @@ class GetConfig
      * @param CartRepositoryInterface $cartRepository
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
+     * @param ResolverInterface $localeResolver
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
@@ -67,7 +70,8 @@ class GetConfig
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
-        Json $jsonSerializer
+        Json $jsonSerializer,
+        ResolverInterface $localeResolver
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -82,6 +86,7 @@ class GetConfig
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -105,7 +110,11 @@ class GetConfig
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
-        $buttonConfig->setLocale($this->config->getLocale());
+
+        $sessionLocale = $this->localeResolver->getLocale();
+        $sessionLocale = substr($sessionLocale, 0, 2);
+
+        $buttonConfig->setLocale($sessionLocale ?? $this->config->getLocale());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
         $buttonConfig->setEmailRequired(!$customerSession->isLoggedIn());
