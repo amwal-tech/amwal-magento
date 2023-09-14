@@ -17,6 +17,9 @@
                 <use_base_currency>0</use_base_currency>
                 <can_refund>1</can_refund>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <regular_checkout_active>1</regular_checkout_active>
+                <hide_proceed_to_checkout>1</hide_proceed_to_checkout>
+                <express_checkout_active>1</express_checkout_active>
             </amwal_payments>
         </payment>
     </default>

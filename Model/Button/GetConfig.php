@@ -22,6 +22,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
+use Magento\Framework\Locale\ResolverInterface;
 
 class GetConfig
 {
@@ -38,6 +39,7 @@ class GetConfig
     protected CartRepositoryInterface $cartRepository;
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
+    protected ResolverInterface $localeResolver;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -53,6 +55,7 @@ class GetConfig
      * @param CartRepositoryInterface $cartRepository
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
+     * @param ResolverInterface $localeResolver
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
@@ -67,7 +70,8 @@ class GetConfig
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
-        Json $jsonSerializer
+        Json $jsonSerializer,
+        ResolverInterface $localeResolver
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -82,6 +86,7 @@ class GetConfig
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -105,7 +110,11 @@ class GetConfig
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
-        $buttonConfig->setLocale($this->config->getLocale());
+
+        $sessionLocale = $this->localeResolver->getLocale();
+        $sessionLocale = substr($sessionLocale, 0, 2);
+
+        $buttonConfig->setLocale($sessionLocale ?? $this->config->getLocale());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
         $buttonConfig->setEmailRequired(!$customerSession->isLoggedIn());
@@ -172,22 +181,29 @@ class GetConfig
                 return [];
             }
         }
+        $billingAddressData = $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress();
+        if (!$billingAddressData->getCity()) {
+            $billingAddressData = $customer->getDefaultBillingAddress();
+            if (!$billingAddressData) {
+                return [];
+            }
+        }
         $initialAddress = $this->amwalAddressFactory->create();
-        $initialAddress->setCity($addressData->getCity() ?? '');
-        $initialAddress->setState($addressData->getRegionCode() ?? '');
-        $initialAddress->setPostcode($addressData->getPostcode() ?? '');
-        $initialAddress->setCountry($addressData->getCountryId() ?? '');
-        $initialAddress->setStreet1($addressData->getStreetLine(1) ?? '');
-        $initialAddress->setStreet2($addressData->getStreetLine(2) ?? '');
-        $initialAddress->setEmail($customer->getEmail() ?? '');
+        $initialAddress->setCity($addressData->getCity() ?? $billingAddressData->getCity());
+        $initialAddress->setState($addressData->getRegionCode() ?? $billingAddressData->getRegionCode());
+        $initialAddress->setPostcode($addressData->getPostcode() ?? $billingAddressData->getPostcode());
+        $initialAddress->setCountry($addressData->getCountryId() ?? $billingAddressData->getCountryId());
+        $initialAddress->setStreet1($addressData->getStreetLine(1) ?? $billingAddressData->getStreetLine(1));
+        $initialAddress->setStreet2($addressData->getStreetLine(2) ?? $billingAddressData->getStreetLine(2));
+        $initialAddress->setEmail($customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail());
 
         $attributes = [];
         $attributes['address']   = $initialAddress->toJson();
-        $attributes['email']     = $customer->getEmail() ?? '';
-        $attributes['phone']     = $addressData->getTelephone() ?? '';
-        $attributes['country']   = $addressData->getCountryId() ?? '';
-        $attributes['firstname'] = $addressData->getFirstname() ?? '';
-        $attributes['lastname']  = $addressData->getLastname() ?? '';
+        $attributes['email']     = $customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail();
+        $attributes['phone']     = $addressData->getTelephone() ?? $billingAddressData->getTelephone();
+        $attributes['country']   = $addressData->getCountryId() ?? $billingAddressData->getCountryId();
+        $attributes['firstname'] = $addressData->getFirstname() ?? $billingAddressData->getFirstname();
+        $attributes['lastname']  = $addressData->getLastname()  ?? $billingAddressData->getLastname();
 
         return $attributes;
     }
