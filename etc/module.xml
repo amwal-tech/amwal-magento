@@ -11,5 +11,8 @@
             <module name="Magento_Widget" />
             <module name="Magento_CatalogWidget"/>
         </sequence>
+        <exclude>
+            <item type="directory" name="Amwal_Payments::js/react-src/dist" />
+        </exclude>
     </module>
 </config>
