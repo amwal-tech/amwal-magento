@@ -1,8 +1,24 @@
 {
     "name": "amwal/payments",
-    "description": "Amwal payment plugin for Magento 2 enables PCI-compliant payment processing through Amwal's NPM Module.",
+    "description": "Amwal payment plugin for Magento 2 enables one click checkout for instantaneous purchases from product, mini-cart and cart pages.",
+    "homepage": "https://amwal.tech",
     "type": "magento2-module",
-    "version": "1.0.22",
+    "version": "1.0.23",
+    "keywords": [
+        "magento2",
+        "amwal",
+        "payments",
+        "payment",
+        "gateway",
+        "credit",
+        "card",
+        "debit",
+        "apple pay",
+        "pci",
+        "module",
+        "quick checkout",
+        "minicart quick checkout"
+    ],
     "license": [
         "OSL-3.0"
     ],
@@ -19,9 +35,9 @@
             "role": "Developer"
         },
         {
-            "name": "Shiva Modi",
-            "email": "shivamodi@gmail.com",
-            "homepage": "http://www.amwal.tech",
+            "name": "Ahmed Mardi",
+            "email": "mardi@amwal.tech",
+            "homepage": "https://www.amwal.tech",
             "role": "Developer"
         }
     ],
