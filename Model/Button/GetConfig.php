@@ -168,6 +168,14 @@ class GetConfig
         $addressData = $this->checkoutSessionFactory->create()->getQuote()->getShippingAddress();
         if (!$addressData->getCity()) {
             $addressData = $customer->getDefaultShippingAddress();
+            if(!$addressData->getFirstname() || !$addressData->getLastname()){
+                $addressData = $customer->getDefaultBillingAddress();
+            }
+            if (!$addressData) {
+                return [];
+            }
+        } else if (!$addressData->getFirstname() || !$addressData->getLastname()) {
+            $addressData = $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress();
             if (!$addressData) {
                 return [];
             }
