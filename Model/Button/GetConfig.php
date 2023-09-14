@@ -168,34 +168,33 @@ class GetConfig
         $addressData = $this->checkoutSessionFactory->create()->getQuote()->getShippingAddress();
         if (!$addressData->getCity()) {
             $addressData = $customer->getDefaultShippingAddress();
-            if(!$addressData->getFirstname() || !$addressData->getLastname()){
-                $addressData = $customer->getDefaultBillingAddress();
-            }
-            if (!$addressData) {
-                return [];
-            }
-        } else if (!$addressData->getFirstname() || !$addressData->getLastname()) {
-            $addressData = $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress();
             if (!$addressData) {
                 return [];
             }
         }
+        $billingAddressData = $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress();
+        if (!$billingAddressData->getCity()) {
+            $billingAddressData = $customer->getDefaultBillingAddress();
+            if (!$billingAddressData) {
+                return [];
+            }
+        }
         $initialAddress = $this->amwalAddressFactory->create();
-        $initialAddress->setCity($addressData->getCity() ?? '');
-        $initialAddress->setState($addressData->getRegionCode() ?? '');
-        $initialAddress->setPostcode($addressData->getPostcode() ?? '');
-        $initialAddress->setCountry($addressData->getCountryId() ?? '');
-        $initialAddress->setStreet1($addressData->getStreetLine(1) ?? '');
-        $initialAddress->setStreet2($addressData->getStreetLine(2) ?? '');
-        $initialAddress->setEmail($customer->getEmail() ?? '');
+        $initialAddress->setCity($addressData->getCity() ?? $billingAddressData->getCity());
+        $initialAddress->setState($addressData->getRegionCode() ?? $billingAddressData->getRegionCode());
+        $initialAddress->setPostcode($addressData->getPostcode() ?? $billingAddressData->getPostcode());
+        $initialAddress->setCountry($addressData->getCountryId() ?? $billingAddressData->getCountryId());
+        $initialAddress->setStreet1($addressData->getStreetLine(1) ?? $billingAddressData->getStreetLine(1));
+        $initialAddress->setStreet2($addressData->getStreetLine(2) ?? $billingAddressData->getStreetLine(2));
+        $initialAddress->setEmail($customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail());
 
         $attributes = [];
         $attributes['address']   = $initialAddress->toJson();
-        $attributes['email']     = $customer->getEmail() ?? '';
-        $attributes['phone']     = $addressData->getTelephone() ?? '';
-        $attributes['country']   = $addressData->getCountryId() ?? '';
-        $attributes['firstname'] = $addressData->getFirstname() ?? '';
-        $attributes['lastname']  = $addressData->getLastname() ?? '';
+        $attributes['email']     = $customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail();
+        $attributes['phone']     = $addressData->getTelephone() ?? $billingAddressData->getTelephone();
+        $attributes['country']   = $addressData->getCountryId() ?? $billingAddressData->getCountryId();
+        $attributes['firstname'] = $addressData->getFirstname() ?? $billingAddressData->getFirstname();
+        $attributes['lastname']  = $addressData->getLastname()  ?? $billingAddressData->getLastname();
 
         return $attributes;
     }
