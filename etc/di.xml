@@ -6,6 +6,7 @@
             <argument name="valueHandlerPool" xsi:type="object">AmwalPaymentValueHandlerPool</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
+            <argument name="commandPool" xsi:type="object">AmwalCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AmwalPaymentDefaultValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
@@ -22,6 +23,13 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">AmwalPaymentDefaultValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AmwalCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="refund" xsi:type="string">Amwal\Payments\Model\Refund\Command</item>
             </argument>
         </arguments>
     </virtualType>
@@ -72,6 +80,11 @@
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
         </arguments>
     </type>
+    <type name="Amwal\Payments\Model\Refund\Command">
+        <arguments>
+            <argument name="logger" xsi:type="object">AmwalLogger</argument>
+        </arguments>
+    </type>
 
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>
@@ -87,10 +100,6 @@
     <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
         <plugin name="amwal_payments_prevent_email_on_order_submit" type="Amwal\Payments\Plugin\Sales\Order\Email\PreventEmailForNewOrder" sortOrder="10" />
     </type>
-    <type name="Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Items">
-        <plugin name="amwal_refund_button" type="Amwal\Payments\Plugin\Sales\Order\Creditmemo\RefundButton" sortOrder="10" />
-    </type>
-
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="amwal_order_details" type="Amwal\Payments\Plugin\Sales\Order\View\Details" sortOrder="10" />
     </type>

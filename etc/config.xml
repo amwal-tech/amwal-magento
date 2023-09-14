@@ -15,6 +15,8 @@
                 <phone_number_format>raw</phone_number_format>
                 <phone_number_trim_whitespace>0</phone_number_trim_whitespace>
                 <use_base_currency>0</use_base_currency>
+                <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
             </amwal_payments>
         </payment>
     </default>
