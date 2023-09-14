@@ -58,6 +58,8 @@ class RefundHandler
             if (isset($refundItems[$itemId]) && $refundItems[$itemId]['qty'] > 0) {
                 $refundQty = $refundItems[$itemId]['qty'];
                 $itemPrice = $refundItems[$itemId]['price'];
+                $orderItem->setTaxRefunded($orderItem->getTaxRefunded() + $refundItems[$itemId]['tax']);
+                $orderItem->setDiscountRefunded($orderItem->getDiscountRefunded() + $refundItems[$itemId]['discount_amount']);
                 $orderItem->setQtyRefunded($orderItem->getQtyRefunded() + $refundQty);
                 $orderItem->setAmountRefunded($orderItem->getAmountRefunded() + $itemPrice);
                 $orderItem->setBaseAmountRefunded($orderItem->getBaseAmountRefunded() + $itemPrice);
@@ -76,7 +78,10 @@ class RefundHandler
         // Format refund amount for display
         $refundAmountFormatted = $order->getBaseCurrency()->formatTxt($refundAmount);
         $creditMemo->addComment(__('We refunded %1 online by Amwal Payments.', $refundAmountFormatted));
-
+        if($totalTax > 0) {
+            $creditMemo->setTaxAmount($order->getTaxAmount() + $totalTax);
+            $creditMemo->setBaseTaxAmount( $order->getBaseTaxAmount() + $totalTax);
+        }
         if ($totalDiscount > 0) {
             $order->setDiscountRefunded($order->getDiscountRefunded() + $totalDiscount);
         }

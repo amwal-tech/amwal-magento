@@ -17,25 +17,27 @@ $orderId = $this->getData('orderId');
                 let shippingAmount = $('input[name="creditmemo[shipping_amount]"]').val();
                 let adjustmentPositive = $('input[name="creditmemo[adjustment_positive]"]').val();
                 let adjustmentNegative = $('input[name="creditmemo[adjustment_negative]"]').val();
-
                 let totalDiscount = 0;
-                $('table.order-creditmemo-tables td.col-discont span.price').each(function () {
-                    totalDiscount = $(this).text().replace(/[^0-9.-]+/g, "");
-                });
-
                 let totalTax = 0;
-                $('table.order-creditmemo-tables td.col-tax-amount span.price').each(function () {
-                    totalTax = $(this).text().replace(/[^0-9.-]+/g, "");
+                $('table.order-subtotal-table tbody .price').each(function () {
+                    if ($(this).parent().prev().text().indexOf('Tax') !== -1) {
+                        totalTax += parseFloat($(this).text().replace(/[^0-9.-]+/g, ""));
+                    }
+                    if ($(this).parent().parent().prev().text().indexOf('Discount') !== -1) {
+                        if (parseFloat($(this).text().replace(/[^0-9.-]+/g, "")) < 0) {
+                            totalDiscount += parseFloat($(this).text().replace(/[^0-9.-]+/g, ""));
+                        }
+                    }
                 });
-
                 $('table.order-subtotal-table tfoot span.price').each(function () {
-                    refundAmount = $(this).text().replace(/[^0-9.-]+/g, "");
+                    refundAmount = parseFloat($(this).text().replace(/[^0-9.-]+/g, ""));
                 });
                 if (shippingAmount > 0) {
                     alert($t('The shipping amount will not be returned until the last time the refund is made.'));
-                }
-                if (!confirm($t('Are you sure you want to refund ' + refundAmount + ' with Amwal Payments?'))) {
-                    return;
+                } else{
+                    if (!confirm($t('Are you sure you want to refund ' + refundAmount + ' with Amwal Payments?'))) {
+                        return;
+                    }
                 }
                 let refundItems = [];
                 $('input[name^="creditmemo[items]"]').each(function () {
