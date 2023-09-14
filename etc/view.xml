@@ -1,0 +1,5 @@
+<view xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Config/etc/view.xsd">
+    <exclude>
+        <item type="directory" name="Amwal_Payments::js/react-src/dist" />
+    </exclude>
+</view>
