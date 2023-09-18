@@ -74,6 +74,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
             }else{
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment('Order status updated to ' . $status . ' by Amwal Payments.');
+                $order->setTotalPaid($order->getGrandTotal());
             }
 
             // Save the updated order
