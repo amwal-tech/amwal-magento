@@ -5,6 +5,7 @@ import { type AmwalCheckoutButtonCustomEvent, type IAddress, type IShippingMetho
 
 interface AmwalMagentoReactButtonProps {
   triggerContext: string
+  locale?: string
   preCheckoutTask?: () => Promise<void>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
@@ -16,6 +17,7 @@ interface AmwalMagentoReactButtonProps {
 
 const AmwalMagentoReactButton = ({
   triggerContext,
+  locale,
   preCheckoutTask,
   onSuccessTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
@@ -292,7 +294,6 @@ const AmwalMagentoReactButton = ({
         shippingMethods={shippingMethods}
         merchantId={config.merchant_id}
         countryCode={config.country_code}
-        locale={config.locale}
         darkMode={config.dark_mode}
         emailRequired={config.email_required}
         addressRequired={config.address_required}
@@ -319,6 +320,7 @@ const AmwalMagentoReactButton = ({
         initialFirstName={config.initial_first_name}
         initialLastName={config.initial_last_name}
         installmentOptionsUrl={config.installment_options_url}
+        locale={locale}
     />
     : <></>
 }

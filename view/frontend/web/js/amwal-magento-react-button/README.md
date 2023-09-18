@@ -36,6 +36,7 @@ const ReactPage= () => {
 
     <AmwalMagentoReactButton
         triggerContext={triggerContext}
+        locale={locale}
         preCheckoutTask={submitAddToCart}
         extraHeaders={{
           'x-access-token': 'abc'
@@ -48,15 +49,16 @@ const ReactPage= () => {
 ```
 
 ## Properties
-| Property                | Type                                  | Description                                                                                                                                                                   |
-|-------------------------|---------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| triggerContext          | string                                | Context where the button is instantiated. possible values `product-listing-page`, `regular-checkout`, .. etc.                                                                 |
-| preCheckoutTask         | ()  =>   Promise < void >\| undefined | An asynchronous function that is fired when the button is clicked on checkout. Possible Uses are for performing operations such as adding product to cart if on product page. |
-| onSuccessTask           | (Info: ISuccessInfo)  =>   Promise < void >\| undefined | An asynchronous function that is fired when a successful transaction happens |
-| emptyCartOnCancellation | boolean \| undefined                  | controls behavior if Cart is emptied when the user cancels the checkout                                                                                                       |
-| baseUrl | string \| undefined                  | base URL for the magento backend. Defaults to `/rest/V1`                                                                                                                      |
-| extraHeaders | Record<string, string> \| undefined                  | extra headers in JSON format to send with fetch requests                                                                                                                      |
-| overrideQuoteId | string \| undefined                  | Useful when you want to provide your own quoteId.                                                                                                       |
-| redirectURL | string \| undefined                  | URL to redirect to after checkout is completed.                                                                                                       |
+| Property                | Type                                                     | Description                                                                                                   |
+|-------------------------|----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| triggerContext          | string                                                   | Context where the button is instantiated. possible values `product-listing-page`, `regular-checkout`, .. etc. |
+| locale                  | string                                                   | The locale that should be used for rendering the button. Default `en`.                                        |
+| preCheckoutTask         | ()  =>   Promise < void > \| undefined                   | An asynchronous function that is fired when the button is clicked on checkout. Possible Uses are for performing operations such as adding product to cart if on product page. |
+| onSuccessTask           | (Info: ISuccessInfo)  =>   Promise < void > \| undefined | An asynchronous function that is fired when a successful transaction happens |
+| emptyCartOnCancellation | boolean \| undefined                                     | controls behavior if Cart is emptied when the user cancels the checkout                                                                                                       |
+| baseUrl                 | string \| undefined                                      | base URL for the magento backend. Defaults to `/rest/V1`                                                                                                                      |
+| extraHeaders            | Record<string, string> \| undefined                      | extra headers in JSON format to send with fetch requests                                                                                                                      |
+| overrideQuoteId         | string \| undefined                                      | Useful when you want to provide your own quoteId.                                                                                                       |
+| redirectURL             | string \| undefined                                      | URL to redirect to after checkout is completed.                                                                                                       |
 
 

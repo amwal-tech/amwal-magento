@@ -60,6 +60,9 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         return $product;
     }
 
+    /**
+     * @return string
+     */
     public function getTriggerContext(): string
     {
         return 'amwal-widget';
@@ -67,9 +70,18 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
 
     /**
      * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->config->getLocale();
+    }
+
+    /**
+     * @param int $length
+     * @return string
      * @throws LocalizedException
      */
-    public function getUniqueId($length = 8): string
+    public function getUniqueId(int $length = 8): string
     {
         return self::CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString($length);
     }

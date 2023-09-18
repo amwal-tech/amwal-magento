@@ -18,7 +18,8 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
 <?php if ($viewModel->shouldRender($triggerContext)): ?>
     <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?>"
          trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
-        <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
+         locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
+         <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
          id="<?= $escaper->escapeHtmlAttr($buttonId) ?>">
     </div>
     <script type="text/x-magento-init">
