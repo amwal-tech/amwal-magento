@@ -104,6 +104,7 @@ class GetConfig
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
         $buttonConfig->setAllowedAddressCountries(array_keys($this->directoryHelper->getCountryCollection()->getItems()));
+
         if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
@@ -111,10 +112,6 @@ class GetConfig
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
 
-        $sessionLocale = $this->localeResolver->getLocale();
-        $sessionLocale = substr($sessionLocale, 0, 2);
-
-        $buttonConfig->setLocale($sessionLocale ?? $this->config->getLocale());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
         $buttonConfig->setEmailRequired(!$customerSession->isLoggedIn());

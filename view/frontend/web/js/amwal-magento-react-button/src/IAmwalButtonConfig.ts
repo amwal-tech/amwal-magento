@@ -9,7 +9,6 @@ export interface IAmwalButtonConfig {
   merchant_id: string
   amount: number
   country_code: CountryCode
-  locale: string
   dark_mode: 'on' | 'off' | 'auto'
   email_required: boolean
   address_required: boolean
