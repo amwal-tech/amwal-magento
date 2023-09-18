@@ -22,7 +22,6 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
-use Magento\Framework\Locale\ResolverInterface;
 
 class GetConfig
 {
@@ -39,7 +38,6 @@ class GetConfig
     protected CartRepositoryInterface $cartRepository;
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
-    protected ResolverInterface $localeResolver;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -55,7 +53,6 @@ class GetConfig
      * @param CartRepositoryInterface $cartRepository
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
-     * @param ResolverInterface $localeResolver
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
@@ -70,8 +67,7 @@ class GetConfig
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
-        Json $jsonSerializer,
-        ResolverInterface $localeResolver
+        Json $jsonSerializer
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -86,7 +82,6 @@ class GetConfig
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
-        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -110,11 +105,9 @@ class GetConfig
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
-
-        $sessionLocale = $this->localeResolver->getLocale();
-        $sessionLocale = substr($sessionLocale, 0, 2);
-
-        $buttonConfig->setLocale($sessionLocale ?? $this->config->getLocale());
+        $url = $this->storeManager->getStore()->getCurrentUrl();
+        $locale = $this->getLocaleFromUrl($url);
+        $buttonConfig->setLocale($locale ?? $this->config->getLocale());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
         $buttonConfig->setEmailRequired(!$customerSession->isLoggedIn());
@@ -236,5 +229,20 @@ class GetConfig
             } catch (\libphonenumber\NumberParseException $e) {}
         }
         return $phone_number;
+    }
+
+    /**
+     * Function to extract the locale from the URL
+     *
+     * @param string $url The URL from which to extract the locale
+     * @return string|null The extracted locale or null if not found
+     */
+    private function getLocaleFromUrl($url) {
+        $urlParts = explode('/', $url);
+        if (isset($urlParts[3])) {
+            $locale = substr($urlParts[3], 0, 2);
+            return $locale;
+        }
+        return null;
     }
 }
