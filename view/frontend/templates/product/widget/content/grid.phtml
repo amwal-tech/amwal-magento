@@ -75,7 +75,7 @@ use Magento\Checkout\Model\Cart;
                                                             $postParams = $block->getAddToCartPostParams($_item);
                                                             $buttonId = $block->getUniqueId();
                                                             $triggerContext = $block->getTriggerContext();
-                                                            $triggerContext = $block->getLocale();
+                                                            $locale = $block->getLocale();
                                                         ?>
                                                         <form data-role="tocart-form" data-product-sku="<?= $block->escapeHtml($_item->getSku()) ?>" action="<?= $block->escapeUrl($postParams['action']) ?>" method="post" id="form-<?= $escaper->escapeHtmlAttr($buttonId) ?>">
                                                             <input type="hidden" name="product" value="<?= $block->escapeHtmlAttr($postParams['data']['product']) ?>">
@@ -90,7 +90,7 @@ use Magento\Checkout\Model\Cart;
                                                         <?php if($isMinicartEmpty): ?>
                                                         <div class="amwal-express-checkout-button"
                                                              trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
-                                                             trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
+                                                             locale="<?= $escaper->escapeHtmlAttr($locale) ?>"
                                                              form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
                                                              id="<?= $escaper->escapeHtmlAttr($buttonId) ?>">
                                                         </div>
