@@ -25,7 +25,7 @@ export const renderReactElement = (container: Element): void => {
     root.render(
         <AmwalMagentoReactButton
             triggerContext={triggerContext}
-            locale={locale}
+            locale={locale ?? undefined}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />)
   }
