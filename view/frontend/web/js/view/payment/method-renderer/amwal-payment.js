@@ -22,7 +22,6 @@ function ($, Component, $t) {
         initialize: function () {
             let self = this;
             self._super();
-            
             const applePayObserver = new MutationObserver((mutations) => {
                 applePayObserver.disconnect();
                 mutations.forEach((mutation) => {
@@ -31,6 +30,7 @@ function ($, Component, $t) {
                             handleApplePayLogo();
                         }else{
                             updateSecureTextContent($t('Pay securely with MADA and credit cards'));
+                            updatePaymentLabel($t('Quick checkout (Amwal)'));
                         }
                     }
                 });
@@ -39,7 +39,7 @@ function ($, Component, $t) {
                     childList: true,
                     subtree: true
                 });
-            }); 
+            });
             // Initial observation setup
             applePayObserver.observe(document.body, {
                 childList: true,
@@ -59,7 +59,13 @@ function ($, Component, $t) {
                     secureText.innerHTML = newContent;
                 }
             }
-            
+            function updatePaymentLabel(newContent) {
+                const paymentText = document.getElementById('payment-label');
+                if (paymentText) {
+                    paymentText.innerHTML = newContent;
+                }
+            }
+
             function handleApplePayLogo() {
                 const applePayLogo = document.getElementById('apple-pay-logo');
                 if (applePayLogo) {
