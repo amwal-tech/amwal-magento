@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Cron;
 
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -18,6 +19,7 @@ class PendingOrdersUpdate
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private FilterBuilder $filterBuilder;
     private LoggerInterface $logger;
+    private GetAmwalOrderData $getAmwalOrderData;
 
     private Config $config;
 
@@ -26,7 +28,8 @@ class PendingOrdersUpdate
         SearchCriteriaBuilder    $searchCriteriaBuilder,
         FilterBuilder            $filterBuilder,
         LoggerInterface          $logger,
-        Config                   $config
+        Config                   $config,
+        GetAmwalOrderData        $getAmwalOrderData
     )
     {
         $this->orderRepository = $orderRepository;
@@ -34,6 +37,7 @@ class PendingOrdersUpdate
         $this->filterBuilder = $filterBuilder;
         $this->logger = $logger;
         $this->config = $config;
+        $this->getAmwalOrderData = $getAmwalOrderData;
     }
 
     /**
@@ -51,6 +55,15 @@ class PendingOrdersUpdate
 
             if (!$amwalOrderId) {
                 $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $orderId));
+                continue;
+            }
+            $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
+
+            if (!$amwalOrderData) {
+                return false;
+            }
+            $status = $amwalOrderData['status'];
+            if ($status !== 'success') {
                 continue;
             }
             $order->setState($this->config->getOrderConfirmedStatus());
