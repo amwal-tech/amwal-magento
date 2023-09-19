@@ -58,12 +58,7 @@ class PendingOrdersUpdate
                 continue;
             }
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
-
-            if (!$amwalOrderData) {
-                return false;
-            }
-            $status = $amwalOrderData['status'];
-            if ($status !== 'success') {
+            if (!$amwalOrderData || $amwalOrderData['status'] !== 'success') {
                 continue;
             }
             $order->setState($this->config->getOrderConfirmedStatus());
