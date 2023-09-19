@@ -50,6 +50,7 @@
         </arguments>
     </virtualType>
 
+
     <type name="Amwal\Payments\Model\Checkout\UpdateShippingMethod">
         <arguments>
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
@@ -85,7 +86,13 @@
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
         </arguments>
     </type>
+    <type name="Amwal\Payments\Cron\PendingOrdersUpdate">
+        <arguments>
+            <argument name="logger" xsi:type="object">AmwalLogger</argument>
+        </arguments>
+    </type>
 
+    
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>
     <preference for="Amwal\Payments\Api\Data\AmwalAddressInterface" type="Amwal\Payments\Model\Data\AmwalAddress"/>
