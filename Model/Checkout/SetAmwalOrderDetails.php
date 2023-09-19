@@ -10,6 +10,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Magento\Sales\Api\Data\OrderInterface;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\Serialize\Serializer\Json;
 
 /**
  * Add order details in the Amwal system after order placement
@@ -19,20 +20,25 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
 
     private AmwalClientFactory $amwalClientFactory;
 
+    private Json $json;
+
     /**
      * @param AmwalClientFactory $amwalClientFactory
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
+     * @param Json $json
      */
     public function __construct(
         AmwalClientFactory $amwalClientFactory,
         ErrorReporter $errorReporter,
         Config $config,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Json $json
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->amwalClientFactory = $amwalClientFactory;
+        $this->json = $json;
     }
 
     /**
@@ -47,7 +53,7 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
         $orderDetails['order_id'] = $order->getIncrementId();
         $orderDetails['order_entity_id'] = $order->getEntityId();
         $orderDetails['order_created_at'] = $order->getCreatedAt();
-        $orderDetails['order_content'] = json_encode($this->getOrderContent($order));
+        $orderDetails['order_content'] = $this->json->serialize($this->getOrderContent($order));
         $orderDetails['order_position'] = $triggerContext;
         $orderDetails['plugin_type'] = 'magento';
         $orderDetails['plugin_version'] = $this->config->getVersion();
