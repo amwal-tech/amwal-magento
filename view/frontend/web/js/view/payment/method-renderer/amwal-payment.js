@@ -22,9 +22,7 @@ function ($, Component, $t) {
         initialize: function () {
             let self = this;
             self._super();
-            self.getTitle = function () {
-                return $t('Quick checkout (Amwal)');
-            }
+
             const applePayObserver = new MutationObserver((mutations) => {
                 applePayObserver.disconnect();
                 mutations.forEach((mutation) => {
@@ -70,6 +68,10 @@ function ($, Component, $t) {
             }
 
             return self;
+        },
+
+        getTitle: function () {
+            return $t('Quick checkout (Amwal)');
         },
 
         initializeAmwalButton: function () {
