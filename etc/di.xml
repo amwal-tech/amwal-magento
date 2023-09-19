@@ -92,6 +92,7 @@
         </arguments>
     </type>
 
+    
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>
     <preference for="Amwal\Payments\Api\Data\AmwalAddressInterface" type="Amwal\Payments\Model\Data\AmwalAddress"/>
