@@ -47,6 +47,7 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
         $orderDetails['order_id'] = $order->getIncrementId();
         $orderDetails['order_entity_id'] = $order->getEntityId();
         $orderDetails['order_created_at'] = $order->getCreatedAt();
+        $orderDetails['order_content'] = json_encode($this->getOrderContent($order));
         $orderDetails['order_position'] = $triggerContext;
         $orderDetails['plugin_type'] = 'magento';
         $orderDetails['plugin_version'] = $this->config->getVersion();
@@ -81,5 +82,27 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
         }
+    }
+
+    /**
+     * @param $order
+     * @return array
+     */
+    private function getOrderContent($order): array
+    {
+        $items = $order->getAllItems();
+        $orderContent = [];
+        foreach ($items as $item) {
+            if ($item->getParentItemId()) {
+                continue;
+            }
+            $orderContent[] = [
+                'id' => $item->getProductId(),
+                'name' => $item->getName(),
+                'quantity' => $item->getQtyOrdered(),
+                'total' => $item->getRowTotalInclTax()
+            ];
+        }
+        return $orderContent;
     }
 }
