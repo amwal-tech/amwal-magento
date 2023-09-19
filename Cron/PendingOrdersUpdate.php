@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Cron;
 
+use Amwal\Payments\Model\Config;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\FilterBuilder;
 use DateTime as PhpDateTime;
-use Amwal\Payments\Model\Checkout\PayOrder;
+use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 
 class PendingOrdersUpdate
@@ -18,17 +19,21 @@ class PendingOrdersUpdate
     private FilterBuilder $filterBuilder;
     private LoggerInterface $logger;
 
+    private Config $config;
+
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder    $searchCriteriaBuilder,
         FilterBuilder            $filterBuilder,
-        LoggerInterface          $logger
+        LoggerInterface          $logger,
+        Config                   $config
     )
     {
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
         $this->logger = $logger;
+        $this->config = $config;
     }
 
     /**
@@ -39,12 +44,19 @@ class PendingOrdersUpdate
         $this->logger->notice('Starting Cron Job');
 
         $orders = $this->getPendingOrders();
+
         foreach ($orders as $order) {
             $amwalOrderId = $order->getAmwalOrderId();
             $orderId = $order->getEntityId();
 
-            $payOrder = new PayOrder();
-            $payOrder->execute($orderId, $amwalOrderId);
+            if (!$amwalOrderId) {
+                $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $orderId));
+                continue;
+            }
+            $order->setState($this->config->getOrderConfirmedStatus());
+            $order->setStatus($this->config->getOrderConfirmedStatus());
+            $order->setTotalPaid($order->getGrandTotal());
+            $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
         }
         $this->logger->notice('Cron Job Finished');
@@ -55,34 +67,14 @@ class PendingOrdersUpdate
     {
         $currentTime = new PhpDateTime();
         $fromTime = (clone $currentTime)->sub(new \DateInterval('PT2H')); // 2 hours ago
-        $toTime = (clone $currentTime)->sub(new \DateInterval('PT30M')); // 30 minutes ago
-
-        $filters[] = $this->filterBuilder
-            ->setField('status')
-            ->setValue('pending_payment')
-            ->setConditionType('eq')
-            ->create();
-
-        $filters[] = $this->filterBuilder
-            ->setField('created_at')
-            ->setValue($fromTime->format('Y-m-d H:i:s'))
-            ->setConditionType('gteq')
-            ->create();
-
-        $filters[] = $this->filterBuilder
-            ->setField('created_at')
-            ->setValue($toTime->format('Y-m-d H:i:s'))
-            ->setConditionType('lteq')
-            ->create();
 
         $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilters($filters)
+            ->addFilter('created_at', $fromTime->format('Y-m-d H:i:s'), 'gteq')
+            ->addFilter('created_at', $currentTime->format('Y-m-d H:i:s'), 'lteq')
+            ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->create();
 
-        $orders = $this->orderRepository
-            ->getList($searchCriteria)
-            ->getItems();
-
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
         return $orders;
     }
 }
