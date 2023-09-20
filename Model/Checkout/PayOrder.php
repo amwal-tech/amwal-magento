@@ -147,13 +147,11 @@ class PayOrder extends AmwalCheckoutAction
             $order->setStatus($this->config->getOrderConfirmedStatus());
             $order->setSendEmail(true);
             $this->orderNotifier->notify($order);
-        } else if($amwalOrderStatus == 'fail') {
+        }else{
             $order->setState(Order::STATE_CANCELED);
             $order->setStatus(Order::STATE_CANCELED);
             $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
             $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
-        }else{
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been failed, status: (' . $amwalOrderStatus . ').');
         }
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
