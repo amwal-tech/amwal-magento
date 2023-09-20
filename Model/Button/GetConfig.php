@@ -187,7 +187,7 @@ class GetConfig
         }
         $initialAddress = $this->amwalAddressFactory->create();
         $initialAddress->setCity($addressData->getCity() ?? $billingAddressData->getCity());
-        $initialAddress->setState($addressData->getRegionCode() ?? $billingAddressData->getRegionCode());
+        $initialAddress->setState($addressData->getRegionCode() ?? $billingAddressData->getRegionCode() ?? 'N/A');
         $initialAddress->setPostcode($addressData->getPostcode() ?? $billingAddressData->getPostcode());
         $initialAddress->setCountry($addressData->getCountryId() ?? $billingAddressData->getCountryId());
         $initialAddress->setStreet1($addressData->getStreetLine(1) ?? $billingAddressData->getStreetLine(1));

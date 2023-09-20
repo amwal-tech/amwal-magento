@@ -22,7 +22,9 @@ function ($, Component, $t) {
         initialize: function () {
             let self = this;
             self._super();
-            
+            self.getTitle = function () {
+                return $t('Quick checkout (Amwal)');
+            }
             const applePayObserver = new MutationObserver((mutations) => {
                 applePayObserver.disconnect();
                 mutations.forEach((mutation) => {
@@ -39,7 +41,7 @@ function ($, Component, $t) {
                     childList: true,
                     subtree: true
                 });
-            }); 
+            });
             // Initial observation setup
             applePayObserver.observe(document.body, {
                 childList: true,
@@ -59,7 +61,6 @@ function ($, Component, $t) {
                     secureText.innerHTML = newContent;
                 }
             }
-            
             function handleApplePayLogo() {
                 const applePayLogo = document.getElementById('apple-pay-logo');
                 if (applePayLogo) {
