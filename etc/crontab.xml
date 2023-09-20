@@ -3,8 +3,5 @@
         <job name="amwal_pending_orders_update" instance="Amwal\Payments\Cron\PendingOrdersUpdate" method="execute">
             <schedule>*/30 * * * *</schedule>
         </job>
-        <job name="amwal_pending_orders_cancel" instance="Amwal\Payments\Cron\PendingOrdersCancel" method="execute">
-            <schedule>*/15 * * * *</schedule>
-        </job>
     </group>
 </config>
