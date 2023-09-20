@@ -12,6 +12,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Composer\ComposerInformation;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Directory\Helper\Data as DirectoryHelper;
 
 class Config
 {
@@ -41,6 +42,7 @@ class Config
     public const XML_CONFIG_PATH_STREET_LINE_COUNT = 'customer/address/street_lines';
     public const XML_CONFIG_PATH_SECRET_KEY = 'payment/amwal_payments/secret_key';
     public const XML_CONFIG_PATH_INSTALLMENT_CALLBACK = 'payment/amwal_payments/installment_callback';
+    public const XML_CONFIG_PATH_USE_SYSTEM_COUNTRY_SETTINGS = 'payment/amwal_payments/use_system_country_settings';
 
 
     /** @var ScopeConfigInterface  */
@@ -52,19 +54,25 @@ class Config
     /** @var RegionCollectionFactory  */
     private RegionCollectionFactory $regionCollectionFactory;
 
+    /** @var DirectoryHelper  */
+    private DirectoryHelper $directoryHelper;
+
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param ComposerInformation $composerInformation
      * @param RegionCollectionFactory $regionCollectionFactory
+     * @param DirectoryHelper $directoryHelper
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         ComposerInformation $composerInformation,
-        RegionCollectionFactory $regionCollectionFactory
+        RegionCollectionFactory $regionCollectionFactory,
+        DirectoryHelper $directoryHelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->composerInformation = $composerInformation;
         $this->regionCollectionFactory = $regionCollectionFactory;
+        $this->directoryHelper = $directoryHelper;
     }
 
     /**
@@ -133,6 +141,12 @@ class Config
      */
     public function getCountryCode(): string
     {
+        if($this->shouldUseSystemCountrySettings()) {
+            return $this->scopeConfig->getValue(
+                'general/country/default',
+                ScopeInterface::SCOPE_STORE
+            );
+        }
         return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_COUNTRY_CODE, ScopeInterface::SCOPE_WEBSITE);
     }
 
@@ -245,6 +259,12 @@ class Config
      */
     public function getLimitedRegions(): array
     {
+        if($this->shouldUseSystemCountrySettings()) {
+            $countryCode = $this->getCountryCode();
+            $regionCollection = $this->regionCollectionFactory->create();
+            $regionCollection->addFieldToFilter('main_table.country_id', ['eq' => $countryCode]);
+            return $regionCollection->getColumnValues('region_id');
+        }
         $regionIds = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_LIMIT_REGIONS, ScopeInterface::SCOPE_WEBSITE) ?? '';
         return explode(',', $regionIds);
     }
@@ -263,6 +283,17 @@ class Config
         }
 
         return $limitedRegionCodes;
+    }
+
+    public function getAllowedAddressCountries(): array
+    {
+        if($this->shouldUseSystemCountrySettings()) {
+            return explode(',', $this->scopeConfig->getValue(
+                'general/country/allow',
+                ScopeInterface::SCOPE_STORE
+            ));
+        }
+        return array_keys($this->directoryHelper->getCountryCollection()->getItems());
     }
 
     /**
@@ -345,5 +376,14 @@ class Config
     public function getInstallmentOptionsUrl(): string
     {
         return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_INSTALLMENT_CALLBACK, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function shouldUseSystemCountrySettings(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_USE_SYSTEM_COUNTRY_SETTINGS, ScopeInterface::SCOPE_WEBSITE);
     }
 }
