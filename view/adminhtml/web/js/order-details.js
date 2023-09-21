@@ -19,6 +19,11 @@ define('Amwal_Payments/js/order-details', ['jquery', 'Magento_Ui/js/modal/modal'
         if (!$('#amwal_order_status').length) {
             $('.order-information-table tbody').append(amwalOrderStatusHtml);
         }
+        var amwalOrderPaymentMethodHtml = '<tr id="amwal_order_payment_method"> <th>' +  $t("Amwal Payment Method") + '</th> <td><span>' + responseJson.payment_method + '</span></td> </tr>';
+        if (!$('#amwal_order_payment_method').length) {
+            $('.order-information-table tbody').append(amwalOrderPaymentMethodHtml);
+        }
+
         // Create modal options
         var options = {
             type: 'popup',
