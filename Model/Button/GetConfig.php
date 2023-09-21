@@ -193,8 +193,8 @@ class GetConfig
         $attributes['email']     = $customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail();
         $attributes['phone']     = $addressData->getTelephone() ?? $billingAddressData->getTelephone();
         $attributes['country']   = $addressData->getCountryId() ?? $billingAddressData->getCountryId();
-        $attributes['firstname'] = $addressData->getFirstname() ?? $billingAddressData->getFirstname();
-        $attributes['lastname']  = $addressData->getLastname()  ?? $billingAddressData->getLastname();
+        $attributes['firstname'] = $customer->getFirstname() ?? $addressData->getFirstname() ?? $billingAddressData->getFirstname();
+        $attributes['lastname']  = $customer->getLastname() ?? $addressData->getLastname()  ?? $billingAddressData->getLastname();
 
         return $attributes;
     }
