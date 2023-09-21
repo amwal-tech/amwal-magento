@@ -14,14 +14,17 @@ $buttonId = $viewModel->getUniqueId();
 $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
 ?>
-
+<style>
+    .amwal-express-checkout-button.product-detail-page{
+        width: 49%;
+    }
+</style>
 <?php if ($viewModel->shouldRender($triggerContext)): ?>
-    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?>"
+    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?>  <?= $triggerContext == 'product-detail-page' ? 'product-detail-page' : '' ?> "
          trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
          <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
          id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
-         <?= $triggerContext == 'product-detail-page' ? 'style="width: 49%"' : '' ?>
     >
     </div>
     <script type="text/x-magento-init">
