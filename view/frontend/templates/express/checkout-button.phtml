@@ -20,7 +20,9 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
          trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
          <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
-         id="<?= $escaper->escapeHtmlAttr($buttonId) ?>">
+         id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+         <?= $triggerContext == 'product-detail-page' ? 'style="width: 49%"' : '' ?>
+    >
     </div>
     <script type="text/x-magento-init">
         {
