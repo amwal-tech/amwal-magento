@@ -53,7 +53,7 @@ class GetCartButtonConfig extends GetConfig
             $quote = $this->checkoutSessionFactory->create()->getQuote();
         }
 
-        return (float) $quote->getGrandTotal();
+        return (float)$quote->getGrandTotal();
     }
 
     /**
@@ -64,24 +64,33 @@ class GetCartButtonConfig extends GetConfig
      */
     private function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, $quoteId): void
     {
-        if($quoteId){
+        if ($quoteId) {
             $quote = $this->cartRepository->get($quoteId);
             $shippingAddress = $quote->getShippingAddress();
             $email = $shippingAddress->getEmail() ?? '';
-        }else{
-            $objectManager   = ObjectManager::getInstance();
+            $firstName = $shippingAddress->getFirstname() ?? '';
+            $lastName = $shippingAddress->getLastname() ?? '';
+            $phone = $shippingAddress->getTelephone() ?? '';
+        } else {
+            $objectManager = ObjectManager::getInstance();
             $checkoutSession = $objectManager->get(Session::class);
             $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
             $email = $checkoutSession->getQuote()->getCustomerEmail() ?? $checkoutSession->getQuote()->getBillingAddress()->getEmail();
+            $firstName = $checkoutSession->getQuote()->getCustomerFirstname() ?? $checkoutSession->getQuote()->getBillingAddress()->getFirstname();
+            $lastName = $checkoutSession->getQuote()->getCustomerLastname() ?? $checkoutSession->getQuote()->getBillingAddress()->getLastname();
+            $phone = $checkoutSession->getQuote()->getBillingAddress()->getTelephone() ?? $checkoutSession->getQuote()->getShippingAddress()->getTelephone();
         }
 
-        $street          = $shippingAddress->getStreet()[0] ?? '';
-        $street2         = $shippingAddress->getStreet()[1] ?? '';
-        $formatedAddress = json_encode(['street1' => $street, 'street2' => $street2, 'city' => $shippingAddress->getCity(),'state' => $shippingAddress->getRegion() ?? $shippingAddress->getCity(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
+        $street = $shippingAddress->getStreet()[0] ?? '';
+        $street2 = $shippingAddress->getStreet()[1] ?? '';
+        $formatedAddress = json_encode(['street1' => $street, 'street2' => $street2, 'city' => $shippingAddress->getCity(), 'state' => $shippingAddress->getRegion() ?? $shippingAddress->getCity(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
 
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setInitialAddress($formatedAddress ?? null);
         $buttonConfig->setInitialEmail($email);
+        $buttonConfig->setInitialPhone($phone);
+        $buttonConfig->setInitialFirstName($firstName);
+        $buttonConfig->setInitialLastName($lastName);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }
