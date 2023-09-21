@@ -165,9 +165,10 @@ const AmwalMagentoReactButton = ({
   }
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
     if (!event.detail.orderId) return
-    if (event.detail.paymentSuccessful) {
+    if (placedOrderId) {
       completeOrder(event.detail.orderId)
-    } else if (emptyCartOnCancellation) {
+    }
+    if (!event.detail.paymentSuccessful && emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
       fetch(`${baseUrl}/amwal/clean-quote`, {
         method: 'POST',

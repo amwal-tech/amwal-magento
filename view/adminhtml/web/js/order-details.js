@@ -2,10 +2,10 @@ define('Amwal_Payments/js/order-details', ['jquery', 'Magento_Ui/js/modal/modal'
     'use strict';
 
     return function (config) {
-        console.log(config);
         // Parse response JSON
         var responseJson = JSON.parse(config.order_details);
         var amwalOrderStatus = responseJson.status;
+        var amwalOrderFailureReason = responseJson.failure_reason;
 
         config.orderId = config.order_id;
         config.amwalOrderId = config.amwal_order_id;
@@ -22,6 +22,10 @@ define('Amwal_Payments/js/order-details', ['jquery', 'Magento_Ui/js/modal/modal'
         var amwalOrderPaymentMethodHtml = '<tr id="amwal_order_payment_method"> <th>' +  $t("Amwal Payment Method") + '</th> <td><span>' + responseJson.payment_method + '</span></td> </tr>';
         if (!$('#amwal_order_payment_method').length && responseJson.payment_method) {
             $('.order-information-table tbody').append(amwalOrderPaymentMethodHtml);
+        }
+        var amwalOrderFailureReasonHtml = '<tr id="amwal_order_failure_reason"> <th>' +  $t("Amwal Order Failure Reason") + '</th> <td><span>' + amwalOrderFailureReason + '</span></td> </tr>';
+        if (!$('#amwal_order_failure_reason').length && amwalOrderFailureReason && amwalOrderStatus === 'fail') {
+            $('.order-information-table tbody').append(amwalOrderFailureReasonHtml);
         }
 
         // Create modal options
