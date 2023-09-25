@@ -124,4 +124,9 @@ class ExpressCheckoutButton implements ArgumentInterface
     {
         return $this->config->getLocale();
     }
+
+    public function getStyleCss(): string
+    {
+        return $this->config->getStyleCss();
+    }
 }
