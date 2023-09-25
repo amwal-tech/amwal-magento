@@ -42,6 +42,8 @@ class Config
     public const XML_CONFIG_PATH_SECRET_KEY = 'payment/amwal_payments/secret_key';
     public const XML_CONFIG_PATH_INSTALLMENT_CALLBACK = 'payment/amwal_payments/installment_callback';
 
+    public const XML_CONFIG_PATH_STYLE_CSS = 'payment/amwal_payments/style_css';
+
 
     /** @var ScopeConfigInterface  */
     private ScopeConfigInterface $scopeConfig;
@@ -345,5 +347,13 @@ class Config
     public function getInstallmentOptionsUrl(): string
     {
         return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_INSTALLMENT_CALLBACK, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getStyleCss(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_STYLE_CSS, ScopeInterface::SCOPE_WEBSITE);
     }
 }

@@ -15,12 +15,10 @@ $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
 ?>
 <style>
-    .amwal-express-checkout-button.product-detail-page{
-        width: 49%;
-    }
+    <?= $viewModel->getStyleCss() ?>
 </style>
 <?php if ($viewModel->shouldRender($triggerContext)): ?>
-    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?>  <?= $triggerContext == 'product-detail-page' ? 'product-detail-page' : '' ?> "
+    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?> <?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
          <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
