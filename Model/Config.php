@@ -384,7 +384,8 @@ class Config
      */
     public function getStyleCss(): string
     {
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_STYLE_CSS, ScopeInterface::SCOPE_WEBSITE);
+        return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_STYLE_CSS, ScopeInterface::SCOPE_WEBSITE);
+    }
 
     /**
      * @return bool
