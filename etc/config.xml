@@ -20,7 +20,7 @@
                 <regular_checkout_active>1</regular_checkout_active>
                 <hide_proceed_to_checkout>1</hide_proceed_to_checkout>
                 <express_checkout_active>1</express_checkout_active>
-                <style_css><![CDATA[.amwal-express-checkout-button.product-detail-page{ width: 49%; }]]></style_css>
+                <style_css><![CDATA[.amwal-express-checkout-button.product-detail-page{width: 49%;} @media (max-width: 768px) { .amwal-express-checkout-button.product-detail-page { width: unset; } }]]></style_css>
                 <use_system_country_settings>1</use_system_country_settings>
             </amwal_payments>
         </payment>
