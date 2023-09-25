@@ -15,7 +15,7 @@ $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
 ?>
 <style>
-    <?= $escaper->escapeCss($viewModel->getStyleCss()) ?>
+    <?= $viewModel->getStyleCss() ?>
 </style>
 <?php if ($viewModel->shouldRender($triggerContext)): ?>
     <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?> <?= $escaper->escapeHtmlAttr($triggerContext) ?>"
