@@ -12,7 +12,6 @@ use Amwal\Payments\Model\Config\Source\MerchantMode;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
-use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
 use Magento\Customer\Model\Session;
@@ -33,7 +32,6 @@ class GetConfig
     protected CustomerSessionFactory $customerSessionFactory;
     protected CheckoutSessionFactory $checkoutSessionFactory;
     protected CityHelper $cityHelper;
-    protected DirectoryHelper $directoryHelper;
     protected AmwalAddressInterfaceFactory $amwalAddressFactory;
     protected RefIdManagementInterface $refIdManagement;
     protected CartRepositoryInterface $cartRepository;
@@ -49,7 +47,6 @@ class GetConfig
      * @param CustomerSessionFactory $customerSessionFactory
      * @param CheckoutSessionFactory $checkoutSessionFactory
      * @param CityHelper $cityHelper
-     * @param DirectoryHelper $directoryHelper
      * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param RefIdManagementInterface $refIdManagement
      * @param CartRepositoryInterface $cartRepository
@@ -65,7 +62,6 @@ class GetConfig
         CustomerSessionFactory $customerSessionFactory,
         CheckoutSessionFactory $checkoutSessionFactory,
         CityHelper $cityHelper,
-        DirectoryHelper $directoryHelper,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
@@ -80,7 +76,6 @@ class GetConfig
         $this->customerSessionFactory = $customerSessionFactory;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
         $this->cityHelper = $cityHelper;
-        $this->directoryHelper = $directoryHelper;
         $this->amwalAddressFactory = $amwalAddressFactory;
         $this->refIdManagement = $refIdManagement;
         $this->cartRepository = $cartRepository;
@@ -103,8 +98,7 @@ class GetConfig
         $buttonConfig->setAddressRequired(true);
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
-        $buttonConfig->setAllowedAddressCountries(array_keys($this->directoryHelper->getCountryCollection()->getItems()));
-
+        $buttonConfig->setAllowedAddressCountries($this->config->getAllowedAddressCountries());
         if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
@@ -199,8 +193,8 @@ class GetConfig
         $attributes['email']     = $customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail();
         $attributes['phone']     = $addressData->getTelephone() ?? $billingAddressData->getTelephone();
         $attributes['country']   = $addressData->getCountryId() ?? $billingAddressData->getCountryId();
-        $attributes['firstname'] = $addressData->getFirstname() ?? $billingAddressData->getFirstname();
-        $attributes['lastname']  = $addressData->getLastname()  ?? $billingAddressData->getLastname();
+        $attributes['firstname'] = $customer->getFirstname() ?? $addressData->getFirstname() ?? $billingAddressData->getFirstname();
+        $attributes['lastname']  = $customer->getLastname() ?? $addressData->getLastname()  ?? $billingAddressData->getLastname();
 
         return $attributes;
     }

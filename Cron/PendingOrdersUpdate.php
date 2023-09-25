@@ -59,7 +59,8 @@ class PendingOrdersUpdate
             }
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
             if (!$amwalOrderData || $amwalOrderData['status'] !== 'success') {
-                continue;
+                $order->setState(Order::STATE_CANCELED);
+                $order->setStatus(Order::STATE_CANCELED);
             }
             $order->setState($this->config->getOrderConfirmedStatus());
             $order->setStatus($this->config->getOrderConfirmedStatus());
@@ -75,10 +76,11 @@ class PendingOrdersUpdate
     {
         $currentTime = new PhpDateTime();
         $fromTime = (clone $currentTime)->sub(new \DateInterval('PT2H')); // 2 hours ago
+        $toTime = (clone $currentTime)->sub(new \DateInterval('PT1H'));   // 1 hour ago
 
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime->format('Y-m-d H:i:s'), 'gteq')
-            ->addFilter('created_at', $currentTime->format('Y-m-d H:i:s'), 'lteq')
+            ->addFilter('created_at', $toTime->format('Y-m-d H:i:s'), 'lteq')
             ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->create();
 

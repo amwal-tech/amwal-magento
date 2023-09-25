@@ -23,6 +23,7 @@ use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CustomerManagement;
 use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
@@ -147,9 +148,11 @@ class PayOrder extends AmwalCheckoutAction
             $order->setSendEmail(true);
             $this->orderNotifier->notify($order);
         }else{
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been failed, status: (' . $amwalOrderStatus . ')');
+            $order->setState(Order::STATE_CANCELED);
+            $order->setStatus(Order::STATE_CANCELED);
+            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
+            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
         }
-
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
             ->setLastSuccessQuoteId($quote->getId());
