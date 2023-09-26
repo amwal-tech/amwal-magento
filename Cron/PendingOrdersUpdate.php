@@ -70,9 +70,8 @@ class PendingOrdersUpdate
     {
         date_default_timezone_set($this->config->getTimezone());
 
-        $fromTime = date('Y-m-d H:i:s', strtotime('-30 minutes'));
+        $fromTime = date('Y-m-d h:i', strtotime('-30 minutes'));
         $this->logger->notice(sprintf('Searching for orders created after %s', $fromTime));
-
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime, 'gt')
             ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
