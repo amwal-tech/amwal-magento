@@ -20,7 +20,7 @@
                 <regular_checkout_active>1</regular_checkout_active>
                 <hide_proceed_to_checkout>1</hide_proceed_to_checkout>
                 <express_checkout_active>1</express_checkout_active>
-                <style_css><![CDATA[.amwal-express-checkout-button.product-detail-page{width: 49%;} @media (max-width: 768px) { .amwal-express-checkout-button.product-detail-page { width: unset; } }]]></style_css>
+                <style_css><![CDATA[.amwal-express-checkout-button.product-detail-page{width: 49%;} @media (max-width: 768px) { .amwal-express-checkout-button.product-detail-page { width: unset; } } @media (max-width: 767px) { .catalog-product-view .hydrated center { text-align:right; background: #fff; position: fixed; bottom: 0; left: 0; z-index: 9999; width: 50%; } .catalog-product-view .hydrated center ion-button { margin-bottom: 10px; margin-left: 5px; width: 96% !important; border-radius: 0px!important; height: 50px!important; } .box-tocart .actions { position:fixed; bottom: 0; width: 50%; background: #fff; margin: 0 auto; text-align: center; right: 0; z-index: 9999; padding: 0px; } .box-tocart .action.tocart:not(:last-child){ margin-bottom: 8px!important; } }]]></style_css>
                 <use_system_country_settings>1</use_system_country_settings>
             </amwal_payments>
         </payment>
