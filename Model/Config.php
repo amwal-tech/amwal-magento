@@ -394,12 +394,4 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_USE_SYSTEM_COUNTRY_SETTINGS, ScopeInterface::SCOPE_WEBSITE);
     }
-
-    /**
-     * @return string
-     */
-    public function getTimezone(): string
-    {
-        return $this->scopeConfig->getValue('general/locale/timezone', ScopeInterface::SCOPE_STORE);
-    }
 }

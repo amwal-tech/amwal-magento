@@ -68,8 +68,6 @@ class PendingOrdersUpdate
 
     protected function getPendingOrders(): array
     {
-        date_default_timezone_set($this->config->getTimezone());
-
         $fromTime = date('Y-m-d h:i', strtotime('-30 minutes'));
         $this->logger->notice(sprintf('Searching for orders created after %s', $fromTime));
         $searchCriteria = $this->searchCriteriaBuilder
