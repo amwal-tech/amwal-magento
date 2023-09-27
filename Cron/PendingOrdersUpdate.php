@@ -8,8 +8,6 @@ use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\FilterBuilder;
-use DateTime as PhpDateTime;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 
@@ -17,16 +15,13 @@ class PendingOrdersUpdate
 {
     private OrderRepositoryInterface $orderRepository;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
-    private FilterBuilder $filterBuilder;
     private LoggerInterface $logger;
     private GetAmwalOrderData $getAmwalOrderData;
-
     private Config $config;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder    $searchCriteriaBuilder,
-        FilterBuilder            $filterBuilder,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
         LoggerInterface          $logger,
         Config                   $config,
         GetAmwalOrderData        $getAmwalOrderData
@@ -34,7 +29,6 @@ class PendingOrdersUpdate
     {
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->filterBuilder = $filterBuilder;
         $this->logger = $logger;
         $this->config = $config;
         $this->getAmwalOrderData = $getAmwalOrderData;
@@ -48,7 +42,6 @@ class PendingOrdersUpdate
         $this->logger->notice('Starting Cron Job');
 
         $orders = $this->getPendingOrders();
-
         foreach ($orders as $order) {
             $amwalOrderId = $order->getAmwalOrderId();
             $orderId = $order->getEntityId();
@@ -65,6 +58,7 @@ class PendingOrdersUpdate
             $order->setState($this->config->getOrderConfirmedStatus());
             $order->setStatus($this->config->getOrderConfirmedStatus());
             $order->setTotalPaid($order->getGrandTotal());
+            $order->addCommentToStatusHistory(__('Successfully completed Amwal payment with transaction ID %1', $amwalOrderData->getId()));
             $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
         }
@@ -74,17 +68,16 @@ class PendingOrdersUpdate
 
     protected function getPendingOrders(): array
     {
-        $currentTime = new PhpDateTime();
-        $fromTime = (clone $currentTime)->sub(new \DateInterval('PT2H')); // 2 hours ago
-        $toTime = (clone $currentTime)->sub(new \DateInterval('PT1H'));   // 1 hour ago
-
+        $fromTime = date('Y-m-d h:i', strtotime('-30 minutes'));
+        $this->logger->notice(sprintf('Searching for orders created after %s', $fromTime));
         $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('created_at', $fromTime->format('Y-m-d H:i:s'), 'gteq')
-            ->addFilter('created_at', $toTime->format('Y-m-d H:i:s'), 'lteq')
+            ->addFilter('created_at', $fromTime, 'gt')
             ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+
+        $this->logger->notice(sprintf('Found %s orders', count($orders)));
         return $orders;
     }
 }
