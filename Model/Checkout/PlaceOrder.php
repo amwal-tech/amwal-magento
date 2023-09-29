@@ -144,6 +144,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $quoteId = (int) $quoteId;
         $quote = $this->quoteRepository->get($quoteId);
 
+        $quote->setData(self::IS_AMWAL_API_CALL, true);
         $quote->setPaymentMethod(ConfigProvider::CODE);
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
@@ -181,7 +182,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 $this->throwException();
             }
 
-            if ($this->getCustomerIsGuest() && $amwalOrderData->getClientEmail()) {
+            if ($this->getCustomerIsGuest($quote) && $amwalOrderData->getClientEmail()) {
                 $this->setCustomerEmail($quote, $amwalOrderData->getClientEmail());
             }
 
@@ -207,9 +208,6 @@ class PlaceOrder extends AmwalCheckoutAction
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
-
-
-
 
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
 
@@ -252,7 +250,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
         $order->setAmwalOrderId($amwalOrderId);
-        $order->addStatusHistoryComment('Amwal Transaction ID: ' . $amwalOrderId);
+        $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
 
         return $order;
@@ -319,10 +317,11 @@ class PlaceOrder extends AmwalCheckoutAction
     }
 
     /**
+     * @param Quote $quote
      * @return bool
      */
-    private function getCustomerIsGuest(): bool
+    private function getCustomerIsGuest(Quote $quote): bool
     {
-        return $this->checkoutSession->getQuote()->getCustomer()->getId() === null;
+        return $quote->getCustomer()->getId() === null;
     }
 }
