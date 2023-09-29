@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 
 abstract class AmwalCheckoutAction
 {
+    public const IS_AMWAL_API_CALL  = 'is_amwal_api_call';
 
     protected ErrorReporter $errorReporter;
     protected Config $config;

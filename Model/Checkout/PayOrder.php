@@ -30,7 +30,6 @@ use Psr\Log\LoggerInterface;
 
 class PayOrder extends AmwalCheckoutAction
 {
-
     private CartRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
     private InvoiceOrder $invoiceAmwalOrder;
@@ -110,6 +109,7 @@ class PayOrder extends AmwalCheckoutAction
 
         try {
             $quote = $this->quoteRepository->get($order->getQuoteId());
+            $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
         } catch (NoSuchEntityException $e) {
             $message = sprintf('Unable to load Quote for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
             $this->reportError($amwalOrderId, $message);
