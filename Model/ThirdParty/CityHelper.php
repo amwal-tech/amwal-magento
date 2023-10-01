@@ -35,9 +35,21 @@ class CityHelper
         $connection = $this->resourceConnection->getConnection();
         $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
         $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
+        $citiesTable = $this->resourceConnection->getTableName('cities');
 
-        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName)) {
+        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName) || !$connection->isTableExists($citiesTable)) {
             return [];
+        }
+
+        if ($connection->isTableExists($citiesTable)) {
+            $sql = $connection->select()->from(
+                ['city' => $citiesTable],
+                ['state_id', 'country_id', 'city']
+            );
+            foreach ($connection->fetchAll($sql) as $city) {
+                $cityCodes[$city['country_id']][$city['state_id']][] = $city['city'];
+            }
+            return $cityCodes;
         }
 
         $condition = $connection->quoteInto('lng.locale = ?', $locale);
