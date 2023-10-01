@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\ThirdParty;
 
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Locale\Resolver as LocaleResolver;
 
@@ -14,16 +15,22 @@ class CityHelper
     /** @var ResourceConnection  */
     private ResourceConnection $resourceConnection;
 
+    /** @var ExpressCheckoutButton */
+    private ExpressCheckoutButton $expressCheckoutButton;
+
     /**
      * @param LocaleResolver $localeResolver
      * @param ResourceConnection $resourceConnection
+     * @param ExpressCheckoutButton $expressCheckoutButton
      */
     public function __construct(
         LocaleResolver $localeResolver,
-        ResourceConnection $resourceConnection
+        ResourceConnection $resourceConnection,
+        ExpressCheckoutButton $expressCheckoutButton
     ) {
         $this->localeResolver = $localeResolver;
         $this->resourceConnection = $resourceConnection;
+        $this->expressCheckoutButton = $expressCheckoutButton;
     }
 
     /**
@@ -50,7 +57,7 @@ class CityHelper
         $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
 
         if ($connection->isTableExists($tableName) && $connection->isTableExists($localeCityTableName)) {
-            $locale = $this->localeResolver->getLocale();
+            $locale = $this->expressCheckoutButton->getLocale();
             $condition = $connection->quoteInto('lng.locale = ?', $locale);
             $sql = $connection->select()
                 ->from(['city' => $tableName])
