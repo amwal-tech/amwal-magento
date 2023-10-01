@@ -258,12 +258,21 @@ class Config
     /**
      * @return array
      */
+    public function getAllowCountries(): array
+    {
+        return explode(',', $this->scopeConfig->getValue('general/country/allow', ScopeInterface::SCOPE_STORE)) ?? [];
+    }
+
+
+    /**
+     * @return array
+     */
     public function getLimitedRegions(): array
     {
         if($this->shouldUseSystemCountrySettings()) {
-            $countryCode = $this->getCountryCode();
+            $countryCodes = $this->getAllowCountries();
             $regionCollection = $this->regionCollectionFactory->create();
-            $regionCollection->addFieldToFilter('main_table.country_id', ['eq' => $countryCode]);
+            $regionCollection->addFieldToFilter('main_table.country_id', ['in' => $countryCodes]);
             return $regionCollection->getColumnValues('region_id');
         }
         $regionIds = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_LIMIT_REGIONS, ScopeInterface::SCOPE_WEBSITE) ?? '';
