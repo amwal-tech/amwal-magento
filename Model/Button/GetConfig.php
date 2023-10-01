@@ -16,6 +16,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
 use Magento\Customer\Model\Session;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -38,6 +39,9 @@ class GetConfig
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
     protected ResolverInterface $localeResolver;
+    protected RegionCollectionFactory $regionCollectionFactory;
+    protected RegionFactory $regionFactory;
+
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -53,6 +57,8 @@ class GetConfig
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
      * @param ResolverInterface $localeResolver
+     * @param RegionCollectionFactory $regionCollectionFactory
+     *
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
@@ -67,7 +73,8 @@ class GetConfig
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
         Json $jsonSerializer,
-        ResolverInterface $localeResolver
+        ResolverInterface $localeResolver,
+        RegionCollectionFactory $regionCollectionFactory
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -82,6 +89,7 @@ class GetConfig
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
         $this->localeResolver = $localeResolver;
+        $this->regionCollectionFactory = $regionCollectionFactory;
     }
 
     /**
@@ -99,9 +107,7 @@ class GetConfig
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
         $buttonConfig->setAllowedAddressCountries($this->config->getAllowedAddressCountries());
-        if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
-            $buttonConfig->setAllowedAddressStates($limitedRegions);
-        }
+
 
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
@@ -130,15 +136,6 @@ class GetConfig
 
     }
 
-    /**
-     * @return string
-     */
-    protected function getLimitedRegionCodesJson(): string
-    {
-        return $this->jsonSerializer->serialize(
-            $this->config->getLimitedRegionsArray()
-        );
-    }
 
     /**
      * @param Session $customerSession

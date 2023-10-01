@@ -14,13 +14,11 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
-
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
     protected ResolverInterface $localeResolver;
-
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
@@ -42,6 +40,9 @@ class GetCartButtonConfig extends GetConfig
 
         if ($limitedCities = $this->getCityCodesJson($locale)) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
+        }
+        if ($limitedRegions = $this->getLimitedRegionCodesJson($locale)) {
+            $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
 
         if ($triggerContext == 'regular-checkout') {
@@ -116,5 +117,36 @@ class GetCartButtonConfig extends GetConfig
         }
 
         return $this->jsonSerializer->serialize($cityCodes);
+    }
+
+    /**
+     * @param string $locale
+     * @return string
+     */
+    protected function getLimitedRegionCodesJson($locale): string
+    {
+        return $this->jsonSerializer->serialize(
+            $this->getLimitedRegionsArray($locale)
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getLimitedRegionsArray($locale): array
+    {
+
+        $limitedRegionCodes = [];
+        $limitedRegions = $this->config->getLimitedRegions();
+        $locale = $locale ?? $this->localeResolver->getLocale();
+        $regionCollection = $this->regionCollectionFactory->create();
+        $regionCollection->addFieldToFilter('main_table.region_id', ['in' => $limitedRegions]);
+        foreach ($regionCollection->getItems() as $region) {
+            $region->setLocale($locale);
+            $regionName = $region->getName();
+            $limitedRegionCodes[$region->getCountryId()][$region->getRegionId()] = $regionName;
+        }
+
+        return $limitedRegionCodes;
     }
 }
