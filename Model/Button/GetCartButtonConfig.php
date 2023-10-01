@@ -6,23 +6,31 @@ namespace Amwal\Payments\Model\Button;
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
+use Amwal\Payments\Model\ThirdParty\CityHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Serialize\Serializer\Json;
 
 class GetCartButtonConfig extends GetConfig
 {
+    protected Json $jsonSerializer;
+    protected CityHelper $cityHelper;
+    protected ResolverInterface $localeResolver;
+
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
      * @param int|null $quoteId
+     * @param string|null $locale
      * @return AmwalButtonConfigInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute(RefIdDataInterface $refIdData, string $triggerContext = null, ?int $quoteId = null): AmwalButtonConfigInterface
+    public function execute(RefIdDataInterface $refIdData, string $triggerContext = null, ?int $quoteId = null, string $locale = null): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
@@ -31,6 +39,10 @@ class GetCartButtonConfig extends GetConfig
 
         $buttonConfig->setAmount($this->getAmount($quoteId));
         $buttonConfig->setId($this->getButtonId($quoteId));
+
+        if ($limitedCities = $this->getCityCodesJson($locale)) {
+            $buttonConfig->setAllowedAddressCities($limitedCities);
+        }
 
         if ($triggerContext == 'regular-checkout') {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quoteId);
@@ -88,5 +100,21 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setInitialLastName($shippingAddress->getLastname() ?? $billingAddress->getLastname() ?? $customer->getLastname() ?? null);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
+    }
+
+    /**
+     * @param string $locale
+     * @return string
+     */
+    protected function getCityCodesJson($locale): string
+    {
+        $locale = $locale ?? $this->localeResolver->getLocale();
+        $cityCodes = $this->cityHelper->getCityCodes($locale);
+
+        if (!$cityCodes) {
+            return '';
+        }
+
+        return $this->jsonSerializer->serialize($cityCodes);
     }
 }

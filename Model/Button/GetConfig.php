@@ -102,9 +102,6 @@ class GetConfig
         if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
-        if ($limitedCities = $this->getCityCodesJson()) {
-            $buttonConfig->setAllowedAddressCities($limitedCities);
-        }
 
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
@@ -141,20 +138,6 @@ class GetConfig
         return $this->jsonSerializer->serialize(
             $this->config->getLimitedRegionsArray()
         );
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCityCodesJson(): string
-    {
-        $cityCodes = $this->cityHelper->getCityCodes();
-
-        if (!$cityCodes) {
-            return '';
-        }
-
-        return $this->jsonSerializer->serialize($cityCodes);
     }
 
     /**
