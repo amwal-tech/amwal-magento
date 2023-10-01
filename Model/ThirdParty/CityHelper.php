@@ -31,39 +31,34 @@ class CityHelper
      */
     public function getCityCodes(): array
     {
-        $locale = $this->localeResolver->getLocale();
+        $cityCodes = [];
         $connection = $this->resourceConnection->getConnection();
-        $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
-        $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
         $citiesTable = $this->resourceConnection->getTableName('cities');
 
-        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName) || !$connection->isTableExists($citiesTable)) {
-            return [];
-        }
-
         if ($connection->isTableExists($citiesTable)) {
-            $sql = $connection->select()->from(
-                ['city' => $citiesTable],
-                ['state_id', 'country_id', 'city']
-            );
+            $condition = $connection->quoteInto('city.status = ?', 1);
+            $sql = $connection->select()
+                ->from(['city' => $citiesTable], ['city', 'state_id', 'country_id'])
+                ->where($condition);
+
             foreach ($connection->fetchAll($sql) as $city) {
                 $cityCodes[$city['country_id']][$city['state_id']][] = $city['city'];
             }
-            return $cityCodes;
         }
 
-        $condition = $connection->quoteInto('lng.locale = ?', $locale);
-        $sql = $connection->select()->from(
-            ['city' => $tableName]
-        )->joinLeft(
-            ['lng' => $localeCityTableName],
-            'city.city_id = lng.city_id AND ' . $condition,
-            ['name']
-        );
+        $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
+        $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
 
-        $cityCodes = [];
-        foreach ($connection->fetchAll($sql) as $city) {
-            $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
+        if ($connection->isTableExists($tableName) && $connection->isTableExists($localeCityTableName)) {
+            $locale = $this->localeResolver->getLocale();
+            $condition = $connection->quoteInto('lng.locale = ?', $locale);
+            $sql = $connection->select()
+                ->from(['city' => $tableName])
+                ->joinLeft(['lng' => $localeCityTableName], 'city.city_id = lng.city_id AND ' . $condition, ['name']);
+
+            foreach ($connection->fetchAll($sql) as $city) {
+                $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
+            }
         }
 
         return $cityCodes;
