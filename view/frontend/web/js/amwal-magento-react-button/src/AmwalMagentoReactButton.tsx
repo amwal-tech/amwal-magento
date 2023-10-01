@@ -58,7 +58,8 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         refIdData: initalRefIdData,
         triggerContext,
-        quoteId: overrideQuoteId ?? quoteId
+        quoteId: overrideQuoteId ?? quoteId,
+        locale: locale
       })
     })
       .then(async response => await response.json())
@@ -247,7 +248,8 @@ const AmwalMagentoReactButton = ({
         body: JSON.stringify({
           refIdData,
           triggerContext,
-          quoteId: overrideQuoteId ?? quoteId
+          quoteId: overrideQuoteId ?? quoteId,
+          locale: locale
         })
       })
     }
