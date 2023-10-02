@@ -58,11 +58,11 @@ class CityHelper
                 ->from(['city' => $tableName])
                 ->joinLeft(
                     ['lngname' => $localeCityTableName],
-                    'main_table.city_id = lngname.city_id AND lngname.locale = :region_locale',
+                    'city.city_id = lngname.city_id AND lngname.locale = :region_locale',
                     ['name']
                 );
 
-            foreach ($connection->fetchAll($sql, [':region_locale', $this->localeResolver->getLocale()]) as $city) {
+            foreach ($connection->fetchAll($sql, [':region_locale' => $this->localeResolver->getLocale()]) as $city) {
                 $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
             }
         }
