@@ -312,13 +312,4 @@ class PlaceOrder extends AmwalCheckoutAction
 
         $this->quoteRepository->save($quote);
     }
-
-    /**
-     * @param Quote $quote
-     * @return bool
-     */
-    private function getCustomerIsGuest(Quote $quote): bool
-    {
-        return $quote->getCustomer()->getId() === null;
-    }
 }
