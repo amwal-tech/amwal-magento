@@ -36,9 +36,8 @@ class PendingOrdersUpdate
 
     /**
      * @throws LocalizedException
-     * @return self
      */
-    public function execute()
+    public function execute(): PendingOrdersUpdate
     {
         $this->logger->notice('Starting Cron Job');
 
