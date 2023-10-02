@@ -38,7 +38,6 @@ class GetConfig
     protected CartRepositoryInterface $cartRepository;
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
-    protected ResolverInterface $localeResolver;
     protected RegionCollectionFactory $regionCollectionFactory;
     protected RegionFactory $regionFactory;
 
@@ -56,7 +55,6 @@ class GetConfig
      * @param CartRepositoryInterface $cartRepository
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
-     * @param ResolverInterface $localeResolver
      * @param RegionCollectionFactory $regionCollectionFactory
      *
      */
@@ -73,7 +71,6 @@ class GetConfig
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
         Json $jsonSerializer,
-        ResolverInterface $localeResolver,
         RegionCollectionFactory $regionCollectionFactory
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
@@ -88,7 +85,6 @@ class GetConfig
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
-        $this->localeResolver = $localeResolver;
         $this->regionCollectionFactory = $regionCollectionFactory;
     }
 
