@@ -21,6 +21,7 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
     <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?> <?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
+         scope-code="<?= $escaper->escapeHtmlAttr($viewModel->getStoreCode()) ?>"
          <?= $formSelector ? 'form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
          id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
     >
