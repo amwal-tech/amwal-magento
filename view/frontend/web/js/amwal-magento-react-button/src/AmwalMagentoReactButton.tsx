@@ -6,6 +6,7 @@ import { type AmwalCheckoutButtonCustomEvent, type IAddress, type IShippingMetho
 interface AmwalMagentoReactButtonProps {
   triggerContext: string
   locale?: string
+  scopeCode?: string
   preCheckoutTask?: () => Promise<void>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
@@ -18,10 +19,11 @@ interface AmwalMagentoReactButtonProps {
 const AmwalMagentoReactButton = ({
   triggerContext,
   locale,
+  scopeCode,
   preCheckoutTask,
   onSuccessTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
-  baseUrl = '/rest/V1',
+  baseUrl = scopeCode ? `/rest/${scopeCode}/V1` : '/rest/V1',
   extraHeaders,
   overrideQuoteId,
   redirectURL = '/checkout/onepage/success'
