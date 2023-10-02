@@ -4,27 +4,37 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\ThirdParty;
 
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Locale\ResolverInterface;
 
 class CityHelper
 {
 
-    /** @var ResourceConnection  */
+    /**
+     * @var ResourceConnection
+     */
     private ResourceConnection $resourceConnection;
 
     /**
+     * @var ResolverInterface
+     */
+    protected ResolverInterface $localeResolver;
+
+    /**
      * @param ResourceConnection $resourceConnection
+     * @param ResolverInterface $localeResolver
      */
     public function __construct(
         ResourceConnection $resourceConnection,
+        ResolverInterface $localeResolver
     ) {
         $this->resourceConnection = $resourceConnection;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
-     * @param string|null $locale
      * @return array
      */
-    public function getCityCodes($locale = null): array
+    public function getCityCodes(): array
     {
         $cityCodes = [];
         $connection = $this->resourceConnection->getConnection();
@@ -44,12 +54,15 @@ class CityHelper
         $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
 
         if ($connection->isTableExists($tableName) && $connection->isTableExists($localeCityTableName)) {
-            $condition = $connection->quoteInto('lng.locale = ?', $locale);
             $sql = $connection->select()
                 ->from(['city' => $tableName])
-                ->joinLeft(['lng' => $localeCityTableName], 'city.city_id = lng.city_id AND ' . $condition, ['name']);
+                ->joinLeft(
+                    ['lngname' => $localeCityTableName],
+                    'main_table.city_id = lngname.city_id AND lngname.locale = :region_locale',
+                    ['name']
+                );
 
-            foreach ($connection->fetchAll($sql) as $city) {
+            foreach ($connection->fetchAll($sql, [':region_locale', $this->localeResolver->getLocale()]) as $city) {
                 $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
             }
         }

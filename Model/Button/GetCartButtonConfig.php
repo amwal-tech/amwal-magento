@@ -18,17 +18,15 @@ class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
-    protected ResolverInterface $localeResolver;
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
      * @param int|null $quoteId
-     * @param string|null $locale
      * @return AmwalButtonConfigInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute(RefIdDataInterface $refIdData, string $triggerContext = null, ?int $quoteId = null, string $locale = null): AmwalButtonConfigInterface
+    public function execute(RefIdDataInterface $refIdData, string $triggerContext = null, ?int $quoteId = null): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
@@ -38,14 +36,14 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setAmount($this->getAmount($quoteId));
         $buttonConfig->setId($this->getButtonId($quoteId));
 
-        if ($limitedCities = $this->getCityCodesJson($locale)) {
+        if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
-        if ($limitedRegions = $this->getLimitedRegionCodesJson($locale)) {
+        if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
 
-        if ($triggerContext == 'regular-checkout') {
+        if ($triggerContext === 'regular-checkout') {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quoteId);
         }
 
@@ -104,13 +102,11 @@ class GetCartButtonConfig extends GetConfig
     }
 
     /**
-     * @param string $locale
      * @return string
      */
-    protected function getCityCodesJson($locale): string
+    protected function getCityCodesJson(): string
     {
-        $locale = $locale ?? $this->localeResolver->getLocale();
-        $cityCodes = $this->cityHelper->getCityCodes($locale);
+        $cityCodes = $this->cityHelper->getCityCodes();
 
         if (!$cityCodes) {
             return '';
@@ -120,29 +116,26 @@ class GetCartButtonConfig extends GetConfig
     }
 
     /**
-     * @param string $locale
      * @return string
      */
-    protected function getLimitedRegionCodesJson($locale): string
+    protected function getLimitedRegionCodesJson(): string
     {
         return $this->jsonSerializer->serialize(
-            $this->getLimitedRegionsArray($locale)
+            $this->getLimitedRegionsArray()
         );
     }
 
     /**
      * @return array
      */
-    public function getLimitedRegionsArray($locale): array
+    public function getLimitedRegionsArray(): array
     {
 
         $limitedRegionCodes = [];
         $limitedRegions = $this->config->getLimitedRegions();
-        $locale = $locale ?? $this->localeResolver->getLocale();
         $regionCollection = $this->regionCollectionFactory->create();
         $regionCollection->addFieldToFilter('main_table.region_id', ['in' => $limitedRegions]);
         foreach ($regionCollection->getItems() as $region) {
-            $region->setLocale($locale);
             $regionName = $region->getName();
             $limitedRegionCodes[$region->getCountryId()][$region->getRegionId()] = $regionName;
         }
