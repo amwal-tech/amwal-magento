@@ -12,11 +12,13 @@ use Magento\CatalogWidget\Model\Rule;
 use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\Url\EncoderInterface;
 use Magento\Framework\View\LayoutFactory;
 use Magento\Rule\Model\Condition\Sql\Builder as SqlBuilder;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Widget\Helper\Conditions;
 
 class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
@@ -29,6 +31,12 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
      * @var Config
      */
     private Config $config;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
 
     /**
      * @param Context $context
@@ -44,6 +52,7 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
      * @param LayoutFactory|null $layoutFactory
      * @param EncoderInterface|null $urlEncoder
      * @param CategoryRepositoryInterface|null $categoryRepository
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Context                     $context,
@@ -54,6 +63,7 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
         Rule                        $rule,
         Conditions                  $conditionsHelper,
         Config                      $config,
+        StoreManagerInterface       $storeManager,
         array                       $data = [],
         Json                        $json = null,
         LayoutFactory               $layoutFactory = null,
@@ -62,6 +72,7 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
     ) {
         parent::__construct($context, $productCollectionFactory, $catalogProductVisibility, $httpContext, $sqlBuilder, $rule, $conditionsHelper, $data, $json, $layoutFactory, $urlEncoder, $categoryRepository);
         $this->config = $config;
+        $this->storeManager = $storeManager;
     }
 
 
@@ -90,6 +101,19 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
     {
         return $this->config->getLocale();
     }
+
+    /**
+     * @return string
+     */
+    public function getStoreCode(): string
+    {
+        try {
+            return $this->storeManager->getStore()->getCode();
+        } catch (NoSuchEntityException $e) {
+            return '';
+        }
+    }
+
 
     /**
      * @return bool

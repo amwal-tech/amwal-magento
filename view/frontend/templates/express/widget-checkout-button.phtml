@@ -96,6 +96,7 @@ $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VI
                 <div class="amwal-express-checkout-button"
                      trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
                      locale="<?= $escaper->escapeHtmlAttr($block->getLocale()) ?>"
+                     scope-code="<?= $escaper->escapeHtmlAttr($block->getStoreCode()) ?>"
                      form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
                      id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
                 >

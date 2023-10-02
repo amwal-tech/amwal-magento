@@ -11,7 +11,9 @@ use Magento\Catalog\Model\Layer\Resolver;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\Data\Helper\PostHelper;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Url\Helper\Data;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Widget\Block\BlockInterface;
 use Magento\Framework\Math\Random;
 use Magento\Catalog\Block\Product\View\Options as ProductOptionsBlock;
@@ -23,6 +25,12 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
      * @var Config
      */
     private Config $config;
+
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
 
     protected $_productFactory;
 
@@ -39,6 +47,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         CategoryRepositoryInterface $categoryRepository,
         Config                      $config,
         Random                      $random,
+        StoreManagerInterface       $storeManager,
         Data                        $urlHelper, array $data = []
     )
     {
@@ -46,6 +55,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         $this->productRepository = $productRepository;
         $this->random = $random;
         $this->config = $config;
+        $this->storeManager = $storeManager;
         parent::__construct($context, $postDataHelper, $layerResolver, $categoryRepository, $urlHelper, $data);
         $this->setTemplate("Amwal_Payments::express/widget-checkout-button.phtml");
     }
@@ -74,6 +84,18 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
     public function getLocale(): string
     {
         return $this->config->getLocale();
+    }
+
+    /**
+     * @return string
+     */
+    public function getStoreCode(): string
+    {
+        try {
+            return $this->storeManager->getStore()->getCode();
+        } catch (NoSuchEntityException $e) {
+            return '';
+        }
     }
 
     /**
