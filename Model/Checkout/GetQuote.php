@@ -385,7 +385,7 @@ class GetQuote extends AmwalCheckoutAction
 
         foreach ($rates as $rate) {
             $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
-            if (empty($methodTitle)) {
+            if (empty($rate->getMethodTitle())) {
                 $this->logger->error('Shipping method title is empty for ID: ' . $id);
                 continue;
             }
