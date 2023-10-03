@@ -60,22 +60,6 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getLocale(): string
-    {
-        return $this->getData(self::LOCALE);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setLocale(string $locale): AmwalButtonConfigInterface
-    {
-        return $this->setData(self::LOCALE, $locale);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getDarkMode(): string
     {
         return $this->getData(self::DARK_MODE);

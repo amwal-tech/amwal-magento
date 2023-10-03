@@ -12,11 +12,11 @@ use Amwal\Payments\Model\Config\Source\MerchantMode;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
-use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
 use Magento\Customer\Model\Session;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -33,13 +33,14 @@ class GetConfig
     protected CustomerSessionFactory $customerSessionFactory;
     protected CheckoutSessionFactory $checkoutSessionFactory;
     protected CityHelper $cityHelper;
-    protected DirectoryHelper $directoryHelper;
     protected AmwalAddressInterfaceFactory $amwalAddressFactory;
     protected RefIdManagementInterface $refIdManagement;
     protected CartRepositoryInterface $cartRepository;
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
-    protected ResolverInterface $localeResolver;
+    protected RegionCollectionFactory $regionCollectionFactory;
+    protected RegionFactory $regionFactory;
+
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -49,13 +50,13 @@ class GetConfig
      * @param CustomerSessionFactory $customerSessionFactory
      * @param CheckoutSessionFactory $checkoutSessionFactory
      * @param CityHelper $cityHelper
-     * @param DirectoryHelper $directoryHelper
      * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param RefIdManagementInterface $refIdManagement
      * @param CartRepositoryInterface $cartRepository
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
-     * @param ResolverInterface $localeResolver
+     * @param RegionCollectionFactory $regionCollectionFactory
+     *
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
@@ -65,13 +66,12 @@ class GetConfig
         CustomerSessionFactory $customerSessionFactory,
         CheckoutSessionFactory $checkoutSessionFactory,
         CityHelper $cityHelper,
-        DirectoryHelper $directoryHelper,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
         RefIdManagementInterface $refIdManagement,
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
         Json $jsonSerializer,
-        ResolverInterface $localeResolver
+        RegionCollectionFactory $regionCollectionFactory
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -80,13 +80,12 @@ class GetConfig
         $this->customerSessionFactory = $customerSessionFactory;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
         $this->cityHelper = $cityHelper;
-        $this->directoryHelper = $directoryHelper;
         $this->amwalAddressFactory = $amwalAddressFactory;
         $this->refIdManagement = $refIdManagement;
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
-        $this->localeResolver = $localeResolver;
+        $this->regionCollectionFactory = $regionCollectionFactory;
     }
 
     /**
@@ -103,18 +102,9 @@ class GetConfig
         $buttonConfig->setAddressRequired(true);
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
-        $buttonConfig->setAllowedAddressCountries(array_keys($this->directoryHelper->getCountryCollection()->getItems()));
-        if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
-            $buttonConfig->setAllowedAddressStates($limitedRegions);
-        }
-        if ($limitedCities = $this->getCityCodesJson()) {
-            $buttonConfig->setAllowedAddressCities($limitedCities);
-        }
+        $buttonConfig->setAllowedAddressCountries($this->config->getAllowedAddressCountries());
 
-        $sessionLocale = $this->localeResolver->getLocale();
-        $sessionLocale = substr($sessionLocale, 0, 2);
 
-        $buttonConfig->setLocale($sessionLocale ?? $this->config->getLocale());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
         $buttonConfig->setEmailRequired(!$customerSession->isLoggedIn());
@@ -142,29 +132,6 @@ class GetConfig
 
     }
 
-    /**
-     * @return string
-     */
-    protected function getLimitedRegionCodesJson(): string
-    {
-        return $this->jsonSerializer->serialize(
-            $this->config->getLimitedRegionsArray()
-        );
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCityCodesJson(): string
-    {
-        $cityCodes = $this->cityHelper->getCityCodes();
-
-        if (!$cityCodes) {
-            return '';
-        }
-
-        return $this->jsonSerializer->serialize($cityCodes);
-    }
 
     /**
      * @param Session $customerSession
@@ -190,7 +157,7 @@ class GetConfig
         }
         $initialAddress = $this->amwalAddressFactory->create();
         $initialAddress->setCity($addressData->getCity() ?? $billingAddressData->getCity());
-        $initialAddress->setState($addressData->getRegionCode() ?? $billingAddressData->getRegionCode());
+        $initialAddress->setState($addressData->getRegionCode() ?? $billingAddressData->getRegionCode() ?? 'N/A');
         $initialAddress->setPostcode($addressData->getPostcode() ?? $billingAddressData->getPostcode());
         $initialAddress->setCountry($addressData->getCountryId() ?? $billingAddressData->getCountryId());
         $initialAddress->setStreet1($addressData->getStreetLine(1) ?? $billingAddressData->getStreetLine(1));
@@ -202,8 +169,8 @@ class GetConfig
         $attributes['email']     = $customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail();
         $attributes['phone']     = $addressData->getTelephone() ?? $billingAddressData->getTelephone();
         $attributes['country']   = $addressData->getCountryId() ?? $billingAddressData->getCountryId();
-        $attributes['firstname'] = $addressData->getFirstname() ?? $billingAddressData->getFirstname();
-        $attributes['lastname']  = $addressData->getLastname()  ?? $billingAddressData->getLastname();
+        $attributes['firstname'] = $customer->getFirstname() ?? $addressData->getFirstname() ?? $billingAddressData->getFirstname();
+        $attributes['lastname']  = $customer->getLastname() ?? $addressData->getLastname()  ?? $billingAddressData->getLastname();
 
         return $attributes;
     }

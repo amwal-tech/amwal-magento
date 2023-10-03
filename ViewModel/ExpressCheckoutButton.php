@@ -10,6 +10,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 
 class ExpressCheckoutButton implements ArgumentInterface
@@ -37,20 +38,28 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     private SessionFactory $checkoutSessionFactory;
 
+    /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
 
     /**
      * @param AmwalConfig $config
      * @param Random $random
      * @param SessionFactory $checkoutSessionFactory
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         AmwalConfig $config,
         Random $random,
-        SessionFactory $checkoutSessionFactory
+        SessionFactory $checkoutSessionFactory,
+        StoreManagerInterface $storeManager
     ) {
         $this->config = $config;
         $this->random = $random;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -115,5 +124,33 @@ class ExpressCheckoutButton implements ArgumentInterface
         }
 
         return $formSelector;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->config->getLocale();
+    }
+
+    /**
+     * @return string
+     */
+    public function getStyleCss(): string
+    {
+        return $this->config->getStyleCss();
+    }
+
+    /**
+     * @return string
+     */
+    public function getStoreCode(): string
+    {
+        try {
+            return $this->storeManager->getStore()->getCode();
+        } catch (NoSuchEntityException $e) {
+            return '';
+        }
     }
 }

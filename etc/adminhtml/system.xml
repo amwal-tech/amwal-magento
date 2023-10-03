@@ -88,6 +88,11 @@
                         <config_path>payment/amwal_payments/dark_mode</config_path>
                         <tooltip>Toggle to enable dark mode</tooltip>
                     </field>
+                    <field id="style_css" translate="label tooltip" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Style CSS</label>
+                        <config_path>payment/amwal_payments/style_css</config_path>
+                        <tooltip>Custom style CSS to be applied to the Amwal checkout button</tooltip>
+                    </field>
                 </group>
 
                 <!-- Address Attribute Settings -->
@@ -139,6 +144,12 @@
                 <group id="amwal_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50">
                     <label>Country Specific Settings</label>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <field id="use_system_country_settings" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Use System Value</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/use_system_country_settings</config_path>
+                        <comment>Use system value for country specific settings</comment>
+                    </field>
                     <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Payment from Applicable Countries</label>
                         <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>

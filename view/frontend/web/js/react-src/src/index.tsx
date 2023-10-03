@@ -4,6 +4,8 @@ import AmwalMagentoReactButton from 'amwal-magento-react-button'
 
 export const renderReactElement = (container: Element): void => {
   const triggerContext = container.getAttribute('trigger-context')
+  const locale = container.getAttribute('locale')
+  const scopeCode = container.getAttribute('scope-code')
   const formSelector = container.getAttribute('form-selector')
   if (triggerContext) {
     const submitAddToCart = async (): Promise<void> => {
@@ -24,6 +26,8 @@ export const renderReactElement = (container: Element): void => {
     root.render(
         <AmwalMagentoReactButton
             triggerContext={triggerContext}
+            locale={locale ?? undefined}
+            scopeCode={scopeCode}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />)
   }

@@ -9,7 +9,6 @@ interface AmwalButtonConfigInterface
     public const MERCHANT_ID = 'merchant_id';
     public const AMOUNT = 'amount';
     public const COUNTRY_CODE = 'country_code';
-    public const LOCALE = 'locale';
     public const DARK_MODE = 'dark_mode';
     public const EMAIL_REQUIRED = 'email_required';
     public const ADDRESS_REQUIRED = 'address_required';
@@ -69,17 +68,6 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setCountryCode(string $countryCode): AmwalButtonConfigInterface;
-
-    /**
-     * @return string
-     */
-    public function getLocale(): string;
-
-    /**
-     * @param string $locale
-     * @return AmwalButtonConfigInterface
-     */
-    public function setLocale(string $locale): AmwalButtonConfigInterface;
 
     /**
      * @return string

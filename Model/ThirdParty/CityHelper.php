@@ -4,26 +4,31 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\ThirdParty;
 
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Locale\Resolver as LocaleResolver;
+use Magento\Framework\Locale\ResolverInterface;
 
 class CityHelper
 {
-    /** @var LocaleResolver  */
-    private LocaleResolver $localeResolver;
 
-    /** @var ResourceConnection  */
+    /**
+     * @var ResourceConnection
+     */
     private ResourceConnection $resourceConnection;
 
     /**
-     * @param LocaleResolver $localeResolver
+     * @var ResolverInterface
+     */
+    protected ResolverInterface $localeResolver;
+
+    /**
      * @param ResourceConnection $resourceConnection
+     * @param ResolverInterface $localeResolver
      */
     public function __construct(
-        LocaleResolver $localeResolver,
-        ResourceConnection $resourceConnection
+        ResourceConnection $resourceConnection,
+        ResolverInterface $localeResolver
     ) {
-        $this->localeResolver = $localeResolver;
         $this->resourceConnection = $resourceConnection;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -31,27 +36,35 @@ class CityHelper
      */
     public function getCityCodes(): array
     {
-        $locale = $this->localeResolver->getLocale();
+        $cityCodes = [];
         $connection = $this->resourceConnection->getConnection();
+        $citiesTable = $this->resourceConnection->getTableName('cities');
+        if ($connection->isTableExists($citiesTable)) {
+            $condition = $connection->quoteInto('city.status = ?', 1);
+            $sql = $connection->select()
+                ->from(['city' => $citiesTable], ['city', 'state_id', 'country_id'])
+                ->where($condition);
+
+            foreach ($connection->fetchAll($sql) as $city) {
+                $cityCodes[$city['country_id']][$city['state_id']][] = $city['city'];
+            }
+        }
+
         $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
         $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
 
-        if (!$connection->isTableExists($tableName) || !$connection->isTableExists($localeCityTableName)) {
-            return [];
-        }
+        if ($connection->isTableExists($tableName) && $connection->isTableExists($localeCityTableName)) {
+            $sql = $connection->select()
+                ->from(['city' => $tableName])
+                ->joinLeft(
+                    ['lngname' => $localeCityTableName],
+                    'city.city_id = lngname.city_id AND lngname.locale = :region_locale',
+                    ['name']
+                );
 
-        $condition = $connection->quoteInto('lng.locale = ?', $locale);
-        $sql = $connection->select()->from(
-            ['city' => $tableName]
-        )->joinLeft(
-            ['lng' => $localeCityTableName],
-            'city.city_id = lng.city_id AND ' . $condition,
-            ['name']
-        );
-
-        $cityCodes = [];
-        foreach ($connection->fetchAll($sql) as $city) {
-            $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
+            foreach ($connection->fetchAll($sql, [':region_locale' => $this->localeResolver->getLocale()]) as $city) {
+                $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
+            }
         }
 
         return $cityCodes;

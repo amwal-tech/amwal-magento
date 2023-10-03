@@ -23,13 +23,13 @@ use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CustomerManagement;
 use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
 
 class PayOrder extends AmwalCheckoutAction
 {
-
     private CartRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
     private InvoiceOrder $invoiceAmwalOrder;
@@ -109,6 +109,7 @@ class PayOrder extends AmwalCheckoutAction
 
         try {
             $quote = $this->quoteRepository->get($order->getQuoteId());
+            $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
         } catch (NoSuchEntityException $e) {
             $message = sprintf('Unable to load Quote for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
             $this->reportError($amwalOrderId, $message);
@@ -147,9 +148,11 @@ class PayOrder extends AmwalCheckoutAction
             $order->setSendEmail(true);
             $this->orderNotifier->notify($order);
         }else{
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been failed, status: (' . $amwalOrderStatus . ')');
+            $order->setState(Order::STATE_CANCELED);
+            $order->setStatus(Order::STATE_CANCELED);
+            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
+            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
         }
-
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
             ->setLastSuccessQuoteId($quote->getId());

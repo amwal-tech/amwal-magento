@@ -11,7 +11,6 @@ use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
-use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -34,7 +33,6 @@ class PlaceOrder extends AmwalCheckoutAction
     private QuoteManagement $quoteManagement;
     private AddressFactory $quoteAddressFactory;
     private QuoteRepositoryInterface $quoteRepository;
-    private CheckoutSession $checkoutSession;
     private ManagerInterface $messageManager;
     private AddressResolver $addressResolver;
     private OrderRepositoryInterface $orderRepository;
@@ -48,7 +46,6 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param QuoteManagement $quoteManagement
      * @param AddressFactory $quoteAddressFactory
      * @param QuoteRepositoryInterface $quoteRepository
-     * @param CheckoutSession $checkoutSession
      * @param ManagerInterface $messageManager
      * @param AddressResolver $addressResolver
      * @param OrderRepositoryInterface $orderRepository
@@ -65,7 +62,6 @@ class PlaceOrder extends AmwalCheckoutAction
         QuoteManagement $quoteManagement,
         AddressFactory $quoteAddressFactory,
         QuoteRepositoryInterface $quoteRepository,
-        CheckoutSession $checkoutSession,
         ManagerInterface $messageManager,
         AddressResolver $addressResolver,
         OrderRepositoryInterface $orderRepository,
@@ -82,7 +78,6 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->quoteManagement = $quoteManagement;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteRepository = $quoteRepository;
-        $this->checkoutSession = $checkoutSession;
         $this->messageManager = $messageManager;
         $this->addressResolver = $addressResolver;
         $this->orderRepository = $orderRepository;
@@ -144,6 +139,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $quoteId = (int) $quoteId;
         $quote = $this->quoteRepository->get($quoteId);
 
+        $quote->setData(self::IS_AMWAL_API_CALL, true);
         $quote->setPaymentMethod(ConfigProvider::CODE);
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
@@ -181,8 +177,9 @@ class PlaceOrder extends AmwalCheckoutAction
                 $this->throwException();
             }
 
-            if ($this->getCustomerIsGuest() && $amwalOrderData->getClientEmail()) {
-                $this->setCustomerEmail($quote, $amwalOrderData->getClientEmail());
+            $amwalClientEmail = $amwalOrderData->getClientEmail();
+            if ($amwalClientEmail && $quote->getCustomerEmail() !== $amwalClientEmail) {
+                $this->setCustomerEmail($quote, $amwalClientEmail);
             }
 
             $this->updateCustomerAddress($quote, $customerAddress);
@@ -207,9 +204,6 @@ class PlaceOrder extends AmwalCheckoutAction
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
-
-
-
 
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
 
@@ -252,7 +246,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
         $order->setAmwalOrderId($amwalOrderId);
-        $order->addStatusHistoryComment('Amwal Transaction ID: ' . $amwalOrderId);
+        $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
 
         return $order;
@@ -287,6 +281,7 @@ class PlaceOrder extends AmwalCheckoutAction
     {
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
+        $quoteAddress->setEmail($quote->getCustomerEmail());
         $quote->setBillingAddress($quoteAddress);
         $quote->setShippingAddress($quoteAddress);
         $quote->getShippingAddress()->setCollectShippingRates(true);
@@ -316,13 +311,5 @@ class PlaceOrder extends AmwalCheckoutAction
         }
 
         $this->quoteRepository->save($quote);
-    }
-
-    /**
-     * @return bool
-     */
-    private function getCustomerIsGuest(): bool
-    {
-        return $this->checkoutSession->getQuote()->getCustomer()->getId() === null;
     }
 }
