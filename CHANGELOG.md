@@ -1,3 +1,23 @@
+# [1.0.24](https://github.com/amwal-tech/amwal-magento/compare/v1.0.23...v1.0.24) (2023-10-03)
+
+### Features
+* Change the button lang based on the current language
+* Checkout page Amwal payment text translated
+* Cron job for Update the Pending orders status
+* Send the order products to Amwal transaction
+* Show the Order Failure Reason in the order details page
+* Show the order Amwal Payment Method in the order details page
+* Add Use System Value for Country Specific Settings to the Amwal payment method settings
+* [Mobile Display] Add End of the page checkout buttons to the mobile view
+* Add CSS style for the Amwal payment setting
+* Added store code to base URL for REST calls
+* Add custom cities plugin
+
+### Bug Fixes
+* Fix the Initial data in regular checkout
+* Always set Amwal client email address on quote + address
+* Bypass user context for quote access check when using Amwal through headless Rest call
+
 # [1.0.23](https://github.com/amwal-tech/amwal-magento/compare/v1.0.22...v1.0.23) (2023-09-14)
 
 ### Features
