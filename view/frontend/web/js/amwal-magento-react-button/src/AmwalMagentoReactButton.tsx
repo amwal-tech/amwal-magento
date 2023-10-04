@@ -91,9 +91,9 @@ const AmwalMagentoReactButton = ({
         quote_id: overrideQuoteId ?? quoteId
       })
     })
-    if (!response.ok) throw new Error(response.statusText)
 
     const data = await response.json()
+    if (!response.ok) throw new Error(data.message ?? response.statusText )
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
       setQuoteId(quote.quote_id)
@@ -123,7 +123,7 @@ const AmwalMagentoReactButton = ({
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
           detail: {
-            description: 'Error in updating address',
+            description: err?.toString(),
             error: err?.toString()
           }
         }))
