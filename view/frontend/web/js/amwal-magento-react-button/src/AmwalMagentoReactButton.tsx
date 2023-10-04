@@ -91,8 +91,9 @@ const AmwalMagentoReactButton = ({
         quote_id: overrideQuoteId ?? quoteId
       })
     })
-    if (!response.ok) throw new Error(response.statusText)
+
     const data = await response.json()
+    if (!response.ok) throw new Error(response.statusText ? response.statusText : data.message)
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
       if (quote.message) throw new Error(quote.message)
