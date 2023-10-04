@@ -197,6 +197,11 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
+            return [
+                'data' => [
+                    'message' => $e->getMessage(),
+                ]
+            ];
             throw $e;
         }
 
@@ -481,9 +486,8 @@ class GetQuote extends AmwalCheckoutAction
             $extraFee = $totals['amasty_extrafee']->getValueInclTax();
             $grandTotal -= $extraFee;
         }
-
         if (!$grandTotal) {
-            throw new LocalizedException(__('Unable to calculate order total'));
+            throw new LocalizedException(__('Unable to calculate order total or the requested qty is not available'));
         }
 
         return $grandTotal;

@@ -92,10 +92,10 @@ const AmwalMagentoReactButton = ({
       })
     })
     if (!response.ok) throw new Error(response.statusText)
-
     const data = await response.json()
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
+      if (quote.message) throw new Error(quote.message)
       setQuoteId(quote.quote_id)
       const subtotal = parseFloat(quote.amount) -
             parseFloat(quote.tax_amount) -
@@ -123,7 +123,7 @@ const AmwalMagentoReactButton = ({
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalAddressTriggerError', {
           detail: {
-            description: 'Error in updating address',
+            description: err?.toString(),
             error: err?.toString()
           }
         }))
