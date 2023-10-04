@@ -93,7 +93,7 @@ const AmwalMagentoReactButton = ({
     })
 
     const data = await response.json()
-    if (!response.ok) throw new Error(data.message?? response.statusText )
+    if (!response.ok) throw new Error(data.message ?? response.statusText )
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
       setQuoteId(quote.quote_id)
