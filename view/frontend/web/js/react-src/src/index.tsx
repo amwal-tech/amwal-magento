@@ -27,7 +27,7 @@ export const renderReactElement = (container: Element): void => {
         <AmwalMagentoReactButton
             triggerContext={triggerContext}
             locale={locale ?? undefined}
-            scopeCode={scopeCode}
+            scopeCode={scopeCode ?? undefined}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />)
   }
