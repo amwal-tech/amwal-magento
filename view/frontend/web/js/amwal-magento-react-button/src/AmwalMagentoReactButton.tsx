@@ -96,7 +96,6 @@ const AmwalMagentoReactButton = ({
     if (!response.ok) throw new Error(response.statusText ? response.statusText : data.message)
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
-      if (quote.message) throw new Error(quote.message)
       setQuoteId(quote.quote_id)
       const subtotal = parseFloat(quote.amount) -
             parseFloat(quote.tax_amount) -
