@@ -61,7 +61,7 @@ const AmwalMagentoReactButton = ({
         refIdData: initalRefIdData,
         triggerContext,
         quoteId: overrideQuoteId ?? quoteId,
-        locale: locale
+        locale
       })
     })
       .then(async response => await response.json())
@@ -201,8 +201,8 @@ const AmwalMagentoReactButton = ({
     }
   }, [finishedUpdatingOrder, receivedSuccess])
 
-  const handleAmwalPrePayTrigger = (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
-    fetch(`${baseUrl}/amwal/place-order`, {
+  const asyncHandleAmwalPrePayTrigger = async (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): Promise<void> => {
+    const response = await fetch(`${baseUrl}/amwal/place-order`, {
       method: 'POST',
       headers: {
         ...extraHeaders,
@@ -218,17 +218,28 @@ const AmwalMagentoReactButton = ({
         trigger_context: triggerContext,
         has_amwal_address: !(triggerContext === 'regular-checkout')
       })
-    }).then(async response => await response.json())
-      .then(data => {
-        setPlacedOrderId(data.entity_id)
-        buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerAck', {
-          detail: {
-            order_id: data.entity_id,
-            order_total_amount: data.total_due
-          }
-        }))
-      })
-      .catch(err => {
+    })
+    const data = await response.json()
+    if (response.ok) {
+      setPlacedOrderId(data.entity_id)
+      buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerAck', {
+        detail: {
+          order_id: data.entity_id,
+          order_total_amount: data.total_due
+        }
+      }))
+    } else {
+      buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
+        detail: {
+          description: data.message ?? data
+        }
+      }))
+    }
+  }
+
+  const handleAmwalPrePayTrigger = (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
+    asyncHandleAmwalPrePayTrigger(event)
+      .catch((err) => {
         console.log(err)
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
           detail: {
@@ -251,7 +262,7 @@ const AmwalMagentoReactButton = ({
           refIdData,
           triggerContext,
           quoteId: overrideQuoteId ?? quoteId,
-          locale: locale
+          locale
         })
       })
     }
