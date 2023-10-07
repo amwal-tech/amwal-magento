@@ -14,6 +14,7 @@ interface AmwalMagentoReactButtonProps {
   extraHeaders?: Record<string, string>
   overrideQuoteId?: string
   redirectURL?: string
+  performSuccessRedirection?: (orderId: string) => void
 }
 
 const AmwalMagentoReactButton = ({
@@ -26,7 +27,8 @@ const AmwalMagentoReactButton = ({
   baseUrl = scopeCode ? `/rest/${scopeCode}/V1` : '/rest/V1',
   extraHeaders,
   overrideQuoteId,
-  redirectURL = '/checkout/onepage/success'
+  redirectURL = '/checkout/onepage/success',
+  performSuccessRedirection = () => { window.location.href = redirectURL }
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -197,7 +199,9 @@ const AmwalMagentoReactButton = ({
   React.useEffect(() => {
     if (finishedUpdatingOrder && receivedSuccess) {
       window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
-      window.location.href = redirectURL
+      if (placedOrderId) {
+        performSuccessRedirection(placedOrderId)
+      }
     }
   }, [finishedUpdatingOrder, receivedSuccess])
 

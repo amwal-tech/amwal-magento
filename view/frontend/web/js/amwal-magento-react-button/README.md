@@ -58,7 +58,7 @@ const ReactPage= () => {
 | emptyCartOnCancellation | boolean \| undefined                                     | controls behavior if Cart is emptied when the user cancels the checkout                                                                                                       |
 | baseUrl                 | string \| undefined                                      | base URL for the magento backend. Defaults to `/rest/V1`                                                                                                                      |
 | extraHeaders            | Record<string, string> \| undefined                      | extra headers in JSON format to send with fetch requests                                                                                                                      |
-| overrideQuoteId         | string \| undefined                                      | Useful when you want to provide your own quoteId.                                                                                                       |
-| redirectURL             | string \| undefined                                      | URL to redirect to after checkout is completed.                                                                                                       |
-
+| overrideQuoteId         | string \| undefined                                      | Useful when you want to provide your own quoteId. |
+| redirectURL             | string \| undefined                                      | URL to redirect to after checkout is completed. Only effective if `performSuccessRedirection` is not set|
+| performSuccessRedirection | (orderId: string)  =>  void \| undefined | A function that performs redirect on success, orderId has the magento order id |
 
