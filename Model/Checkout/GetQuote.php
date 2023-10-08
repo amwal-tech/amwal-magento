@@ -295,6 +295,7 @@ class GetQuote extends AmwalCheckoutAction
      */
     public function getCustomerAddress(DataObject $amwalOrderData, string $refId): AddressInterface
     {
+        $customerAddress = '';
         try {
             $this->logDebug(sprintf(
                 'Resolving customer address using Amwal order data: %s',
@@ -325,14 +326,14 @@ class GetQuote extends AmwalCheckoutAction
     }
 
     /**
-     * @param $quoteId
+     * @param int $quoteId
      * @param array $orderItems
      * @param string $triggerContext
      * @return CartInterface|Quote
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getQuote($quoteId, array $orderItems, string $triggerContext)
+    public function getQuote(int $quoteId, array $orderItems, string $triggerContext)
     {
         if (!$quoteId) {
             $quote = $this->checkoutSession->getQuote();
@@ -373,7 +374,7 @@ class GetQuote extends AmwalCheckoutAction
     }
 
     /**
-     * @param $quote
+     * @param CartInterface $quote
      * @return mixed[]
      * @throws LocalizedException
      */

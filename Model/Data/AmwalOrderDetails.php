@@ -15,13 +15,22 @@ use Amwal\Payments\Model\Checkout\PayOrder;
 
 class AmwalOrderDetails implements AmwalOrderInterface
 {
-    protected $orderRepository;
-    protected $searchCriteriaBuilder;
+
+    protected OrderRepositoryInterface $orderRepository;
+    protected SearchCriteriaBuilder $searchCriteriaBuilder;
     private Request $restRequest;
     private StoreManagerInterface $storeManager;
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
 
+    /**
+     * @param OrderRepositoryInterface $orderRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param Request $restRequest
+     * @param StoreManagerInterface $storeManager
+     * @param GetAmwalOrderData $getAmwalOrderData
+     * @param Config $config
+     */
     public function __construct(OrderRepositoryInterface $orderRepository, SearchCriteriaBuilder $searchCriteriaBuilder, Request $restRequest, StoreManagerInterface $storeManager, GetAmwalOrderData $getAmwalOrderData, Config $config)
     {
         $this->orderRepository = $orderRepository;
@@ -32,6 +41,11 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $this->config = $config;
     }
 
+    /**
+     * @param string $amwalOrderId
+     * @return array
+     * @throws \Exception
+     */
     public function getOrderDetails($amwalOrderId)
     {
         // Get order by Amwal order ID
@@ -43,6 +57,10 @@ class AmwalOrderDetails implements AmwalOrderInterface
         ];
     }
 
+    /**
+     * @return bool
+     * @throws \Exception
+     */
     public function updateOrderStatus()
     {
         $requestBody = $this->restRequest->getBodyParams();
@@ -84,7 +102,13 @@ class AmwalOrderDetails implements AmwalOrderInterface
             return false;
         }
     }
-
+    /**
+     * @param string $amwalOrderId
+     * @param int|null $orderId
+     * @param int|null $refId
+     * @return \Magento\Sales\Api\Data\OrderInterface
+     * @throws \Exception
+     */
     private function getOrderByAmwalOrderId($amwalOrderId, $orderId = null, $refId = null)
     {
         // Build a search criteria to filter orders by custom attribute
@@ -106,7 +130,11 @@ class AmwalOrderDetails implements AmwalOrderInterface
         }
         return $order;
     }
-
+    /**
+     * @param string $amwalOrderId
+     * @return bool
+     * @throws \Exception
+     */
     private function isPayValid($amwalOrderId)
     {
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
@@ -118,7 +146,10 @@ class AmwalOrderDetails implements AmwalOrderInterface
         }
         return $orderState === 'pending_payment';
     }
-
+    /**
+     * @param $order
+     * @return string
+     */
     private function getOrderUrl($order)
     {
         $baseUrl = $this->storeManager->getStore()->getBaseUrl();

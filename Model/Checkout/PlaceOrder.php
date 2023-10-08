@@ -181,8 +181,9 @@ class PlaceOrder extends AmwalCheckoutAction
             if ($amwalClientEmail && $quote->getCustomerEmail() !== $amwalClientEmail) {
                 $this->setCustomerEmail($quote, $amwalClientEmail);
             }
-
-            $this->updateCustomerAddress($quote, $customerAddress);
+            if ($customerAddress !== null) {
+            	$this->updateCustomerAddress($quote, $customerAddress);
+            }
             if ($amwalOrderData->getShippingDetails()) {
                 $this->updateShippingMethod->execute($quote, $amwalOrderData->getShippingDetails()->getId());
             }

@@ -91,10 +91,10 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
     }
 
     /**
-     * @param $order
+     * @param OrderInterface $order
      * @return array
      */
-    private function getOrderContent($order): array
+    private function getOrderContent(OrderInterface $order): array
     {
         $items = $order->getAllItems();
         $orderContent = [];

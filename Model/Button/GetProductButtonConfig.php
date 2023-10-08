@@ -34,7 +34,7 @@ class GetProductButtonConfig extends GetConfig
     }
 
     /**
-     * @param int|null $productId
+     * @param int $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException

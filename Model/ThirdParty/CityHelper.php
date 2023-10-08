@@ -32,7 +32,7 @@ class CityHelper
     }
 
     /**
-     * @return array
+     * @return array<string[][]>
      */
     public function getCityCodes(): array
     {

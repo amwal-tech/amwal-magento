@@ -37,6 +37,10 @@ class Details
         $this->config = $config;
     }
 
+    /**
+     * @param View $subject
+     * @return void
+     */
     public function beforeSetLayout(View $subject)
     {
         $amwalOrderId = $subject->getOrder()->getAmwalOrderId();
@@ -77,7 +81,12 @@ class Details
         }
     }
 
-    private function isPayValid($orderState, $amwalOrderStatus)
+    /**
+     * @param string|null $orderState
+     * @param string $amwalOrderStatus
+     * @return bool
+     */
+    private function isPayValid(?string $orderState, string $amwalOrderStatus)
     {
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
 
