@@ -362,7 +362,8 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     }
 
     /**
-     * @inheritDoc
+     * @param string|null $countryCode
+     * @return AmwalButtonConfigInterface
      */
     public function getQuoteId(): ?string
     {
@@ -370,7 +371,8 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     }
 
     /**
-     * @inheritDoc
+     * @param string|null $quoteId
+     * @return AmwalButtonConfigInterface
      */
     public function setQuoteId(?string $quoteId): AmwalButtonConfigInterface
     {

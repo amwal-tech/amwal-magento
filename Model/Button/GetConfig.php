@@ -23,7 +23,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
-
+use Magento\Directory\Model\RegionFactory;
 class GetConfig
 {
     protected AmwalButtonConfigFactory $buttonConfigFactory;

@@ -17,6 +17,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Widget\Block\BlockInterface;
 use Magento\Framework\Math\Random;
 use Magento\Catalog\Block\Product\View\Options as ProductOptionsBlock;
+use Magento\Catalog\Model\Product;
 
 class ExpressCheckoutButton extends ListProduct implements BlockInterface
 {
@@ -26,15 +27,22 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
      */
     private Config $config;
 
-
     /**
      * @var StoreManagerInterface
      */
     private StoreManagerInterface $storeManager;
-
-    protected $_productFactory;
-
-    protected $random;
+    /**
+     * @var ProductFactory
+     */
+    protected ProductFactory $productFactory;
+    /**
+     * @var ProductRepositoryInterface
+     */
+    protected ProductRepositoryInterface $productRepository;
+    /**
+     * @var Random
+     */
+    protected Random $random;
 
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
 
@@ -51,16 +59,16 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         Data                        $urlHelper, array $data = []
     )
     {
-        $this->_productFactory = $productFactory;
+        $this->productFactory = $productFactory;
         $this->productRepository = $productRepository;
         $this->random = $random;
         $this->config = $config;
         $this->storeManager = $storeManager;
-        parent::__construct($context, $postDataHelper, $layerResolver, $categoryRepository, $urlHelper, $data);
         $this->setTemplate("Amwal_Payments::express/widget-checkout-button.phtml");
+        parent::__construct($context, $postDataHelper, $layerResolver, $categoryRepository, $urlHelper, $data);
     }
 
-    public function getProduct()
+    public function getProduct(): Product
     {
         $productId = $this->getProduct_id();
         if ($productId) {

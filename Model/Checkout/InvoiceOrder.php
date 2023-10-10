@@ -6,11 +6,9 @@ namespace Amwal\Payments\Model\Checkout;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\ErrorReporter;
 use Exception;
-use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
@@ -29,8 +27,6 @@ class InvoiceOrder extends AmwalCheckoutAction
     private InvoiceSender $invoiceSender;
     private BuilderInterface $transactionBuilder;
     private OrderRepositoryInterface $orderRepository;
-    private CheckoutSession $checkoutSession;
-    private ManagerInterface $messageManager;
 
     /**
      * @param InvoiceRepositoryInterface $invoiceRepository
@@ -38,8 +34,6 @@ class InvoiceOrder extends AmwalCheckoutAction
      * @param InvoiceSender $invoiceSender
      * @param BuilderInterface $transactionBuilder
      * @param OrderRepositoryInterface $orderRepository
-     * @param CheckoutSession $checkoutSession
-     * @param ManagerInterface $messageManager
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
@@ -50,8 +44,6 @@ class InvoiceOrder extends AmwalCheckoutAction
         InvoiceSender $invoiceSender,
         BuilderInterface $transactionBuilder,
         OrderRepositoryInterface $orderRepository,
-        CheckoutSession $checkoutSession,
-        ManagerInterface $messageManager,
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger
@@ -62,8 +54,6 @@ class InvoiceOrder extends AmwalCheckoutAction
         $this->invoiceSender = $invoiceSender;
         $this->transactionBuilder = $transactionBuilder;
         $this->orderRepository = $orderRepository;
-        $this->checkoutSession = $checkoutSession;
-        $this->messageManager = $messageManager;
     }
 
     /**
