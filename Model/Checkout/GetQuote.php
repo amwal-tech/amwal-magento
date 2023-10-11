@@ -301,7 +301,10 @@ class GetQuote extends AmwalCheckoutAction
                 $amwalOrderData->toJson()
             ));
             $customerAddress = $this->addressResolver->execute($amwalOrderData);
-
+            $this->logDebug(sprintf(
+                'Resolved customer address with data: %s',
+                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
+            ));
         } catch (LocalizedException|RuntimeException $e) {
             $message = sprintf(
                 'Unable to resolve customer address with Data %s. Received exception %s',
@@ -312,16 +315,6 @@ class GetQuote extends AmwalCheckoutAction
             $this->logger->error($message);
             $this->throwException(__('Something went wrong while processing you address information.'));
         }
-
-        try {
-            $this->logDebug(sprintf(
-                'Resolved customer address with data: %s',
-                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
-            ));
-        } catch (JsonException $e) {
-            $this->logger->notice('Unable to log resolved customer address debug message');
-        }
-
         return $customerAddress;
     }
 
