@@ -54,7 +54,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getClientFirstName(): ?string
     {
-        return $this->getData(self::FIRST_NAME);
+        return $this->getData(self::CLIENT_FIRST_NAME);
     }
 
     /**
@@ -62,7 +62,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getClientLastName(): ?string
     {
-        return $this->getData(self::LAST_NAME);
+        return $this->getData(self::CLIENT_LAST_NAME);
     }
 
     /**
@@ -70,7 +70,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getClientEmail(): ?string
     {
-        return $this->getData(self::EMAIL);
+        return $this->getData(self::CLIENT_EMAIL);
     }
 
     /**
@@ -78,7 +78,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getClientPhoneNumber(): ?string
     {
-        return $this->getData(self::PHONE);
+        return $this->getData(self::CLIENT_PHONE);
     }
 
     /**

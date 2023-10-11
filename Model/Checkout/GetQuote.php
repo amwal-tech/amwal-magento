@@ -145,13 +145,12 @@ class GetQuote extends AmwalCheckoutAction
 
             if (!$isPreCheckout) {
                 $amwalOrderData = $this->objectFactory->create([
-                    'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_email' => AddressResolver::TEMPORARY_DATA_VALUE
+                    'client_first_name' => $addressData->getClientFirstName(),
+                    'client_last_name' => $addressData->getClientLastName(),
+                    'client_phone_number' => $addressData->getClientPhone(),
+                    'client_email' => $addressData->getClientEmail(),
                 ]);
                 $amwalOrderData->setAddressDetails($addressData);
-
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
             }
 
@@ -296,12 +295,14 @@ class GetQuote extends AmwalCheckoutAction
      */
     public function getCustomerAddress(DataObject $amwalOrderData, string $refId): AddressInterface
     {
+        $customerAddress = $this->addressResolver->execute($amwalOrderData);
         try {
             $this->logDebug(sprintf(
                 'Resolving customer address using Amwal order data: %s',
                 $amwalOrderData->toJson()
             ));
             $customerAddress = $this->addressResolver->execute($amwalOrderData);
+
         } catch (LocalizedException|RuntimeException $e) {
             $message = sprintf(
                 'Unable to resolve customer address with Data %s. Received exception %s',
