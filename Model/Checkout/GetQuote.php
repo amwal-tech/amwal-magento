@@ -295,7 +295,6 @@ class GetQuote extends AmwalCheckoutAction
      */
     public function getCustomerAddress(DataObject $amwalOrderData, string $refId): AddressInterface
     {
-        $customerAddress = $this->addressResolver->execute($amwalOrderData);
         try {
             $this->logDebug(sprintf(
                 'Resolving customer address using Amwal order data: %s',
