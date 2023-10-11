@@ -52,6 +52,38 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     /**
      * @inheritDoc
      */
+    public function getClientFirstName(): ?string
+    {
+        return $this->getData(self::FIRST_NAME);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientLastName(): ?string
+    {
+        return $this->getData(self::LAST_NAME);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientEmail(): ?string
+    {
+        return $this->getData(self::EMAIL);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getClientPhoneNumber(): ?string
+    {
+        return $this->getData(self::PHONE);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getCity(): string
     {
         return $this->getData(self::CITY);
@@ -143,6 +175,38 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     public function setEmail(?string $email = null): AmwalAddressInterface
     {
         return $this->setData(self::EMAIL, $email);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setClientFirstName(?string $firstName = null): AmwalAddressInterface
+    {
+        return $this->setData(self::CLIENT_FIRST_NAME, $firstName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setClientLastName(?string $lastName = null): AmwalAddressInterface
+    {
+        return $this->setData(self::CLIENT_LAST_NAME, $lastName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setClientEmail(?string $email = null): AmwalAddressInterface
+    {
+        return $this->setData(self::CLIENT_EMAIL, $email);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setClientPhoneNumber(?string $phone = null): AmwalAddressInterface
+    {
+        return $this->setData(self::CLIENT_PHONE, $phone);
     }
 
     /**

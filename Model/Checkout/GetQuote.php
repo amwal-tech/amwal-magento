@@ -147,7 +147,8 @@ class GetQuote extends AmwalCheckoutAction
                 $amwalOrderData = $this->objectFactory->create([
                     'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
                     'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE
+                    'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_email' => AddressResolver::TEMPORARY_DATA_VALUE
                 ]);
                 $amwalOrderData->setAddressDetails($addressData);
 
