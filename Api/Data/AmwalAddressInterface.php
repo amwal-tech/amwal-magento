@@ -10,10 +10,6 @@ interface AmwalAddressInterface
     public const FIRST_NAME = 'first_name';
     public const LAST_NAME = 'last_name';
     public const EMAIL = 'email';
-    public const CLIENT_FIRST_NAME = 'client_first_name';
-    public const CLIENT_LAST_NAME = 'client_last_name';
-    public const CLIENT_EMAIL = 'client_email';
-    public const CLIENT_PHONE = 'client_phone';
     public const CITY = 'city';
     public const COUNTRY = 'country';
     public const POSTCODE = 'postcode';
@@ -46,26 +42,6 @@ interface AmwalAddressInterface
      * @return string|null
      */
     public function getEmail(): ?string;
-
-    /**
-     * @return string|null
-     */
-    public function getClientFirstName(): ?string;
-
-    /**
-     * @return string|null
-     */
-    public function getClientLastName(): ?string;
-
-    /**
-     * @return string|null
-     */
-    public function getClientEmail(): ?string;
-
-    /**
-     * @return string|null
-     */
-    public function getClientPhoneNumber(): ?string;
 
     /**
      * @return string
@@ -131,30 +107,6 @@ interface AmwalAddressInterface
      * @return AmwalAddressInterface
      */
     public function setEmail(?string $email = null): AmwalAddressInterface;
-
-    /**
-     * @param string|null $firstName
-     * @return AmwalAddressInterface
-     */
-    public function setClientFirstName(?string $firstName = null): AmwalAddressInterface;
-
-    /**
-     * @param string|null $lastName
-     * @return AmwalAddressInterface
-     */
-    public function setClientLastName(?string $lastName = null): AmwalAddressInterface;
-
-    /**
-     * @param string|null $email
-     * @return AmwalAddressInterface
-     */
-    public function setClientEmail(?string $email = null): AmwalAddressInterface;
-
-    /**
-     * @param string|null $phone
-     * @return AmwalAddressInterface
-     */
-    public function setClientPhoneNumber(?string $phone = null): AmwalAddressInterface;
 
     /**
      * @param string $city
