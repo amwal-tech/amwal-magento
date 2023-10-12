@@ -13,6 +13,7 @@ interface AmwalMagentoReactButtonProps {
   baseUrl?: string
   extraHeaders?: Record<string, string>
   overrideQuoteId?: string
+  cartId?: string
   redirectURL?: string
   performSuccessRedirection?: (orderId: string) => void
 }
@@ -27,6 +28,7 @@ const AmwalMagentoReactButton = ({
   baseUrl = scopeCode ? `/rest/${scopeCode}/V1` : '/rest/V1',
   extraHeaders,
   overrideQuoteId,
+  cartId,
   redirectURL = '/checkout/onepage/success',
   performSuccessRedirection = () => { window.location.href = redirectURL }
 }: AmwalMagentoReactButtonProps): JSX.Element => {
@@ -63,6 +65,7 @@ const AmwalMagentoReactButton = ({
         refIdData: initalRefIdData,
         triggerContext,
         quoteId: overrideQuoteId ?? quoteId,
+        cartId,
         locale
       })
     })
@@ -268,7 +271,8 @@ const AmwalMagentoReactButton = ({
           refIdData,
           triggerContext,
           quoteId: overrideQuoteId ?? quoteId,
-          locale
+          locale,
+          cartId
         })
       })
     }
