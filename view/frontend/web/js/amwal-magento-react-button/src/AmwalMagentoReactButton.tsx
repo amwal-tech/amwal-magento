@@ -200,7 +200,9 @@ const AmwalMagentoReactButton = ({
     if (finishedUpdatingOrder && receivedSuccess) {
       window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
       if (placedOrderId) {
-        performSuccessRedirection(placedOrderId)
+        buttonRef.current?.dismissModal().finally(() => {
+          performSuccessRedirection(placedOrderId)
+        })
       }
     }
   }, [finishedUpdatingOrder, receivedSuccess])
