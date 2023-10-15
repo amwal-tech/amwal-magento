@@ -3,10 +3,10 @@ import { createRoot } from 'react-dom/client'
 import AmwalMagentoReactButton from 'amwal-magento-react-button'
 
 export const renderReactElement = (container: Element): void => {
-  const triggerContext = container.getAttribute('trigger-context')
-  const locale = container.getAttribute('locale')
-  const scopeCode = container.getAttribute('scope-code')
-  const formSelector = container.getAttribute('form-selector')
+  const triggerContext = container.getAttribute('data-trigger-context')
+  const locale = container.getAttribute('data-locale')
+  const scopeCode = container.getAttribute('data-scope-code')
+  const formSelector = container.getAttribute('data-form-selector')
   if (triggerContext) {
     const submitAddToCart = async (): Promise<void> => {
       if (!formSelector) return
@@ -27,7 +27,7 @@ export const renderReactElement = (container: Element): void => {
         <AmwalMagentoReactButton
             triggerContext={triggerContext}
             locale={locale ?? undefined}
-            scopeCode={scopeCode}
+            scopeCode={scopeCode ?? undefined}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />)
   }

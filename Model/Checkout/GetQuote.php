@@ -147,10 +147,9 @@ class GetQuote extends AmwalCheckoutAction
                 $amwalOrderData = $this->objectFactory->create([
                     'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
                     'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE
+                    'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
                 $amwalOrderData->setAddressDetails($addressData);
-
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
             }
 
@@ -197,7 +196,7 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            throw $e;
+            $this->throwException($e->getMessage(), $e);
         }
 
         return $quoteData;
@@ -232,13 +231,18 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param Phrase|string|null $message
+     * @param Throwable|null $originalException
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null): void
+    private function throwException($message = null, ?Throwable $originalException = null): void
     {
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
-        throw new LocalizedException($message ?? $this->getGenericErrorMessage());
+        $message = $message ?? $this->getGenericErrorMessage();
+        throw new LocalizedException(
+            is_string($message) ? __($message) : $message,
+            $originalException
+        );
     }
 
     /**
@@ -296,6 +300,10 @@ class GetQuote extends AmwalCheckoutAction
                 $amwalOrderData->toJson()
             ));
             $customerAddress = $this->addressResolver->execute($amwalOrderData);
+            $this->logDebug(sprintf(
+                'Resolved customer address with data: %s',
+                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
+            ));
         } catch (LocalizedException|RuntimeException $e) {
             $message = sprintf(
                 'Unable to resolve customer address with Data %s. Received exception %s',
@@ -306,16 +314,6 @@ class GetQuote extends AmwalCheckoutAction
             $this->logger->error($message);
             $this->throwException(__('Something went wrong while processing you address information.'));
         }
-
-        try {
-            $this->logDebug(sprintf(
-                'Resolved customer address with data: %s',
-                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
-            ));
-        } catch (JsonException $e) {
-            $this->logger->notice('Unable to log resolved customer address debug message');
-        }
-
         return $customerAddress;
     }
 
@@ -481,9 +479,8 @@ class GetQuote extends AmwalCheckoutAction
             $extraFee = $totals['amasty_extrafee']->getValueInclTax();
             $grandTotal -= $extraFee;
         }
-
         if (!$grandTotal) {
-            throw new LocalizedException(__('Unable to calculate order total'));
+            throw new LocalizedException(__('Unable to calculate order total or the requested qty is not available'));
         }
 
         return $grandTotal;

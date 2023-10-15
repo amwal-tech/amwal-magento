@@ -89,10 +89,10 @@ use Magento\Checkout\Model\Cart;
                                                         </form>
                                                         <?php if($isMinicartEmpty): ?>
                                                         <div class="amwal-express-checkout-button"
-                                                             trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
-                                                             locale="<?= $escaper->escapeHtmlAttr($locale) ?>"
-                                                             scope-code="<?= $escaper->escapeHtmlAttr($block->getStoreCode()) ?>"
-                                                             form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                                                             data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
+                                                             data-locale="<?= $escaper->escapeHtmlAttr($locale) ?>"
+                                                             data-scope-code="<?= $escaper->escapeHtmlAttr($block->getStoreCode()) ?>"
+                                                             data-form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
                                                              id="<?= $escaper->escapeHtmlAttr($buttonId) ?>">
                                                         </div>
                                                         <script type="text/x-magento-init">

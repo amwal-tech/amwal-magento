@@ -107,6 +107,7 @@ interface AmwalAddressInterface
      * @return AmwalAddressInterface
      */
     public function setEmail(?string $email = null): AmwalAddressInterface;
+
     /**
      * @param string $city
      * @return AmwalAddressInterface

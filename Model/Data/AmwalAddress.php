@@ -144,7 +144,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     {
         return $this->setData(self::EMAIL, $email);
     }
-
+    
     /**
      * @inheritDoc
      */
