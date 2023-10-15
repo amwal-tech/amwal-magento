@@ -1,17 +1,3 @@
-# [1.0.25](https://github.com/amwal-tech/amwal-magento/compare/v1.0.24...v1.0.25) (2023-10-10)
-### Features
-* AMWAL-275 handle place order errors gracefully
-* Show the get-quote exception message
-* Use ES5 as target for amwal-magento-react-button
-* Add Rest Api cors plugin
-* add performSuccessRedirection method
-* call dismissModal before redirection
-
-### Bug Fixes
-* Disallowed attribute amwal-checkout-button
-* Customer getTelephone()
-* Fix undefined variable in address data
-
 # [1.0.24](https://github.com/amwal-tech/amwal-magento/compare/v1.0.23...v1.0.24) (2023-10-03)
 
 ### Features
