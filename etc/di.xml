@@ -112,4 +112,13 @@
     <type name="Magento\Webapi\Controller\Rest">
         <plugin name="amwal_rest_api_cors" type="Amwal\Payments\Plugin\RestApiCors" sortOrder="1" />
     </type>
+
+    <!-- CommandList -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="react-files" xsi:type="object">Amwal\Payments\Console\Command\ReactFiles</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
