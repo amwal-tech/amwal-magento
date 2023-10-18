@@ -50,9 +50,22 @@ class CityHelper
             }
         }
 
+        // Torod\CityRegion
+        $torodCityRegionName = $this->resourceConnection->getTableName('torod_cityregion_cityregion');
+        if ($connection->isTableExists($torodCityRegionName)) {
+            $sql = $connection->select()->from(
+                ['city' => $torodCityRegionName],
+                ['city_name', 'city_name_ar', 'region_id', 'country_id']
+            );
+            foreach ($connection->fetchAll($sql) as $city) {
+                $cityCodes[$city['country_id']][$city['region_id']][] = strpos($this->localeResolver->getLocale(), 'ar') !== false ? $city['city_name_ar'] : $city['city_name'];
+
+            }
+        }
+
+        // Magento 2 Region & City Dropdown Manager
         $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
         $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
-
         if ($connection->isTableExists($tableName) && $connection->isTableExists($localeCityTableName)) {
             $sql = $connection->select()
                 ->from(['city' => $tableName])
