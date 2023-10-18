@@ -27,6 +27,14 @@ const config: webpack.Configuration = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist')
+  },
+  experiments: {
+    outputModule: true
+  },
+  target: 'web',
+  externalsType: 'module',
+  externals: {
+    'amwal-checkout-button/loader': 'https://cdn.jsdelivr.net/npm/amwal-checkout-button@0.0.53-alpha/loader/index.js'
   }
 }
 export default config
