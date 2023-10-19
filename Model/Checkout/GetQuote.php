@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
+use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
 use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
@@ -45,6 +46,7 @@ class GetQuote extends AmwalCheckoutAction
     private QuoteFactory $quoteFactory;
     private StoreManagerInterface $storeManager;
     private ProductRepositoryInterface $productRepository;
+    private AmwalAddressInterfaceFactory $amwalAddressFactory;
     private AddressFactory $quoteAddressFactory;
     private QuoteRepositoryInterface $quoteRepository;
     private ManagerInterface $messageManager;
@@ -61,6 +63,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param QuoteFactory $quoteFactory
      * @param StoreManagerInterface $storeManager
      * @param ProductRepositoryInterface $productRepository
+     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param AddressFactory $quoteAddressFactory
      * @param QuoteRepositoryInterface $quoteRepository
      * @param ManagerInterface $messageManager
@@ -80,6 +83,7 @@ class GetQuote extends AmwalCheckoutAction
         QuoteFactory $quoteFactory,
         StoreManagerInterface $storeManager,
         ProductRepositoryInterface $productRepository,
+        AmwalAddressInterfaceFactory $amwalAddressFactory,
         AddressFactory $quoteAddressFactory,
         QuoteRepositoryInterface $quoteRepository,
         ManagerInterface $messageManager,
@@ -99,6 +103,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->quoteFactory = $quoteFactory;
         $this->storeManager = $storeManager;
         $this->productRepository = $productRepository;
+        $this->amwalAddressFactory = $amwalAddressFactory;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteRepository = $quoteRepository;
         $this->messageManager = $messageManager;
@@ -114,7 +119,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param AmwalOrderItemInterface[] $orderItems
      * @param string $refId
      * @param RefIdDataInterface $refIdData
-     * @param AmwalAddressInterface $addressData
+     * @param string[] $addressData
      * @param string $triggerContext
      * @param bool $isPreCheckout
      * @param string|int|null $quoteId
@@ -126,7 +131,7 @@ class GetQuote extends AmwalCheckoutAction
         array $orderItems,
         string $refId,
         RefIdDataInterface $refIdData,
-        AmwalAddressInterface $addressData,
+        array $addressData,
         string $triggerContext,
         bool $isPreCheckout,
         $quoteId = null
@@ -143,13 +148,15 @@ class GetQuote extends AmwalCheckoutAction
                 $this->throwException(__('We are unable to verify the reference ID of this payment'));
             }
 
+            $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
+
             if (!$isPreCheckout) {
                 $amwalOrderData = $this->objectFactory->create([
                     'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
                     'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
                     'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
-                $amwalOrderData->setAddressDetails($addressData);
+                $amwalOrderData->setAddressDetails($amwalAddress);
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
             }
 
@@ -165,7 +172,7 @@ class GetQuote extends AmwalCheckoutAction
 
             $availableRates = [];
             if (!$isPreCheckout) {
-                $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
+                $quoteAddress = $this->getQuoteAddress($customerAddress, $amwalAddress);
 
                 $this->logDebug('Setting Billing and Shipping address');
                 $quote->setBillingAddress($quoteAddress);
@@ -196,7 +203,7 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            $this->throwException($e->getMessage(), $e);
+            $this->throwException($e->getMessage());
         }
 
         return $quoteData;
@@ -231,17 +238,15 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param Phrase|string|null $message
-     * @param Throwable|null $originalException
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, ?Throwable $originalException = null): void
+    private function throwException($message = null): void
     {
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
         throw new LocalizedException(
-            is_string($message) ? __($message) : $message,
-            $originalException
+            is_string($message) ? __($message) : $message
         );
     }
 
@@ -349,16 +354,16 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param AddressInterface $customerAddress
-     * @param AmwalAddressInterface $addressData
+     * @param AmwalAddressInterface $amwalAddress
      * @return Address
      */
-    public function getQuoteAddress(AddressInterface $customerAddress, AmwalAddressInterface $addressData): Address
+    public function getQuoteAddress(AddressInterface $customerAddress, AmwalAddressInterface $amwalAddress): Address
     {
         $this->logDebug('Creating quote address');
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
 
-        if ($customerEmail = $addressData->getEmail()) {
+        if ($customerEmail = $amwalAddress->getEmail()) {
             $this->logDebug(sprintf('Setting customer email for quote address to %s', $customerEmail));
             $quoteAddress->setEmail($customerEmail);
         }
