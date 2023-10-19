@@ -112,4 +112,7 @@
     <type name="Magento\Webapi\Controller\Rest">
         <plugin name="amwal_rest_api_cors" type="Amwal\Payments\Plugin\RestApiCors" sortOrder="1" />
     </type>
+    <type name="Magento\Framework\App\Http">
+        <plugin name="sentry_exception_handler" type="Amwal\Payments\Plugin\Sentry\SentryExceptionReport" sortOrder="1" />
+    </type>
 </config>

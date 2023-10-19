@@ -10,6 +10,7 @@ use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use JsonException;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Framework\Exception\LocalizedException;
@@ -41,6 +42,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private SetAmwalOrderDetails $setAmwalOrderDetails;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private GetAmwalOrderData $getAmwalOrderData;
+    private SentryExceptionReport $sentryExceptionReport;
 
     /**
      * @param QuoteManagement $quoteManagement
@@ -55,6 +57,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param GetAmwalOrderData $getAmwalOrderData
      * @param ErrorReporter $errorReporter
+     * @param SentryExceptionReport $sentryExceptionReport
      * @param Config $config
      * @param LoggerInterface $logger
      */
@@ -71,6 +74,7 @@ class PlaceOrder extends AmwalCheckoutAction
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         GetAmwalOrderData $getAmwalOrderData,
         ErrorReporter $errorReporter,
+        SentryExceptionReport $sentryExceptionReport,
         Config $config,
         LoggerInterface $logger
     ) {
@@ -86,6 +90,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->setAmwalOrderDetails = $setAmwalOrderDetails;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->getAmwalOrderData = $getAmwalOrderData;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -267,6 +272,7 @@ class PlaceOrder extends AmwalCheckoutAction
      */
     private function throwException($message = null): void
     {
+        $this->sentryExceptionReport->report(new LocalizedException($message ?? $this->getGenericErrorMessage()));
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         throw new LocalizedException($message ?? $this->getGenericErrorMessage());
     }
