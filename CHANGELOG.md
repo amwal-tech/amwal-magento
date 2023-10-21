@@ -1,3 +1,10 @@
+# [1.0.26](https://github.com/amwal-tech/amwal-magento/compare/v1.0.25...v1.0.26) (2023-10-21)
+### Features
+* Add Torod\CityRegion to CityHelper
+
+### Bug Fixes
+* fix pending_orders_update job
+
 # [1.0.25](https://github.com/amwal-tech/amwal-magento/compare/v1.0.24...v1.0.25) (2023-10-10)
 ### Features
 * AMWAL-275 handle place order errors gracefully

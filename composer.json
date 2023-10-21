@@ -3,7 +3,7 @@
     "description": "Amwal payment plugin for Magento 2 enables one click checkout for instantaneous purchases from product, mini-cart and cart pages.",
     "homepage": "https://amwal.tech",
     "type": "magento2-module",
-    "version": "1.0.25",
+    "version": "1.0.26",
     "keywords": [
         "magento2",
         "amwal",
