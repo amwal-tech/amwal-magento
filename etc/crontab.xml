@@ -1,7 +1,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
-        <job name="amwal_pending_orders_update" instance="Amwal\Payments\Cron\PendingOrdersUpdate" method="execute">
+        <!--job name="amwal_pending_orders_update" instance="Amwal\Payments\Cron\PendingOrdersUpdate" method="execute">
             <schedule>*/10 * * * *</schedule>
-        </job>
+        </job-->
     </group>
 </config>
