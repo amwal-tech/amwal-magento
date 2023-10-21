@@ -58,7 +58,7 @@ class PendingOrdersUpdate
             $order->setState($this->config->getOrderConfirmedStatus());
             $order->setStatus($this->config->getOrderConfirmedStatus());
             $order->setTotalPaid($order->getGrandTotal());
-            $order->addCommentToStatusHistory(__('Successfully completed Amwal payment with transaction ID %1', $amwalOrderData->getId()));
+            $order->addCommentToStatusHistory(__('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId()));
             $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
         }
