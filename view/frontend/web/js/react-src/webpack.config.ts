@@ -1,5 +1,6 @@
 import path from 'path'
 import type webpack from 'webpack'
+import package_lock from './package-lock.json'
 
 const config: webpack.Configuration = {
   entry: './src/index.tsx',
@@ -34,7 +35,7 @@ const config: webpack.Configuration = {
   target: 'web',
   externalsType: 'module',
   externals: {
-    'amwal-checkout-button/loader': 'https://cdn.jsdelivr.net/npm/amwal-checkout-button@0.0.53-alpha/loader/index.js'
+    'amwal-checkout-button/loader': `https://cdn.jsdelivr.net/npm/amwal-checkout-button@${package_lock.packages['node_modules/amwal-checkout-button'].version}/loader/index.js`
   }
 }
 export default config
