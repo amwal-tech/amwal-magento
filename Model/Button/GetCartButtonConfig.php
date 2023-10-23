@@ -26,14 +26,31 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function execute(RefIdDataInterface $refIdData, string $triggerContext = null, ?int $quoteId = null): AmwalButtonConfigInterface
+    public function execute(
+            RefIdDataInterface $refIdData,
+            string $triggerContext = null,
+            ?int $quoteId = null,
+            ?string $cartId = null): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
 
-        $this->addGenericButtonConfig($buttonConfig, $refIdData);
+        if ($cartId) {
+            $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+            if ($quoteIdMask) {
+                $quoteId = (int) $quoteIdMask->getQuoteId();
+            }
+        }
 
-        $buttonConfig->setAmount($this->getAmount($quoteId));
+        if ($quoteId) {
+            $quote = $this->cartRepository->get($quoteId);
+        } else {
+            $quote = $this->checkoutSessionFactory->create()->getQuote();
+        }
+
+        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
+
+        $buttonConfig->setAmount($this->getAmount($quote));
         $buttonConfig->setId($this->getButtonId($quoteId));
 
         if ($limitedCities = $this->getCityCodesJson()) {
@@ -44,7 +61,7 @@ class GetCartButtonConfig extends GetConfig
         }
 
         if ($triggerContext === 'regular-checkout') {
-            $this->addRegularCheckoutButtonConfig($buttonConfig, $quoteId);
+            $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
 
         return $buttonConfig;
@@ -56,14 +73,8 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function getAmount(?int $quoteId): float
+    private function getAmount($quote): float
     {
-        if ($quoteId) {
-            $quote = $this->cartRepository->get($quoteId);
-        } else {
-            $quote = $this->checkoutSessionFactory->create()->getQuote();
-        }
-
         return (float)$quote->getGrandTotal();
     }
 
@@ -73,16 +84,8 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, $quoteId): void
+    private function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, $quote): void
     {
-        if ($quoteId) {
-            $quote = $this->cartRepository->get($quoteId);
-        } else {
-            $objectManager = ObjectManager::getInstance();
-            $checkoutSession = $objectManager->get(Session::class);
-            $quote = $checkoutSession->getQuote();
-        }
-
         $shippingAddress = $quote->getShippingAddress();
         $billingAddress = $quote->getBillingAddress();
         $customer = $quote->getCustomer();

@@ -159,7 +159,7 @@ class GetQuote extends AmwalCheckoutAction
             if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
                 $quote->setCustomerIsGuest(true);
             }
-
+            $quote->setData(self::IS_AMWAL_API_CALL, true);
             $quote->setPaymentMethod(ConfigProvider::CODE);
             $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
