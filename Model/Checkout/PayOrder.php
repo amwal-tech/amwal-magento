@@ -165,6 +165,8 @@ class PayOrder extends AmwalCheckoutAction
 
         if($amwalOrderStatus == 'success') {
             $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+            $quote->removeAllItems();
+            $this->quoteRepository->save($quote);
         }
 
         return true;
