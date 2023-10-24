@@ -211,6 +211,7 @@ class PlaceOrder extends AmwalCheckoutAction
 
         $this->setAmwalOrderDetails->execute($order, $amwalOrderId, $triggerContext);
 
+        $quote->setIsActive(true)->save();
         return $order;
     }
 

@@ -155,6 +155,7 @@ const AmwalMagentoReactButton = ({
     })
       .then(response => {
         if (!response.ok) return
+        window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
         if (onSuccessTask) {
           onSuccessTask({ order_id: placedOrderId, amwal_transaction_id: amwalOrderId })
             .catch(err => {
@@ -201,7 +202,6 @@ const AmwalMagentoReactButton = ({
 
   React.useEffect(() => {
     if (finishedUpdatingOrder && receivedSuccess) {
-      window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
       if (placedOrderId) {
         buttonRef.current?.dismissModal().finally(() => {
           performSuccessRedirection(placedOrderId)
