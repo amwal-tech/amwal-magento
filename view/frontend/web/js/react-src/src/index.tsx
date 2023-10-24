@@ -14,13 +14,16 @@ export const renderReactElement = (container: Element): void => {
       if (cartForm == null) throw new Error('Product form not found')
       const formURL = cartForm.getAttribute('action') ?? window.location.href
       if (!formURL) throw new Error('Product form URL not found')
-      await fetch(formURL, {
+      const response = await fetch(formURL, {
         method: 'POST',
         body: new FormData(cartForm as HTMLFormElement),
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }
       })
+
+      const data = await response.json()
+      if (data.error) data.backUrl ? window.location.href = data.backUrl : window.location.reload()
     }
     const root = createRoot(container) // createRoot(container!) if you use TypeScript
     root.render(

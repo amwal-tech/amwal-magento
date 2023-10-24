@@ -155,11 +155,17 @@ class GetQuote extends AmwalCheckoutAction
 
             $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
 
+            if (!$quote->getItems()) {
+                $this->throwException(__('One or more selected products are currently not available.'));
+            }
+
             // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
             if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
                 $quote->setCustomerIsGuest(true);
             }
+
             $quote->setData(self::IS_AMWAL_API_CALL, true);
+            $quote->getPayment()->setQuote($quote);
             $quote->setPaymentMethod(ConfigProvider::CODE);
             $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
@@ -196,7 +202,7 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            $this->throwException($e->getMessage(), $e);
+            $this->throwException($e->getMessage());
         }
 
         return $quoteData;
@@ -231,17 +237,15 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param Phrase|string|null $message
-     * @param Throwable|null $originalException
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, ?Throwable $originalException = null): void
+    private function throwException($message = null): void
     {
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
         throw new LocalizedException(
-            is_string($message) ? __($message) : $message,
-            $originalException
+            is_string($message) ? __($message) : $message
         );
     }
 
@@ -469,6 +473,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param CartInterface $quote
      * @param bool $useBaseCurrency
      * @return float
+     * @throws LocalizedException
      */
     public function getAmount(CartInterface $quote, bool $useBaseCurrency): float
     {
@@ -480,7 +485,7 @@ class GetQuote extends AmwalCheckoutAction
             $grandTotal -= $extraFee;
         }
         if (!$grandTotal) {
-            throw new LocalizedException(__('Unable to calculate order total or the requested qty is not available'));
+            $this->throwException(__('Unable to calculate order total'));
         }
 
         return $grandTotal;

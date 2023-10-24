@@ -50,7 +50,6 @@
         </arguments>
     </virtualType>
 
-
     <type name="Amwal\Payments\Model\Checkout\UpdateShippingMethod">
         <arguments>
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
@@ -111,5 +110,8 @@
     </type>
     <type name="Magento\Webapi\Controller\Rest">
         <plugin name="amwal_rest_api_cors" type="Amwal\Payments\Plugin\RestApiCors" sortOrder="1" />
+    </type>
+    <type name="Magento\Checkout\Controller\Cart\Add">
+        <plugin name="amwal_enrich_add_to_cart_response" type="Amwal\Payments\Plugin\Checkout\EnrichAddToCartResponse" sortOrder="10" />
     </type>
 </config>
