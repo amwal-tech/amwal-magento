@@ -25,6 +25,9 @@ function ($, Component, $t) {
             self.getTitle = function () {
                 return $t('Quick checkout (Amwal)');
             }
+            self.getLocale = function () {
+                return document.documentElement.lang;
+            }
             const applePayObserver = new MutationObserver((mutations) => {
                 applePayObserver.disconnect();
                 mutations.forEach((mutation) => {
@@ -76,6 +79,7 @@ function ($, Component, $t) {
             let self = this;
 
             self.amwalButtonContainer = document.getElementById(self.amwalButtonId);
+            self.amwalButtonContainer.setAttribute('data-locale', self.getLocale());
             if (window.renderReactElement) {
                 window.renderReactElement(self.amwalButtonContainer);
             }
