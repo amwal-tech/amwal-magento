@@ -23,6 +23,10 @@ define('Amwal_Payments/js/order-details', ['jquery', 'Magento_Ui/js/modal/modal'
         if (!$('#amwal_order_payment_method').length && responseJson.payment_method) {
             $('.order-information-table tbody').append(amwalOrderPaymentMethodHtml);
         }
+        var amwalOrderPaymentBrandHtml = '<tr id="amwal_order_payment_brand"> <th>' +  $t("Amwal Payment Brand") + '</th> <td><span>' + responseJson.paymentBrand + '</span></td> </tr>';
+        if (!$('#amwal_order_payment_brand').length && responseJson.paymentBrand) {
+            $('.order-information-table tbody').append(amwalOrderPaymentBrandHtml);
+        }
         var amwalOrderFailureReasonHtml = '<tr id="amwal_order_failure_reason"> <th>' +  $t("Amwal Order Failure Reason") + '</th> <td><span>' + amwalOrderFailureReason + '</span></td> </tr>';
         if (!$('#amwal_order_failure_reason').length && amwalOrderFailureReason && amwalOrderStatus === 'fail') {
             $('.order-information-table tbody').append(amwalOrderFailureReasonHtml);
