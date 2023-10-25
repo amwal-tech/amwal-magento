@@ -19,6 +19,9 @@ use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\QuoteIdMask;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
@@ -40,7 +43,7 @@ class GetConfig
     protected Json $jsonSerializer;
     protected RegionCollectionFactory $regionCollectionFactory;
     protected RegionFactory $regionFactory;
-
+    protected QuoteIdMaskFactory $quoteIdMaskFactory;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -71,7 +74,8 @@ class GetConfig
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
         Json $jsonSerializer,
-        RegionCollectionFactory $regionCollectionFactory
+        RegionCollectionFactory $regionCollectionFactory,
+        QuoteIdMaskFactory $quoteIdMaskFactory
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -86,6 +90,7 @@ class GetConfig
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
         $this->regionCollectionFactory = $regionCollectionFactory;
+        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
     /**
@@ -93,7 +98,7 @@ class GetConfig
      * @param RefIdDataInterface $refIdData
      * @return void
      */
-    protected function addGenericButtonConfig(AmwalButtonConfig $buttonConfig, RefIdDataInterface $refIdData): void
+    protected function addGenericButtonConfig(AmwalButtonConfig $buttonConfig, RefIdDataInterface $refIdData, Quote $quote): void
     {
         $customerSession = $this->customerSessionFactory->create();
 
@@ -114,11 +119,11 @@ class GetConfig
         $buttonConfig->setRefId($this->refIdManagement->generateRefId($refIdData));
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
         $buttonConfig->setPluginVersion($this->config->getVersion());
-        $buttonConfig->setQuoteId($this->checkoutSessionFactory->create()->getQuote()->getId());
+        $buttonConfig->setQuoteId($quote->getId());
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
         $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());
 
-        $initialAddressData = $this->getInitialAddressData($customerSession);
+        $initialAddressData = $this->getInitialAddressData($customerSession, $quote);
         if ($initialAddressData) {
             $buttonConfig->setInitialAddress($initialAddressData['address']);
             $buttonConfig->setInitialPhone($initialAddressData['phone']);
@@ -137,18 +142,18 @@ class GetConfig
      * @param Session $customerSession
      * @return array
      */
-    protected function getInitialAddressData(Session $customerSession)
+    protected function getInitialAddressData(Session $customerSession, Quote $quote)
     {
         $customer = $customerSession->getCustomer();
 
-        $addressData = $this->checkoutSessionFactory->create()->getQuote()->getShippingAddress();
+        $addressData = $quote->getShippingAddress();
         if (!$addressData->getCity()) {
             $addressData = $customer->getDefaultShippingAddress();
             if (!$addressData) {
                 return [];
             }
         }
-        $billingAddressData = $this->checkoutSessionFactory->create()->getQuote()->getBillingAddress();
+        $billingAddressData = $quote->getBillingAddress();
         if (!$billingAddressData->getCity()) {
             $billingAddressData = $customer->getDefaultBillingAddress();
             if (!$billingAddressData) {

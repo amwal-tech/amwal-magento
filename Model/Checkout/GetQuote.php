@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Checkout;
 
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
+use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
 use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\RefIdManagementInterface;
@@ -45,6 +47,7 @@ class GetQuote extends AmwalCheckoutAction
     private QuoteFactory $quoteFactory;
     private StoreManagerInterface $storeManager;
     private ProductRepositoryInterface $productRepository;
+    private AmwalAddressInterfaceFactory $amwalAddressFactory;
     private AddressFactory $quoteAddressFactory;
     private QuoteRepositoryInterface $quoteRepository;
     private ManagerInterface $messageManager;
@@ -54,6 +57,7 @@ class GetQuote extends AmwalCheckoutAction
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private CheckoutSession $checkoutSession;
+    private SentryExceptionReport $sentryExceptionHandler;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -61,6 +65,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param QuoteFactory $quoteFactory
      * @param StoreManagerInterface $storeManager
      * @param ProductRepositoryInterface $productRepository
+     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param AddressFactory $quoteAddressFactory
      * @param QuoteRepositoryInterface $quoteRepository
      * @param ManagerInterface $messageManager
@@ -70,6 +75,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param RefIdManagementInterface $refIdManagement
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param CheckoutSession $checkoutSession
+     * @param SentryExceptionReport $sentryExceptionReport
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
@@ -80,6 +86,7 @@ class GetQuote extends AmwalCheckoutAction
         QuoteFactory $quoteFactory,
         StoreManagerInterface $storeManager,
         ProductRepositoryInterface $productRepository,
+        AmwalAddressInterfaceFactory $amwalAddressFactory,
         AddressFactory $quoteAddressFactory,
         QuoteRepositoryInterface $quoteRepository,
         ManagerInterface $messageManager,
@@ -89,6 +96,7 @@ class GetQuote extends AmwalCheckoutAction
         RefIdManagementInterface $refIdManagement,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CheckoutSession $checkoutSession,
+        SentryExceptionReport $sentryExceptionReport,
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger
@@ -99,6 +107,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->quoteFactory = $quoteFactory;
         $this->storeManager = $storeManager;
         $this->productRepository = $productRepository;
+        $this->amwalAddressFactory = $amwalAddressFactory;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteRepository = $quoteRepository;
         $this->messageManager = $messageManager;
@@ -108,13 +117,14 @@ class GetQuote extends AmwalCheckoutAction
         $this->refIdManagement = $refIdManagement;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->checkoutSession = $checkoutSession;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
      * @param AmwalOrderItemInterface[] $orderItems
      * @param string $refId
      * @param RefIdDataInterface $refIdData
-     * @param AmwalAddressInterface $addressData
+     * @param string[] $addressData
      * @param string $triggerContext
      * @param bool $isPreCheckout
      * @param string|int|null $quoteId
@@ -126,7 +136,7 @@ class GetQuote extends AmwalCheckoutAction
         array $orderItems,
         string $refId,
         RefIdDataInterface $refIdData,
-        AmwalAddressInterface $addressData,
+        array $addressData,
         string $triggerContext,
         bool $isPreCheckout,
         $quoteId = null
@@ -143,29 +153,37 @@ class GetQuote extends AmwalCheckoutAction
                 $this->throwException(__('We are unable to verify the reference ID of this payment'));
             }
 
+            $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
+
             if (!$isPreCheckout) {
                 $amwalOrderData = $this->objectFactory->create([
                     'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
                     'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
                     'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
-                $amwalOrderData->setAddressDetails($addressData);
+                $amwalOrderData->setAddressDetails($amwalAddress);
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
             }
 
             $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
+
+            if (!$quote->getItems()) {
+                $this->throwException(__('One or more selected products are currently not available.'));
+            }
 
             // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
             if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
                 $quote->setCustomerIsGuest(true);
             }
 
+            $quote->setData(self::IS_AMWAL_API_CALL, true);
+            $quote->getPayment()->setQuote($quote);
             $quote->setPaymentMethod(ConfigProvider::CODE);
             $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
             $availableRates = [];
             if (!$isPreCheckout) {
-                $quoteAddress = $this->getQuoteAddress($customerAddress, $addressData);
+                $quoteAddress = $this->getQuoteAddress($customerAddress, $amwalAddress);
 
                 $this->logDebug('Setting Billing and Shipping address');
                 $quote->setBillingAddress($quoteAddress);
@@ -196,7 +214,7 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            $this->throwException($e->getMessage(), $e);
+            $this->throwException($e->getMessage());
         }
 
         return $quoteData;
@@ -231,17 +249,16 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param Phrase|string|null $message
-     * @param Throwable|null $originalException
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, ?Throwable $originalException = null): void
+    private function throwException($message = null): void
     {
+        $this->sentryExceptionReport->report($originalException);
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
         throw new LocalizedException(
-            is_string($message) ? __($message) : $message,
-            $originalException
+            is_string($message) ? __($message) : $message
         );
     }
 
@@ -349,16 +366,16 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param AddressInterface $customerAddress
-     * @param AmwalAddressInterface $addressData
+     * @param AmwalAddressInterface $amwalAddress
      * @return Address
      */
-    public function getQuoteAddress(AddressInterface $customerAddress, AmwalAddressInterface $addressData): Address
+    public function getQuoteAddress(AddressInterface $customerAddress, AmwalAddressInterface $amwalAddress): Address
     {
         $this->logDebug('Creating quote address');
         $quoteAddress = $this->quoteAddressFactory->create();
         $quoteAddress->importCustomerAddressData($customerAddress);
 
-        if ($customerEmail = $addressData->getEmail()) {
+        if ($customerEmail = $amwalAddress->getEmail()) {
             $this->logDebug(sprintf('Setting customer email for quote address to %s', $customerEmail));
             $quoteAddress->setEmail($customerEmail);
         }
@@ -469,6 +486,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param CartInterface $quote
      * @param bool $useBaseCurrency
      * @return float
+     * @throws LocalizedException
      */
     public function getAmount(CartInterface $quote, bool $useBaseCurrency): float
     {
@@ -480,7 +498,7 @@ class GetQuote extends AmwalCheckoutAction
             $grandTotal -= $extraFee;
         }
         if (!$grandTotal) {
-            throw new LocalizedException(__('Unable to calculate order total or the requested qty is not available'));
+            $this->throwException(__('Unable to calculate order total'));
         }
 
         return $grandTotal;
