@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <head>
-        <link src="Amwal_Payments::js/react-src/dist/bundle.js"/>
-    </head>
     <body>
+        <referenceContainer name="after.body.start">
+            <block template="Amwal_Payments::lib/amwal-checkout-button-script.phtml" name="amwal.checkout.script" />
+        </referenceContainer>
         <referenceContainer name="header-wrapper">
             <block name="amwal.express-checkout.minicart" template="Amwal_Payments::express/checkout-button.phtml">
                 <arguments>
