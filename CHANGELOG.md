@@ -1,3 +1,13 @@
+# [1.0.27](https://github.com/amwal-tech/amwal-magento/compare/v1.0.26...v1.0.27) (2023-10-25)
+### Features
+* use amwal-checkout-button from cdn
+* Set data-locale
+* Handle qty errors
+* Add PaymentBrand to order details
+
+### Bug Fixes
+* reactivate quote in place-order to avoid logout
+
 # [1.0.26](https://github.com/amwal-tech/amwal-magento/compare/v1.0.25...v1.0.26) (2023-10-21)
 ### Features
 * Add Torod\CityRegion to CityHelper
