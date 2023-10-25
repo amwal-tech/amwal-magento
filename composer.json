@@ -27,7 +27,8 @@
     "require": {
         "php": ">=7.4.0",
         "magento/framework": ">=102.0.1",
-        "giggsey/libphonenumber-for-php": "^8.13.7"
+        "giggsey/libphonenumber-for-php": "^8.13.7",
+        "sentry/sdk": "^3.4"
     },
     "authors": [
         {

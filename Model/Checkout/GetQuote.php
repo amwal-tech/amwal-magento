@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Checkout;
 
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Amwal\Payments\Api\Data\AmwalOrderItemInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
@@ -54,6 +55,7 @@ class GetQuote extends AmwalCheckoutAction
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private CheckoutSession $checkoutSession;
+    private SentryExceptionReport $sentryExceptionHandler;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -70,6 +72,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param RefIdManagementInterface $refIdManagement
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
      * @param CheckoutSession $checkoutSession
+     * @param SentryExceptionReport $sentryExceptionReport
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
@@ -89,6 +92,7 @@ class GetQuote extends AmwalCheckoutAction
         RefIdManagementInterface $refIdManagement,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CheckoutSession $checkoutSession,
+        SentryExceptionReport $sentryExceptionReport,
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger
@@ -108,6 +112,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->refIdManagement = $refIdManagement;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->checkoutSession = $checkoutSession;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -242,6 +247,7 @@ class GetQuote extends AmwalCheckoutAction
      */
     private function throwException($message = null): void
     {
+        $this->sentryExceptionReport->report($originalException);
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
         throw new LocalizedException(
