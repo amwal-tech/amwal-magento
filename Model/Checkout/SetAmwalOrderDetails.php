@@ -11,6 +11,7 @@ use GuzzleHttp\RequestOptions;
 use Magento\Sales\Api\Data\OrderInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Add order details in the Amwal system after order placement
@@ -19,11 +20,12 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
 {
 
     private AmwalClientFactory $amwalClientFactory;
-
+    private StoreManagerInterface $storeManager;
     private Json $json;
 
     /**
      * @param AmwalClientFactory $amwalClientFactory
+     * @param StoreManagerInterface $storeManager
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
@@ -31,6 +33,7 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
      */
     public function __construct(
         AmwalClientFactory $amwalClientFactory,
+        StoreManagerInterface $storeManager,
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger,
@@ -38,6 +41,7 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->amwalClientFactory = $amwalClientFactory;
+        $this->storeManager = $storeManager;
         $this->json = $json;
     }
 
@@ -55,6 +59,7 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
         $orderDetails['order_created_at'] = $order->getCreatedAt();
         $orderDetails['order_content'] = $this->json->serialize($this->getOrderContent($order));
         $orderDetails['order_position'] = $triggerContext;
+        $orderDetails['order_url'] = $this->getOrderUrl($order);
         $orderDetails['plugin_type'] = 'magento';
         $orderDetails['plugin_version'] = $this->config->getVersion();
 
@@ -110,5 +115,14 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
             ];
         }
         return $orderContent;
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @return string
+     */
+    private function getOrderUrl(OrderInterface $order): string
+    {
+        return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
     }
 }
