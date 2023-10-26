@@ -214,7 +214,7 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            $this->throwException($e->getMessage());
+            $this->throwException($e->getMessage(), $e);
         }
 
         return $quoteData;
@@ -249,12 +249,15 @@ class GetQuote extends AmwalCheckoutAction
 
     /**
      * @param Phrase|string|null $message
+     * @param Throwable|null $originalException
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null): void
+    private function throwException($message = null, Throwable $originalException = null): void
     {
-        $this->sentryExceptionReport->report($originalException);
+        if($originalException){
+            $this->sentryExceptionReport->report($originalException);
+        }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
         throw new LocalizedException(
@@ -329,7 +332,7 @@ class GetQuote extends AmwalCheckoutAction
             );
             $this->reportError($refId, $message);
             $this->logger->error($message);
-            $this->throwException(__('Something went wrong while processing you address information.'));
+            $this->throwException(__('Something went wrong while processing you address information.'), $e);
         }
         return $customerAddress;
     }
