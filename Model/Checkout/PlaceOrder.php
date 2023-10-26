@@ -179,7 +179,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 );
                 $this->reportError($amwalOrderId, $message);
                 $this->logger->error($message);
-                $this->throwException();
+                $this->throwException($message, $e);
             }
 
             $amwalClientEmail = $amwalOrderData->getClientEmail();
@@ -268,12 +268,15 @@ class PlaceOrder extends AmwalCheckoutAction
 
     /**
      * @param Phrase|string|null $message
+     * @param Throwable|null $originalException
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null): void
+    private function throwException($message = null, Throwable $originalException = null): void
     {
-        $this->sentryExceptionReport->report(new LocalizedException($message ?? $this->getGenericErrorMessage()));
+        if ($originalException) {
+            $this->sentryExceptionReport->report($originalException);
+        }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         throw new LocalizedException($message ?? $this->getGenericErrorMessage());
     }
