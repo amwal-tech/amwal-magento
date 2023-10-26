@@ -39,7 +39,7 @@ const AmwalMagentoReactButton = ({
   const [discount, setDiscount] = React.useState(0)
   const [fees, setFees] = React.useState(0)
   const [feesDescription, setFeesDescription] = React.useState('')
-  const [quoteId, setQuoteId] = React.useState<string | undefined>(undefined)
+  const [maskId, setMaskId] = React.useState<string | undefined>(undefined)
   const [shippingMethods, setShippingMethods] = React.useState<IShippingMethod[]>([])
   const [placedOrderId, setPlacedOrderId] = React.useState<string | undefined>(undefined)
   const [finishedUpdatingOrder, setFinishedUpdatingOrder] = React.useState(false)
@@ -64,8 +64,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         refIdData: initalRefIdData,
         triggerContext,
-        quoteId: overrideQuoteId ?? quoteId,
-        cartId,
+        cartId: maskId ?? cartId,
         locale
       })
     })
@@ -73,7 +72,7 @@ const AmwalMagentoReactButton = ({
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
-        setQuoteId(data.quote_id)
+        setMaskId(data.mask_id)
       })
       .catch(err => { console.log(err) })
   }, [])
@@ -93,7 +92,7 @@ const AmwalMagentoReactButton = ({
         trigger_context: triggerContext,
         ref_id_data: refIdData,
         order_items: [],
-        quote_id: overrideQuoteId ?? quoteId
+        cartId: maskId ?? cartId,
       })
     })
 
@@ -101,7 +100,7 @@ const AmwalMagentoReactButton = ({
     if (!response.ok) throw new Error(data.message ?? response.statusText)
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
-      setQuoteId(quote.quote_id)
+      setMaskId(quote.cart_id)
       const subtotal = parseFloat(quote.amount) -
             parseFloat(quote.tax_amount) -
             parseFloat(quote.shipping_amount) +
@@ -221,7 +220,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         ref_id: config?.ref_id,
         address_data: event.detail,
-        quote_id: overrideQuoteId ?? quoteId,
+        cartId: maskId ?? cartId,
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
         trigger_context: triggerContext,
@@ -270,9 +269,8 @@ const AmwalMagentoReactButton = ({
         body: JSON.stringify({
           refIdData,
           triggerContext,
-          quoteId: overrideQuoteId ?? quoteId,
           locale,
-          cartId
+          cartId: maskId ?? cartId,
         })
       })
     }

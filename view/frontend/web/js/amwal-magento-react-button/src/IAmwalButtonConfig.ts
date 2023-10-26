@@ -32,6 +32,7 @@ export interface IAmwalButtonConfig {
   initial_first_name: string
   initial_last_name: string
   installment_options_url: string
+  mask_id: string
 }
 
 export interface IRefIdData {

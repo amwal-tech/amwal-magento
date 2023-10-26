@@ -40,14 +40,16 @@ class GetCartButtonConfig extends GetConfig
             if ($quoteIdMask) {
                 $quoteId = (int) $quoteIdMask->getQuoteId();
             }
+        }else{
+            $quote = $this->checkoutSessionFactory->create()->getQuote();
+            $maskId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
+            $buttonConfig->setMaskId($maskId);
         }
-
         if ($quoteId) {
             $quote = $this->cartRepository->get($quoteId);
         } else {
             $quote = $this->checkoutSessionFactory->create()->getQuote();
         }
-
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
         $buttonConfig->setAmount($this->getAmount($quote));
@@ -63,7 +65,6 @@ class GetCartButtonConfig extends GetConfig
         if ($triggerContext === 'regular-checkout') {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
-
         return $buttonConfig;
     }
 

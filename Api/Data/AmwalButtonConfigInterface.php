@@ -30,7 +30,7 @@ interface AmwalButtonConfigInterface
     public const INITIAL_EMAIL = 'initial_email';
     public const INITIAL_PHONE = 'initial_phone';
     public const PLUGIN_VERSION = 'plugin_version';
-    public const QUOTE_ID = 'quote_id';
+    public const MASK_ID = 'mask_id';
 
     public const INITIAL_FIRST_NAME = 'initial_first_name';
 
@@ -279,18 +279,6 @@ interface AmwalButtonConfigInterface
     public function setPluginVersion(?string $pluginVersion): AmwalButtonConfigInterface;
 
     /**
-     * @return string|null
-     */
-    public function getQuoteId(): ?string;
-
-    /**
-     * @param string|null $quoteId
-     * @return AmwalButtonConfigInterface
-     */
-    public function setQuoteId(?string $quoteId): AmwalButtonConfigInterface;
-
-
-    /**
      * @return array|null
      */
     public function getPostCodeOptionalCountries(): ?array;
@@ -334,4 +322,17 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setInstallmentOptionsUrl(?string $installmentOptionsUrl): AmwalButtonConfigInterface;
+
+
+    /**
+     * @return string|null
+     */
+    public function getMaskId(): ?string;
+
+    /**
+     * @param string|null $maskId
+     * @return AmwalButtonConfigInterface
+     */
+    public function setMaskId(?string $maskId): AmwalButtonConfigInterface;
+
 }

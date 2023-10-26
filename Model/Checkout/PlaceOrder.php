@@ -94,7 +94,7 @@ class PlaceOrder extends AmwalCheckoutAction
     }
 
     /**
-     * @param string|int $quoteId
+     * @param string|int $cartId
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param string $amwalOrderId
@@ -105,7 +105,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @throws NoSuchEntityException
      */
     public function execute(
-        $quoteId,
+        $cartId,
         string $refId,
         RefIdDataInterface $refIdData,
         string $amwalOrderId,
@@ -114,7 +114,7 @@ class PlaceOrder extends AmwalCheckoutAction
     ): OrderInterface {
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
-            $this->logger->error(sprintf('Unable to retrieve Amwal Order Data for quote with ID "%s". Amwal Order id: %s', $quoteId, $amwalOrderId));
+            $this->logger->error(sprintf('Unable to retrieve Amwal Order Data for cart with ID "%s". Amwal Order id: %s', $cartId, $amwalOrderId));
             $this->throwException(__('We were unable to retrieve your transaction data.'));
         }
 
@@ -137,8 +137,8 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->throwException(__('We were unable to verify your payment.'));
         }
 
-        if (!is_numeric($quoteId)) {
-            $quoteId = $this->maskedQuoteIdToQuoteId->execute($quoteId);
+        if (!is_numeric($cartId)) {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
         }
 
         $quoteId = (int) $quoteId;

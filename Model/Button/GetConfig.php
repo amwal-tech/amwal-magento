@@ -119,7 +119,6 @@ class GetConfig
         $buttonConfig->setRefId($this->refIdManagement->generateRefId($refIdData));
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
         $buttonConfig->setPluginVersion($this->config->getVersion());
-        $buttonConfig->setQuoteId($quote->getId());
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
         $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());
 
