@@ -1,3 +1,7 @@
+# [1.0.28](https://github.com/amwal-tech/amwal-magento/compare/v1.0.27...v1.0.22) (2023-10-26)
+### Bug Fixes
+* Fix-Undefined-variable-originalException
+
 # [1.0.27](https://github.com/amwal-tech/amwal-magento/compare/v1.0.26...v1.0.27) (2023-10-25)
 ### Features
 * use amwal-checkout-button from cdn
