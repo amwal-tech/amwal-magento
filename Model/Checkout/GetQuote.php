@@ -132,7 +132,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param string[] $addressData
      * @param string $triggerContext
      * @param bool $isPreCheckout
-     * @param string|int|null $quoteId
+     * @param string|int|null $cartId
      * @return mixed[]
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -144,7 +144,7 @@ class GetQuote extends AmwalCheckoutAction
         array $addressData,
         string $triggerContext,
         bool $isPreCheckout,
-        $quoteId = null
+        $cartId = null
     ): array {
         try {
             $this->logDebug('Start GetQuote call');
@@ -170,8 +170,8 @@ class GetQuote extends AmwalCheckoutAction
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
             }
 
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
             $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
-
             if (!$quote->getItems()) {
                 $this->throwException(__('One or more selected products are currently not available.'));
             }
