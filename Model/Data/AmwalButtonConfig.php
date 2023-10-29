@@ -364,17 +364,17 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getMaskId(): ?string
+    public function getCartId(): ?string
     {
-        return $this->getData(self::MASK_ID);
+        return $this->getData(self::CART_ID);
     }
 
     /**
      * @inheritDoc
      */
-    public function setMaskId(?string $maskId): AmwalButtonConfigInterface
+    public function setCartId(?string $cartId): AmwalButtonConfigInterface
     {
-        return $this->setData(self::MASK_ID, $maskId);
+        return $this->setData(self::CART_ID, $cartId);
     }
 
     /**

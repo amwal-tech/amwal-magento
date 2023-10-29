@@ -132,7 +132,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param string[] $addressData
      * @param string $triggerContext
      * @param bool $isPreCheckout
-     * @param string|int|null $cartId
+     * @param string|null $cartId
      * @return mixed[]
      * @throws LocalizedException
      * @throws NoSuchEntityException
