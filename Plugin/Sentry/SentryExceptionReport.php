@@ -5,28 +5,34 @@ namespace Amwal\Payments\Plugin\Sentry;
 
 use Sentry;
 use Sentry\State\Scope;
+use Amwal\Payments\Model\Config;
 
 class SentryExceptionReport
 {
     /**
+     * @var Config
+     */
+    protected Config $config;
+
+    /**
      * SentryExceptionReport constructor.
      */
-    public function __construct()
+    public function __construct(Config $config)
     {
+        $this->config = $config;
         // Initialize Sentry SDK
-        if (!class_exists(Sentry\ClientBuilder::class)) {
+        if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
             return;
         }
         Sentry\init(['dsn' => 'https://1fe7bb63698145909bb12240e03fa59e@sentry.amwal.dev/5']);
     }
-
     /**
      * @param \Throwable $exception
      * @return void
      */
     public function report(\Throwable $exception): void
     {
-        if (!class_exists(Sentry\ClientBuilder::class)) {
+        if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
             return;
         }
 
