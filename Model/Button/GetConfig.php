@@ -119,7 +119,6 @@ class GetConfig
         $buttonConfig->setRefId($this->refIdManagement->generateRefId($refIdData));
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
         $buttonConfig->setPluginVersion($this->config->getVersion());
-        $buttonConfig->setQuoteId($quote->getId());
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
         $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());
 
@@ -181,16 +180,15 @@ class GetConfig
     }
 
     /**
-     * @param int|null $entityId
+     * @param string|null $cartId
      * @return string
      */
-    protected function getButtonId(?int $entityId): string
+    protected function getButtonId(?string $cartId): string
     {
         $id = AmwalButtonConfigInterface::ID_PREFIX;
-        if ($entityId) {
-            return $id . $entityId;
+        if ($cartId) {
+            return $id . $cartId;
         }
-
         return $id . 'newquote';
     }
 

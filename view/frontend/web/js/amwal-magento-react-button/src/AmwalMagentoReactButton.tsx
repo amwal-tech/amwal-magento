@@ -12,8 +12,7 @@ interface AmwalMagentoReactButtonProps {
   emptyCartOnCancellation?: boolean
   baseUrl?: string
   extraHeaders?: Record<string, string>
-  overrideQuoteId?: string
-  cartId?: string
+  overrideCartId?: string
   redirectURL?: string
   performSuccessRedirection?: (orderId: string) => void
 }
@@ -27,8 +26,7 @@ const AmwalMagentoReactButton = ({
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
   baseUrl = scopeCode ? `/rest/${scopeCode}/V1` : '/rest/V1',
   extraHeaders,
-  overrideQuoteId,
-  cartId,
+  overrideCartId,
   redirectURL = '/checkout/onepage/success',
   performSuccessRedirection = () => { window.location.href = redirectURL }
 }: AmwalMagentoReactButtonProps): JSX.Element => {
@@ -39,7 +37,7 @@ const AmwalMagentoReactButton = ({
   const [discount, setDiscount] = React.useState(0)
   const [fees, setFees] = React.useState(0)
   const [feesDescription, setFeesDescription] = React.useState('')
-  const [quoteId, setQuoteId] = React.useState<string | undefined>(undefined)
+  const [cartId, setCartId] = React.useState<string | undefined>(undefined)
   const [shippingMethods, setShippingMethods] = React.useState<IShippingMethod[]>([])
   const [placedOrderId, setPlacedOrderId] = React.useState<string | undefined>(undefined)
   const [finishedUpdatingOrder, setFinishedUpdatingOrder] = React.useState(false)
@@ -64,8 +62,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         refIdData: initalRefIdData,
         triggerContext,
-        quoteId: overrideQuoteId ?? quoteId,
-        cartId,
+        cartId: overrideCartId ?? cartId,
         locale
       })
     })
@@ -73,7 +70,7 @@ const AmwalMagentoReactButton = ({
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
-        setQuoteId(data.quote_id)
+        setCartId(data.cart_id)
       })
       .catch(err => { console.log(err) })
   }, [])
@@ -93,7 +90,7 @@ const AmwalMagentoReactButton = ({
         trigger_context: triggerContext,
         ref_id_data: refIdData,
         order_items: [],
-        quote_id: overrideQuoteId ?? quoteId
+        cartId: overrideCartId ?? cartId
       })
     })
 
@@ -101,7 +98,7 @@ const AmwalMagentoReactButton = ({
     if (!response.ok) throw new Error(data.message ?? response.statusText)
     if (data instanceof Array && data.length > 0) {
       const quote = data[0]
-      setQuoteId(quote.quote_id)
+      setCartId(quote.cart_id)
       const subtotal = parseFloat(quote.amount) -
             parseFloat(quote.tax_amount) -
             parseFloat(quote.shipping_amount) +
@@ -221,7 +218,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         ref_id: config?.ref_id,
         address_data: event.detail,
-        quote_id: overrideQuoteId ?? quoteId,
+        cartId: overrideCartId ?? cartId,
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
         trigger_context: triggerContext,
@@ -270,9 +267,8 @@ const AmwalMagentoReactButton = ({
         body: JSON.stringify({
           refIdData,
           triggerContext,
-          quoteId: overrideQuoteId ?? quoteId,
           locale,
-          cartId
+          cartId: overrideCartId ?? cartId,
         })
       })
     }

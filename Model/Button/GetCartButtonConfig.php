@@ -21,7 +21,6 @@ class GetCartButtonConfig extends GetConfig
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
-     * @param int|null $quoteId
      * @return AmwalButtonConfigInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -29,7 +28,6 @@ class GetCartButtonConfig extends GetConfig
     public function execute(
             RefIdDataInterface $refIdData,
             string $triggerContext = null,
-            ?int $quoteId = null,
             ?string $cartId = null): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
@@ -39,19 +37,17 @@ class GetCartButtonConfig extends GetConfig
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             if ($quoteIdMask) {
                 $quoteId = (int) $quoteIdMask->getQuoteId();
+                $quote = $this->cartRepository->get($quoteId);
             }
-        }
-
-        if ($quoteId) {
-            $quote = $this->cartRepository->get($quoteId);
-        } else {
+        }else{
             $quote = $this->checkoutSessionFactory->create()->getQuote();
+            $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
+            $buttonConfig->setCartId($cartId);
         }
-
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
         $buttonConfig->setAmount($this->getAmount($quote));
-        $buttonConfig->setId($this->getButtonId($quoteId));
+        $buttonConfig->setId($this->getButtonId($cartId));
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -63,7 +59,6 @@ class GetCartButtonConfig extends GetConfig
         if ($triggerContext === 'regular-checkout') {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
-
         return $buttonConfig;
     }
 

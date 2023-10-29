@@ -39,6 +39,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Throwable;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 
 class GetQuote extends AmwalCheckoutAction
 {
@@ -58,6 +59,7 @@ class GetQuote extends AmwalCheckoutAction
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private CheckoutSession $checkoutSession;
     private SentryExceptionReport $sentryExceptionHandler;
+    private QuoteIdMaskFactory $quoteIdMaskFactory;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -79,6 +81,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -99,7 +102,8 @@ class GetQuote extends AmwalCheckoutAction
         SentryExceptionReport $sentryExceptionReport,
         ErrorReporter $errorReporter,
         Config $config,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        QuoteIdMaskFactory $quoteIdMaskFactory
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->customerRepository = $customerRepository;
@@ -118,6 +122,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->checkoutSession = $checkoutSession;
         $this->sentryExceptionReport = $sentryExceptionReport;
+        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
     /**
@@ -127,7 +132,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param string[] $addressData
      * @param string $triggerContext
      * @param bool $isPreCheckout
-     * @param string|int|null $quoteId
+     * @param string|null $cartId
      * @return mixed[]
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -139,7 +144,7 @@ class GetQuote extends AmwalCheckoutAction
         array $addressData,
         string $triggerContext,
         bool $isPreCheckout,
-        $quoteId = null
+        $cartId = null
     ): array {
         try {
             $this->logDebug('Start GetQuote call');
@@ -165,8 +170,8 @@ class GetQuote extends AmwalCheckoutAction
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
             }
 
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
             $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
-
             if (!$quote->getItems()) {
                 $this->throwException(__('One or more selected products are currently not available.'));
             }
@@ -434,9 +439,9 @@ class GetQuote extends AmwalCheckoutAction
         $useBaseCurrency = $this->config->shouldUseBaseCurrency();
         $shippingAddress = $quote->getShippingAddress();
         $taxAmount = $useBaseCurrency ? $shippingAddress->getBaseTaxAmount() : $shippingAddress->getTaxAmount();
-
+        $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
         return [
-            'quote_id' => $quote->getId(),
+            'cart_id' => $cartId,
             'available_rates' => $availableRates,
             'amount' => $this->getAmount($quote, $useBaseCurrency),
             'subtotal' => $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency),
