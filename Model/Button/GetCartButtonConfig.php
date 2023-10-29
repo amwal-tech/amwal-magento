@@ -41,13 +41,13 @@ class GetCartButtonConfig extends GetConfig
             }
         }else{
             $quote = $this->checkoutSessionFactory->create()->getQuote();
-            $maskCartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
-            $buttonConfig->setCartId($maskCartId);
+            $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
+            $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
         $buttonConfig->setAmount($this->getAmount($quote));
-        $buttonConfig->setId($this->getButtonId($quote->getQuoteId()));
+        $buttonConfig->setId($this->getButtonId($cartId));
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);

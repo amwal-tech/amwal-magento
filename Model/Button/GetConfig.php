@@ -180,16 +180,15 @@ class GetConfig
     }
 
     /**
-     * @param int|null $entityId
+     * @param string|null $cartId
      * @return string
      */
-    protected function getButtonId(?int $entityId): string
+    protected function getButtonId(?string $cartId): string
     {
         $id = AmwalButtonConfigInterface::ID_PREFIX;
-        if ($entityId) {
-            return $id . $entityId;
+        if ($cartId) {
+            return $id . $cartId;
         }
-
         return $id . 'newquote';
     }
 
