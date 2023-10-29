@@ -32,7 +32,7 @@ class SentryExceptionReport
      */
     public function report(\Throwable $exception): void
     {
-        if (!class_exists(Sentry\ClientBuilder::class)) {
+        if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
             return;
         }
 
