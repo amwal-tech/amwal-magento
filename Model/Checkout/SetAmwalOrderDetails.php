@@ -12,7 +12,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManagerInterface;
-
+use Magento\Framework\UrlInterface;
 /**
  * Add order details in the Amwal system after order placement
  */
@@ -110,7 +110,9 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
                 'id' => $item->getProductId(),
                 'name' => $item->getName(),
                 'quantity' => $item->getQtyOrdered(),
-                'total' => $item->getRowTotalInclTax()
+                'total' => $item->getRowTotalInclTax(),
+                'url' => $item->getProduct()->getProductUrl(),
+                'image' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $item->getProduct()->getImage(),
             ];
         }
         return $orderContent;
