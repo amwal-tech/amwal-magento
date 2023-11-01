@@ -14,6 +14,7 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
@@ -99,13 +100,35 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }
 
+
+    /**
+     * @return array
+     */
+    public function getCityCodes(): array
+    {
+        $cityCodes = $this->cityHelper->getCityCodes();
+        if (!$cityCodes) {
+            return [];
+        }
+        return $cityCodes;
+    }
+    /**
+     * @return array
+     */
+    public function getZipCodes(): array
+    {
+        $zipCodes = $this->cityHelper->getZipCodes();
+        if (!$zipCodes) {
+            return [];
+        }
+        return $zipCodes;
+    }
     /**
      * @return string
      */
     protected function getCityCodesJson(): string
     {
-        $cityCodes = $this->cityHelper->getCityCodes();
-
+        $cityCodes = $this->getCityCodes();
         if (!$cityCodes) {
             return '';
         }
@@ -128,7 +151,6 @@ class GetCartButtonConfig extends GetConfig
      */
     public function getLimitedRegionsArray(): array
     {
-
         $limitedRegionCodes = [];
         $limitedRegions = $this->config->getLimitedRegions();
         $regionCollection = $this->regionCollectionFactory->create();

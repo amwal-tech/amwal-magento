@@ -40,13 +40,23 @@ class CityHelper
         $connection = $this->resourceConnection->getConnection();
         $citiesTable = $this->resourceConnection->getTableName('cities');
         if ($connection->isTableExists($citiesTable)) {
+            // Panasonic for sony plugin
+            $isEnableForPanasonic = $connection->tableColumnExists($citiesTable, 'is_enable_for_panasonic');
             $condition = $connection->quoteInto('city.status = ?', 1);
-            $sql = $connection->select()
-                ->from(['city' => $citiesTable], ['city', 'state_id', 'country_id'])
-                ->where($condition);
-
-            foreach ($connection->fetchAll($sql) as $city) {
-                $cityCodes[$city['country_id']][$city['state_id']][] = $city['city'];
+            if ($isEnableForPanasonic) {
+                $sql = $connection->select()
+                    ->from(['city' => $citiesTable], ['city', 'id', 'country_id'])
+                    ->where($condition);
+                foreach ($connection->fetchAll($sql) as $city) {
+                    $cityCodes[$city['country_id']][$city['id']][] = $city['city'];
+                }
+            }else {
+                $sql = $connection->select()
+                    ->from(['city' => $citiesTable], ['city', 'state_id', 'country_id'])
+                    ->where($condition);
+                foreach ($connection->fetchAll($sql) as $city) {
+                    $cityCodes[$city['country_id']][$city['state_id']][] = $city['city'];
+                }
             }
         }
 
@@ -82,4 +92,27 @@ class CityHelper
 
         return $cityCodes;
     }
+
+
+    /**
+     * @return array
+     */
+    public function getZipCodes(): array
+    {
+        $zipCodes = [];
+        $connection = $this->resourceConnection->getConnection();
+        $citiesTable = $this->resourceConnection->getTableName('cities_zips');
+        if ($connection->isTableExists($citiesTable)) {
+            $condition = $connection->quoteInto('city.status = ?', 1);
+            $sql = $connection->select()
+                ->from(['city' => $citiesTable], ['zip_name', 'city_id', 'country_id'])
+                ->where($condition);
+
+            foreach ($connection->fetchAll($sql) as $city) {
+                $zipCodes[$city['country_id']][$city['city_id']][] = $city['zip_name'];
+            }
+        }
+        return $zipCodes;
+    }
+
 }
