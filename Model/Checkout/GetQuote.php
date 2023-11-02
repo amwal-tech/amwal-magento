@@ -162,9 +162,9 @@ class GetQuote extends AmwalCheckoutAction
 
             if (!$isPreCheckout) {
                 $amwalOrderData = $this->objectFactory->create([
-                    'client_first_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_last_name' => AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_phone_number' => AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_last_name' => $addressData['client_last_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_phone_number' => $addressData['client_phone_number'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
                 $amwalOrderData->setAddressDetails($amwalAddress);
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
