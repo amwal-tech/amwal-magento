@@ -32,7 +32,6 @@ class GetCartButtonConfig extends GetConfig
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
-
         if ($cartId) {
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             if ($quoteIdMask) {
@@ -99,12 +98,25 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }
 
+
+    /**
+     * @return array
+     */
+    public function getCityCodes(): array
+    {
+        $cityCodes = $this->cityHelper->getCityCodes();
+        if (!$cityCodes) {
+            return [];
+        }
+        return $cityCodes;
+    }
+
     /**
      * @return string
      */
     protected function getCityCodesJson(): string
     {
-        $cityCodes = $this->cityHelper->getCityCodes();
+        $cityCodes = $this->getCityCodes();
 
         if (!$cityCodes) {
             return '';
