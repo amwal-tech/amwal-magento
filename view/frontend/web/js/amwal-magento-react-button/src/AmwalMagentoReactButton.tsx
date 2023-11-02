@@ -268,7 +268,7 @@ const AmwalMagentoReactButton = ({
           refIdData,
           triggerContext,
           locale,
-          cartId: overrideCartId ?? cartId,
+          cartId: overrideCartId ?? cartId
         })
       })
     }
@@ -330,6 +330,7 @@ const AmwalMagentoReactButton = ({
         allowedAddressCountries={JSON.stringify(config.allowed_address_countries) as any}
         test-environment={config.test_environment}
         addressHandshake={true}
+        sendExtraAddressFields
         onAmwalAddressUpdate={handleAmwalAddressUpdate}
         onAmwalDismissed={handleAmwalDismissed}
         onAmwalCheckoutSuccess={handleAmwalCheckoutSuccess}
