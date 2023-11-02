@@ -117,4 +117,7 @@
     <type name="Magento\Checkout\Controller\Cart\Add">
         <plugin name="amwal_enrich_add_to_cart_response" type="Amwal\Payments\Plugin\Checkout\EnrichAddToCartResponse" sortOrder="10" />
     </type>
+    <type name="Magento\Sales\Model\ResourceModel\Order\Grid\Collection">
+        <plugin name="AmwalSalesOrderGrid" type="\Amwal\Payments\Plugin\Sales\Order\SalesOrderGridPlugin" />
+    </type>
 </config>
