@@ -170,7 +170,9 @@ class GetQuote extends AmwalCheckoutAction
                 $amwalOrderData->setAddressDetails($amwalAddress);
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
             }
-
+            if(!$cartId){
+                $cartId = $this->quoteIdMaskFactory->create()->load($this->checkoutSession->getQuote()->getId(), 'quote_id')->getMaskedId();
+            }
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
             $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
             if (!$quote->getItems()) {
