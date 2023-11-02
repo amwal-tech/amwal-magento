@@ -25,5 +25,14 @@
                 <sentry_reporting>1</sentry_reporting>
             </amwal_payments>
         </payment>
+        <dev>
+            <js>
+                <minify_exclude>
+                    <amwal_react_src_dist>/react-src/dist/</amwal_react_src_dist>
+                    <amwal_react_src_node_modules>/react-src/node_modules/</amwal_react_src_node_modules>
+                    <amwal_react_button>/amwal-magento-react-button/</amwal_react_button>
+                </minify_exclude>
+            </js>
+        </dev>
     </default>
 </config>
