@@ -187,7 +187,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 $this->setCustomerEmail($quote, $amwalClientEmail);
             }
 
-            $this->updateCustomerAddress($quote, $customerAddress);
+            //$this->updateCustomerAddress($quote, $customerAddress);
             if ($amwalOrderData->getShippingDetails()) {
                 $this->updateShippingMethod->execute($quote, $amwalOrderData->getShippingDetails()->getId());
             }
@@ -206,12 +206,12 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->quoteRepository->save($quote);
         }
 
+
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
 
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
-
         $this->orderRepository->save($order);
 
         $this->setAmwalOrderDetails->execute($order, $amwalOrderId, $triggerContext);
