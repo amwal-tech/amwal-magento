@@ -4,3 +4,5 @@
 "Are you sure you want to refund %1 with Amwal Payments", "Are you sure you want to refund %1 with Amwal Payments"
 "An error occurred while refunding the order", "An error occurred while refunding the order"
 "Quick checkout (Amwal)", "Quick checkout (Amwal)"
+"One or more selected products are currently not available.": "One or more selected products are currently not available."
+"The requested qty is not available": "The requested qty is not available"
