@@ -13,6 +13,7 @@
 
 ### Bug Fixes
 * Add cover case for the cartId
+* AMWAL-289-CartId Create new QuoteMaskedId if is empty.
 
 # [1.0.28](https://github.com/amwal-tech/amwal-magento/compare/v1.0.27...v1.0.28) (2023-10-26)
 ### Bug Fixes
