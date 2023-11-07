@@ -41,6 +41,9 @@ class GetCartButtonConfig extends GetConfig
         }else{
             $quote = $this->checkoutSessionFactory->create()->getQuote();
             $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
+            if (!$cartId && $quote->getId()) {
+                $cartId = $this->quoteIdMaskFactory->create()->setQuoteId($quote->getId())->save()->getMaskedId();
+            }
             $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
