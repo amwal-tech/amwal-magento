@@ -14,6 +14,7 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
@@ -40,7 +41,9 @@ class GetCartButtonConfig extends GetConfig
             }
         }else{
             $quote = $this->checkoutSessionFactory->create()->getQuote();
-            $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
+            $quoteIdMask = $this->quoteIdMaskFactory->create();
+            $quoteIdMask->setQuoteId($quote->getId())->save();
+            $cartId = $quoteIdMask->getMaskedId();
             $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
