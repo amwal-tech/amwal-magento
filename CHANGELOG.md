@@ -1,4 +1,20 @@
-# [1.0.28](https://github.com/amwal-tech/amwal-magento/compare/v1.0.27...v1.0.22) (2023-10-26)
+# [1.0.29](https://github.com/amwal-tech/amwal-magento/compare/v1.0.28...v1.0.29) (2023-11-07)
+### Features
+* QuoteId Refactor
+* Add Enable setting for sentry report
+* Change order_id from IncrementId to EntityId
+* Add product image and url to order content
+* Order setState
+* SalesOrderGridPlugin
+* Refactor getCityCodes
+* Exclude REACT JS files from minify process
+* AMWAL-288 handle extra address fields
+* Add qty error message translate
+
+### Bug Fixes
+* Add cover case for the cartId
+
+# [1.0.28](https://github.com/amwal-tech/amwal-magento/compare/v1.0.27...v1.0.28) (2023-10-26)
 ### Bug Fixes
 * Fix-Undefined-variable-originalException
 
