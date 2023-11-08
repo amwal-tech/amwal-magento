@@ -72,6 +72,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
                 }
                 $order->addStatusHistoryComment('Failure Reason: ' . $failure_reason);
             }else{
+                $order->setState($this->config->getOrderConfirmedStatus());
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment('Order status updated to ' . $status . ' by Amwal Payments.');
                 $order->setTotalPaid($order->getGrandTotal());

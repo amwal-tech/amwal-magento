@@ -185,6 +185,12 @@
                         <config_path>payment/amwal_payments/use_base_currency</config_path>
                         <comment><![CDATA[<strong class="colorRed">Warning</strong>: Do not set to "Yes" unless you experience problems with the total amounts in orders due to third party modules.]]></comment>
                     </field>
+                    <field id="sentry_report" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Report errors to Sentry</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/sentry_report</config_path>
+                        <tooltip>Enable reporting of errors to Amwal Sentry</tooltip>
+                    </field>
                 </group>
             </group>
         </section>
