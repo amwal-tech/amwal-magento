@@ -46,7 +46,7 @@ class CityHelper
                 ->where($condition);
 
             foreach ($connection->fetchAll($sql) as $city) {
-                $cityCodes[$city['country_id']][$city['state_id']][] = $city['city'];
+                $cityCodes[$city['country_id']][$city['state_id']] = $city['city'];
             }
         }
 
@@ -58,7 +58,7 @@ class CityHelper
                 ['city_name', 'city_name_ar', 'region_id', 'country_id']
             );
             foreach ($connection->fetchAll($sql) as $city) {
-                $cityCodes[$city['country_id']][$city['region_id']][] = strpos($this->localeResolver->getLocale(), 'ar') !== false ? $city['city_name_ar'] : $city['city_name'];
+                $cityCodes[$city['country_id']][$city['region_id']] = strpos($this->localeResolver->getLocale(), 'ar') !== false ? $city['city_name_ar'] : $city['city_name'];
 
             }
         }
@@ -76,7 +76,7 @@ class CityHelper
                 );
 
             foreach ($connection->fetchAll($sql, [':region_locale' => $this->localeResolver->getLocale()]) as $city) {
-                $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
+                $cityCodes[$city['country_id']][$city['region_id']] = $city['name'] ?? $city['default_name'];
             }
         }
 
