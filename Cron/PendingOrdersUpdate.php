@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
 
 class PendingOrdersUpdate
@@ -18,13 +19,15 @@ class PendingOrdersUpdate
     private LoggerInterface $logger;
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
+    private OrderNotifier $orderNotifier;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         LoggerInterface          $logger,
         Config                   $config,
-        GetAmwalOrderData        $getAmwalOrderData
+        GetAmwalOrderData        $getAmwalOrderData,
+        OrderNotifier            $orderNotifier
     )
     {
         $this->orderRepository = $orderRepository;
@@ -32,6 +35,7 @@ class PendingOrdersUpdate
         $this->logger = $logger;
         $this->config = $config;
         $this->getAmwalOrderData = $getAmwalOrderData;
+        $this->orderNotifier = $orderNotifier;
     }
 
     /**
@@ -62,6 +66,9 @@ class PendingOrdersUpdate
                 $order->addCommentToStatusHistory(__('Successfully cancelled Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId()));
 
             }
+            $order->setSendEmail(true);
+            $this->orderNotifier->notify($order);
+            $order->setIsCustomerNotified(true);
             $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
         }

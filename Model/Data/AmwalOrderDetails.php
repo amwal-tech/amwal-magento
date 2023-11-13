@@ -10,6 +10,7 @@ use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Sales\Model\OrderNotifier;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\Model\Checkout\PayOrder;
 
@@ -21,8 +22,17 @@ class AmwalOrderDetails implements AmwalOrderInterface
     private StoreManagerInterface $storeManager;
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
+    private OrderNotifier $orderNotifier;
 
-    public function __construct(OrderRepositoryInterface $orderRepository, SearchCriteriaBuilder $searchCriteriaBuilder, Request $restRequest, StoreManagerInterface $storeManager, GetAmwalOrderData $getAmwalOrderData, Config $config)
+    public function __construct(
+        OrderRepositoryInterface $orderRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        Request $restRequest,
+        StoreManagerInterface $storeManager,
+        GetAmwalOrderData $getAmwalOrderData,
+        Config $config,
+        OrderNotifier $orderNotifier
+    )
     {
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -30,6 +40,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $this->storeManager = $storeManager;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->config = $config;
+        $this->orderNotifier = $orderNotifier;
     }
 
     public function getOrderDetails($amwalOrderId)
@@ -57,9 +68,9 @@ class AmwalOrderDetails implements AmwalOrderInterface
         }
         $status = $amwalOrderData['status'];
 
-        if (!$this->isPayValid($amwalOrderId)) {
-            return false;
-        }
+//        if (!$this->isPayValid($amwalOrderId)) {
+//            return false;
+//        }
 
         try {
            $order = $this->getOrderByAmwalOrderId($amwalOrderId, $orderId, $refId);
@@ -74,8 +85,11 @@ class AmwalOrderDetails implements AmwalOrderInterface
             }else{
                 $order->setState($this->config->getOrderConfirmedStatus());
                 $order->setStatus($this->config->getOrderConfirmedStatus());
-                $order->addStatusHistoryComment('Order status updated to ' . $status . ' by Amwal Payments.');
+                $order->addStatusHistoryComment('Order status updated to (' . $status . ') by Amwal Payments webhook.');
                 $order->setTotalPaid($order->getGrandTotal());
+                $order->setSendEmail(true);
+                $this->orderNotifier->notify($order);
+                $order->setIsCustomerNotified(true);
             }
 
             // Save the updated order
