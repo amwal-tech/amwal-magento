@@ -169,8 +169,18 @@
                     </field>
                 </group>
 
+                <!-- CronJob Settings -->
+                <group id="amwal_payments_cronjob" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="60">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>CronJob Settings</label>
+                    <field id="cron_status" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Cron Job Status</label>
+                        <backend_model>Amwal\Payments\Model\Config\Backend\CronStatus</backend_model>
+                    </field>
+                </group>
+
                 <!-- Developer Settings -->
-                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="60">
+                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="70">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <label>Developer Settings</label>
                     <field id="debug_mode" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
