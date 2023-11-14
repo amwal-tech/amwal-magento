@@ -66,7 +66,11 @@ const AmwalMagentoReactButton = ({
         locale
       })
     })
-      .then(async response => await response.json())
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data)
+        return data
+      })
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
@@ -277,7 +281,11 @@ const AmwalMagentoReactButton = ({
       ? preCheckoutTask().then(async () => await getConfig())
       : getConfig()
     preCheckoutPromise
-      .then(async response => await response.json())
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data)
+        return data
+      })
       .then(data => {
         setAmount(data.amount)
         setTriggerPreCheckoutAck(true)
