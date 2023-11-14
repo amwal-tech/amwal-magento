@@ -170,7 +170,7 @@ const AmwalMagentoReactButton = ({
       })
   }
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
-    if (!event.detail.orderId) return
+    if (!event.detail.orderId || !event.detail.paymentSuccessful) return
     if (placedOrderId) {
       completeOrder(event.detail.orderId)
     }
