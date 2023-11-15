@@ -34,15 +34,17 @@ class CronStatus extends Field
     {
         $collection = $this->scheduleCollectionFactory->create()
             ->addFieldToFilter('job_code', ['eq' => 'amwal_pending_orders_update'])
-            ->setOrder('scheduled_at', 'DESC')
+            ->setOrder('executed_at', 'DESC')
             ->setPageSize(1)
             ->setCurPage(1);
 
         $item = $collection->getFirstItem();
 
         if ($item && $item->getId()) {
-            $status = 'Last Run: ' . $item->getScheduledAt() . ' - Status: ' . $item->getStatus();
-            $item->getMessages() ? $status .= ' - Messages: ' . $item->getMessages() : '';
+            $nextRun = new \DateTime($item->getScheduledAt());
+            $nextRunFormatted = $nextRun->modify('+15 minutes')->format('Y-m-d H:i:s');
+            $status = 'Last Run: ' . $item->getExecutedAt() . ' - Next Run: ' . $nextRunFormatted  . ' - Status: ' . $item->getStatus();
+            $item->getMessages() ? $status .= ' <br> Messages: ' . $item->getMessages() : '';
         } else {
             $status = 'Cron job has not run yet, please check the crontab in your server';
         }
