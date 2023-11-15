@@ -22,7 +22,8 @@ class CronStatus extends Value
         $this->resourceConnection = $resourceConnection;
     }
 
-    public function afterLoad(){
+    public function afterLoad()
+    {
         $resource = $this->resourceConnection;
         $connection = $resource->getConnection();
 
