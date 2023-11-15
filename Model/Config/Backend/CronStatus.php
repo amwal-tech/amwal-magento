@@ -4,35 +4,37 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Config\Backend;
 
 use Magento\Framework\App\Config\Value;
-use Magento\Framework\App\ResourceConnection;
+use Magento\Cron\Model\ResourceModel\Schedule\CollectionFactory as ScheduleCollectionFactory;
 
 class CronStatus extends Value
 {
     /**
-     * @var ResourceConnection
+     * @var ScheduleCollectionFactory
      */
-    private ResourceConnection $resourceConnection;
+    private $scheduleCollectionFactory;
 
     /**
-     * @param ResourceConnection $resourceConnection
+     * @param ScheduleCollectionFactory $scheduleCollectionFactory
      */
     public function __construct(
-        ResourceConnection $resourceConnection
+        ScheduleCollectionFactory $scheduleCollectionFactory
     ) {
-        $this->resourceConnection = $resourceConnection;
+        $this->scheduleCollectionFactory = $scheduleCollectionFactory;
     }
+
 
     public function afterLoad()
     {
-        $resource = $this->resourceConnection;
-        $connection = $resource->getConnection();
+        $collection = $this->scheduleCollectionFactory->create()
+            ->addFieldToFilter('job_code', ['eq' => 'amwal_pending_orders_update'])
+            ->setOrder('scheduled_at', 'DESC')
+            ->setPageSize(1)
+            ->setCurPage(1);
 
-        $tableName = $resource->getTableName('cron_schedule');
-        $query = 'SELECT * FROM ' . $tableName . ' WHERE job_code = "amwal_pending_orders_update" ORDER BY scheduled_at DESC LIMIT 1';
-        $result = $connection->fetchRow($query);
+        $item = $collection->getFirstItem();
 
-        if ($result) {
-            $status = 'Last Run: ' . $result['scheduled_at'] . ' Status: ' . $result['status'];
+        if ($item && $item->getId()) {
+            $status = 'Last Run: ' . $item->getScheduledAt() . ' Status: ' . $item->getStatus();
         } else {
             $status = 'Cron job has not run yet, please check the crontab in your server';
         }
