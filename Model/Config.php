@@ -45,6 +45,8 @@ class Config
     public const XML_CONFIG_PATH_USE_SYSTEM_COUNTRY_SETTINGS = 'payment/amwal_payments/use_system_country_settings';
     public const XML_CONFIG_PATH_STYLE_CSS = 'payment/amwal_payments/style_css';
     public const XML_CONFIG_PATH_SENTRY_REPORT = 'payment/amwal_payments/sentry_report';
+    public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_CUSTOMER_EMAIL = 'payment/amwal_payments/order_status_changed_customer_email';
+    public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL = 'payment/amwal_payments/order_status_changed_admin_email';
 
 
 
@@ -412,5 +414,21 @@ class Config
     public function isSentryReportEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_SENTRY_REPORT, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOrderStatusChangedCustomerEmailEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ORDER_STATUS_CHANGED_CUSTOMER_EMAIL, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOrderStatusChangedAdminEmailEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL, ScopeInterface::SCOPE_WEBSITE);
     }
 }

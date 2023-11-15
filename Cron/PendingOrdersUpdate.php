@@ -11,6 +11,10 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Mail\TransportInterfaceFactory;
+use Magento\Framework\Mail\MessageInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class PendingOrdersUpdate
 {
@@ -20,14 +24,21 @@ class PendingOrdersUpdate
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
     private OrderNotifier $orderNotifier;
+    private TransportInterfaceFactory $transportFactory;
+    private MessageInterface $message;
+    private ScopeConfigInterface $scopeConfig;
 
     public function __construct(
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        LoggerInterface          $logger,
-        Config                   $config,
-        GetAmwalOrderData        $getAmwalOrderData,
-        OrderNotifier            $orderNotifier
+        OrderRepositoryInterface  $orderRepository,
+        SearchCriteriaBuilder     $searchCriteriaBuilder,
+        LoggerInterface           $logger,
+        Config                    $config,
+        GetAmwalOrderData         $getAmwalOrderData,
+        OrderNotifier             $orderNotifier,
+        TransportInterfaceFactory $transportFactory,
+        MessageInterface          $message,
+        ScopeConfigInterface      $scopeConfig
+
     )
     {
         $this->orderRepository = $orderRepository;
@@ -36,6 +47,9 @@ class PendingOrdersUpdate
         $this->config = $config;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->orderNotifier = $orderNotifier;
+        $this->transportFactory = $transportFactory;
+        $this->message = $message;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -64,11 +78,9 @@ class PendingOrdersUpdate
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
                 $order->addCommentToStatusHistory(__('Successfully cancelled Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId()));
-
             }
-            $order->setSendEmail(true);
-            $this->orderNotifier->notify($order);
-            $order->setIsCustomerNotified(true);
+            $this->sendAdminEmail($order);
+            $this->sendCustomerEmail($order);
             $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
         }
@@ -89,5 +101,35 @@ class PendingOrdersUpdate
 
         $this->logger->notice(sprintf('Found %s orders', count($orders)));
         return $orders;
+    }
+
+    public function sendCustomerEmail($order)
+    {
+        if ($this->config->isOrderStatusChangedCustomerEmailEnabled()) {
+            $order->setSendEmail(true);
+            $this->orderNotifier->notify($order);
+            $order->setIsCustomerNotified(true);
+        }
+    }
+
+    public function sendAdminEmail($order)
+    {
+        if ($this->config->isOrderStatusChangedAdminEmailEnabled()) {
+            // Get store email
+            $senderEmail = $this->scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
+            $senderName = $this->scopeConfig->getValue('trans_email/ident_general/name', ScopeInterface::SCOPE_STORE);
+            $mailContent = 'Order (' . $order->getIncrementId() . ') status has been changed to (' . $order->getStatus() . ') by Amwal Payment Cron Job';
+
+            // Set email content and type
+            $this->message->setBody($mailContent);
+            $this->message->setFrom($senderEmail);
+            $this->message->addTo($senderEmail);
+            $this->message->setSubject('Order Status Changed by Amwal Payment Cron Job');
+            $this->message->setMessageType(MessageInterface::TYPE_TEXT);
+
+            // Create transport and send the email
+            $transport = $this->transportFactory->create(['message' => clone $this->message]);
+            $transport->sendMessage();
+        }
     }
 }
