@@ -42,6 +42,7 @@ class CronStatus extends Field
 
         if ($item && $item->getId()) {
             $status = 'Last Run: ' . $item->getScheduledAt() . ' - Status: ' . $item->getStatus();
+            $item->getMessages() ? $status .= ' - Messages: ' . $item->getMessages() : '';
         } else {
             $status = 'Cron job has not run yet, please check the crontab in your server';
         }
