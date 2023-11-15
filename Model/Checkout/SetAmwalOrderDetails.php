@@ -54,7 +54,8 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
     public function execute(OrderInterface $order, string $amwalOrderId, string $triggerContext): void
     {
         $orderDetails = [];
-        $orderDetails['order_id'] = $order->getEntityId();
+        $orderDetails['order_id'] = $order->getIncrementId();
+        $orderDetails['order_entity_id'] = $order->getEntityId();
         $orderDetails['order_created_at'] = $order->getCreatedAt();
         $orderDetails['order_content'] = $this->json->serialize($this->getOrderContent($order));
         $orderDetails['order_position'] = $triggerContext;
