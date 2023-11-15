@@ -1,12 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Amwal\Payments\Model\Config\Backend;
+namespace Amwal\Payments\Model\Config\Frontend;
 
-use Magento\Framework\App\Config\Value;
+use Magento\Config\Block\System\Config\Form\Field;
+use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Cron\Model\ResourceModel\Schedule\CollectionFactory as ScheduleCollectionFactory;
 
-class CronStatus extends Value
+class CronStatus extends Field
 {
     /**
      * @var ScheduleCollectionFactory
@@ -14,16 +15,22 @@ class CronStatus extends Value
     private $scheduleCollectionFactory;
 
     /**
+     * Constructor
+     *
      * @param ScheduleCollectionFactory $scheduleCollectionFactory
+     * @param \Magento\Backend\Block\Template\Context $context
+     * @param array $data
      */
     public function __construct(
-        ScheduleCollectionFactory $scheduleCollectionFactory
+        ScheduleCollectionFactory $scheduleCollectionFactory,
+        \Magento\Backend\Block\Template\Context $context,
+        array $data = []
     ) {
         $this->scheduleCollectionFactory = $scheduleCollectionFactory;
+        parent::__construct($context, $data);
     }
 
-
-    public function afterLoad()
+    protected function _getElementHtml(AbstractElement $element)
     {
         $collection = $this->scheduleCollectionFactory->create()
             ->addFieldToFilter('job_code', ['eq' => 'amwal_pending_orders_update'])
@@ -34,10 +41,11 @@ class CronStatus extends Value
         $item = $collection->getFirstItem();
 
         if ($item && $item->getId()) {
-            $status = 'Last Run: ' . $item->getScheduledAt() . ' Status: ' . $item->getStatus();
+            $status = 'Last Run: ' . $item->getScheduledAt() . ' - Status: ' . $item->getStatus();
         } else {
             $status = 'Cron job has not run yet, please check the crontab in your server';
         }
-        $this->setValue($status);
+
+        return '<div id="' . $element->getHtmlId() . '">' . $status . '</div>';
     }
 }

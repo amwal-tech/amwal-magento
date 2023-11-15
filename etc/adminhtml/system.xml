@@ -185,7 +185,7 @@
                     </field>
                     <field id="cron_status" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Cron Job Status</label>
-                        <backend_model>Amwal\Payments\Model\Config\Backend\CronStatus</backend_model>
+                        <frontend_model>Amwal\Payments\Model\Config\Frontend\CronStatus</frontend_model>
                         <comment><![CDATA[<strong class="colorRed">Note</strong>: Cron Job Frequency 15 minutes]]></comment>
                         <depends>
                             <field id="cronjob_enable">1</field>
