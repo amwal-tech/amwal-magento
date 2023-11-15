@@ -45,7 +45,7 @@ class Config
     public const XML_CONFIG_PATH_USE_SYSTEM_COUNTRY_SETTINGS = 'payment/amwal_payments/use_system_country_settings';
     public const XML_CONFIG_PATH_STYLE_CSS = 'payment/amwal_payments/style_css';
     public const XML_CONFIG_PATH_SENTRY_REPORT = 'payment/amwal_payments/sentry_report';
-
+    public const XML_CONFIG_PATH_CRONJOB_ENABLE = 'payment/amwal_payments/cronjob_enable';
 
 
     /** @var ScopeConfigInterface  */
@@ -412,5 +412,13 @@ class Config
     public function isSentryReportEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_SENTRY_REPORT, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCronJobEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_CRONJOB_ENABLE, ScopeInterface::SCOPE_WEBSITE);
     }
 }

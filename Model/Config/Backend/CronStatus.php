@@ -21,6 +21,7 @@ class CronStatus extends Value
     ) {
         $this->resourceConnection = $resourceConnection;
     }
+
     public function afterLoad(){
         $resource = $this->resourceConnection;
         $connection = $resource->getConnection();
@@ -32,9 +33,8 @@ class CronStatus extends Value
         if ($result) {
             $status = 'Last Run: ' . $result['scheduled_at'] . ' Status: ' . $result['status'];
         } else {
-            $status = 'Cron job has not run yet.';
+            $status = 'Cron job has not run yet, please check the crontab in your server';
         }
-
         $this->setValue($status);
     }
 }

@@ -39,6 +39,13 @@ class PendingOrdersUpdate
      */
     public function execute(): PendingOrdersUpdate
     {
+
+        // check if the cron job is enabled cronjob_enable
+        if (!$this->config->isCronJobEnabled()) {
+            $this->logger->notice('Cron Job is disabled');
+            return $this;
+        }
+
         $this->logger->notice('Starting Cron Job');
 
         $orders = $this->getPendingOrders();
@@ -60,7 +67,6 @@ class PendingOrdersUpdate
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
                 $order->addCommentToStatusHistory(__('Successfully cancelled Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId()));
-
             }
             $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
@@ -71,10 +77,12 @@ class PendingOrdersUpdate
 
     protected function getPendingOrders(): array
     {
-        $fromTime = date('Y-m-d h:i', strtotime('-30 minutes'));
+        $fromTime = date('Y-m-d h:i', strtotime('-1 hour'));
+
         $this->logger->notice(sprintf('Searching for orders created after %s', $fromTime));
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime, 'gt')
+            ->addFilter('payment_method', 'amwal_payments', 'eq')
             ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->create();
 
