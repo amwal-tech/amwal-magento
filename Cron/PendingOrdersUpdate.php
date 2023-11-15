@@ -10,7 +10,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
-use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 
 class PendingOrdersUpdate
 {
@@ -82,7 +81,6 @@ class PendingOrdersUpdate
         $this->logger->notice(sprintf('Searching for orders created after %s', $fromTime));
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime, 'gt')
-            ->addFilter('payment_method', ConfigProvider::CODE, 'eq')
             ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->create();
 

@@ -41,8 +41,12 @@ class CronStatus extends Field
         $item = $collection->getFirstItem();
 
         if ($item && $item->getId()) {
-            $nextRun = new \DateTime($item->getScheduledAt());
-            $nextRunFormatted = $nextRun->modify('+15 minutes')->format('Y-m-d H:i:s');
+            if($item->getScheduledAt()){
+                $nextRun = new \DateTime($item->getScheduledAt());
+                $nextRunFormatted = $nextRun->modify('+15 minutes')->format('Y-m-d H:i:s');
+            }else{
+                $nextRunFormatted = 'Not Scheduled';
+            }
             $status = 'Last Run: ' . $item->getExecutedAt() . ' - Next Run: ' . $nextRunFormatted  . ' - Status: ' . $item->getStatus();
             $item->getMessages() ? $status .= ' <br> Messages: ' . $item->getMessages() : '';
         } else {
