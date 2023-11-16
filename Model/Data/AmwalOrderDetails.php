@@ -117,7 +117,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         if ($orderState === $defaultOrderStatus) {
             return false;
         }
-        return $orderState === 'pending_payment';
+        return $orderState === 'pending_payment' || $orderState === 'canceled';
     }
 
     private function getOrderUrl($order)
