@@ -1,4 +1,4 @@
-# [1.0.29.1] (2023-11-16)
+# [1.0.30] (2023-11-16)
 ### Bug Fixes
 - Remove the cancled order status from the pending orders update job
 
