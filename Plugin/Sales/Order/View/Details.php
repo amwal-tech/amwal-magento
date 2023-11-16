@@ -84,9 +84,6 @@ class Details
         if ($orderState === $defaultOrderStatus) {
             return false;
         }
-        if($amwalOrderStatus !== 'success') {
-            return false;
-        }
-        return $orderState === 'pending_payment';
+        return $orderState === 'pending_payment' || $orderState === 'canceled';
     }
 }
