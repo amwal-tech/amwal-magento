@@ -1,3 +1,7 @@
+# [1.0.29.1] (2023-11-16)
+### Bug Fixes
+- Remove the cancled order status from the pending orders update job
+
 # [1.0.29](https://github.com/amwal-tech/amwal-magento/compare/v1.0.28...v1.0.29) (2023-11-07)
 ### Features
 * QuoteId Refactor
