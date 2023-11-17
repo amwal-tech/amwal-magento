@@ -92,7 +92,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId, 'eq');
 
         if ($orderId) {
-            $searchCriteria = $searchCriteria->addFilter('entity_id', $orderId, 'eq');
+            $searchCriteria = $searchCriteria->addFilter('increment_id', $orderId, 'eq');
         }
         if ($refId) {
             $searchCriteria = $searchCriteria->addFilter('ref_id', $refId, 'eq');
@@ -117,7 +117,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         if ($orderState === $defaultOrderStatus) {
             return false;
         }
-        return $orderState === 'pending_payment';
+        return $orderState === 'pending_payment' || $orderState === 'canceled';
     }
 
     private function getOrderUrl($order)
