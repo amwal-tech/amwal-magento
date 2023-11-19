@@ -43,7 +43,7 @@ class CronStatus extends Field
         if ($item && $item->getId()) {
             if($item->getScheduledAt()){
                 $nextRun = new \DateTime($item->getScheduledAt());
-                $nextRunFormatted = $nextRun->modify('+15 minutes')->format('Y-m-d H:i:s');
+                $nextRunFormatted = $nextRun->modify('+1 Hour')->format('Y-m-d H:i:s');
             }else{
                 $nextRunFormatted = 'Not Scheduled';
             }
