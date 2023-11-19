@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Data;
 
 use Amwal\Payments\Api\Data\AmwalOrderInterface;
+use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Framework\Webapi\Rest\Request;
@@ -21,8 +22,9 @@ class AmwalOrderDetails implements AmwalOrderInterface
     private StoreManagerInterface $storeManager;
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
+    private InvoiceOrder $invoiceAmwalOrder;
 
-    public function __construct(OrderRepositoryInterface $orderRepository, SearchCriteriaBuilder $searchCriteriaBuilder, Request $restRequest, StoreManagerInterface $storeManager, GetAmwalOrderData $getAmwalOrderData, Config $config)
+    public function __construct(OrderRepositoryInterface $orderRepository, SearchCriteriaBuilder $searchCriteriaBuilder, Request $restRequest, StoreManagerInterface $storeManager, GetAmwalOrderData $getAmwalOrderData, Config $config, InvoiceOrder $invoiceAmwalOrder)
     {
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -30,6 +32,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $this->storeManager = $storeManager;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->config = $config;
+        $this->invoiceAmwalOrder = $invoiceAmwalOrder;
     }
 
     public function getOrderDetails($amwalOrderId)
@@ -76,6 +79,11 @@ class AmwalOrderDetails implements AmwalOrderInterface
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment('Order status updated to ' . $status . ' by Amwal Payments.');
                 $order->setTotalPaid($order->getGrandTotal());
+
+                if (!$order->hasInvoices()) {
+                    $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
+                    $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+                }
             }
 
             // Save the updated order
