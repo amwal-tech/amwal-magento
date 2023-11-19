@@ -183,10 +183,10 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/cronjob_enable</config_path>
                     </field>
-                    <field id="cron_status" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="cron_status" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Cron Job Status</label>
                         <frontend_model>Amwal\Payments\Model\Config\Frontend\CronStatus</frontend_model>
-                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Cron Job Frequency 15 minutes]]></comment>
+                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Cron Job Frequency 1 Hour.]]></comment>
                         <depends>
                             <field id="cronjob_enable">1</field>
                         </depends>

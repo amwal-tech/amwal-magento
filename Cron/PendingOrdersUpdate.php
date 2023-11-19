@@ -10,6 +10,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
+use Amwal\Payments\Model\Checkout\InvoiceOrder;
 
 class PendingOrdersUpdate
 {
@@ -18,13 +19,15 @@ class PendingOrdersUpdate
     private LoggerInterface $logger;
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
+    private InvoiceOrder $invoiceAmwalOrder;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         LoggerInterface          $logger,
         Config                   $config,
-        GetAmwalOrderData        $getAmwalOrderData
+        GetAmwalOrderData        $getAmwalOrderData,
+        InvoiceOrder             $invoiceAmwalOrder
     )
     {
         $this->orderRepository = $orderRepository;
@@ -32,6 +35,7 @@ class PendingOrdersUpdate
         $this->logger = $logger;
         $this->config = $config;
         $this->getAmwalOrderData = $getAmwalOrderData;
+        $this->invoiceAmwalOrder = $invoiceAmwalOrder;
     }
 
     /**
@@ -39,15 +43,12 @@ class PendingOrdersUpdate
      */
     public function execute(): PendingOrdersUpdate
     {
-
         // check if the cron job is enabled cronjob_enable
         if (!$this->config->isCronJobEnabled()) {
             $this->logger->notice('Cron Job is disabled');
             return $this;
         }
-
         $this->logger->notice('Starting Cron Job');
-
         $orders = $this->getPendingOrders();
         foreach ($orders as $order) {
             $amwalOrderId = $order->getAmwalOrderId();
@@ -64,6 +65,11 @@ class PendingOrdersUpdate
                 $order->setTotalPaid($order->getGrandTotal());
                 $order->addCommentToStatusHistory(__('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId()));
             }
+
+            if (!$order->hasInvoices()) {
+                $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
+                $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+            }
             $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
         }
@@ -73,11 +79,14 @@ class PendingOrdersUpdate
 
     protected function getPendingOrders(): array
     {
-        $fromTime = date('Y-m-d h:i', strtotime('-1 hour'));
-        $this->logger->notice(sprintf('Searching for orders created after %s', $fromTime));
+        $fromTime = date('Y-m-d h:i', strtotime('-4 hour'));
+        $toTime = date('Y-m-d h:i', strtotime('-1 hour'));
+        $this->logger->notice(sprintf('Searching for orders created between %s and %s', $fromTime, $toTime));
+
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime, 'gt')
-            ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
+            ->addFilter('created_at', $toTime, 'lt')
+            ->addFilter('status', [Order::STATE_PENDING_PAYMENT, Order::STATE_CANCELED], 'in')
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
