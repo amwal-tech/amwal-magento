@@ -68,9 +68,9 @@ class PendingOrdersUpdate
                     $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
                     $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
                 }
+                $this->orderRepository->save($order);
+                $this->logger->notice(sprintf('Order %s has been updated', $orderId));
             }
-            $this->orderRepository->save($order);
-            $this->logger->notice(sprintf('Order %s has been updated', $orderId));
         }
         $this->logger->notice('Cron Job Finished');
         return $this;
