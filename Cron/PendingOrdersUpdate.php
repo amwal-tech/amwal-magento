@@ -64,11 +64,10 @@ class PendingOrdersUpdate
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->setTotalPaid($order->getGrandTotal());
                 $order->addCommentToStatusHistory(__('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId()));
-            }
-
-            if (!$order->hasInvoices()) {
-                $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
-                $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+                if (!$order->hasInvoices()) {
+                    $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
+                    $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+                }
             }
             $this->orderRepository->save($order);
             $this->logger->notice(sprintf('Order %s has been updated', $orderId));
