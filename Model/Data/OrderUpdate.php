@@ -90,7 +90,6 @@ class OrderUpdate
             $this->orderRepository->save($order);
 
             if (!$order->hasInvoices() && $status == 'success') {
-                $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
                 $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
             }
             return true;
