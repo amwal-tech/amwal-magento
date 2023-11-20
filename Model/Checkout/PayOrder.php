@@ -161,7 +161,6 @@ class PayOrder extends AmwalCheckoutAction
         if($amwalOrderStatus == 'success') {
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
-            $this->setOrderUrl($order, $amwalOrderId);
             return true;
         }else{
             throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
@@ -305,42 +304,4 @@ class PayOrder extends AmwalCheckoutAction
             !$this->customerWithEmailExists($email) &&
             $this->config->shouldCreateCustomer();
     }
-
-    /**
-     * @param OrderInterface $order
-     * @param string $amwalOrderId
-     * @return string
-     */
-    private function setOrderUrl(OrderInterface $order, $amwalOrderId){
-        $amwalClient = $this->amwalClientFactory->create();
-        $orderDetails = [];
-        $orderDetails['order_url'] = $this->getOrderUrl($order);
-        try {
-            $response = $amwalClient->post(
-                'transactions/' . $amwalOrderId . '/set_order_details',
-                [
-                    RequestOptions::JSON => $orderDetails
-                ]
-            );
-        } catch (GuzzleException $e) {
-            $message = sprintf(
-                'Unable to set Order details in Amwal for order with ID "%s". Exception: %s',
-                $amwalOrderId,
-                $e->getMessage()
-            );
-            $this->reportError($amwalOrderId, $message);
-            $this->logger->error($message);
-            return;
-        }
-    }
-
-    /**
-     * @param OrderInterface $order
-     * @return string
-     */
-    private function getOrderUrl(OrderInterface $order): string
-    {
-        return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
-    }
-
 }

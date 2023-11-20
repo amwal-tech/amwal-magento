@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Data;
 
+use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\GetAmwalOrderData;
@@ -15,8 +19,9 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Psr\Log\LoggerInterface;
+use Amwal\Payments\Model\Checkout\AmwalClientFactory;
 
-class OrderUpdate
+class OrderUpdate extends AmwalCheckoutAction
 {
     private OrderRepositoryInterface $orderRepository;
     private StoreManagerInterface $storeManager;
@@ -28,6 +33,7 @@ class OrderUpdate
     private ScopeConfigInterface $scopeConfig;
     private InvoiceOrder $invoiceAmwalOrder;
     private LoggerInterface $logger;
+    private AmwalClientFactory $amwalClientFactory;
 
     public function __construct(
         OrderRepositoryInterface  $orderRepository,
@@ -39,7 +45,8 @@ class OrderUpdate
         MessageInterface          $message,
         ScopeConfigInterface      $scopeConfig,
         InvoiceOrder              $invoiceAmwalOrder,
-        LoggerInterface           $logger
+        LoggerInterface           $logger,
+        AmwalClientFactory        $amwalClientFactory
     )
     {
         $this->orderRepository = $orderRepository;
@@ -52,6 +59,7 @@ class OrderUpdate
         $this->scopeConfig = $scopeConfig;
         $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->logger = $logger;
+        $this->amwalClientFactory = $amwalClientFactory;
     }
 
     /*
@@ -75,6 +83,7 @@ class OrderUpdate
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment($historyComment);
                 $order->setTotalPaid($order->getGrandTotal());
+                $this->setOrderUrl($order, $order->getAmwalOrderId());
             } elseif($status == 'fail') {
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
@@ -137,5 +146,42 @@ class OrderUpdate
             $transport = $this->transportFactory->create(['message' => clone $this->message]);
             $transport->sendMessage();
         }
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param string $amwalOrderId
+     * @return string
+     */
+    private function setOrderUrl(OrderInterface $order, $amwalOrderId){
+        $amwalClient = $this->amwalClientFactory->create();
+        $orderDetails = [];
+        $orderDetails['order_url'] = $this->getOrderUrl($order);
+        try {
+            $response = $amwalClient->post(
+                'transactions/' . $amwalOrderId . '/set_order_details',
+                [
+                    RequestOptions::JSON => $orderDetails
+                ]
+            );
+        } catch (GuzzleException $e) {
+            $message = sprintf(
+                'Unable to set Order details in Amwal for order with ID "%s". Exception: %s',
+                $amwalOrderId,
+                $e->getMessage()
+            );
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
+            return;
+        }
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @return string
+     */
+    private function getOrderUrl(OrderInterface $order): string
+    {
+        return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
     }
 }
