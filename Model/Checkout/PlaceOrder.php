@@ -117,10 +117,6 @@ class PlaceOrder extends AmwalCheckoutAction
         string $triggerContext,
         bool $hasAmwalAddress
     ): OrderInterface {
-        $pervOrder = $this->getOrderByAmwalOrderId($amwalOrderId);
-        if ($pervOrder->getEntityId()) {
-            $this->throwException(__('Order already exists, please refresh the page and try again.'));
-        }
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
             $this->logger->error(sprintf('Unable to retrieve Amwal Order Data for cart with ID "%s". Amwal Order id: %s', $cartId, $amwalOrderId));
@@ -239,7 +235,10 @@ class PlaceOrder extends AmwalCheckoutAction
     public function createOrder(Quote $quote, string $amwalOrderId, string $refId): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
-        $order = $this->quoteManagement->submit($quote);
+        $order = $this->getOrderByAmwalOrderId($amwalOrderId);
+        if (!$order->getEntityId()) {
+            $order = $this->quoteManagement->submit($quote);
+        }
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
         if (!$order) {
