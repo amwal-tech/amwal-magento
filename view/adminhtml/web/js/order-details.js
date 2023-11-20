@@ -7,7 +7,7 @@ define('Amwal_Payments/js/order-details', ['jquery', 'Magento_Ui/js/modal/modal'
         var amwalOrderStatus = responseJson.status !== 'null' ? responseJson.status : '-';
         var amwalOrderFailureReason = responseJson.failure_reason;
 
-        config.orderId = config.order_id;
+        config.orderId = config.increment_id;
         config.amwalOrderId = config.amwal_order_id;
         config.refId = responseJson.ref_id;
 

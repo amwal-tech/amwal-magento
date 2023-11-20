@@ -175,7 +175,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
             $this->message->setBody($mailContent);
             $this->message->setFrom($senderEmail);
             $this->message->addTo($senderEmail);
-            $this->message->setSubject('Order Status Changed by Amwal Payment Cron Job');
+            $this->message->setSubject('Order Status Changed by Amwal Payment Webhook');
             $this->message->setMessageType(MessageInterface::TYPE_TEXT);
 
             // Create transport and send the email
