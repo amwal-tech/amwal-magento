@@ -45,21 +45,21 @@ class Config
     public const XML_CONFIG_PATH_USE_SYSTEM_COUNTRY_SETTINGS = 'payment/amwal_payments/use_system_country_settings';
     public const XML_CONFIG_PATH_STYLE_CSS = 'payment/amwal_payments/style_css';
     public const XML_CONFIG_PATH_SENTRY_REPORT = 'payment/amwal_payments/sentry_report';
+    public const XML_CONFIG_PATH_CRONJOB_ENABLE = 'payment/amwal_payments/cronjob_enable';
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_CUSTOMER_EMAIL = 'payment/amwal_payments/order_status_changed_customer_email';
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL = 'payment/amwal_payments/order_status_changed_admin_email';
 
 
-
-    /** @var ScopeConfigInterface  */
+    /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
 
-    /** @var ComposerInformation  */
+    /** @var ComposerInformation */
     private ComposerInformation $composerInformation;
 
-    /** @var RegionCollectionFactory  */
+    /** @var RegionCollectionFactory */
     private RegionCollectionFactory $regionCollectionFactory;
 
-    /** @var DirectoryHelper  */
+    /** @var DirectoryHelper */
     private DirectoryHelper $directoryHelper;
 
     /**
@@ -69,11 +69,12 @@ class Config
      * @param DirectoryHelper $directoryHelper
      */
     public function __construct(
-        ScopeConfigInterface $scopeConfig,
-        ComposerInformation $composerInformation,
+        ScopeConfigInterface    $scopeConfig,
+        ComposerInformation     $composerInformation,
         RegionCollectionFactory $regionCollectionFactory,
-        DirectoryHelper $directoryHelper
-    ) {
+        DirectoryHelper         $directoryHelper
+    )
+    {
         $this->scopeConfig = $scopeConfig;
         $this->composerInformation = $composerInformation;
         $this->regionCollectionFactory = $regionCollectionFactory;
@@ -120,9 +121,9 @@ class Config
     public function shouldHideProceedToCheckout(): bool
     {
         return $this->isExpressCheckoutActive() && $this->scopeConfig->isSetFlag(
-            self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
-            ScopeInterface::SCOPE_WEBSITE
-        );
+                self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
+                ScopeInterface::SCOPE_WEBSITE
+            );
     }
 
     /**
@@ -130,7 +131,7 @@ class Config
      */
     public function getMerchantId(): string
     {
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
+        return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
@@ -146,13 +147,13 @@ class Config
      */
     public function getCountryCode(): string
     {
-        if($this->shouldUseSystemCountrySettings()) {
+        if ($this->shouldUseSystemCountrySettings()) {
             return $this->scopeConfig->getValue(
                 'general/country/default',
                 ScopeInterface::SCOPE_STORE
             );
         }
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_COUNTRY_CODE, ScopeInterface::SCOPE_WEBSITE);
+        return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_COUNTRY_CODE, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
@@ -160,7 +161,7 @@ class Config
      */
     public function getTitle(): string
     {
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_TITLE, ScopeInterface::SCOPE_STORE);
+        return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_TITLE, ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -168,7 +169,7 @@ class Config
      */
     public function getExpressCheckoutTitle(): string
     {
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_EXPRESS_CHECKOUT_TITLE, ScopeInterface::SCOPE_STORE);
+        return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_EXPRESS_CHECKOUT_TITLE, ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -273,7 +274,7 @@ class Config
      */
     public function getLimitedRegions(): array
     {
-        if($this->shouldUseSystemCountrySettings()) {
+        if ($this->shouldUseSystemCountrySettings()) {
             $countryCodes = $this->getAllowCountries();
             $regionCollection = $this->regionCollectionFactory->create();
             $regionCollection->addFieldToFilter('main_table.country_id', ['in' => $countryCodes]);
@@ -301,7 +302,7 @@ class Config
 
     public function getAllowedAddressCountries(): array
     {
-        if($this->shouldUseSystemCountrySettings()) {
+        if ($this->shouldUseSystemCountrySettings()) {
             return explode(',', $this->scopeConfig->getValue(
                 'general/country/allow',
                 ScopeInterface::SCOPE_STORE
@@ -315,7 +316,7 @@ class Config
      */
     public function getApiBaseUrl(): string
     {
-        if ( $this->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE) {
+        if ($this->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE) {
             return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_TEST_API_BASE_URL);
         }
 
@@ -347,7 +348,7 @@ class Config
      */
     public function shouldCombineStreetLines(): bool
     {
-        $lineCount = (int) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_STREET_LINE_COUNT, ScopeInterface::SCOPE_STORE);
+        $lineCount = (int)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_STREET_LINE_COUNT, ScopeInterface::SCOPE_STORE);
         return $lineCount < 2;
     }
 
@@ -381,7 +382,7 @@ class Config
      */
     public function getSecretKey(): string
     {
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_SECRET_KEY, ScopeInterface::SCOPE_WEBSITE);
+        return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_SECRET_KEY, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
@@ -389,7 +390,7 @@ class Config
      */
     public function getInstallmentOptionsUrl(): string
     {
-        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_INSTALLMENT_CALLBACK, ScopeInterface::SCOPE_WEBSITE);
+        return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_INSTALLMENT_CALLBACK, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
@@ -414,6 +415,14 @@ class Config
     public function isSentryReportEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_SENTRY_REPORT, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCronJobEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_CRONJOB_ENABLE, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**

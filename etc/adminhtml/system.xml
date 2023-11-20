@@ -181,8 +181,32 @@
                     </field>
                 </group>
 
+                <!-- CronJob Settings -->
+                <group id="amwal_payments_cronjob" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="60">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>CronJob Settings</label>
+                    <comment><![CDATA[
+                        This Cron Job plays a crucial role in maintaining order processing efficiency.
+                        It is specifically designed to periodically check and update the status of orders that are currently marked with a 'Pending Payment' status.
+                        By running at regular intervals, this automated process ensures timely updates, reducing manual intervention and helping maintain accurate and up-to-date order status information in the system.
+                    ]]></comment>
+                    <field id="cronjob_enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Cron Job Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/cronjob_enable</config_path>
+                    </field>
+                    <field id="cron_status" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Cron Job Status</label>
+                        <frontend_model>Amwal\Payments\Model\Config\Frontend\CronStatus</frontend_model>
+                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Cron Job Frequency 1 Hour.]]></comment>
+                        <depends>
+                            <field id="cronjob_enable">1</field>
+                        </depends>
+                    </field>
+                </group>
+
                 <!-- Developer Settings -->
-                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="60">
+                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="70">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <label>Developer Settings</label>
                     <field id="debug_mode" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">

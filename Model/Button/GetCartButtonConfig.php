@@ -81,7 +81,7 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, $quote): void
+    public function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, $quote): void
     {
         $shippingAddress = $quote->getShippingAddress();
         $billingAddress = $quote->getBillingAddress();
