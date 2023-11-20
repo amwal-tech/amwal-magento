@@ -4,10 +4,13 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AddressResolver;
+use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\CustomerRepositoryInterface;
@@ -43,6 +46,7 @@ class PayOrder extends AmwalCheckoutAction
     private CustomerManagement $customerManagement;
     private OrderUpdate $orderUpdate;
 
+
     /**
      * @param CartRepositoryInterface $quoteRepository
      * @param CheckoutSession $checkoutSession
@@ -74,6 +78,7 @@ class PayOrder extends AmwalCheckoutAction
         Config $config,
         LoggerInterface $logger,
         OrderUpdate $orderUpdate
+
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
@@ -299,4 +304,42 @@ class PayOrder extends AmwalCheckoutAction
             !$this->customerWithEmailExists($email) &&
             $this->config->shouldCreateCustomer();
     }
+
+    /**
+     * @param OrderInterface $order
+     * @param string $amwalOrderId
+     * @return string
+     */
+    private function setOrderUrl(OrderInterface $order, $amwalOrderId){
+        $amwalClient = $this->amwalClientFactory->create();
+        $orderDetails = [];
+        $orderDetails['order_url'] = $this->getOrderUrl($order);
+        try {
+            $response = $amwalClient->post(
+                'transactions/' . $amwalOrderId . '/set_order_details',
+                [
+                    RequestOptions::JSON => $orderDetails
+                ]
+            );
+        } catch (GuzzleException $e) {
+            $message = sprintf(
+                'Unable to set Order details in Amwal for order with ID "%s". Exception: %s',
+                $amwalOrderId,
+                $e->getMessage()
+            );
+            $this->reportError($amwalOrderId, $message);
+            $this->logger->error($message);
+            return;
+        }
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @return string
+     */
+    private function getOrderUrl(OrderInterface $order): string
+    {
+        return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
+    }
+
 }
