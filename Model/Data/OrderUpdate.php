@@ -81,10 +81,6 @@ class OrderUpdate
                     $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
                 }
             } elseif($status == 'fail') {
-                $failure_reason = $amwalOrderData['failure_reason'];
-                if (!$failure_reason) {
-                    return false;
-                }
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
                 $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
