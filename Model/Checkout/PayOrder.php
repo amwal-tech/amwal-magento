@@ -5,6 +5,7 @@ namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use JsonException;
@@ -25,7 +26,6 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CustomerManagement;
-use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Webapi\Exception as WebapiException;
 
@@ -41,7 +41,7 @@ class PayOrder extends AmwalCheckoutAction
     private CustomerRepositoryInterface $customerRepository;
     private CustomerSession $customerSession;
     private CustomerManagement $customerManagement;
-    private OrderNotifier $orderNotifier;
+    private OrderUpdate $orderUpdate;
 
     /**
      * @param CartRepositoryInterface $quoteRepository
@@ -56,7 +56,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param CustomerManagement $customerManagement
      * @param ErrorReporter $errorReporter
      * @param Config $config
-     * @param OrderNotifier $orderNotifier
+     * @param OrderUpdate $orderUpdate
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -72,8 +72,8 @@ class PayOrder extends AmwalCheckoutAction
         CustomerManagement $customerManagement,
         ErrorReporter $errorReporter,
         Config $config,
-        OrderNotifier $orderNotifier,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderUpdate $orderUpdate
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
@@ -86,7 +86,7 @@ class PayOrder extends AmwalCheckoutAction
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
         $this->customerManagement = $customerManagement;
-        $this->orderNotifier = $orderNotifier;
+        $this->orderUpdate = $orderUpdate;
     }
 
     /**
@@ -143,17 +143,6 @@ class PayOrder extends AmwalCheckoutAction
         $this->addAdditionalPaymentInformation($amwalOrderData, $order);
         $amwalOrderStatus = $amwalOrderData->getStatus();
 
-        if($amwalOrderStatus == 'success') {
-            $order->setState($this->config->getOrderConfirmedStatus());
-            $order->setStatus($this->config->getOrderConfirmedStatus());
-            $order->setSendEmail(true);
-            $this->orderNotifier->notify($order);
-        }elseif($amwalOrderStatus == 'fail') {
-            $order->setState(Order::STATE_CANCELED);
-            $order->setStatus(Order::STATE_CANCELED);
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
-        }
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
             ->setLastSuccessQuoteId($quote->getId());
@@ -162,9 +151,9 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastRealOrderId($order->getIncrementId())
             ->setLastOrderStatus($order->getStatus());
 
-        $this->orderRepository->save($order);
+        $this->orderUpdate->update($order, $amwalOrderStatus, $historyComment);
+
         if($amwalOrderStatus == 'success') {
-            $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
             return true;

@@ -9,6 +9,7 @@ use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Mail\TransportInterfaceFactory;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderNotifier;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -59,7 +60,7 @@ class OrderUpdate
      * @param string $historyComment
      * return bool
      */
-    public function update($order, $status, $historyComment)
+    public function update($order, $status, $historyComment = '')
     {
         if (!$this->isPayValid($order)) {
             return false;
@@ -74,7 +75,10 @@ class OrderUpdate
                 if (!$failure_reason) {
                     return false;
                 }
-                $order->addStatusHistoryComment('Failure Reason: ' . $failure_reason);
+                $order->setState(Order::STATE_CANCELED);
+                $order->setStatus(Order::STATE_CANCELED);
+                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
+                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
             } else {
                 $order->setState($this->config->getOrderConfirmedStatus());
                 $order->setStatus($this->config->getOrderConfirmedStatus());
