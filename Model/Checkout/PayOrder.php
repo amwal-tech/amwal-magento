@@ -27,6 +27,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CustomerManagement;
 use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\Webapi\Exception as WebapiException;
 
 class PayOrder extends AmwalCheckoutAction
 {
@@ -94,7 +95,7 @@ class PayOrder extends AmwalCheckoutAction
      * @return bool
      * @throws LocalizedException
      */
-    public function execute(int $orderId, string $amwalOrderId): bool
+    public function execute(int $orderId, string $amwalOrderId) : bool
     {
         $order = $this->orderRepository->get($orderId);
 
@@ -147,7 +148,7 @@ class PayOrder extends AmwalCheckoutAction
             $order->setStatus($this->config->getOrderConfirmedStatus());
             $order->setSendEmail(true);
             $this->orderNotifier->notify($order);
-        }else{
+        }elseif($amwalOrderStatus == 'fail') {
             $order->setState(Order::STATE_CANCELED);
             $order->setStatus(Order::STATE_CANCELED);
             $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
@@ -162,14 +163,14 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastOrderStatus($order->getStatus());
 
         $this->orderRepository->save($order);
-
         if($amwalOrderStatus == 'success') {
             $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
+            return true;
+        }else{
+            throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
         }
-
-        return true;
     }
 
     /**

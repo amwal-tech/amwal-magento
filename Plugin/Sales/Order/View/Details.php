@@ -53,7 +53,6 @@ class Details
                     'amwal_order_details',
                     [
                         'label' => __('Amwal Order Details'),
-                        'class' => $this->isPayValid($subject->getOrder()->getState(), $amwalOrderStatus) ? '' : 'hidden',
                         'data_attribute' => [
                             'mage-init' => [
                                 'Amwal_Payments/js/order-details' => [
@@ -84,9 +83,6 @@ class Details
         if ($orderState === $defaultOrderStatus) {
             return false;
         }
-        if($amwalOrderStatus !== 'success') {
-            return false;
-        }
-        return $orderState === 'pending_payment';
+        return $orderState === 'pending_payment' || $orderState === 'canceled';
     }
 }
