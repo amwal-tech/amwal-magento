@@ -70,16 +70,7 @@ class OrderUpdate
             $amwalOrderData = $this->getAmwalOrderData->execute($order->getAmwalOrderId());
 
             // Update order status
-            if ($status !== 'success') {
-                $failure_reason = $amwalOrderData['failure_reason'];
-                if (!$failure_reason) {
-                    return false;
-                }
-                $order->setState(Order::STATE_CANCELED);
-                $order->setStatus(Order::STATE_CANCELED);
-                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
-                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
-            } else {
+            if ($status == 'success') {
                 $order->setState($this->config->getOrderConfirmedStatus());
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment($historyComment);
@@ -89,6 +80,15 @@ class OrderUpdate
                     $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
                     $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
                 }
+            } elseif($status == 'fail') {
+                $failure_reason = $amwalOrderData['failure_reason'];
+                if (!$failure_reason) {
+                    return false;
+                }
+                $order->setState(Order::STATE_CANCELED);
+                $order->setStatus(Order::STATE_CANCELED);
+                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
+                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
             }
 
             // Send customer email
