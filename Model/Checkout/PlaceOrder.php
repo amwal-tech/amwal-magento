@@ -112,6 +112,10 @@ class PlaceOrder extends AmwalCheckoutAction
         string $triggerContext,
         bool $hasAmwalAddress
     ): OrderInterface {
+        $order = $this->orderRepository->get('amwal_order_id', $amwalOrderId);
+        if ($order->getEntityId()) {
+            $this->throwException(__('Order already exists, please contact us to complete the order.'));
+        }
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
             $this->logger->error(sprintf('Unable to retrieve Amwal Order Data for cart with ID "%s". Amwal Order id: %s', $cartId, $amwalOrderId));
