@@ -7,10 +7,14 @@ namespace Amwal\Payments\Model\Data;
 use Amwal\Payments\Api\Data\AmwalOrderInterface;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Mail\MessageInterface;
+use Magento\Framework\Mail\TransportInterfaceFactory;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\OrderNotifier;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\Model\Checkout\PayOrder;
 
@@ -23,6 +27,9 @@ class AmwalOrderDetails implements AmwalOrderInterface
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
     private OrderNotifier $orderNotifier;
+    private TransportInterfaceFactory $transportFactory;
+    private MessageInterface $message;
+    private ScopeConfigInterface $scopeConfig;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
@@ -31,7 +38,10 @@ class AmwalOrderDetails implements AmwalOrderInterface
         StoreManagerInterface $storeManager,
         GetAmwalOrderData $getAmwalOrderData,
         Config $config,
-        OrderNotifier $orderNotifier
+        OrderNotifier $orderNotifier,
+        TransportInterfaceFactory $transportFactory,
+        MessageInterface $message,
+        ScopeConfigInterface $scopeConfig
     )
     {
         $this->orderRepository = $orderRepository;
@@ -41,6 +51,9 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->config = $config;
         $this->orderNotifier = $orderNotifier;
+        $this->transportFactory = $transportFactory;
+        $this->message = $message;
+        $this->scopeConfig = $scopeConfig;
     }
 
     public function getOrderDetails($amwalOrderId)
@@ -87,10 +100,10 @@ class AmwalOrderDetails implements AmwalOrderInterface
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment('Order status updated to (' . $status . ') by Amwal Payments webhook.');
                 $order->setTotalPaid($order->getGrandTotal());
-                $order->setSendEmail(true);
-                $this->orderNotifier->notify($order);
-                $order->setIsCustomerNotified(true);
             }
+
+            $this->sendAdminEmail($order);
+            $this->sendCustomerEmail($order);
 
             // Save the updated order
             $this->orderRepository->save($order);
@@ -139,5 +152,35 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $baseUrl = $this->storeManager->getStore()->getBaseUrl();
         $orderUrl = $baseUrl . 'sales/order/view/order_id/' . $order->getId();
         return $orderUrl;
+    }
+
+    public function sendCustomerEmail($order)
+    {
+        if ($this->config->isOrderStatusChangedCustomerEmailEnabled()) {
+            $order->setSendEmail(true);
+            $this->orderNotifier->notify($order);
+            $order->setIsCustomerNotified(true);
+        }
+    }
+
+    public function sendAdminEmail($order)
+    {
+        if ($this->config->isOrderStatusChangedAdminEmailEnabled()) {
+            // Get store email
+            $senderEmail = $this->scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
+            $senderName = $this->scopeConfig->getValue('trans_email/ident_general/name', ScopeInterface::SCOPE_STORE);
+            $mailContent = 'Order (' . $order->getIncrementId() . ') status has been changed to (' . $order->getStatus() . ') by Amwal Payment Cron Job';
+
+            // Set email content and type
+            $this->message->setBody($mailContent);
+            $this->message->setFrom($senderEmail);
+            $this->message->addTo($senderEmail);
+            $this->message->setSubject('Order Status Changed by Amwal Payment Cron Job');
+            $this->message->setMessageType(MessageInterface::TYPE_TEXT);
+
+            // Create transport and send the email
+            $transport = $this->transportFactory->create(['message' => clone $this->message]);
+            $transport->sendMessage();
+        }
     }
 }
