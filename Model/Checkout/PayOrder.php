@@ -161,6 +161,7 @@ class PayOrder extends AmwalCheckoutAction
         if($amwalOrderStatus == 'success') {
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
+            $this->setOrderUrl($order, $amwalOrderId);
             return true;
         }else{
             throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
