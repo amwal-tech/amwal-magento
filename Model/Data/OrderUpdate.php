@@ -75,11 +75,6 @@ class OrderUpdate
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addStatusHistoryComment($historyComment);
                 $order->setTotalPaid($order->getGrandTotal());
-
-                if (!$order->hasInvoices()) {
-                    $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
-                    $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
-                }
             } elseif($status == 'fail') {
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
@@ -94,6 +89,10 @@ class OrderUpdate
             // Save the updated order
             $this->orderRepository->save($order);
 
+            if (!$order->hasInvoices() && $status == 'success') {
+                $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
+                $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+            }
             return true;
         } catch (\Exception $e) {
             return false;
