@@ -100,7 +100,7 @@ class OrderUpdate
                     // Send admin email
                     $this->sendAdminEmail($order);
                 }
-            } elseif($status == 'fail') {
+            } elseif($status == 'fail' && $order->getState() != Order::STATE_CANCELED) {
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
                 $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
