@@ -43,11 +43,13 @@ class CronStatus extends Field
         if ($item && $item->getId()) {
             if($item->getScheduledAt()){
                 $nextRun = new \DateTime($item->getScheduledAt());
-                $nextRunFormatted = $nextRun->modify('+1 Hour')->format('Y-m-d H:i:s');
+                $nextRunFormatted = $nextRun->modify('+1 Hour')->format('Y-m-d H:i:s T');
             }else{
                 $nextRunFormatted = 'Not Scheduled';
             }
-            $status = 'Last Run: ' . $item->getExecutedAt() . ' - Next Run: ' . $nextRunFormatted  . ' - Status: ' . $item->getStatus();
+            $lastRun = new \DateTime($item->getExecutedAt());
+            $lastRunFormatted = $lastRun->format('Y-m-d H:i:s T');
+            $status = 'Last Run: ' . $lastRunFormatted . ' - Next Run: ' . $nextRunFormatted  . ' - Status: ' . $item->getStatus();
             $item->getMessages() ? $status .= ' <br> Messages: ' . $item->getMessages() : '';
         } else {
             $status = 'Cron job has not run yet, please check the crontab in your server';
