@@ -70,10 +70,10 @@ class OrderUpdate
      * @param OrderRepositoryInterface $orderRepository
      * @param getAmwalOrderData $amwalOrderData
      * @param string $historyComment
-     * @param bool $sentAdminEmail
+     * @param bool $sendAdminEmail
      * return bool
      */
-    public function update($order, $amwalOrderData, $historyComment = '', $sentAdminEmail = true)
+    public function update($order, $amwalOrderData, $historyComment = '', $sendAdminEmail = true)
     {
         if ($order->getAmwalOrderId() != $amwalOrderData->getId()) {
             return false;
@@ -101,7 +101,7 @@ class OrderUpdate
             }
             // Send customer email
             $this->sendCustomerEmail($order);
-            if($sentAdminEmail) {
+            if($sendAdminEmail) {
                 // Send admin email
                 $this->sendAdminEmail($order);
             }
