@@ -20,7 +20,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Psr\Log\LoggerInterface;
-use Amwal\Payments\Model\Checkout\AmwalClientFactory;
+use Amwal\Payments\Model\AmwalClientFactory;
 
 class OrderUpdate
 {
