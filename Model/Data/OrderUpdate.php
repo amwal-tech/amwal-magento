@@ -70,9 +70,10 @@ class OrderUpdate
      * @param OrderRepositoryInterface $orderRepository
      * @param getAmwalOrderData $amwalOrderData
      * @param string $historyComment
+     * @param bool $sentAdminEmail
      * return bool
      */
-    public function update($order, $amwalOrderData, $historyComment = '')
+    public function update($order, $amwalOrderData, $historyComment = '', $sentAdminEmail = true)
     {
         if ($order->getAmwalOrderId() != $amwalOrderData->getId()) {
             return false;
@@ -98,11 +99,12 @@ class OrderUpdate
                 $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $status . ') and order has been canceled.');
                 $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
             }
-
             // Send customer email
             $this->sendCustomerEmail($order);
-            // Send admin email
-            $this->sendAdminEmail($order);
+            if($sentAdminEmail) {
+                // Send admin email
+                $this->sendAdminEmail($order);
+            }
             // Save the updated order
             $this->orderRepository->save($order);
 
