@@ -49,7 +49,12 @@ class CronStatus extends Field
             }
             $lastRun = new \DateTime($item->getExecutedAt());
             $lastRunFormatted = $lastRun->format('Y-m-d H:i:s T');
-            $status = 'Last Run: ' . $lastRunFormatted . ' - Next Run: ' . $nextRunFormatted  . ' - Status: ' . $item->getStatus();
+            $status = __(
+                'Last Run: %1 - Next Run:  %2 - Status: %3',
+                $lastRunFormatted,
+                $nextRunFormatted,
+                $item->getStatus()
+            );
             $item->getMessages() ? $status .= ' <br> Messages: ' . $item->getMessages() : '';
         } else {
             $status = 'Cron job has not run yet, please check the crontab in your server';
