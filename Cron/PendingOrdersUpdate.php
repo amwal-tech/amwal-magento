@@ -60,9 +60,13 @@ class PendingOrdersUpdate
             }
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
 
+            if($order->getState() == Order::STATE_CANCELED && $amwalOrderData->getStatus() == 'fail'){
+                continue;
+            }
             if ($amwalOrderData) {
                 $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId());
                 $this->orderUpdate->update($order, $amwalOrderData, $historyComment, true);
+                $this->logger->notice(sprintf('Order %s updated successfully', $amwalOrderId));
             }
         }
         $this->logger->notice('Cron Job Finished');
