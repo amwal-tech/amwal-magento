@@ -70,7 +70,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $order = $this->getOrderByAmwalOrderId($amwalOrderId, $orderId, $refId);
         $historyComment = __('Order status updated to (' . $status . ') by Amwal Payments webhook.');
 
-        $this->orderUpdate->update($order, $status, $historyComment);
+        $this->orderUpdate->update($order, $amwalOrderData, $historyComment);
     }
 
     private function getOrderByAmwalOrderId($amwalOrderId, $orderId = null, $refId = null)

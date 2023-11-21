@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Data;
 
 use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -21,7 +22,7 @@ use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Psr\Log\LoggerInterface;
 use Amwal\Payments\Model\Checkout\AmwalClientFactory;
 
-class OrderUpdate extends AmwalCheckoutAction
+class OrderUpdate
 {
     private OrderRepositoryInterface $orderRepository;
     private StoreManagerInterface $storeManager;
@@ -34,6 +35,7 @@ class OrderUpdate extends AmwalCheckoutAction
     private InvoiceOrder $invoiceAmwalOrder;
     private LoggerInterface $logger;
     private AmwalClientFactory $amwalClientFactory;
+    private SentryExceptionReport $sentryExceptionReportr;
 
     public function __construct(
         OrderRepositoryInterface  $orderRepository,
@@ -46,7 +48,8 @@ class OrderUpdate extends AmwalCheckoutAction
         ScopeConfigInterface      $scopeConfig,
         InvoiceOrder              $invoiceAmwalOrder,
         LoggerInterface           $logger,
-        AmwalClientFactory        $amwalClientFactory
+        AmwalClientFactory        $amwalClientFactory,
+        SentryExceptionReport     $sentryExceptionReportr
     )
     {
         $this->orderRepository = $orderRepository;
@@ -60,22 +63,23 @@ class OrderUpdate extends AmwalCheckoutAction
         $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->logger = $logger;
         $this->amwalClientFactory = $amwalClientFactory;
+        $this->sentryExceptionReport = $sentryExceptionReportr;
     }
 
     /*
      * @param OrderRepositoryInterface $orderRepository
-     * @param string $status
+     * @param getAmwalOrderData $amwalOrderData
      * @param string $historyComment
      * return bool
      */
-    public function update($order, $status, $historyComment = '')
+    public function update($order, $amwalOrderData, $historyComment = '')
     {
         if (!$this->isPayValid($order)) {
             return false;
         }
 
         try {
-            $amwalOrderData = $this->getAmwalOrderData->execute($order->getAmwalOrderId());
+            $status = $amwalOrderData->getStatus();
 
             // Update order status
             if ($status == 'success') {
@@ -103,6 +107,7 @@ class OrderUpdate extends AmwalCheckoutAction
             }
             return $status == 'success';
         } catch (\Exception $e) {
+            $this->sentryExceptionReport->report($e->getMessage());
             return false;
         }
     }
@@ -170,8 +175,8 @@ class OrderUpdate extends AmwalCheckoutAction
                 $amwalOrderId,
                 $e->getMessage()
             );
-            $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
+            $this->sentryExceptionReport->report($e->getMessage());
             return;
         }
     }

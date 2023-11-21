@@ -156,7 +156,7 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastRealOrderId($order->getIncrementId())
             ->setLastOrderStatus($order->getStatus());
 
-        $this->orderUpdate->update($order, $amwalOrderStatus, $historyComment);
+        $this->orderUpdate->update($order, $amwalOrderData, $historyComment);
 
         if($amwalOrderStatus == 'success') {
             $quote->removeAllItems();
