@@ -61,9 +61,7 @@ class PendingOrdersUpdate
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
 
             if ($amwalOrderData) {
-                $status = $amwalOrderData['status'];
                 $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId());
-
                 $this->orderUpdate->update($order, $amwalOrderData, $historyComment);
             }
         }

@@ -74,6 +74,10 @@ class OrderUpdate
      */
     public function update($order, $amwalOrderData, $historyComment = '')
     {
+        if ($order->getAmwalOrderId() != $amwalOrderData->getId()) {
+            return false;
+        }
+
         if (!$this->isPayValid($order)) {
             return false;
         }
