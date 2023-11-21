@@ -10,7 +10,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
-use Amwal\Payments\Model\Checkout\InvoiceOrder;
+use Amwal\Payments\Model\Data\OrderUpdate;
 
 class PendingOrdersUpdate
 {
@@ -19,15 +19,15 @@ class PendingOrdersUpdate
     private LoggerInterface $logger;
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
-    private InvoiceOrder $invoiceAmwalOrder;
+    private OrderUpdate $orderUpdate;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
+        SearchCriteriaBuilder    $searchCriteriaBuilder,
         LoggerInterface          $logger,
         Config                   $config,
         GetAmwalOrderData        $getAmwalOrderData,
-        InvoiceOrder             $invoiceAmwalOrder
+        OrderUpdate              $orderUpdate
     )
     {
         $this->orderRepository = $orderRepository;
@@ -35,7 +35,7 @@ class PendingOrdersUpdate
         $this->logger = $logger;
         $this->config = $config;
         $this->getAmwalOrderData = $getAmwalOrderData;
-        $this->invoiceAmwalOrder = $invoiceAmwalOrder;
+        $this->orderUpdate = $orderUpdate;
     }
 
     /**
@@ -59,18 +59,10 @@ class PendingOrdersUpdate
                 continue;
             }
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
-            if ($amwalOrderData && $amwalOrderData['status'] == 'success') {
-                $order->setState($this->config->getOrderConfirmedStatus());
-                $order->setStatus($this->config->getOrderConfirmedStatus());
-                $order->setTotalPaid($order->getGrandTotal());
-                $order->addCommentToStatusHistory(__('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId()));
-                $this->orderRepository->save($order);
-                $this->logger->notice(sprintf('Order %s has been updated', $orderId));
 
-                if (!$order->hasInvoices()) {
-                    $this->logger->error(sprintf('Order %s does not have an invoice', $orderId));
-                    $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
-                }
+            if ($amwalOrderData) {
+                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId());
+                $this->orderUpdate->update($order, $amwalOrderData, $historyComment, true);
             }
         }
         $this->logger->notice('Cron Job Finished');

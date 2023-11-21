@@ -6,6 +6,7 @@ namespace Amwal\Payments\Model\Checkout;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use GuzzleHttp\Exception\GuzzleException;
@@ -28,8 +29,6 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CustomerManagement;
-use Magento\Sales\Model\OrderNotifier;
-use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Webapi\Exception as WebapiException;
 
@@ -45,9 +44,8 @@ class PayOrder extends AmwalCheckoutAction
     private CustomerRepositoryInterface $customerRepository;
     private CustomerSession $customerSession;
     private CustomerManagement $customerManagement;
-    private OrderNotifier $orderNotifier;
-    private AmwalClientFactory $amwalClientFactory;
-    private StoreManagerInterface $storeManager;
+    private OrderUpdate $orderUpdate;
+
 
     /**
      * @param CartRepositoryInterface $quoteRepository
@@ -62,9 +60,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param CustomerManagement $customerManagement
      * @param ErrorReporter $errorReporter
      * @param Config $config
-     * @param OrderNotifier $orderNotifier
-     * @param AmwalClientFactory $amwalClientFactory
-     * @param StoreManagerInterface $storeManager
+     * @param OrderUpdate $orderUpdate
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -80,10 +76,9 @@ class PayOrder extends AmwalCheckoutAction
         CustomerManagement $customerManagement,
         ErrorReporter $errorReporter,
         Config $config,
-        OrderNotifier $orderNotifier,
-        AmwalClientFactory $amwalClientFactory,
-        StoreManagerInterface $storeManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderUpdate $orderUpdate
+
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
@@ -96,9 +91,7 @@ class PayOrder extends AmwalCheckoutAction
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
         $this->customerManagement = $customerManagement;
-        $this->orderNotifier = $orderNotifier;
-        $this->amwalClientFactory = $amwalClientFactory;
-        $this->storeManager = $storeManager;
+        $this->orderUpdate = $orderUpdate;
     }
 
     /**
@@ -155,17 +148,6 @@ class PayOrder extends AmwalCheckoutAction
         $this->addAdditionalPaymentInformation($amwalOrderData, $order);
         $amwalOrderStatus = $amwalOrderData->getStatus();
 
-        if($amwalOrderStatus == 'success') {
-            $order->setState($this->config->getOrderConfirmedStatus());
-            $order->setStatus($this->config->getOrderConfirmedStatus());
-            $order->setSendEmail(true);
-            $this->orderNotifier->notify($order);
-        }elseif($amwalOrderStatus == 'fail') {
-            $order->setState(Order::STATE_CANCELED);
-            $order->setStatus(Order::STATE_CANCELED);
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
-        }
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
             ->setLastSuccessQuoteId($quote->getId());
@@ -174,10 +156,9 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastRealOrderId($order->getIncrementId())
             ->setLastOrderStatus($order->getStatus());
 
-        $this->orderRepository->save($order);
+        $this->orderUpdate->update($order, $amwalOrderData, '', false);
+
         if($amwalOrderStatus == 'success') {
-            $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
-            $this->setOrderUrl($order, $amwalOrderId);
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
             return true;
@@ -323,42 +304,4 @@ class PayOrder extends AmwalCheckoutAction
             !$this->customerWithEmailExists($email) &&
             $this->config->shouldCreateCustomer();
     }
-
-    /**
-     * @param OrderInterface $order
-     * @param string $amwalOrderId
-     * @return string
-     */
-    private function setOrderUrl(OrderInterface $order, $amwalOrderId){
-        $amwalClient = $this->amwalClientFactory->create();
-        $orderDetails = [];
-        $orderDetails['order_url'] = $this->getOrderUrl($order);
-        try {
-            $response = $amwalClient->post(
-                'transactions/' . $amwalOrderId . '/set_order_details',
-                [
-                    RequestOptions::JSON => $orderDetails
-                ]
-            );
-        } catch (GuzzleException $e) {
-            $message = sprintf(
-                'Unable to set Order details in Amwal for order with ID "%s". Exception: %s',
-                $amwalOrderId,
-                $e->getMessage()
-            );
-            $this->reportError($amwalOrderId, $message);
-            $this->logger->error($message);
-            return;
-        }
-    }
-
-    /**
-     * @param OrderInterface $order
-     * @return string
-     */
-    private function getOrderUrl(OrderInterface $order): string
-    {
-        return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
-    }
-
 }

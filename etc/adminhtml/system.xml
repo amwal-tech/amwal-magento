@@ -138,6 +138,18 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/create_user_on_order</config_path>
                     </field>
+                    <field id="order_status_changed_customer_email" translate="label tooltip" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Send email when order status changed to customer</label>
+                        <tooltip>When set to YES an email will be sent to customer when order status changed.</tooltip>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/order_status_changed_customer_email</config_path>
+                    </field>
+                    <field id="order_status_changed_admin_email" translate="label tooltip" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Send email when order status changed to admin</label>
+                        <tooltip>When set to YES an email will be sent to admin when order status changed.</tooltip>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/order_status_changed_admin_email</config_path>
+                    </field>
                 </group>
 
                 <!--Country specific settings-->

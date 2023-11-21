@@ -53,11 +53,12 @@ class Details
                     'amwal_order_details',
                     [
                         'label' => __('Amwal Order Details'),
+                        'class' => $this->isPayValid($subject->getOrder()->getState(), $amwalOrderStatus) ? '' : 'hidden',
                         'data_attribute' => [
                             'mage-init' => [
                                 'Amwal_Payments/js/order-details' => [
                                     'buttonId' => 'amwal_order_details',
-                                    'order_id' => $subject->getOrder()->getId(),
+                                    'order_id' => $subject->getOrder()->getIncrementId(),
                                     'amwal_order_id' => $amwalOrderId,
                                     'order_details' => $responseBody
                                 ]
