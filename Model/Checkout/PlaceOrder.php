@@ -28,6 +28,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class PlaceOrder extends AmwalCheckoutAction
 {
@@ -43,6 +44,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private GetAmwalOrderData $getAmwalOrderData;
     private SentryExceptionReport $sentryExceptionReport;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     /**
      * @param QuoteManagement $quoteManagement
@@ -58,6 +60,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param GetAmwalOrderData $getAmwalOrderData
      * @param ErrorReporter $errorReporter
      * @param SentryExceptionReport $sentryExceptionReport
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Config $config
      * @param LoggerInterface $logger
      */
@@ -76,7 +79,8 @@ class PlaceOrder extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         SentryExceptionReport $sentryExceptionReport,
         Config $config,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
@@ -91,6 +95,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->sentryExceptionReport = $sentryExceptionReport;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -230,7 +235,10 @@ class PlaceOrder extends AmwalCheckoutAction
     public function createOrder(Quote $quote, string $amwalOrderId, string $refId): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
-        $order = $this->quoteManagement->submit($quote);
+        $order = $this->getOrderByAmwalOrderId($amwalOrderId);
+        if (!$order->getEntityId()) {
+            $order = $this->quoteManagement->submit($quote);
+        }
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
         if (!$order) {
@@ -321,5 +329,16 @@ class PlaceOrder extends AmwalCheckoutAction
         }
 
         $this->quoteRepository->save($quote);
+    }
+
+    private function getOrderByAmwalOrderId($amwalOrderId)
+    {
+        // Build a search criteria to filter orders by custom attribute
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId, 'eq');
+        $searchCriteria = $searchCriteria->create();
+
+        // Search for order with the provided custom attribute value and get the order data
+        $order = $this->orderRepository->getList($searchCriteria)->getFirstItem();
+        return $order;
     }
 }
