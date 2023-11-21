@@ -71,8 +71,8 @@ class PendingOrdersUpdate
 
     protected function getPendingOrders(): array
     {
-        $fromTime = date('Y-m-d h:i', strtotime('-4 hour'));
-        $toTime = date('Y-m-d h:i', strtotime('-1 hour'));
+        $fromTime = date('Y-m-d H:i:s', strtotime('-4 hour'));
+        $toTime = date('Y-m-d H:i:s', strtotime('-1 hour'));
         $this->logger->notice(sprintf('Searching for orders created between %s and %s', $fromTime, $toTime));
 
         $searchCriteria = $this->searchCriteriaBuilder
