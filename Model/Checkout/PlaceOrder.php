@@ -239,7 +239,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
         if ($order->getEntityId()) {
-            if ($order->getState() != Order::STATE_PROCESSING) {
+            if ($order->getState() == Order::STATE_PENDING_PAYMENT) {
                 $this->orderRepository->delete($order);
                 $order = $this->quoteManagement->submit($quote);
             }
