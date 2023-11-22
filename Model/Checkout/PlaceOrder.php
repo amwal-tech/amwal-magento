@@ -222,6 +222,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->setAmwalOrderDetails->execute($order, $amwalOrderId, $triggerContext);
 
         $quote->setIsActive(true)->save();
+
         return $order;
     }
 
@@ -235,7 +236,7 @@ class PlaceOrder extends AmwalCheckoutAction
     public function createOrder(Quote $quote, string $amwalOrderId, string $refId): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
-        $order = $this->getOrderByAmwalOrderId($amwalOrderId);
+        $order = $this->getOrderByAmwalOrderId($amwalOrderId, $quote);
         if (!$order->getEntityId()) {
             $order = $this->quoteManagement->submit($quote);
         }
@@ -262,7 +263,6 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalOrderId($amwalOrderId);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
-
         return $order;
     }
 
@@ -331,7 +331,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->quoteRepository->save($quote);
     }
 
-    private function getOrderByAmwalOrderId($amwalOrderId)
+    private function getOrderByAmwalOrderId($amwalOrderId, $quote)
     {
         // Build a search criteria to filter orders by custom attribute
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId, 'eq');
@@ -339,6 +339,11 @@ class PlaceOrder extends AmwalCheckoutAction
 
         // Search for order with the provided custom attribute value and get the order data
         $order = $this->orderRepository->getList($searchCriteria)->getFirstItem();
+
+        if ($order->getEntityId()) {
+            $this->orderRepository->delete($order);
+            $order = $this->quoteManagement->submit($quote);
+        }
         return $order;
     }
 }
