@@ -93,17 +93,18 @@ class OrderUpdate
                 $order->addStatusHistoryComment($historyComment);
                 $order->setTotalPaid($order->getGrandTotal());
                 $this->setOrderUrl($order, $order->getAmwalOrderId());
-            } elseif($status == 'fail') {
+                // Send customer email
+                $this->sendCustomerEmail($order);
+
+                if($sendAdminEmail) {
+                    // Send admin email
+                    $this->sendAdminEmail($order);
+                }
+            } elseif($status == 'fail' && $order->getState() != Order::STATE_CANCELED) {
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
-                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $status . ') and order has been canceled.');
-                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
-            }
-            // Send customer email
-            $this->sendCustomerEmail($order);
-            if($sendAdminEmail) {
-                // Send admin email
-                $this->sendAdminEmail($order);
+                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
+                $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
             }
             // Save the updated order
             $this->orderRepository->save($order);
