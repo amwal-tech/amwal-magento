@@ -222,6 +222,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->setAmwalOrderDetails->execute($order, $amwalOrderId, $triggerContext);
 
         $quote->setIsActive(true)->save();
+
         return $order;
     }
 
@@ -236,9 +237,16 @@ class PlaceOrder extends AmwalCheckoutAction
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
-        if (!$order->getEntityId()) {
+
+        if ($order->getEntityId()) {
+            if ($order->getState() == Order::STATE_PENDING_PAYMENT) {
+                $this->orderRepository->delete($order);
+                $order = $this->quoteManagement->submit($quote);
+            }
+        }else{
             $order = $this->quoteManagement->submit($quote);
         }
+
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
         if (!$order) {
@@ -262,7 +270,6 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalOrderId($amwalOrderId);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
-
         return $order;
     }
 
