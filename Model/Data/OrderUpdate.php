@@ -207,8 +207,7 @@ class OrderUpdate
     {
         // Define an associative array mapping Amwal order fields to their corresponding getter methods.
         // This array is used for comparing Order object values with Amwal order data.
-        $fields = ['AmwalOrderId' => 'getId', 'RefId' => 'getRefId', 'Amount' => 'getAmount'];
-
+        $fields = ['AmwalOrderId' => 'getId', 'RefId' => 'getRefId', 'BaseGrandTotal' => 'getAmount'];
         try {
             foreach ($fields as $orderMethod => $amwalMethod) {
                 $orderValue = call_user_func([$order, 'get' . $orderMethod]);
