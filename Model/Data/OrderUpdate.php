@@ -21,6 +21,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Psr\Log\LoggerInterface;
 use Amwal\Payments\Model\AmwalClientFactory;
+use Magento\Framework\DataObject;
 
 class OrderUpdate
 {
@@ -36,6 +37,11 @@ class OrderUpdate
     private LoggerInterface $logger;
     private AmwalClientFactory $amwalClientFactory;
     private SentryExceptionReport $sentryExceptionReportr;
+
+    const FIELD_MAPPINGS = [
+        'amwal_order_id' => 'id',
+        'ref_id' => 'ref_id',
+    ];
 
     public function __construct(
         OrderRepositoryInterface  $orderRepository,
@@ -201,20 +207,23 @@ class OrderUpdate
      * Validates the order data.
      *
      * @param Order $order
+     * @param DataObject $amwalOrderData
      * @return bool|string True if validation passes, otherwise returns error message.
      */
-    private function dataValidation(Order $order, $amwalOrderData)
+    private function dataValidation(Order $order, DataObject $amwalOrderData)
     {
         // Define an associative array mapping Amwal order fields to their corresponding getter methods.
         // This array is used for comparing Order object values with Amwal order data.
-        $fields = ['AmwalOrderId' => 'getId', 'RefId' => 'getRefId', 'BaseGrandTotal' => 'getAmount'];
+        $fields = self::FIELD_MAPPINGS;
         try {
+            if (floatval($order->getBaseGrandTotal()) != floatval($amwalOrderData->getAmount())) {
+                throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'amount', $order->getBaseGrandTotal(), $amwalOrderData->getAmount()));
+            }
             foreach ($fields as $orderMethod => $amwalMethod) {
-                $orderValue = call_user_func([$order, 'get' . $orderMethod]);
-                $amwalValue = call_user_func([$amwalOrderData, $amwalMethod]);
-
+                $orderValue = $order->getData($orderMethod);
+                $amwalValue = $amwalOrderData->getData($amwalMethod);
                 if ($orderValue != $amwalValue) {
-                    throw new \Exception(sprintf('Order %s does not match Amwal Order %s (%s != %s)', $orderMethod, $amwalMethod, $orderValue, $amwalValue));
+                    throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
                 }
             }
             return true;
