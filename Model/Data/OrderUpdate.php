@@ -75,10 +75,9 @@ class OrderUpdate
      */
     public function update($order, $amwalOrderData, $historyComment = '', $sendAdminEmail = true)
     {
-        if ($order->getAmwalOrderId() != $amwalOrderData->getId()) {
+        if (!$this->dataValidation($order, $amwalOrderData)) {
             return false;
         }
-
         if (!$this->isPayValid($order)) {
             return false;
         }
@@ -165,7 +164,8 @@ class OrderUpdate
      * @param string $amwalOrderId
      * @return string
      */
-    private function setOrderUrl(OrderInterface $order, $amwalOrderId){
+    private function setOrderUrl(OrderInterface $order, $amwalOrderId)
+    {
         $amwalClient = $this->amwalClientFactory->create();
         $orderDetails = [];
         $orderDetails['order_url'] = $this->getOrderUrl($order);
@@ -195,5 +195,33 @@ class OrderUpdate
     private function getOrderUrl(OrderInterface $order): string
     {
         return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
+    }
+
+    /**
+     * Validates the order data.
+     *
+     * @param Order $order
+     * @return bool|string True if validation passes, otherwise returns error message.
+     */
+    private function dataValidation(Order $order, $amwalOrderData)
+    {
+        // Define an associative array mapping Amwal order fields to their corresponding getter methods.
+        // This array is used for comparing Order object values with Amwal order data.
+        $fields = ['AmwalOrderId' => 'getId', 'RefId' => 'getRefId', 'Amount' => 'getAmount'];
+
+        try {
+            foreach ($fields as $orderMethod => $amwalMethod) {
+                $orderValue = call_user_func([$order, 'get' . $orderMethod]);
+                $amwalValue = call_user_func([$amwalOrderData, $amwalMethod]);
+
+                if ($orderValue != $amwalValue) {
+                    throw new \Exception(sprintf('Order %s does not match Amwal Order %s (%s != %s)', $orderMethod, $amwalMethod, $orderValue, $amwalValue));
+                }
+            }
+            return true;
+        } catch (\Exception $e) {
+            $this->sentryExceptionReport->report($e);
+            return false;
+        }
     }
 }
