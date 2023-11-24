@@ -36,7 +36,6 @@ class PayOrder extends AmwalCheckoutAction
 {
     private CartRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
-    private InvoiceOrder $invoiceAmwalOrder;
     private GetAmwalOrderData $getAmwalOrderData;
     private OrderRepositoryInterface $orderRepository;
     private ManagerInterface $messageManager;
@@ -50,7 +49,6 @@ class PayOrder extends AmwalCheckoutAction
     /**
      * @param CartRepositoryInterface $quoteRepository
      * @param CheckoutSession $checkoutSession
-     * @param InvoiceOrder $invoiceAmwalOrder
      * @param GetAmwalOrderData $getAmwalOrderData
      * @param OrderRepositoryInterface $orderRepository
      * @param ManagerInterface $messageManager
@@ -66,7 +64,6 @@ class PayOrder extends AmwalCheckoutAction
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         CheckoutSession $checkoutSession,
-        InvoiceOrder $invoiceAmwalOrder,
         GetAmwalOrderData $getAmwalOrderData,
         OrderRepositoryInterface $orderRepository,
         ManagerInterface $messageManager,
@@ -83,7 +80,6 @@ class PayOrder extends AmwalCheckoutAction
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
         $this->checkoutSession = $checkoutSession;
-        $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->orderRepository = $orderRepository;
         $this->messageManager = $messageManager;
@@ -158,13 +154,13 @@ class PayOrder extends AmwalCheckoutAction
 
         $this->orderUpdate->update($order, $amwalOrderData, '', false);
 
-        if($amwalOrderStatus == 'success') {
+        if ($amwalOrderStatus == 'success') {
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
             return true;
-        }else{
-            throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
         }
+
+        throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
     }
 
     /**

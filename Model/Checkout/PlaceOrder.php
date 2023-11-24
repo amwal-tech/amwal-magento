@@ -238,13 +238,14 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
-        if ($order->getEntityId()) {
-            if ($order->getState() == Order::STATE_PENDING_PAYMENT) {
-                $this->orderRepository->delete($order);
-                $order = $this->quoteManagement->submit($quote);
-            }
-        }else{
+        if ($order === null) {
+            $this->logDebug('No existing order found. Submitting quote.');
             $order = $this->quoteManagement->submit($quote);
+        } else if (!$order->canEdit()) {
+            $this->logDebug('Existing order found, but it can not be edited. Canceling existing order and submitting quote.');
+            $order->cancel();
+        } else {
+            $this->logDebug('Existing order found. Re-using order without submitting quote.');
         }
 
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
@@ -270,6 +271,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalOrderId($amwalOrderId);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
+
         return $order;
     }
 
@@ -338,14 +340,18 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->quoteRepository->save($quote);
     }
 
-    private function getOrderByAmwalOrderId($amwalOrderId)
+    /**
+     * @param $amwalOrderId
+     * @return OrderInterface|null
+     */
+    private function getOrderByAmwalOrderId($amwalOrderId): ?OrderInterface
     {
         // Build a search criteria to filter orders by custom attribute
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId, 'eq');
         $searchCriteria = $searchCriteria->create();
 
         // Search for order with the provided custom attribute value and get the order data
-        $order = $this->orderRepository->getList($searchCriteria)->getFirstItem();
-        return $order;
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+        return $orders ? reset($orders) : null;
     }
 }
