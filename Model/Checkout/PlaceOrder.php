@@ -238,15 +238,16 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
-        if ($order === null) {
-            $this->logDebug('No existing order found. Submitting quote.');
-            $order = $this->quoteManagement->submit($quote);
-        } else if (!$order->canEdit()) {
-            $this->logDebug('Existing order found, but it can not be edited. Canceling existing order and submitting quote.');
+        if ($order) {
+            $this->logDebug(
+                sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
+            );
             $order->cancel();
-        } else {
-            $this->logDebug('Existing order found. Re-using order without submitting quote.');
+            $order->setAmwalOrderId($amwalOrderId . '-canceled');
+            $this->orderRepository->save($order);
         }
+
+        $order = $this->quoteManagement->submit($quote);
 
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
