@@ -166,7 +166,7 @@ class AddressResolver
      * @return AddressInterface
      * @throws LocalizedException
      */
-    private function createAddress(DataObject $amwalOrderData): AddressInterface
+    public function createAddress(DataObject $amwalOrderData): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
@@ -212,7 +212,7 @@ class AddressResolver
      * @param AmwalAddressInterface $amwalAddress
      * @return bool
      */
-    private function isAddressMatched(AddressInterface $customerAddress, AmwalAddressInterface $amwalAddress): bool
+    public function isAddressMatched(AddressInterface $customerAddress, AmwalAddressInterface $amwalAddress): bool
     {
         if ($customerAddress->getCountryId() !== $amwalAddress->getCountry()) {
             return false;
@@ -350,7 +350,7 @@ class AddressResolver
      * @return void
      * @throws LocalizedException
      */
-    private function updateTmpAddressData(AddressInterface $customerAddress, DataObject $amwalOrderData): void
+    public function updateTmpAddressData(AddressInterface $customerAddress, DataObject $amwalOrderData): void
     {
         $customerAddress->setFirstname($amwalOrderData->getClientFirstName());
         $customerAddress->setLastname($amwalOrderData->getClientLastName());
@@ -411,7 +411,7 @@ class AddressResolver
      * @param DataObject $amwalOrderData
      * @return string
      */
-    private function getFirstName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): string
+    public function getFirstName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): string
     {
         if ($amwalAddress->getFirstName()) {
             return $amwalAddress->getFirstName();
@@ -428,7 +428,7 @@ class AddressResolver
      * @param DataObject $amwalOrderData
      * @return string
      */
-    private function getLastName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): ?string
+    public function getLastName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): ?string
     {
         if ($amwalAddress->getLastName()) {
             return $amwalAddress->getLastName();
