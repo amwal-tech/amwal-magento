@@ -52,8 +52,14 @@ class PendingOrdersUpdate
         $orders = $this->getPendingOrders();
         foreach ($orders as $order) {
             $amwalOrderId = $order->getAmwalOrderId();
-            $amwalOrderId = str_replace('-canceled', '', $amwalOrderId);
             $orderId = $order->getEntityId();
+
+            if (strpos($amwalOrderId, '-canceled') !== false) {
+                $this->logger->notice(
+                    sprintf('Skipping Order %s as it was canceled because the payment was retried.', $orderId)
+                );
+                continue;
+            }
 
             if (!$amwalOrderId) {
                 $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $orderId));
