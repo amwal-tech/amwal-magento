@@ -238,7 +238,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
-        if ($order) {
+        if ($order && $order->getState() !== Order::STATE_PROCESSING) {
             $this->logDebug(
                 sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
             );
