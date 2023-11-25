@@ -52,17 +52,20 @@ class PendingOrdersUpdate
         $orders = $this->getPendingOrders();
         foreach ($orders as $order) {
             $amwalOrderId = $order->getAmwalOrderId();
+            $amwalOrderId = str_replace('-canceled', '', $amwalOrderId);
             $orderId = $order->getEntityId();
 
             if (!$amwalOrderId) {
                 $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $orderId));
                 continue;
             }
+
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
 
-            if($order->getState() == Order::STATE_CANCELED && $amwalOrderData->getStatus() == 'fail'){
+            if ($order->getState() === Order::STATE_CANCELED && $amwalOrderData->getStatus() === 'fail') {
                 continue;
             }
+
             if ($amwalOrderData) {
                 $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId());
                 $this->orderUpdate->update($order, $amwalOrderData, $historyComment, true);
@@ -83,11 +86,13 @@ class PendingOrdersUpdate
             ->addFilter('created_at', $fromTime, 'gt')
             ->addFilter('created_at', $toTime, 'lt')
             ->addFilter('status', [Order::STATE_PENDING_PAYMENT, Order::STATE_CANCELED], 'in')
+            ->addFilter('amwal_order_id', true, 'notnull')
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
 
         $this->logger->notice(sprintf('Found %s orders', count($orders)));
+
         return $orders;
     }
 }
