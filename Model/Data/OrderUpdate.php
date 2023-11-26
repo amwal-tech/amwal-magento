@@ -89,10 +89,20 @@ class OrderUpdate
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
 
         if ($amwalOrderId != $amwalOrderData->getId()) {
+            $this->logger->error(
+                sprintf(
+                    'Amwal Order ID %s does not match the Amwal Order ID %s returned by the API',
+                    $amwalOrderId,
+                    $amwalOrderData->getId()
+                )
+            );
             return false;
         }
 
         if (!$this->isPayValid($order)) {
+            $this->logger->notice(
+                sprintf('Skipping Order %s as it is not in a valid state to be updated', $amwalOrderId)
+            );
             return false;
         }
 
@@ -104,8 +114,9 @@ class OrderUpdate
                 $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
             } elseif($trigger == 'PayOrder') {
                 $historyComment = __('Successfully completed Amwal payment with transaction ID: %1', $amwalOrderId);
+            } else {
+                $historyComment = __('Order status updated to (%1) by Amwal Payments', $status);
             }
-
             // Update order status
             if ($status == 'success') {
                 $order->setState($this->config->getOrderConfirmedStatus());
