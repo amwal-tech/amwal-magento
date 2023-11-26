@@ -74,7 +74,19 @@ class OrderUpdate
      */
     public function update($order, $trigger, $sendAdminEmail = true)
     {
-        $amwalOrderData = $this->getAmwalOrderData->execute($order->getAmwalOrderId());
+        $amwalOrderId = $order->getAmwalOrderId();
+        if (!$amwalOrderId) {
+            $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $amwalOrderId));
+            return false;
+        }
+        if (strpos($amwalOrderId, '-canceled') !== false) {
+            $this->logger->notice(
+                sprintf('Skipping Order %s as it was canceled because the payment was retried.', $amwalOrderId)
+            );
+            return false;
+        }
+
+        $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
 
         if ($order->getAmwalOrderId() != $amwalOrderData->getId()) {
             return false;

@@ -48,21 +48,7 @@ class PendingOrdersUpdate
         $this->logger->notice('Starting Cron Job');
         $orders = $this->getPendingOrders();
         foreach ($orders as $order) {
-            $amwalOrderId = $order->getAmwalOrderId();
-            $orderId = $order->getEntityId();
-
-            if (strpos($amwalOrderId, '-canceled') !== false) {
-                $this->logger->notice(
-                    sprintf('Skipping Order %s as it was canceled because the payment was retried.', $orderId)
-                );
-                continue;
-            }
-
-            if (!$amwalOrderId) {
-                $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $orderId));
-                continue;
-            }
-            $amwalOrderData = $this->orderUpdate->update($order, 'PendingOrdersUpdate', true);
+            $this->orderUpdate->update($order, 'PendingOrdersUpdate', true);
         }
         $this->logger->notice('Cron Job Finished');
         return $this;

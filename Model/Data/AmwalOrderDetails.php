@@ -67,7 +67,6 @@ class AmwalOrderDetails implements AmwalOrderInterface
         if (!$amwalOrderData) {
             return false;
         }
-
     }
 
     private function getOrderByAmwalOrderId($amwalOrderId, $orderId = null, $refId = null)
