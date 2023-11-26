@@ -238,14 +238,19 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
-        if ($order->getEntityId()) {
-            if ($order->getState() == Order::STATE_PENDING_PAYMENT) {
-                $this->orderRepository->delete($order);
-                $order = $this->quoteManagement->submit($quote);
+        if ($order) {
+            if( $order->getState() !== Order::STATE_PENDING_PAYMENT) {
+                throw new RuntimeException('Found an existing order with same transacation Id with non pending payment state');
             }
-        }else{
-            $order = $this->quoteManagement->submit($quote);
+            $this->logDebug(
+                sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
+            );
+            $order->cancel();
+            $order->setAmwalOrderId($amwalOrderId . '-canceled');
+            $this->orderRepository->save($order);
         }
+
+        $order = $this->quoteManagement->submit($quote);
 
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
@@ -270,6 +275,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalOrderId($amwalOrderId);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
+
         return $order;
     }
 
@@ -338,14 +344,18 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->quoteRepository->save($quote);
     }
 
-    private function getOrderByAmwalOrderId($amwalOrderId)
+    /**
+     * @param $amwalOrderId
+     * @return OrderInterface|null
+     */
+    private function getOrderByAmwalOrderId($amwalOrderId): ?OrderInterface
     {
         // Build a search criteria to filter orders by custom attribute
-        $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId, 'eq');
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId);
         $searchCriteria = $searchCriteria->create();
 
         // Search for order with the provided custom attribute value and get the order data
-        $order = $this->orderRepository->getList($searchCriteria)->getFirstItem();
-        return $order;
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+        return $orders ? reset($orders) : null;
     }
 }

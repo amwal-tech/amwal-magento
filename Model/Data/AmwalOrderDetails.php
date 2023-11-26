@@ -61,16 +61,13 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $orderId = $requestBody['order_id'];
         $refId = $requestBody['ref_id'];
 
-        $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
+        $order = $this->getOrderByAmwalOrderId($amwalOrderId, $orderId, $refId);
+        $amwalOrderData = $this->orderUpdate->update($order, 'AmwalOrderDetails', true);
+
         if (!$amwalOrderData) {
             return false;
         }
-        $status = $amwalOrderData['status'];
-
-        $order = $this->getOrderByAmwalOrderId($amwalOrderId, $orderId, $refId);
-        $historyComment = __('Order status updated to (' . $status . ') by Amwal Payments webhook.');
-
-        $this->orderUpdate->update($order, $amwalOrderData, $historyComment, true);
+        return true;
     }
 
     private function getOrderByAmwalOrderId($amwalOrderId, $orderId = null, $refId = null)
