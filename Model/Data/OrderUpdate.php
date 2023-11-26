@@ -167,19 +167,24 @@ class OrderUpdate
         }
     }
 
-    private function sendAdminEmail($order)
+    /**
+     * @param OrderInterface $order
+     * @param string $subject
+     * @param string $message
+     */
+    private function sendAdminEmail($order, $subject = 'Order Status Changed by Amwal Payment', $message = null)
     {
         if ($this->config->isOrderStatusChangedAdminEmailEnabled()) {
             // Get store email
             $senderEmail = $this->scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
             $senderName = $this->scopeConfig->getValue('trans_email/ident_general/name', ScopeInterface::SCOPE_STORE);
-            $mailContent = 'Order (' . $order->getIncrementId() . ') status has been changed to (' . $order->getStatus() . ') by Amwal Payment';
+            $mailContent = __('Order (%1) status has been changed to (%2) by Amwal Payment', $order->getIncrementId(), $order->getStatus());
 
             // Set email content and type
-            $this->message->setBody($mailContent);
+            $this->message->setBody($message ?? $mailContent);
             $this->message->setFrom($senderEmail);
             $this->message->addTo($senderEmail);
-            $this->message->setSubject('Order Status Changed by Amwal Payment');
+            $this->message->setSubject($subject);
             $this->message->setMessageType(MessageInterface::TYPE_TEXT);
 
             // Create transport and send the email
@@ -236,18 +241,19 @@ class OrderUpdate
     private function dataValidation(Order $order, DataObject $amwalOrderData)
     {
         try {
-            if (floatval($order->getBaseGrandTotal()) != floatval($amwalOrderData->getAmount())) {
+            if (floatval($order->getBaseGrandTotal()) != floatval($amwalOrderData->getTotalAmount())) {
                 $this->logger->error(
                     sprintf(
                         'Order (%s) %s does not match Amwal Order %s (%s != %s)',
                         $order->getIncrementId(),
                         'base_grand_total',
-                        'amount',
+                        'total_amount',
                         $order->getBaseGrandTotal(),
-                        $amwalOrderData->getAmount()
+                        $amwalOrderData->getTotalAmount()
                     )
                 );
-                throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'amount', $order->getBaseGrandTotal(), $amwalOrderData->getAmount()));
+                $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'base_grand_total', 'total_amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount()));
+                throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount()));
             }
             foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
                 $orderValue = $order->getData($orderMethod);
@@ -263,6 +269,7 @@ class OrderUpdate
                             $amwalValue
                         )
                     );
+                    $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
                     throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
                 }
             }
@@ -271,5 +278,18 @@ class OrderUpdate
             $this->sentryExceptionReport->report($e);
             return false;
         }
+    }
+
+    /*
+     * @param string $orderId
+     * @param string $orderMethod
+     * @param string $amwalMethod
+     * @param string $orderValue
+     * @param string $amwalValue
+     * return string
+     */
+    private function dataValidationMessage($orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue)
+    {
+        return 'Order (%s) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%s) %s does not match Amwal Order %s (%s != %s)', $orderId, $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue;
     }
 }
