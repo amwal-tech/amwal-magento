@@ -238,7 +238,10 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
-        if ($order && $order->getState() !== Order::STATE_PROCESSING) {
+        if ($order) {
+            if( $order->getState() !== Order::STATE_PENDING_PAYMENT) {
+                throw new RuntimeException('Found an existing order with same transacation Id with non pending payment state');
+            }
             $this->logDebug(
                 sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
             );
