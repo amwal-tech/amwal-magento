@@ -88,7 +88,7 @@ class OrderUpdate
 
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
 
-        if ($order->getAmwalOrderId() != $amwalOrderData->getId()) {
+        if ($amwalOrderId != $amwalOrderData->getId()) {
             return false;
         }
 
@@ -99,11 +99,11 @@ class OrderUpdate
         try {
             $status = $amwalOrderData->getStatus();
             if($trigger == 'PendingOrdersUpdate') {
-                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId());
+                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderId);
             } elseif($trigger == 'AmwalOrderDetails') {
                 $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
             } elseif($trigger == 'PayOrder') {
-                $historyComment = __('Successfully completed Amwal payment with transaction ID: %1', $amwalOrderData->getId());
+                $historyComment = __('Successfully completed Amwal payment with transaction ID: %1', $amwalOrderId);
             }
 
             // Update order status
