@@ -56,12 +56,10 @@ class PendingOrdersUpdate
 
     protected function getPendingOrders(): array
     {
-        $fromTime = date('Y-m-d H:i:s', strtotime('-4 hour'));
         $toTime = date('Y-m-d H:i:s', strtotime('-1 hour'));
-        $this->logger->notice(sprintf('Searching for orders created between %s and %s', $fromTime, $toTime));
+        $this->logger->notice(sprintf('Searching for orders created before %s', $toTime));
 
         $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('created_at', $fromTime, 'gt')
             ->addFilter('created_at', $toTime, 'lt')
             ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->addFilter('amwal_order_id', true, 'notnull')
