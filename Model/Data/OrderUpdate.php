@@ -21,6 +21,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Psr\Log\LoggerInterface;
 use Amwal\Payments\Model\AmwalClientFactory;
+use Magento\Framework\DataObject;
 
 class OrderUpdate
 {
@@ -36,6 +37,11 @@ class OrderUpdate
     private LoggerInterface $logger;
     private AmwalClientFactory $amwalClientFactory;
     private SentryExceptionReport $sentryExceptionReportr;
+
+    const FIELD_MAPPINGS = [
+        'amwal_order_id' => 'id',
+        'ref_id' => 'ref_id',
+    ];
 
     public function __construct(
         OrderRepositoryInterface  $orderRepository,
@@ -85,20 +91,10 @@ class OrderUpdate
             );
             return false;
         }
-
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
-
-        if ($amwalOrderId != $amwalOrderData->getId()) {
-            $this->logger->error(
-                sprintf(
-                    'Amwal Order ID %s does not match the Amwal Order ID %s returned by the API',
-                    $amwalOrderId,
-                    $amwalOrderData->getId()
-                )
-            );
+        if (!$this->dataValidation($order, $amwalOrderData)) {
             return false;
         }
-
         if (!$this->isPayValid($order)) {
             $this->logger->notice(
                 sprintf('Skipping Order %s as it is not in a valid state to be updated', $amwalOrderId)
@@ -197,7 +193,8 @@ class OrderUpdate
      * @param string $amwalOrderId
      * @return string
      */
-    private function setOrderUrl(OrderInterface $order, $amwalOrderId){
+    private function setOrderUrl(OrderInterface $order, $amwalOrderId)
+    {
         $amwalClient = $this->amwalClientFactory->create();
         $orderDetails = [];
         $orderDetails['order_url'] = $this->getOrderUrl($order);
@@ -227,5 +224,52 @@ class OrderUpdate
     private function getOrderUrl(OrderInterface $order): string
     {
         return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
+    }
+
+    /**
+     * Validates the order data.
+     *
+     * @param Order $order
+     * @param DataObject $amwalOrderData
+     * @return bool|string True if validation passes, otherwise returns error message.
+     */
+    private function dataValidation(Order $order, DataObject $amwalOrderData)
+    {
+        try {
+            if (floatval($order->getBaseGrandTotal()) != floatval($amwalOrderData->getAmount())) {
+                $this->logger->error(
+                    sprintf(
+                        'Order (%s) %s does not match Amwal Order %s (%s != %s)',
+                        $order->getIncrementId(),
+                        'base_grand_total',
+                        'amount',
+                        $order->getBaseGrandTotal(),
+                        $amwalOrderData->getAmount()
+                    )
+                );
+                throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'amount', $order->getBaseGrandTotal(), $amwalOrderData->getAmount()));
+            }
+            foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
+                $orderValue = $order->getData($orderMethod);
+                $amwalValue = $amwalOrderData->getData($amwalMethod);
+                if ($orderValue != $amwalValue) {
+                    $this->logger->error(
+                        sprintf(
+                            'Order (%s) %s does not match Amwal Order %s (%s != %s)',
+                            $order->getIncrementId(),
+                            $orderMethod,
+                            $amwalMethod,
+                            $orderValue,
+                            $amwalValue
+                        )
+                    );
+                    throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
+                }
+            }
+            return true;
+        } catch (\Exception $e) {
+            $this->sentryExceptionReport->report($e);
+            return false;
+        }
     }
 }
