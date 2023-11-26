@@ -252,7 +252,7 @@ class OrderUpdate
                         $amwalOrderData->getTotalAmount()
                     )
                 );
-                $this->sendAdminEmail($order, 'Order (%s) Attention', 'Order (%s) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'total_amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount());
+                $this->sendAdminEmail($order, 'Order (%s) Attention', $this->dataValidationMessage($order->getIncrementId(), 'base_grand_total', 'total_amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount()));
                 throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount()));
             }
             foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
@@ -269,7 +269,7 @@ class OrderUpdate
                             $amwalValue
                         )
                     );
-                    $this->sendAdminEmail($order, 'Order (%s) Attention', 'Order (%s) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue);
+                    $this->sendAdminEmail($order, 'Order (%s) Attention', $this->dataValidationMessage($order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
                     throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
                 }
             }
@@ -278,5 +278,10 @@ class OrderUpdate
             $this->sentryExceptionReport->report($e);
             return false;
         }
+    }
+
+    private function dataValidationMessage($orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue)
+    {
+        return 'Order (%s) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%s) %s does not match Amwal Order %s (%s != %s)', $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue;
     }
 }
