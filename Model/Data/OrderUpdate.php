@@ -133,7 +133,7 @@ class OrderUpdate
             if (!$order->hasInvoices() && $status == 'success') {
                 $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
             }
-            return $amwalOrderData;
+            return $status == 'success'? $amwalOrderData : false;
         } catch (\Exception $e) {
             $this->sentryExceptionReport->report($e->getMessage());
             return false;
