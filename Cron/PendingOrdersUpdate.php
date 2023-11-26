@@ -63,7 +63,7 @@ class PendingOrdersUpdate
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime, 'gt')
             ->addFilter('created_at', $toTime, 'lt')
-            ->addFilter('status', [Order::STATE_PENDING_PAYMENT, Order::STATE_CANCELED], 'in')
+            ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->addFilter('amwal_order_id', true, 'notnull')
             ->create();
 
