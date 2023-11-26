@@ -212,14 +212,11 @@ class OrderUpdate
      */
     private function dataValidation(Order $order, DataObject $amwalOrderData)
     {
-        // Define an associative array mapping Amwal order fields to their corresponding getter methods.
-        // This array is used for comparing Order object values with Amwal order data.
-        $fields = self::FIELD_MAPPINGS;
         try {
             if (floatval($order->getBaseGrandTotal()) != floatval($amwalOrderData->getAmount())) {
                 throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'amount', $order->getBaseGrandTotal(), $amwalOrderData->getAmount()));
             }
-            foreach ($fields as $orderMethod => $amwalMethod) {
+            foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
                 $orderValue = $order->getData($orderMethod);
                 $amwalValue = $amwalOrderData->getData($amwalMethod);
                 if ($orderValue != $amwalValue) {
