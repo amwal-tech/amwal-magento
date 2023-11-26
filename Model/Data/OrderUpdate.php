@@ -280,8 +280,16 @@ class OrderUpdate
         }
     }
 
+    /*
+     * @param string $orderId
+     * @param string $orderMethod
+     * @param string $amwalMethod
+     * @param string $orderValue
+     * @param string $amwalValue
+     * return string
+     */
     private function dataValidationMessage($orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue)
     {
-        return 'Order (%s) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%s) %s does not match Amwal Order %s (%s != %s)', $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue;
+        return 'Order (%s) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%s) %s does not match Amwal Order %s (%s != %s)', $orderId, $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue;
     }
 }
