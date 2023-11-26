@@ -68,13 +68,14 @@ class OrderUpdate
 
     /*
      * @param OrderRepositoryInterface $orderRepository
-     * @param getAmwalOrderData $amwalOrderData
-     * @param string $historyComment
+     * @param string $trigger
      * @param bool $sendAdminEmail
      * return bool
      */
-    public function update($order, $amwalOrderData, $historyComment = '', $sendAdminEmail = true)
+    public function update($order, $trigger, $sendAdminEmail = true)
     {
+        $amwalOrderData = $this->getAmwalOrderData->execute($order->getAmwalOrderId());
+
         if ($order->getAmwalOrderId() != $amwalOrderData->getId()) {
             return false;
         }
@@ -85,6 +86,13 @@ class OrderUpdate
 
         try {
             $status = $amwalOrderData->getStatus();
+            if($trigger == 'PendingOrdersUpdate') {
+                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId());
+            } elseif($trigger == 'AmwalOrderDetails') {
+                $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
+            } elseif($trigger == 'PayOrder') {
+                $historyComment = __('Successfully completed Amwal payment with transaction ID: %1', $amwalOrderData->getId());
+            }
 
             // Update order status
             if ($status == 'success') {
@@ -106,13 +114,14 @@ class OrderUpdate
                 $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
                 $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
             }
+
             // Save the updated order
             $this->orderRepository->save($order);
 
             if (!$order->hasInvoices() && $status == 'success') {
                 $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
             }
-            return $status == 'success';
+            return $amwalOrderData;
         } catch (\Exception $e) {
             $this->sentryExceptionReport->report($e->getMessage());
             return false;

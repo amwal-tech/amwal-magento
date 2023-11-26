@@ -99,8 +99,8 @@ class PayOrder extends AmwalCheckoutAction
     public function execute(int $orderId, string $amwalOrderId) : bool
     {
         $order = $this->orderRepository->get($orderId);
+        $amwalOrderData = $this->orderUpdate->update($order, 'PayOrder', false);
 
-        $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
             $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
             $this->logger->error($message);
@@ -152,7 +152,6 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastRealOrderId($order->getIncrementId())
             ->setLastOrderStatus($order->getStatus());
 
-        $this->orderUpdate->update($order, $amwalOrderData, '', false);
 
         if ($amwalOrderStatus == 'success') {
             $quote->removeAllItems();

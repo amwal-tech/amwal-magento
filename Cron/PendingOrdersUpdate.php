@@ -17,7 +17,6 @@ class PendingOrdersUpdate
     private OrderRepositoryInterface $orderRepository;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private LoggerInterface $logger;
-    private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
     private OrderUpdate $orderUpdate;
 
@@ -26,7 +25,6 @@ class PendingOrdersUpdate
         SearchCriteriaBuilder    $searchCriteriaBuilder,
         LoggerInterface          $logger,
         Config                   $config,
-        GetAmwalOrderData        $getAmwalOrderData,
         OrderUpdate              $orderUpdate
     )
     {
@@ -34,7 +32,6 @@ class PendingOrdersUpdate
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->logger = $logger;
         $this->config = $config;
-        $this->getAmwalOrderData = $getAmwalOrderData;
         $this->orderUpdate = $orderUpdate;
     }
 
@@ -65,18 +62,7 @@ class PendingOrdersUpdate
                 $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $orderId));
                 continue;
             }
-
-            $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
-
-            if ($order->getState() === Order::STATE_CANCELED && $amwalOrderData->getStatus() === 'fail') {
-                continue;
-            }
-
-            if ($amwalOrderData) {
-                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderData->getId());
-                $this->orderUpdate->update($order, $amwalOrderData, $historyComment, true);
-                $this->logger->notice(sprintf('Order %s updated successfully', $amwalOrderId));
-            }
+            $amwalOrderData = $this->orderUpdate->update($order, 'PendingOrdersUpdate', true);
         }
         $this->logger->notice('Cron Job Finished');
         return $this;
