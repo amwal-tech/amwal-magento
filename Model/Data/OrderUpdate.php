@@ -178,7 +178,7 @@ class OrderUpdate
             // Get store email
             $senderEmail = $this->scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
             $senderName = $this->scopeConfig->getValue('trans_email/ident_general/name', ScopeInterface::SCOPE_STORE);
-            $mailContent =  $message?? __('Order (%1) status has been changed to (%2) by Amwal Payment', $order->getIncrementId(), $order->getStatus());
+            $mailContent =  $message ?? __('Order (%1) status has been changed to (%2) by Amwal Payment', $order->getIncrementId(), $order->getStatus());
             // Set email content and type
             $this->message->setBody((string) $mailContent);
             $this->message->setFrom($senderEmail);
