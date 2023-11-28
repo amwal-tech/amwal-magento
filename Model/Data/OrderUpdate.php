@@ -150,7 +150,7 @@ class OrderUpdate
      * @param OrderInterface $order
      * @return bool
      */
-    private function isPayValid($order)
+    private function isPayValid(OrderInterface $order): bool
     {
         $orderState = $order->getState();
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
