@@ -95,7 +95,7 @@ class OrderUpdate
         if (!$this->dataValidation($order, $amwalOrderData)) {
             return false;
         }
-        if (!$this->isPayValid($order, $trigger)) {
+        if (!$this->isPayValid($order)) {
             $this->logger->notice(
                 sprintf('Skipping Order %s as it is not in a valid state to be updated', $amwalOrderId)
             );
@@ -148,16 +148,10 @@ class OrderUpdate
 
     /**
      * @param OrderInterface $order
-     * @param string $trigger
      * @return bool
      */
-    private function isPayValid($order, $trigger = null)
+    private function isPayValid($order)
     {
-        // Skip if the order is already in the default order status
-        if ($trigger == 'PayOrder') {
-            return true;
-        }
-
         $orderState = $order->getState();
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
 
