@@ -101,7 +101,6 @@ class OrderUpdate
             );
             return false;
         }
-
         try {
             $status = $amwalOrderData->getStatus();
             if($trigger == 'PendingOrdersUpdate') {
@@ -147,7 +146,11 @@ class OrderUpdate
         }
     }
 
-    private function isPayValid($order)
+    /**
+     * @param OrderInterface $order
+     * @return bool
+     */
+    private function isPayValid(OrderInterface $order): bool
     {
         $orderState = $order->getState();
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
