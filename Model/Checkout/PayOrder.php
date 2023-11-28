@@ -102,13 +102,12 @@ class PayOrder extends AmwalCheckoutAction
         $amwalOrderData = $this->orderUpdate->update($order, 'PayOrder', false);
 
         if (!$amwalOrderData) {
-            if ($order->getState() == Order::STATE_PROCESSING) {
-                return false;
+            if ($order->getState() != Order::STATE_PROCESSING) {
+                $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
+                $this->logger->error($message);
+                $this->reportError($amwalOrderId, $message);
+                $this->addError(__('We were unable to retrieve your transaction data.'));
             }
-            $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
-            $this->logger->error($message);
-            $this->reportError($amwalOrderId, $message);
-            $this->addError(__('We were unable to retrieve your transaction data.'));
             return false;
         }
 
