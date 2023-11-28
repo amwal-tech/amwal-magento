@@ -102,7 +102,7 @@ class PayOrder extends AmwalCheckoutAction
         $amwalOrderData = $this->orderUpdate->update($order, 'PayOrder', false);
 
         if (!$amwalOrderData) {
-            if ($order->getState() != Order::STATE_PROCESSING) {
+            if ($order->getState() == Order::STATE_PROCESSING) {
                 return false;
             }
             $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
