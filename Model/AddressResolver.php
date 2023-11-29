@@ -124,7 +124,7 @@ class AddressResolver
         }
 
         if (!$address) {
-            $address = $this->createAddress($amwalOrderData);
+            $address = $this->createAddress($amwalOrderData, $isGuest);
         }
 
         if (!$address) {
