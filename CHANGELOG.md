@@ -25,6 +25,7 @@
 - Fix the return message
 - mailContent convert to string
 - Amwal 305 fix is pay valid check in pay order.
+- Add $isGuest to createAddress
 
 # [1.0.30] (2023-11-16)
 ### Bug Fixes
