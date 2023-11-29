@@ -1,3 +1,32 @@
+# [1.0.31] (2023-11-29)
+### Features
+- Add order notifier to every order status change
+- Add cronjob settings and run status
+- Add order dataValidation
+- Cancel existing orders based on Amwal Order ID
+- Add additional checks to ensure address for guests do not get assigned a customer ID
+- Amwal order data refactor
+
+### Enhancements
+- Change addRegularCheckoutButtonConfig to public method
+- Add orderUrl in PayOrder
+- Show Amwal order status action
+- Add payment successful to handle amwal dismissed
+- Check Order already exists
+- Show Time zone format.
+- Remove the order and create it again
+- dataValidation fix getAmount and send email to admin
+- Chnage the order status to pending_payment
+- isPayValid return true in PayOrder
+
+### Bug Fixes
+- Amwal 305 fix is pay valid check in pay order.
+- chnage entity_id to increment_id
+- Fix the return message
+- mailContent convert to string
+- Amwal 305 fix is pay valid check in pay order.
+- Add $isGuest to createAddress
+
 # [1.0.30] (2023-11-16)
 ### Bug Fixes
 - Remove the cancled order status from the pending orders update job
