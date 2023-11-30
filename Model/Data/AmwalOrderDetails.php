@@ -11,7 +11,7 @@ use Magento\Framework\Webapi\Rest\Request;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Store\Model\StoreManagerInterface;
-use Amwal\Payments\Model\Checkout\PayOrder;
+use Amwal\Payments\Model\Data\OrderUpdate;
 
 class AmwalOrderDetails implements AmwalOrderInterface
 {
@@ -21,8 +21,17 @@ class AmwalOrderDetails implements AmwalOrderInterface
     private StoreManagerInterface $storeManager;
     private GetAmwalOrderData $getAmwalOrderData;
     private Config $config;
+    private OrderUpdate $orderUpdate;
 
-    public function __construct(OrderRepositoryInterface $orderRepository, SearchCriteriaBuilder $searchCriteriaBuilder, Request $restRequest, StoreManagerInterface $storeManager, GetAmwalOrderData $getAmwalOrderData, Config $config)
+    public function __construct(
+        OrderRepositoryInterface $orderRepository,
+        SearchCriteriaBuilder    $searchCriteriaBuilder,
+        Request                  $restRequest,
+        StoreManagerInterface    $storeManager,
+        GetAmwalOrderData        $getAmwalOrderData,
+        Config                   $config,
+        OrderUpdate              $orderUpdate
+    )
     {
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -30,6 +39,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $this->storeManager = $storeManager;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->config = $config;
+        $this->orderUpdate = $orderUpdate;
     }
 
     public function getOrderDetails($amwalOrderId)
@@ -51,39 +61,13 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $orderId = $requestBody['order_id'];
         $refId = $requestBody['ref_id'];
 
-        $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
+        $order = $this->getOrderByAmwalOrderId($amwalOrderId, $orderId, $refId);
+        $amwalOrderData = $this->orderUpdate->update($order, 'AmwalOrderDetails', true);
+
         if (!$amwalOrderData) {
             return false;
         }
-        $status = $amwalOrderData['status'];
-
-        if (!$this->isPayValid($amwalOrderId)) {
-            return false;
-        }
-
-        try {
-           $order = $this->getOrderByAmwalOrderId($amwalOrderId, $orderId, $refId);
-
-            // Update order status
-            if($status !== 'success'){
-                $failure_reason = $amwalOrderData['failure_reason'];
-                if(!$failure_reason){
-                   return false;
-                }
-                $order->addStatusHistoryComment('Failure Reason: ' . $failure_reason);
-            }else{
-                $order->setState($this->config->getOrderConfirmedStatus());
-                $order->setStatus($this->config->getOrderConfirmedStatus());
-                $order->addStatusHistoryComment('Order status updated to ' . $status . ' by Amwal Payments.');
-                $order->setTotalPaid($order->getGrandTotal());
-            }
-
-            // Save the updated order
-            $this->orderRepository->save($order);
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
+        return true;
     }
 
     private function getOrderByAmwalOrderId($amwalOrderId, $orderId = null, $refId = null)
@@ -92,7 +76,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId, 'eq');
 
         if ($orderId) {
-            $searchCriteria = $searchCriteria->addFilter('entity_id', $orderId, 'eq');
+            $searchCriteria = $searchCriteria->addFilter('increment_id', $orderId, 'eq');
         }
         if ($refId) {
             $searchCriteria = $searchCriteria->addFilter('ref_id', $refId, 'eq');
@@ -106,18 +90,6 @@ class AmwalOrderDetails implements AmwalOrderInterface
             throw new \Exception('Order not found, please check the provided Amwal order ID.');
         }
         return $order;
-    }
-
-    private function isPayValid($amwalOrderId)
-    {
-        $order = $this->getOrderByAmwalOrderId($amwalOrderId);
-        $orderState = $order->getState();
-        $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
-
-        if ($orderState === $defaultOrderStatus) {
-            return false;
-        }
-        return $orderState === 'pending_payment' || $orderState === 'canceled';
     }
 
     private function getOrderUrl($order)

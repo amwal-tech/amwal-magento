@@ -66,7 +66,11 @@ const AmwalMagentoReactButton = ({
         locale
       })
     })
-      .then(async response => await response.json())
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data)
+        return data
+      })
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
@@ -171,10 +175,11 @@ const AmwalMagentoReactButton = ({
   }
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
     if (!event.detail.orderId) return
-    if (placedOrderId) {
-      completeOrder(event.detail.orderId)
-    }
-    if (!event.detail.paymentSuccessful && emptyCartOnCancellation) {
+    if (event.detail.paymentSuccessful) {
+      if (placedOrderId) {
+        completeOrder(event.detail.orderId)
+      }
+    } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
       fetch(`${baseUrl}/amwal/clean-quote`, {
         method: 'POST',
@@ -276,7 +281,11 @@ const AmwalMagentoReactButton = ({
       ? preCheckoutTask().then(async () => await getConfig())
       : getConfig()
     preCheckoutPromise
-      .then(async response => await response.json())
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data)
+        return data
+      })
       .then(data => {
         setAmount(data.amount)
         setTriggerPreCheckoutAck(true)

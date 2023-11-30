@@ -43,6 +43,11 @@ class Details
         $amwalClient = $this->amwalClientFactory->create();
 
         try {
+            // check if the $amwalOrderId have -canceled suffix
+            if (strpos($amwalOrderId, '-canceled') !== false) {
+                return;
+            }
+
             $response = $amwalClient->get('transactions/' . $amwalOrderId);
 
             if ($response->getStatusCode() === 200) {
@@ -58,7 +63,7 @@ class Details
                             'mage-init' => [
                                 'Amwal_Payments/js/order-details' => [
                                     'buttonId' => 'amwal_order_details',
-                                    'order_id' => $subject->getOrder()->getId(),
+                                    'order_id' => $subject->getOrder()->getIncrementId(),
                                     'amwal_order_id' => $amwalOrderId,
                                     'order_details' => $responseBody
                                 ]

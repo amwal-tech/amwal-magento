@@ -28,6 +28,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class PlaceOrder extends AmwalCheckoutAction
 {
@@ -43,6 +44,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private GetAmwalOrderData $getAmwalOrderData;
     private SentryExceptionReport $sentryExceptionReport;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     /**
      * @param QuoteManagement $quoteManagement
@@ -58,6 +60,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param GetAmwalOrderData $getAmwalOrderData
      * @param ErrorReporter $errorReporter
      * @param SentryExceptionReport $sentryExceptionReport
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Config $config
      * @param LoggerInterface $logger
      */
@@ -76,7 +79,8 @@ class PlaceOrder extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         SentryExceptionReport $sentryExceptionReport,
         Config $config,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
@@ -91,6 +95,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->sentryExceptionReport = $sentryExceptionReport;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -152,7 +157,7 @@ class PlaceOrder extends AmwalCheckoutAction
         if ($hasAmwalAddress) {
             try {
                 $this->logDebug('Resolving customer address');
-                $customerAddress = $this->addressResolver->execute($amwalOrderData);
+                $customerAddress = $this->addressResolver->execute($amwalOrderData, (bool) $quote->getCustomerIsGuest());
                 try {
                     $this->logDebug(sprintf(
                         'Found/Created customer address with data: %s',
@@ -217,6 +222,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->setAmwalOrderDetails->execute($order, $amwalOrderId, $triggerContext);
 
         $quote->setIsActive(true)->save();
+
         return $order;
     }
 
@@ -230,7 +236,22 @@ class PlaceOrder extends AmwalCheckoutAction
     public function createOrder(Quote $quote, string $amwalOrderId, string $refId): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
+        $order = $this->getOrderByAmwalOrderId($amwalOrderId);
+
+        if ($order) {
+            if( $order->getState() !== Order::STATE_PENDING_PAYMENT) {
+                throw new RuntimeException('Found an existing order with same transacation Id with non pending payment state');
+            }
+            $this->logDebug(
+                sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
+            );
+            $order->cancel();
+            $order->setAmwalOrderId($amwalOrderId . '-canceled');
+            $this->orderRepository->save($order);
+        }
+
         $order = $this->quoteManagement->submit($quote);
+
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
         if (!$order) {
@@ -321,5 +342,20 @@ class PlaceOrder extends AmwalCheckoutAction
         }
 
         $this->quoteRepository->save($quote);
+    }
+
+    /**
+     * @param $amwalOrderId
+     * @return OrderInterface|null
+     */
+    private function getOrderByAmwalOrderId($amwalOrderId): ?OrderInterface
+    {
+        // Build a search criteria to filter orders by custom attribute
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId);
+        $searchCriteria = $searchCriteria->create();
+
+        // Search for order with the provided custom attribute value and get the order data
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+        return $orders ? reset($orders) : null;
     }
 }

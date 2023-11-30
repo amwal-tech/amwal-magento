@@ -54,11 +54,11 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
     public function execute(OrderInterface $order, string $amwalOrderId, string $triggerContext): void
     {
         $orderDetails = [];
-        $orderDetails['order_id'] = $order->getEntityId();
+        $orderDetails['order_id'] = $order->getIncrementId();
+        $orderDetails['order_entity_id'] = $order->getEntityId();
         $orderDetails['order_created_at'] = $order->getCreatedAt();
         $orderDetails['order_content'] = $this->json->serialize($this->getOrderContent($order));
         $orderDetails['order_position'] = $triggerContext;
-        $orderDetails['order_url'] = $this->getOrderUrl($order);
         $orderDetails['plugin_type'] = 'magento';
         $orderDetails['plugin_version'] = $this->config->getVersion();
 
@@ -116,14 +116,5 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
             ];
         }
         return $orderContent;
-    }
-
-    /**
-     * @param OrderInterface $order
-     * @return string
-     */
-    private function getOrderUrl(OrderInterface $order): string
-    {
-        return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
     }
 }
