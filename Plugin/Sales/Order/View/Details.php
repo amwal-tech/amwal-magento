@@ -39,11 +39,13 @@ class Details
 
     public function beforeSetLayout(View $subject)
     {
-        $amwalOrderId = $subject->getOrder()->getAmwalOrderId();
-
         try {
+            $amwalOrderId = $subject->getOrder()->getAmwalOrderId();
+            if(!$amwalOrderId){
+                return;
+            }
             // check if the $amwalOrderId have -canceled suffix
-            if (!isset($amwalOrderId) || strpos($amwalOrderId, '-canceled') !== false) {
+            if (strpos($amwalOrderId, '-canceled') !== false) {
                 return;
             }
 
