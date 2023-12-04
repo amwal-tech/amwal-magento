@@ -44,10 +44,9 @@ class Details
 
         try {
             // check if the $amwalOrderId have -canceled suffix
-            if (strpos($amwalOrderId, '-canceled') !== false) {
+            if (isset($amwalOrderId) && strpos($amwalOrderId, '-canceled') !== false) {
                 return;
             }
-
             $response = $amwalClient->get('transactions/' . $amwalOrderId);
 
             if ($response->getStatusCode() === 200) {
