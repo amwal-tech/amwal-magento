@@ -1,3 +1,8 @@
+# [1.0.32] (2023-12-4)
+### Bug Fixes
+- [#237](https://github.com/amwal-tech/amwal-magento/pull/237) - Downgrade sentry/sdk to 3.0.0 as minimum version
+- [#235](https://github.com/amwal-tech/amwal-magento/pull/235) - Fix amwalOrderId return null in SalesOrder view page
+
 # [1.0.31] (2023-11-29)
 ### Features
 - Add order notifier to every order status change
