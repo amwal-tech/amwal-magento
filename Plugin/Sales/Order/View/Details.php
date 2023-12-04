@@ -39,15 +39,17 @@ class Details
 
     public function beforeSetLayout(View $subject)
     {
-        $amwalOrderId = $subject->getOrder()->getAmwalOrderId();
-        $amwalClient = $this->amwalClientFactory->create();
-
         try {
+            $amwalOrderId = $subject->getOrder()->getAmwalOrderId();
+            if(!$amwalOrderId){
+                return;
+            }
             // check if the $amwalOrderId have -canceled suffix
             if (strpos($amwalOrderId, '-canceled') !== false) {
                 return;
             }
 
+            $amwalClient = $this->amwalClientFactory->create();
             $response = $amwalClient->get('transactions/' . $amwalOrderId);
 
             if ($response->getStatusCode() === 200) {
