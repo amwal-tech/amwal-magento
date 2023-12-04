@@ -43,7 +43,10 @@ class Details
 
         try {
             // check if the $amwalOrderId have -canceled suffix
-            if (isset($amwalOrderId) && strpos($amwalOrderId, '-canceled') !== false) {
+            if (!isset($amwalOrderId) {
+                return;
+            }
+            if (strpos($amwalOrderId, '-canceled') !== false) {
                 return;
             }
 
