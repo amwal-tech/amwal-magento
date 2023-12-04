@@ -277,7 +277,8 @@ class AddressResolverTest extends TestCase
     {
         $expectedResult = $this->address->__toArray();
         $createdAddress = $this->testObject->createAddress(
-            $this->getMockAmwalOrderData()
+            $this->getMockAmwalOrderData(),
+            true
         );
 
         $this->assertEquals(

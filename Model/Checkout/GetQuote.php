@@ -158,19 +158,7 @@ class GetQuote extends AmwalCheckoutAction
                 $this->throwException(__('We are unable to verify the reference ID of this payment'));
             }
 
-            $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
-
-            if (!$isPreCheckout) {
-                $amwalOrderData = $this->objectFactory->create([
-                    'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_last_name' => $addressData['client_last_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_phone_number' => $addressData['client_phone_number'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                ]);
-                $amwalOrderData->setAddressDetails($amwalAddress);
-                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId);
-            }
-            if(!$cartId){
+            if (!$cartId) {
                 $cartId = $this->quoteIdMaskFactory->create()->load($this->checkoutSession->getQuote()->getId(), 'quote_id')->getMaskedId();
             }
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
@@ -182,6 +170,19 @@ class GetQuote extends AmwalCheckoutAction
             // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
             if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
                 $quote->setCustomerIsGuest(true);
+            }
+
+            $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
+
+            if (!$isPreCheckout) {
+                $amwalOrderData = $this->objectFactory->create([
+                    'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_last_name' => $addressData['client_last_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_phone_number' => $addressData['client_phone_number'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+                    'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+                ]);
+                $amwalOrderData->setAddressDetails($amwalAddress);
+                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (bool) $quote->getCustomerIsGuest());
             }
 
             $quote->setData(self::IS_AMWAL_API_CALL, true);
@@ -317,17 +318,19 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param DataObject $amwalOrderData
      * @param string $refId
+     * @param bool $isGuestQuote
      * @return AddressInterface
+     * @throws JsonException
      * @throws LocalizedException
      */
-    public function getCustomerAddress(DataObject $amwalOrderData, string $refId): AddressInterface
+    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, bool $isGuestQuote): AddressInterface
     {
         try {
             $this->logDebug(sprintf(
                 'Resolving customer address using Amwal order data: %s',
                 $amwalOrderData->toJson()
             ));
-            $customerAddress = $this->addressResolver->execute($amwalOrderData);
+            $customerAddress = $this->addressResolver->execute($amwalOrderData, $isGuestQuote);
             $this->logDebug(sprintf(
                 'Resolved customer address with data: %s',
                 json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)

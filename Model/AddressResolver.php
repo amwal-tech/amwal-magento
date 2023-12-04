@@ -73,16 +73,17 @@ class AddressResolver
 
     /**
      * @param DataObject $amwalOrderData
+     * @param bool $isGuest
      * @return AddressInterface
      * @throws LocalizedException
      * @throws RuntimeException
      */
-    public function execute(DataObject $amwalOrderData): AddressInterface
+    public function execute(DataObject $amwalOrderData, bool $isGuest): AddressInterface
     {
         $address = null;
 
-        if ($this->isGuestOrder()) {
-            return $this->createAddress($amwalOrderData);
+        if ($isGuest) {
+            return $this->createAddress($amwalOrderData, $isGuest);
         }
 
         /** @var AmwalAddressInterface $amwalAddress */
@@ -124,7 +125,7 @@ class AddressResolver
         }
 
         if (!$address) {
-            $address = $this->createAddress($amwalOrderData);
+            $address = $this->createAddress($amwalOrderData, $isGuest);
         }
 
         if (!$address) {
@@ -163,11 +164,12 @@ class AddressResolver
 
     /**
      * @param DataObject $amwalOrderData
+     * @param bool $isGuest
      * @return AddressInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function createAddress(DataObject $amwalOrderData): AddressInterface
+    public function createAddress(DataObject $amwalOrderData, bool $isGuest): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
@@ -190,17 +192,21 @@ class AddressResolver
         }
 
         $cityId = $this->getCityId($amwalAddress);
-        if ($cityId){
+        if ($cityId) {
             $customerAddress->setCustomAttribute('city_id', $cityId);
         }
 
-        if ($customer = $this->getCustomer()) {
+        $customer = $this->getCustomer();
+        if (!$isGuest && $customer) {
             $customerAddress->setCustomerId($customer->getId());
         }
 
-        $customerAddress->setCustomAttribute(AmwalAddressId::ATTRIBUTE_CODE, $amwalAddress->getId() ?? self::TEMPORARY_DATA_VALUE);
+        $customerAddress->setCustomAttribute(
+            AmwalAddressId::ATTRIBUTE_CODE,
+            $amwalAddress->getId() ?? self::TEMPORARY_DATA_VALUE
+        );
 
-        if (!$this->isGuestOrder()) {
+        if (!$isGuest) {
             $customerAddress = $this->addressRepository->save($customerAddress);
         }
 

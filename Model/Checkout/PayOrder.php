@@ -4,9 +4,13 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AddressResolver;
+use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\CustomerRepositoryInterface;
@@ -25,7 +29,6 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CustomerManagement;
-use Magento\Sales\Model\OrderNotifier;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Webapi\Exception as WebapiException;
 
@@ -33,7 +36,6 @@ class PayOrder extends AmwalCheckoutAction
 {
     private CartRepositoryInterface $quoteRepository;
     private CheckoutSession $checkoutSession;
-    private InvoiceOrder $invoiceAmwalOrder;
     private GetAmwalOrderData $getAmwalOrderData;
     private OrderRepositoryInterface $orderRepository;
     private ManagerInterface $messageManager;
@@ -41,12 +43,12 @@ class PayOrder extends AmwalCheckoutAction
     private CustomerRepositoryInterface $customerRepository;
     private CustomerSession $customerSession;
     private CustomerManagement $customerManagement;
-    private OrderNotifier $orderNotifier;
+    private OrderUpdate $orderUpdate;
+
 
     /**
      * @param CartRepositoryInterface $quoteRepository
      * @param CheckoutSession $checkoutSession
-     * @param InvoiceOrder $invoiceAmwalOrder
      * @param GetAmwalOrderData $getAmwalOrderData
      * @param OrderRepositoryInterface $orderRepository
      * @param ManagerInterface $messageManager
@@ -56,13 +58,12 @@ class PayOrder extends AmwalCheckoutAction
      * @param CustomerManagement $customerManagement
      * @param ErrorReporter $errorReporter
      * @param Config $config
-     * @param OrderNotifier $orderNotifier
+     * @param OrderUpdate $orderUpdate
      * @param LoggerInterface $logger
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         CheckoutSession $checkoutSession,
-        InvoiceOrder $invoiceAmwalOrder,
         GetAmwalOrderData $getAmwalOrderData,
         OrderRepositoryInterface $orderRepository,
         ManagerInterface $messageManager,
@@ -72,13 +73,13 @@ class PayOrder extends AmwalCheckoutAction
         CustomerManagement $customerManagement,
         ErrorReporter $errorReporter,
         Config $config,
-        OrderNotifier $orderNotifier,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderUpdate $orderUpdate
+
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
         $this->checkoutSession = $checkoutSession;
-        $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->orderRepository = $orderRepository;
         $this->messageManager = $messageManager;
@@ -86,7 +87,7 @@ class PayOrder extends AmwalCheckoutAction
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
         $this->customerManagement = $customerManagement;
-        $this->orderNotifier = $orderNotifier;
+        $this->orderUpdate = $orderUpdate;
     }
 
     /**
@@ -98,13 +99,15 @@ class PayOrder extends AmwalCheckoutAction
     public function execute(int $orderId, string $amwalOrderId) : bool
     {
         $order = $this->orderRepository->get($orderId);
+        $amwalOrderData = $this->orderUpdate->update($order, 'PayOrder', false);
 
-        $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
-            $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
-            $this->logger->error($message);
-            $this->reportError($amwalOrderId, $message);
-            $this->addError(__('We were unable to retrieve your transaction data.'));
+            if ($order->getState() != $this->config->getOrderConfirmedStatus()) {
+                $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
+                $this->logger->error($message);
+                $this->reportError($amwalOrderId, $message);
+                $this->addError(__('We were unable to retrieve your transaction data.'));
+            }
             return false;
         }
 
@@ -143,17 +146,6 @@ class PayOrder extends AmwalCheckoutAction
         $this->addAdditionalPaymentInformation($amwalOrderData, $order);
         $amwalOrderStatus = $amwalOrderData->getStatus();
 
-        if($amwalOrderStatus == 'success') {
-            $order->setState($this->config->getOrderConfirmedStatus());
-            $order->setStatus($this->config->getOrderConfirmedStatus());
-            $order->setSendEmail(true);
-            $this->orderNotifier->notify($order);
-        }elseif($amwalOrderStatus == 'fail') {
-            $order->setState(Order::STATE_CANCELED);
-            $order->setStatus(Order::STATE_CANCELED);
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' has been pending, status: (' . $amwalOrderStatus . ') and order has been canceled.');
-            $order->addStatusHistoryComment('Amwal Transaction Id: ' . $amwalOrderId . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
-        }
         $this->checkoutSession->clearHelperData();
         $this->checkoutSession->setLastQuoteId($quote->getId())
             ->setLastSuccessQuoteId($quote->getId());
@@ -162,15 +154,14 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastRealOrderId($order->getIncrementId())
             ->setLastOrderStatus($order->getStatus());
 
-        $this->orderRepository->save($order);
-        if($amwalOrderStatus == 'success') {
-            $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
+
+        if ($amwalOrderStatus == 'success') {
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
             return true;
-        }else{
-            throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
         }
+
+        throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
     }
 
     /**
