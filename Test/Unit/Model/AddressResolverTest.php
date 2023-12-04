@@ -12,6 +12,10 @@ use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\AddressInterfaceFactory;
 use Magento\Customer\Api\Data\RegionInterface;
 use Magento\Customer\Api\Data\RegionInterfaceFactory;
+use Magento\Customer\Model\AddressFactory;
+use Magento\Customer\Model\Customer;
+use Magento\Customer\Model\CustomerFactory;
+use Magento\Customer\Model\Data\Address;
 use Magento\Customer\Model\Session;
 use Magento\Directory\Model\ResourceModel\Region\Collection;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory;
@@ -21,6 +25,7 @@ use Magento\Framework\DataObject;
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -29,101 +34,129 @@ use Psr\Log\LoggerInterface;
  */
 class AddressResolverTest extends TestCase
 {
+    private const TEST_CUSTOMER_ID = 15;
+    private const FIRST_NAME = 'Tester';
+    private const LAST_NAME = 'Amwal';
+    private const PHONE_NUMBER = '+95512345678';
+    private const EMAIL = 'test@amwal.tech';
+    private const AMWAL_ORDER_ID = 'c776073d-4c39-4dc8-a027-5e306b13a939';
+    private const POSTCODE = '12345';
+    private const COUNTRY = 'SA';
+    private const CITY = "City";
+    private const STATE = 'State';
+    private const STREET_1 = 'Street 123';
+    private const STREET_2 = '12345, Region';
+
+    private const MOCK_ADDRESS_DATA = [
+        AddressInterface::ID => null,
+        AddressInterface::CUSTOMER_ID => null,
+        AddressInterface::REGION => null,
+        AddressInterface::REGION_ID => null,
+        AddressInterface::COUNTRY_ID => self::COUNTRY,
+        AddressInterface::STREET => [self::STREET_1, self::STREET_2],
+        AddressInterface::COMPANY => null,
+        AddressInterface::TELEPHONE => self::PHONE_NUMBER,
+        AddressInterface::FAX => null,
+        AddressInterface::POSTCODE => self::POSTCODE,
+        AddressInterface::CITY => self::CITY,
+        AddressInterface::FIRSTNAME => self::FIRST_NAME,
+        AddressInterface::LASTNAME => self::LAST_NAME,
+        AddressInterface::MIDDLENAME => null,
+        AddressInterface::PREFIX => null,
+        AddressInterface::SUFFIX => null,
+        AddressInterface::VAT_ID => null,
+        AddressInterface::DEFAULT_BILLING => null,
+        AddressInterface::DEFAULT_SHIPPING => null,
+    ];
+
     /**
      * Mock customerRepository
      *
-     * @var CustomerRepositoryInterface|PHPUnit\Framework\MockObject\MockObject
+     * @var CustomerRepositoryInterface|MockObject
      */
     private $customerRepository;
 
     /**
      * Mock customerSession
      *
-     * @var Session|PHPUnit\Framework\MockObject\MockObject
+     * @var Session|MockObject
      */
     private $customerSession;
 
     /**
      * Mock addressRepository
      *
-     * @var AddressRepositoryInterface|PHPUnit\Framework\MockObject\MockObject
+     * @var AddressRepositoryInterface|MockObject
      */
     private $addressRepository;
 
     /**
-     * Mock addressDataFactoryInstance
-     *
-     * @var AddressInterface|PHPUnit\Framework\MockObject\MockObject
-     */
-    private $addressDataFactoryInstance;
-
-    /**
      * Mock addressDataFactory
      *
-     * @var AddressInterfaceFactory|PHPUnit\Framework\MockObject\MockObject
+     * @var AddressInterfaceFactory|MockObject
      */
     private $addressDataFactory;
 
     /**
      * Mock searchCriteriaBuilder
      *
-     * @var SearchCriteriaBuilder|PHPUnit\Framework\MockObject\MockObject
+     * @var SearchCriteriaBuilder|MockObject
      */
     private $searchCriteriaBuilder;
 
     /**
      * Mock regionCollectionFactoryInstance
      *
-     * @var Collection|PHPUnit\Framework\MockObject\MockObject
+     * @var Collection|MockObject
      */
     private $regionCollectionFactoryInstance;
 
     /**
      * Mock regionCollectionFactory
      *
-     * @var CollectionFactory|PHPUnit\Framework\MockObject\MockObject
+     * @var CollectionFactory|MockObject
      */
     private $regionCollectionFactory;
 
     /**
      * Mock regionFactoryInstance
      *
-     * @var RegionInterface|PHPUnit\Framework\MockObject\MockObject
+     * @var RegionInterface|MockObject
      */
     private $regionFactoryInstance;
 
     /**
      * Mock regionFactory
      *
-     * @var RegionInterfaceFactory|PHPUnit\Framework\MockObject\MockObject
+     * @var RegionInterfaceFactory|MockObject
      */
     private $regionFactory;
 
     /**
      * Mock config
      *
-     * @var Config|PHPUnit\Framework\MockObject\MockObject
+     * @var Config|MockObject
      */
     private $config;
 
     /**
      * Mock resourceConnection
      *
-     * @var ResourceConnection|PHPUnit\Framework\MockObject\MockObject
+     * @var ResourceConnection|MockObject
      */
     private $resourceConnection;
 
     /**
      * Mock logger
      *
-     * @var LoggerInterface|PHPUnit\Framework\MockObject\MockObject
+     * @var LoggerInterface|MockObject
      */
     private $logger;
 
     /**
      * Mock localeResolver
      *
-     * @var Resolver|PHPUnit\Framework\MockObject\MockObject
+     * @var Resolver|MockObject
      */
     private $localeResolver;
 
@@ -142,23 +175,58 @@ class AddressResolverTest extends TestCase
     private $testObject;
 
     /**
+     * @var Address
+     */
+    private $address;
+
+    /**
      * Main set up method
      */
     public function setUp() : void
     {
         $this->objectManager = new ObjectManager($this);
+
+        $this->customer = $this->getMockBuilder(Customer::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->customer->expects($this->any())
+            ->method('getId')
+            ->willReturn(self::TEST_CUSTOMER_ID);
+        $this->customer->expects($this->any())
+            ->method('load')
+            ->willReturnSelf();
+
+        $this->customerFactory = $this->getMockBuilder(CustomerFactory::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['create'])
+            ->getMock();
+        $this->customerFactory->expects($this->any())
+            ->method('create')
+            ->willReturn($this->customer);
+
+        $this->resource = $this->getMockBuilder(\Magento\Customer\Model\ResourceModel\Address::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->address = $this->objectManager->getObject(
+            Address::class,
+            [
+                'customerFactory' => $this->customerFactory,
+                'resource' => $this->resource,
+            ]
+        );
+
         $this->customerRepository = $this->createMock(CustomerRepositoryInterface::class);
         $this->customerSession = $this->createMock(Session::class);
         $this->addressRepository = $this->createMock(AddressRepositoryInterface::class);
-        $this->addressDataFactoryInstance = $this->createMock(AddressInterface::class);
-        $this->addressDataFactoryInstance->method('setFirstname')->willReturn($this->addressDataFactoryInstance);
-        $this->addressDataFactoryInstance->method('setLastname')->willReturn($this->addressDataFactoryInstance);
-        $this->addressDataFactoryInstance->method('setCountryId')->willReturn($this->addressDataFactoryInstance);
-        $this->addressDataFactoryInstance->method('setCity')->willReturn($this->addressDataFactoryInstance);
-        $this->addressDataFactoryInstance->method('setPostcode')->willReturn($this->addressDataFactoryInstance);
-        $this->addressDataFactoryInstance->method('setStreet')->willReturn($this->addressDataFactoryInstance);
-        $this->addressDataFactory = $this->createMock(AddressInterfaceFactory::class);
-        $this->addressDataFactory->method('create')->willReturn($this->addressDataFactoryInstance);
+        $this->addressDataFactory = $this->getMockBuilder(AddressInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['create'])
+            ->getMock();
+
+        $this->addressDataFactory
+            ->method('create')
+            ->willReturn($this->address);
         $this->searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
         $this->regionCollectionFactoryInstance = $this->createMock(Collection::class);
         $this->regionCollectionFactoryInstance->method('addCountryFilter')->willReturn($this->regionCollectionFactoryInstance);
@@ -188,114 +256,48 @@ class AddressResolverTest extends TestCase
                 'localeResolver' => $this->localeResolver,
             ]
         );
+
+        $this->setMagentoAddressData();
     }
 
     /**
-     * @return array
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function dataProviderForTestCreateAddress()
+    public function testCreateAddress(): void
     {
-        return [
-            'Testcase 1' => [
-                'prerequisites' => ['amwalOrderData' => $this->getMockAmwalOrderData()],
-                'expectedResult' => $this->addressDataFactoryInstance
-            ]
-        ];
-    }
+        $expectedResult = $this->address->__toArray();
+        $createdAddress = $this->testObject->createAddress(
+            $this->getMockAmwalOrderData()
+        );
 
-    /**
-     * @dataProvider dataProviderForTestCreateAddress
-     */
-    public function testCreateAddress(array $prerequisites, array $expectedResult)
-    {
         $this->assertEquals(
             $expectedResult,
-            $this->testObject->createAddress($prerequisites['amwalOrderData'])
+            $createdAddress->__toArray()
         );
     }
 
     /**
-     * @return array
+     * @return void
      */
-    public function dataProviderForTestIsAddressMatched()
+    public function testIsAddressMatched(): void
     {
-        return [
-            'Testcase 1' => [
-                'prerequisites' => ['param' => 1],
-                'expectedResult' => ['param' => 1]
-            ]
-        ];
+        $result = $this->testObject->isAddressMatched(
+            $this->address,
+            $this->getMockAddressDetails()
+        );
+
+        $this->assertEquals(true, $result);
     }
 
     /**
-     * @dataProvider dataProviderForTestIsAddressMatched
+     * @return void
      */
-    public function testIsAddressMatched(array $prerequisites, array $expectedResult)
+    private function setMagentoAddressData(): void
     {
-        $this->assertEquals($expectedResult['param'], $prerequisites['param']);
-    }
-
-    /**
-     * @return array
-     */
-    public function dataProviderForTestUpdateTmpAddressData()
-    {
-        return [
-            'Testcase 1' => [
-                'prerequisites' => ['param' => 1],
-                'expectedResult' => ['param' => 1]
-            ]
-        ];
-    }
-
-    /**
-     * @dataProvider dataProviderForTestUpdateTmpAddressData
-     */
-    public function testUpdateTmpAddressData(array $prerequisites, array $expectedResult)
-    {
-        $this->assertEquals($expectedResult['param'], $prerequisites['param']);
-    }
-
-    /**
-     * @return array
-     */
-    public function dataProviderForTestGetFirstName()
-    {
-        return [
-            'Testcase 1' => [
-                'prerequisites' => ['param' => 1],
-                'expectedResult' => ['param' => 1]
-            ]
-        ];
-    }
-
-    /**
-     * @dataProvider dataProviderForTestGetFirstName
-     */
-    public function testGetFirstName(array $prerequisites, array $expectedResult)
-    {
-        $this->assertEquals($expectedResult['param'], $prerequisites['param']);
-    }
-
-    /**
-     * @return array
-     */
-    public function dataProviderForTestGetLastName()
-    {
-        return [
-            'Testcase 1' => [
-                'prerequisites' => ['param' => 1],
-                'expectedResult' => ['param' => 1]
-            ]
-        ];
-    }
-
-    /**
-     * @dataProvider dataProviderForTestGetLastName
-     */
-    public function testGetLastName(array $prerequisites, array $expectedResult)
-    {
-        $this->assertEquals($expectedResult['param'], $prerequisites['param']);
+        foreach (self::MOCK_ADDRESS_DATA as $key => $value) {
+            $this->address->setData($key, $value);
+        }
     }
 
     /**
@@ -304,20 +306,20 @@ class AddressResolverTest extends TestCase
     private function getMockAddressDetails(): DataObject
     {
         return (new AmwalAddress())->addData([
-            'email' => 'test@amwal.tech',
-            'first_name' => 'Tester',
-            'last_name' => 'Amwal',
-            'street1' => 'Street 123',
-            'street2' => '12345, Region',
-            'state' => 'State',
-            'city' => "City",
-            'country' => 'SA',
-            'postcode' => '12345',
-            'client_phone_number' => '+95512345678',
-            'client_email' => 'test@amwal.tech',
-            'client_first_name' => 'Tester',
-            'client_last_name' => 'Amwal',
-            'orderId' => 'c776073d-4c39-4dc8-a027-5e306b13a939'
+            'email' => self::EMAIL,
+            'first_name' => self::FIRST_NAME,
+            'last_name' => self::LAST_NAME,
+            'street1' => self::STREET_1,
+            'street2' => self::STREET_2,
+            'state' => self::STATE,
+            'city' => self::CITY,
+            'country' => self::COUNTRY,
+            'postcode' => self::POSTCODE,
+            'client_phone_number' => self::PHONE_NUMBER,
+            'client_email' => self::EMAIL,
+            'client_first_name' => self::FIRST_NAME,
+            'client_last_name' => self::LAST_NAME,
+            'orderId' => self::AMWAL_ORDER_ID
         ]);
     }
 
@@ -327,10 +329,10 @@ class AddressResolverTest extends TestCase
     private function getMockAmwalOrderData(): DataObject
     {
         return (new DataObject())->addData([
-            'client_first_name' => 'Tester',
-            'client_last_name' => 'Amwal',
-            'client_phone_number' => '+95512345678',
-            'client_email' => 'test@amwal.tech',
+            'client_first_name' => self::FIRST_NAME,
+            'client_last_name' => self::LAST_NAME,
+            'client_phone_number' => self::PHONE_NUMBER,
+            'client_email' => self::EMAIL,
             'address_details' => $this->getMockAddressDetails()
         ]);
     }
