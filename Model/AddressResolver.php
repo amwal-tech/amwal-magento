@@ -165,6 +165,7 @@ class AddressResolver
      * @param DataObject $amwalOrderData
      * @return AddressInterface
      * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function createAddress(DataObject $amwalOrderData): AddressInterface
     {

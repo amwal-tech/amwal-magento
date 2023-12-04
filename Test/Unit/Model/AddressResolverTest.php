@@ -1,18 +1,18 @@
 <?php
+declare(strict_types=1);
+
 namespace Unit\Model;
 
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\AmwalAddress;
-use Amwal\Payments\Test\Unit\Model\PHPUnit;
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\AddressInterfaceFactory;
 use Magento\Customer\Api\Data\RegionInterface;
 use Magento\Customer\Api\Data\RegionInterfaceFactory;
-use Magento\Customer\Model\AddressFactory;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Data\Address;
@@ -22,6 +22,8 @@ use Magento\Directory\Model\ResourceModel\Region\CollectionFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -67,6 +69,12 @@ class AddressResolverTest extends TestCase
         AddressInterface::VAT_ID => null,
         AddressInterface::DEFAULT_BILLING => null,
         AddressInterface::DEFAULT_SHIPPING => null,
+    ];
+
+    private const TMP_FIELDS = [
+        AddressInterface::FIRSTNAME,
+        AddressInterface::LASTNAME,
+        AddressInterface::TELEPHONE,
     ];
 
     /**
@@ -182,7 +190,7 @@ class AddressResolverTest extends TestCase
     /**
      * Main set up method
      */
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
 
@@ -241,7 +249,7 @@ class AddressResolverTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->localeResolver = $this->createMock(Resolver::class);
         $this->testObject = $this->objectManager->getObject(
-        AddressResolver::class,
+            AddressResolver::class,
             [
                 'customerRepository' => $this->customerRepository,
                 'customerSession' => $this->customerSession,
@@ -262,7 +270,8 @@ class AddressResolverTest extends TestCase
 
     /**
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function testCreateAddress(): void
     {
@@ -293,10 +302,80 @@ class AddressResolverTest extends TestCase
     /**
      * @return void
      */
-    private function setMagentoAddressData(): void
+    public function testGetFirstName(): void
+    {
+        $result = $this->testObject->getFirstName($this->getMockAddressDetails(), $this->getMockAmwalOrderData());
+
+        $this->assertEquals(
+            self::FIRST_NAME,
+            $result
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetLastName(): void
+    {
+        $result = $this->testObject->getLastName($this->getMockAddressDetails(), $this->getMockAmwalOrderData());
+
+        $this->assertEquals(
+            self::LAST_NAME,
+            $result
+        );
+    }
+
+    /**
+     * @return void
+     * @throws LocalizedException
+     */
+    public function testUpdateTmpAddressData(): void
+    {
+        $this->setMagentoAddressData(true);
+        $originalAddress = $this->address;
+
+        $this->assertEquals(
+            AddressResolver::TEMPORARY_DATA_VALUE,
+            $originalAddress->getFirstname()
+        );
+        $this->assertEquals(
+            AddressResolver::TEMPORARY_DATA_VALUE,
+            $originalAddress->getLastname()
+        );
+        $this->assertEquals(
+            AddressResolver::TEMPORARY_DATA_VALUE,
+            $originalAddress->getTelephone()
+        );
+
+        $mockOrderData = $this->getMockAmwalOrderData();
+        $this->testObject->updateTmpAddressData($originalAddress, $mockOrderData);
+
+        $this->assertEquals(
+            self::FIRST_NAME,
+            $originalAddress->getFirstname()
+        );
+        $this->assertEquals(
+            self::LAST_NAME,
+            $originalAddress->getLastname()
+        );
+        $this->assertEquals(
+            self::PHONE_NUMBER,
+            $originalAddress->getTelephone()
+        );
+    }
+
+    /**
+     * @param bool $useTmp
+     * @return void
+     */
+    private function setMagentoAddressData(bool $useTmp = false): void
     {
         foreach (self::MOCK_ADDRESS_DATA as $key => $value) {
-            $this->address->setData($key, $value);
+            if ($useTmp && in_array($key, self::TMP_FIELDS, true)) {
+                $this->address->setData($key, AddressResolver::TEMPORARY_DATA_VALUE);
+            } else {
+                $this->address->setData($key, $value);
+            }
         }
     }
 
