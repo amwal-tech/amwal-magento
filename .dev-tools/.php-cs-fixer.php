@@ -2,7 +2,7 @@
 
 $finder = PhpCsFixer\Finder::create()
     ->in([
-        __DIR__ . '/vendor/amewal/payments',
+        './',
     ])
     ->name('*.phtml')
     ->name('*.php');
