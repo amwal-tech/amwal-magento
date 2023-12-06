@@ -5,7 +5,9 @@
         "magento/magento2ce": "^2.4",
         "php-cs-fixer/shim": "^3.23",
         "phpstan/phpstan": "^1.10.30",
-        "vimeo/psalm": "^5.15.0"
+        "vimeo/psalm": "^5.15.0",
+        "giggsey/libphonenumber-for-php": "^8.13.7",
+        "sentry/sdk": "^3.0"
     },
     "repositories": [
         {
