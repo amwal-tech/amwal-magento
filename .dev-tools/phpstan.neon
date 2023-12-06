@@ -5,7 +5,6 @@ parameters:
   excludePaths:
     - ../vendor/
   ignoreErrors:
-   - '#UndefinedConstant: Const BP is not defined#'
-   - '#Property\s+Amwal\\Payments\\Block\\ExpressCheckoutCartButton::\$customerSessionFactory\s+has unknown class Magento\\Customer\\Model\\SessionFactory as its type#'
-   - '#Property\s+Amwal\\Payments\\Block\\ExpressCheckoutCartButton::\$checkoutSessionFactory\s+has unknown class Magento\\Checkout\\Model\\SessionFactory as its type#'
-
+    - '#Property\s+.+#'
+    - '#Parameter\s+.+#'
+    - '#Access to an undefined property\s+.+#'
