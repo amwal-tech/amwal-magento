@@ -146,6 +146,7 @@ class GetQuote extends AmwalCheckoutAction
         bool $isPreCheckout,
         $cartId = null
     ): array {
+        $quoteData = [];
         try {
             $this->logDebug('Start GetQuote call');
             if (!$this->refIdManagement->verifyRefId($refId, $refIdData)) {
@@ -173,7 +174,7 @@ class GetQuote extends AmwalCheckoutAction
             }
 
             $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
-
+            $customerAddress = null;
             if (!$isPreCheckout) {
                 $amwalOrderData = $this->objectFactory->create([
                     'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
