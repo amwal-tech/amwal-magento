@@ -113,7 +113,6 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
      */
     private function shouldRender(): bool
     {
-        return true;
         if (!$this->config->isActive() || !$this->config->isExpressCheckoutActive()) {
             return false;
         }
