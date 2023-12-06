@@ -44,7 +44,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         Context                     $context,
         PostHelper                  $postDataHelper,
         Resolver                    $layerResolver,
-        ProductRepositoryInterface  $productRepository,
+        ProductRepositoryInterface  $productRepositoryInterface,
         CategoryRepositoryInterface $categoryRepository,
         Config                      $config,
         Random                      $random,
@@ -52,7 +52,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         Data                        $urlHelper, array $data = []
     )
     {
-        $this->productRepositoryInterface = $productRepository;
+        $this->productRepositoryInterface = $productRepositoryInterface;
         $this->random = $random;
         $this->config = $config;
         $this->storeManager = $storeManager;
