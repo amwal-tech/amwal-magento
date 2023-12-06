@@ -62,7 +62,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
 
     public function getProduct()
     {
-        $productId = $this->getProduct_id();
+        $productId = $this->getData('product_id');
         if ($productId) {
             $productId = str_replace('product/', '', $productId);
         }
