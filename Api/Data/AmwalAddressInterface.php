@@ -133,7 +133,7 @@ interface AmwalAddressInterface
     public function setState(string $state): AmwalAddressInterface;
 
     /**
-     * @param string|null $state
+     * @param string|null $stateCode
      * @return AmwalAddressInterface
      */
     public function setStateCode(?string $stateCode = null): AmwalAddressInterface;

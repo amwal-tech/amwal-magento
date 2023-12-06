@@ -207,29 +207,29 @@ interface AmwalButtonConfigInterface
     public function getAllowedAddressCountries(): ?array;
 
     /**
-     * @param array|null $allowedAddressCities
+     * @param array|null $allowedAddressCountries
      * @return AmwalButtonConfigInterface
      */
     public function setAllowedAddressCountries(?array $allowedAddressCountries): AmwalButtonConfigInterface;
 
     /**
-     * @return array|null
+     * @return string|null
      */
     public function getAllowedAddressStates(): ?string;
 
     /**
-     * @param array|null $allowedAddressStates
+     * @param string|null $allowedAddressStates
      * @return AmwalButtonConfigInterface
      */
     public function setAllowedAddressStates(?string $allowedAddressStates): AmwalButtonConfigInterface;
 
     /**
-     * @return array|null
+     * @return string|null
      */
     public function getAllowedAddressCities(): ?string;
 
     /**
-     * @param array|null $allowedAddressCities
+     * @param string|null $allowedAddressCities
      * @return AmwalButtonConfigInterface
      */
     public function setAllowedAddressCities(?string $allowedAddressCities): AmwalButtonConfigInterface;
@@ -273,7 +273,7 @@ interface AmwalButtonConfigInterface
     public function getPluginVersion(): ?string;
 
     /**
-     * @param string|null $initialPhone
+     * @param string|null $pluginVersion
      * @return AmwalButtonConfigInterface
      */
     public function setPluginVersion(?string $pluginVersion): AmwalButtonConfigInterface;

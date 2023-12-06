@@ -36,7 +36,7 @@ class SentryExceptionReport
             return;
         }
 
-        Sentry\configureScope(function (Scope $scope) use ($exception) {
+        Sentry\configureScope(function (Scope $scope) {
             // Add extra context data to the exception
             $scope->setExtra('domain', $_SERVER['HTTP_HOST']);
             $scope->setExtra('plugin_type', 'magento2');

@@ -142,6 +142,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->throwException(__('We were unable to verify your payment.'));
         }
 
+        $quoteId = $cartId;
         if (!is_numeric($cartId)) {
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
         }
