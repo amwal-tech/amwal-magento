@@ -1,0 +1,38 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - Github-actions
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Extract Branch Name
+        id: extract_branch
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+
+      - name: SSH Commands
+        run: |
+          ssh ${{ secrets.SSH_SERVER }} << EOF
+          cd /var/www/html
+          composer require amwal/amwal-payments:dev-${{ env.BRANCH_NAME }}
+          bin/magento setup:upgrade
+          bin/magento setup:di:compile
+          bin/magento setup:static-content:deploy -f
+          bin/magento cache:flush
+          find /var/www/html -type d -exec chmod 755 {} \;
+          find /var/www/html -type f -exec chmod 644 {} \;
+          EOF
