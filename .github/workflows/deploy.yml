@@ -22,17 +22,6 @@ jobs:
 
       - name: Extract Branch Name
         id: extract_branch
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-
-      - name: SSH Commands
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER }} << EOF
-          cd /var/www/html
-          composer require amwal/amwal-payments:dev-${{ env.BRANCH_NAME }}
-          bin/magento setup:upgrade
-          bin/magento setup:di:compile
-          bin/magento setup:static-content:deploy -f
-          bin/magento cache:flush
-          find /var/www/html -type d -exec chmod 755 {} \;
-          find /var/www/html -type f -exec chmod 644 {} \;
-          EOF
+          echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+          echo "Extracted branch name is $BRANCH_NAME"
