@@ -3,7 +3,6 @@ name: Deploy
 on:
   push:
     branches:
-      - master
       - develop
       - Github-actions
   workflow_dispatch:
@@ -23,5 +22,19 @@ jobs:
       - name: Extract Branch Name
         id: extract_branch
         run: |
-          echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-          echo "Extracted branch name is $BRANCH_NAME"
+          BRANCH_NAME=$(echo "$GITHUB_REF" | sed 's/refs\/heads\///')
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Get The Branch Name
+        run: echo "The branch name is ${{ env.BRANCH_NAME }}"
+
+      - name: Install Dependencies
+        run: echo "composer packgae amwal/payments:dev-${{ env.BRANCH_NAME }}"
+
+      - name: Install Dependencies and Upgrade
+        run: |
+          ssh ${{ secrets.SSH_SERVER }} "cd /var/www/html && composer require amwal/amwal-payments:dev-${{ env.BRANCH_NAME }} && bin/magento setup:upgrade && bin/magento setup:di:compile && bin/magento setup:static-content:deploy -f && bin/magento cache:flush"
+
+      - name: Set the permission
+        run: |
+          ssh ${{ secrets.SSH_SERVER }} "chmod -R 777 /var/www/html"
