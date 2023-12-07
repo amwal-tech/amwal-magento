@@ -15,7 +15,7 @@ This repository contains the dev tools used by Amwal team.
 - https://github.com/kubawerlos/composer-smaller-lock
 - https://github.com/nektos/act
 
-### Act with Phpstorm
+### Act for Phpstorm
 #### Setting Up External Tools:
 1. Go to Settings > Tools > External Tools.
 2. Click + to add a new tool.
@@ -24,3 +24,28 @@ This repository contains the dev tools used by Amwal team.
 5. Set Arguments to the commands you typically use, like `-P ubuntu-latest=catthehacker/ubuntu:act-latest`.
 6. Optionally, set the Working directory to `$ProjectFileDir$/app/code/Amwal/Payments/`.
 7. Now, you can run act from Tools > External Tools > GitHub Actions (act).
+
+
+### Act for VSCode
+#### Setting Up Task Configuration:
+1. Go to the` .vscode` directory in your project and create a `tasks.json` file if it doesn't exist.
+2. Define a task for `act`. Here’s:
+```
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Run GitHub Actions",
+        "type": "shell",
+        "command": "act",
+        "args": ["-P ubuntu-latest=catthehacker/ubuntu:act-latest"],
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+  }
+```
+3. Run this task through Terminal > Run Task > Run GitHub Actions.
