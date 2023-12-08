@@ -100,7 +100,6 @@ class OrderUpdate
         if (!$this->isPayValid($order)) {
             $message = sprintf('Skipping Order %s as it is not in a valid state to be updated', $amwalOrderId);
             $this->logger->notice($message);
-            throw new \Exception($message);
             return false;
         }
         try {
@@ -158,12 +157,13 @@ class OrderUpdate
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
 
         if ($orderState === $defaultOrderStatus) {
-            $this->sentryExceptionReport->report(__('Order (%1) is already in the correct state (%2)', $order->getIncrementId(), $orderState));
             return false;
         }
         $validStates = ['pending_payment', 'canceled'];
         if (!in_array($orderState, $validStates)) {
-            $this->sentryExceptionReport->report(__('Order (%1) is not in a valid state to be updated (%2)', $order->getIncrementId(), $orderState));
+            $message = __('Order (%1) is not in a valid state to be updated (%2)', $order->getIncrementId(), $orderState);
+            $this->sentryExceptionReport->report($message);
+            throw new \Exception($message);
             return false;
         }
         return true;
