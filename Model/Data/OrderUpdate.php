@@ -198,7 +198,6 @@ class OrderUpdate
     /**
      * @param OrderInterface $order
      * @param string $amwalOrderId
-     * @return string
      */
     private function setOrderUrl(OrderInterface $order, $amwalOrderId)
     {

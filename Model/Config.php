@@ -9,7 +9,6 @@ use Magento\Config\Model\Config\Backend\Admin\Custom as AdminConfig;
 use Magento\Directory\Model\Currency;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Composer\ComposerInformation;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
@@ -49,12 +48,13 @@ class Config
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_CUSTOMER_EMAIL = 'payment/amwal_payments/order_status_changed_customer_email';
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL = 'payment/amwal_payments/order_status_changed_admin_email';
 
+    /**
+     * @var string
+     */
+    const MODULE_VERSION = '1.0.32';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
-
-    /** @var ComposerInformation */
-    private ComposerInformation $composerInformation;
 
     /** @var RegionCollectionFactory */
     private RegionCollectionFactory $regionCollectionFactory;
@@ -64,19 +64,16 @@ class Config
 
     /**
      * @param ScopeConfigInterface $scopeConfig
-     * @param ComposerInformation $composerInformation
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param DirectoryHelper $directoryHelper
      */
     public function __construct(
         ScopeConfigInterface    $scopeConfig,
-        ComposerInformation     $composerInformation,
         RegionCollectionFactory $regionCollectionFactory,
         DirectoryHelper         $directoryHelper
     )
     {
         $this->scopeConfig = $scopeConfig;
-        $this->composerInformation = $composerInformation;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
     }
@@ -357,8 +354,7 @@ class Config
      */
     public function getVersion(): string
     {
-        $packages = $this->composerInformation->getInstalledMagentoPackages();
-        return $packages['amwal/payments']['version'] ?? 'unknown';
+        return self::MODULE_VERSION;
     }
 
     /**
