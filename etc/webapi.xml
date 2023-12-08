@@ -49,4 +49,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/amwal/settings" method="GET">
+        <service class="Amwal\Payments\Model\Settings" method="getSettings"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>
