@@ -156,9 +156,15 @@ class OrderUpdate
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
 
         if ($orderState === $defaultOrderStatus) {
+            $this->sentryExceptionReport->report(__('Order (%1) is already in the correct state (%2)', $order->getIncrementId(), $orderState));
             return false;
         }
-        return $orderState === 'pending_payment' || $orderState === 'canceled';
+        $validStates = ['pending_payment', 'canceled'];
+        if (!in_array($orderState, $validStates)) {
+            $this->sentryExceptionReport->report(__('Order (%1) is not in a valid state to be updated (%2)', $order->getIncrementId(), $orderState));
+            return false;
+        }
+        return true;
     }
 
     private function sendCustomerEmail($order)

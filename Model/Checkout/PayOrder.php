@@ -9,6 +9,7 @@ use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use JsonException;
@@ -44,6 +45,7 @@ class PayOrder extends AmwalCheckoutAction
     private CustomerSession $customerSession;
     private CustomerManagement $customerManagement;
     private OrderUpdate $orderUpdate;
+    private SentryExceptionReport $sentryExceptionReport;
 
 
     /**
@@ -59,6 +61,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param OrderUpdate $orderUpdate
+     * @param SentryExceptionReport $sentryExceptionReport
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -74,7 +77,8 @@ class PayOrder extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger,
-        OrderUpdate $orderUpdate
+        OrderUpdate $orderUpdate,
+        sentryExceptionReport $sentryExceptionReport
 
     ) {
         parent::__construct($errorReporter, $config, $logger);
@@ -88,6 +92,7 @@ class PayOrder extends AmwalCheckoutAction
         $this->customerSession = $customerSession;
         $this->customerManagement = $customerManagement;
         $this->orderUpdate = $orderUpdate;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -106,9 +111,9 @@ class PayOrder extends AmwalCheckoutAction
                 $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
                 $this->logger->error($message);
                 $this->reportError($amwalOrderId, $message);
-                $this->addError(__('We were unable to retrieve your transaction data.'));
+                $this->sentryExceptionReport->report($message);
             }
-            return false;
+            throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -118,8 +123,8 @@ class PayOrder extends AmwalCheckoutAction
             $message = sprintf('Unable to load Quote for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
-            $this->addError(__('We were unable to retrieve your order data.'));
-            return false;
+            $this->sentryExceptionReport->report($e);
+            throw new WebapiException(__('We were unable to retrieve your order data.'), 0, WebapiException::HTTP_BAD_REQUEST);
         }
 
         $this->updateCustomerName($order, $amwalOrderData);
