@@ -113,7 +113,7 @@ class PayOrder extends AmwalCheckoutAction
                 $this->reportError($amwalOrderId, $message);
                 $this->sentryExceptionReport->report($message);
             }
-            throw new WebapiException(__('We were unable to process your transaction.'), 0, WebapiException::HTTP_BAD_REQUEST);
+            return false;
         }
 
         try {
@@ -124,7 +124,7 @@ class PayOrder extends AmwalCheckoutAction
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
             $this->sentryExceptionReport->report($e);
-            throw new WebapiException(__('We were unable to retrieve your order data.'), 0, WebapiException::HTTP_BAD_REQUEST);
+            return false;
         }
 
         $this->updateCustomerName($order, $amwalOrderData);

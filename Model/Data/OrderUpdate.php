@@ -82,13 +82,15 @@ class OrderUpdate
     {
         $amwalOrderId = $order->getAmwalOrderId();
         if (!$amwalOrderId) {
-            $this->logger->error(sprintf('Order %s does not have an Amwal Order ID', $amwalOrderId));
+            $message = sprintf('Order %s does not have an Amwal Order ID', $order->getIncrementId());
+            $this->logger->error($message);
+            throw new \Exception($message);
             return false;
         }
         if (strpos($amwalOrderId, '-canceled') !== false) {
-            $this->logger->notice(
-                sprintf('Skipping Order %s as it was canceled because the payment was retried.', $amwalOrderId)
-            );
+            $message = sprintf('Skipping Order %s as it was canceled because the payment was retried.', $amwalOrderId);
+            $this->logger->notice($message);
+            throw new \Exception($message);
             return false;
         }
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
@@ -96,9 +98,9 @@ class OrderUpdate
             return false;
         }
         if (!$this->isPayValid($order)) {
-            $this->logger->notice(
-                sprintf('Skipping Order %s as it is not in a valid state to be updated', $amwalOrderId)
-            );
+            $message = sprintf('Skipping Order %s as it is not in a valid state to be updated', $amwalOrderId);
+            $this->logger->notice($message);
+            throw new \Exception($message);
             return false;
         }
         try {
