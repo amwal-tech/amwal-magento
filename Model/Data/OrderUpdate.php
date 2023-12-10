@@ -146,7 +146,7 @@ class OrderUpdate
             return $status == 'success'? $amwalOrderData : false;
         } catch (\Exception $e) {
             $this->sentryExceptionReport->report($e->getMessage());
-            return false;
+            throw new \Exception($e->getMessage());
         }
     }
 
