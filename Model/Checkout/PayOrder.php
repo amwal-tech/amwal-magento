@@ -116,16 +116,8 @@ class PayOrder extends AmwalCheckoutAction
             return false;
         }
 
-        try {
-            $quote = $this->quoteRepository->get($order->getQuoteId());
-            $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
-        } catch (NoSuchEntityException $e) {
-            $message = sprintf('Unable to load Quote for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
-            $this->reportError($amwalOrderId, $message);
-            $this->logger->error($message);
-            $this->sentryExceptionReport->report($e);
-            return false;
-        }
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
 
         $this->updateCustomerName($order, $amwalOrderData);
         $this->updateAddressData($quote, $amwalOrderData);
