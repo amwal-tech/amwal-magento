@@ -28,7 +28,7 @@ class Settings
         $settings = [
             'amwal_payment' => $this->config->isActive(),
             'amwal_payment_title' => $this->config->getTitle(),
-            'is_merchant_valida' => $this->config->isMerchantValid(),
+            'is_merchant_valid' => $this->config->isMerchantValid(),
             'express_checkout_active' => $this->config->isExpressCheckoutActive(),
             'regular_checkout_active' => $this->config->isRegularCheckoutActive(),
             'country' => $this->config->getCountryCode(),
