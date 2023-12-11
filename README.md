@@ -12,7 +12,8 @@
 [![Monthly Downloads](https://poser.pugx.org/amwal/payments/d/monthly)](https://packagist.org/packages/amwal/payments)
 [![PHP Version Require](http://poser.pugx.org/amwal/payments/require/php)](https://packagist.org/packages/amwal/payments)
 [![npm](https://img.shields.io/npm/v/amwal-magento-react-button)](https://www.npmjs.com/package/amwal-magento-react-button)
-
+[![CI status](https://github.com/amwal-tech/amwal-magento/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
+[![Type coverage](https://shepherd.dev/github/amwal-tech/amwal-magento/coverage.svg)](https://shepherd.dev/github/amwal-tech/amwal-magento)
 
 Amwal is an emerging leader in authentication, identity orchestration, and frictionless payment solutions.
 
