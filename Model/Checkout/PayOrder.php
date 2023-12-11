@@ -78,7 +78,7 @@ class PayOrder extends AmwalCheckoutAction
         Config $config,
         LoggerInterface $logger,
         OrderUpdate $orderUpdate,
-        sentryExceptionReport $sentryExceptionReport
+        SentryExceptionReport $sentryExceptionReport
 
     ) {
         parent::__construct($errorReporter, $config, $logger);
