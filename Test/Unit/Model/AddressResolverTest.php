@@ -183,6 +183,16 @@ class AddressResolverTest extends TestCase
     private $testObject;
 
     /**
+     * @var Customer|MockObject
+     */
+    private $customer;
+
+    /**
+     * @var CustomerFactory|MockObject
+     */
+    private $customerFactory;
+
+    /**
      * @var Address
      */
     private $address;
