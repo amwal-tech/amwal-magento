@@ -8,7 +8,12 @@
        findUnusedCode='false'
 >
     <projectFiles>
-        <directory name='../' />
+        <directory name='../Model' />
+        <directory name='../Plugin' />
+        <directory name='../Cron' />
+        <directory name='../Block' />
+        <directory name='../Api' />
+        <directory name='../ViewModel' />
         <ignoreFiles>
             <directory name='./' />
         </ignoreFiles>
