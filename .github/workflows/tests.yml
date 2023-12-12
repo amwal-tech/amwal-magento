@@ -64,6 +64,9 @@ jobs:
           process: 'integration-test'
           testsuite: "Memory Usage Tests"
 
+      - name: List
+        run: ls -la
+
       - name: Run Amwal Payments Tests
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
@@ -72,4 +75,4 @@ jobs:
         with:
           process: 'unit-test'
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
-          unit_test_subset_path: '../Test/Unit'
+          unit_test_subset_path: './Test/Unit'
