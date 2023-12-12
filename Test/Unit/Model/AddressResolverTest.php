@@ -198,6 +198,11 @@ class AddressResolverTest extends TestCase
     private $address;
 
     /**
+     * @var \Magento\Customer\Model\ResourceModel\Address|MockObject
+     */
+    private $resource;
+    
+    /**
      * Main set up method
      */
     public function setUp(): void
