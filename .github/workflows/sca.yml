@@ -1,9 +1,11 @@
-name: Tests
+name: Static code analysis
 
-on: [push]
+on:
+  pull_request:
+  push:
 
 jobs:
-  test:
+  analyse:
     runs-on: ubuntu-latest
 
     services:
@@ -55,24 +57,25 @@ jobs:
           magento_version: 2.4.6
           no_push: 1
 
-      - name: Run Memory Usage Tests
-        if: ${{true}}
-        uses: MAD-I-T/magento-actions@master
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          process: 'integration-test'
-          testsuite: "Memory Usage Tests"
+      - name: Configure GitHub Token
+        run: composer config --global --auth github-oauth.github.com ${{ secrets.GIT_TOKEN }}
 
-      - name: List
+      - run: composer validate --strict
+
+      - working-directory: .dev-tools
+        run: composer install
+
+      - working-directory: .dev-tools
+        run: composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
+
+      - working-directory: .dev-tools
+        run: ./vendor/bin/php-cs-fixer fix -vvv --diff --dry-run
+
+      - working-directory: .dev-tools
         run: ls -la
 
-      - name: Run Amwal Payments Tests
-        if: ${{true}}
-        uses: MAD-I-T/magento-actions@master
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          process: 'unit-test'
-          unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
-          unit_test_subset_path: 'Test/Unit'
+      - working-directory: .dev-tools
+        run: ./vendor/bin/phpstan
+
+      - working-directory: .dev-tools
+        run: ./vendor/bin/psalm --no-progress --shepherd
