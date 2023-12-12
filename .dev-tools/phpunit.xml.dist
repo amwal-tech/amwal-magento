@@ -8,7 +8,7 @@
 
     <testsuites>
         <testsuite name="Amwal_Payments">
-            <directory suffix="Test.php">app/code/Amwal/Payments/Test/Unit</directory>
+            <directory suffix="Test.php">../Test/Unit</directory>
         </testsuite>
     </testsuites>
 
