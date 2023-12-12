@@ -44,6 +44,7 @@ class AddressResolver
     private ResourceConnection $resourceConnection;
     private LoggerInterface $logger;
     private LocaleResolver $localeResolver;
+    private AmwalAddressId $amwalAddressId;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -56,7 +57,8 @@ class AddressResolver
         Config $config,
         ResourceConnection $resourceConnection,
         LoggerInterface $logger,
-        LocaleResolver $localeResolver
+        LocaleResolver $localeResolver,
+        AmwalAddressId $amwalAddressId
     ) {
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
@@ -69,6 +71,7 @@ class AddressResolver
         $this->resourceConnection = $resourceConnection;
         $this->logger = $logger;
         $this->localeResolver = $localeResolver;
+        $this->amwalAddressId = $amwalAddressId;
     }
 
     /**
@@ -90,7 +93,7 @@ class AddressResolver
 
         if ($amwalAddressId = $amwalAddress->getId()) {
             $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-                AmwalAddressId::ATTRIBUTE_CODE,
+                $this->amwalAddressId->getAttributeCode(),
                 $amwalAddressId
             )->addFilter(
                 'parent_id',
@@ -201,7 +204,7 @@ class AddressResolver
         }
 
         $customerAddress->setCustomAttribute(
-            AmwalAddressId::ATTRIBUTE_CODE,
+            $this->amwalAddressId->getAttributeCode()
             $amwalAddress->getId() ?? self::TEMPORARY_DATA_VALUE
         );
 
@@ -346,7 +349,7 @@ class AddressResolver
      */
     private function assignAmwalAddressIdToCustomerAddress(AddressInterface $customerAddress, string $id): void
     {
-        $customerAddress->setCustomAttribute(AmwalAddressId::ATTRIBUTE_CODE, $id);
+        $customerAddress->setCustomAttribute($this->amwalAddressId->getAttributeCode(), $id);
         $this->addressRepository->save($customerAddress);
     }
 
