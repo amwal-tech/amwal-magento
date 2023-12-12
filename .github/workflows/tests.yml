@@ -4,9 +4,9 @@ name: Tests
 on: [push]
 
 jobs:
-  magento2-integration-test:
+  test:
     runs-on: ubuntu-latest
-    name: 'm2 integration test'
+
     services:
       mysql:
         image: docker://mysql:8.0
@@ -28,8 +28,20 @@ jobs:
           - 9200:9200
         options: -e="discovery.type=single-node" -e "plugins.security.disabled=true" --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=10
 
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.2]
+
+    name: PHP ${{ matrix.php }}
+
     steps:
       - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+          with:
+            php-version: ${{ matrix.php }}
+            extensions: none, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader
+            coverage: none
       - name: 'install fresh magento repo'
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
@@ -40,7 +52,7 @@ jobs:
           magento_version: 2.4.6
           no_push: 1
 
-      - name: 'launch magento2 integration test custom testsuite'
+      - name: 'Memory Usage Tests'
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
         env:
@@ -48,3 +60,12 @@ jobs:
         with:
           process: 'integration-test'
           testsuite: "Memory Usage Tests"
+
+      - name: 'Amwal Payments Tests'
+        if: ${{true}}
+        uses: MAD-I-T/magento-actions@master
+        env:
+          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+        with:
+          process: 'integration-test'
+          testsuite: "Amwal Payments Tests"
