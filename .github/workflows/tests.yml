@@ -41,10 +41,10 @@ jobs:
 
       - name name: Setup PHP
         uses: shivammathur/setup-php@v2
-          with:
-            php-version: ${{ matrix.php }}
-            extensions: none, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader
-            coverage: none
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: none, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader
+          coverage: none
 
       - name: Install Fresh Magento Repo
         if: ${{true}}
