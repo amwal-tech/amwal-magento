@@ -72,4 +72,4 @@ jobs:
           COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         with:
           process: 'integration-test'
-          testsuite: "Amwal Payments Tests"
+          testsuite: "Amwal_Payments"
