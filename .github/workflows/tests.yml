@@ -9,7 +9,7 @@ jobs:
     name: 'm2 integration test'
     services:
       mysql:
-        image: docker://mysql:8
+        image: docker://maria:10.4
         env:
           MYSQL_ROOT_PASSWORD: magento
           MYSQL_DATABASE: magento
