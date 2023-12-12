@@ -23,7 +23,8 @@
             "ergebnis/composer-normalize": true,
             "kubawerlos/composer-smaller-lock": true,
             "magento/composer-dependency-version-audit-plugin": false,
-            "magento/magento-composer-installer": false
+            "magento/magento-composer-installer": false,
+            "phpstan/extension-installer": true
         }
     },
     "extra": {
