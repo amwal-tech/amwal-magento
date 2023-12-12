@@ -1,4 +1,3 @@
-
 name: Tests
 
 on: [push]
@@ -71,5 +70,6 @@ jobs:
         env:
           COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         with:
-          process: 'integration-test'
-          testsuite: "Amwal_Payments"
+          process: 'unit-test'
+          unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
+          unit_test_subset_path: '../Tests/Unit'
