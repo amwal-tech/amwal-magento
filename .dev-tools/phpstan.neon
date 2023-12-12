@@ -8,3 +8,7 @@ parameters:
     - '#Property\s+.+#'
     - '#Parameter\s+.+#'
     - '#Access to an undefined property\s+.+#'
+  type_coverage:
+    return_type: 50
+    param_type: 30
+    property_type: 70
