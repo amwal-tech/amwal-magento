@@ -36,13 +36,17 @@ jobs:
     name: PHP ${{ matrix.php }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: shivammathur/setup-php@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name name: Setup PHP
+        uses: shivammathur/setup-php@v2
           with:
             php-version: ${{ matrix.php }}
             extensions: none, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader
             coverage: none
-      - name: 'install fresh magento repo'
+
+      - name: Install Fresh Magento Repo
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
         env:
@@ -52,7 +56,7 @@ jobs:
           magento_version: 2.4.6
           no_push: 1
 
-      - name: 'Memory Usage Tests'
+      - name: Run Memory Usage Tests
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
         env:
@@ -61,7 +65,7 @@ jobs:
           process: 'integration-test'
           testsuite: "Memory Usage Tests"
 
-      - name: 'Amwal Payments Tests'
+      - name: Run Amwal Payments Tests
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
         env:
