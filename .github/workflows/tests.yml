@@ -72,4 +72,4 @@ jobs:
         with:
           process: 'unit-test'
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
-          unit_test_subset_path: '../Tests/Unit'
+          unit_test_subset_path: '../Test/Unit'
