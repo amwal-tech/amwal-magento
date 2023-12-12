@@ -47,4 +47,5 @@ jobs:
         run: composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
       - name: Execute tests
+        working-directory: .dev-tools
         run: ./vendor/bin/phpunit -c phpunit.xml.dist --testsuite Amwal_Payments
