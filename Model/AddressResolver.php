@@ -204,7 +204,7 @@ class AddressResolver
         }
 
         $customerAddress->setCustomAttribute(
-            $this->amwalAddressId->getAttributeCode()
+            $this->amwalAddressId->getAttributeCode(),
             $amwalAddress->getId() ?? self::TEMPORARY_DATA_VALUE
         );
 
