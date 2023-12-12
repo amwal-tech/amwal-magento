@@ -51,6 +51,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $this->config = $config;
         $this->orderUpdate = $orderUpdate;
     }
+
     /**
      * @param string $amwalOrderId
      * @return array
@@ -59,6 +60,22 @@ class AmwalOrderDetails implements AmwalOrderInterface
     {
         // Get order by Amwal order ID
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
+        $order->setData('order_url', $this->getOrderUrl($order));
+
+        return [
+            'order' => $order->getData(),
+        ];
+    }
+
+
+    /**
+     * @param string $orderId
+     * @return array
+     */
+    public function getOrderByOrderId($orderId)
+    {
+        // Get order by order ID
+        $order = $this->getOrderById($orderId);
         $order->setData('order_url', $this->getOrderUrl($order));
 
         return [
@@ -111,6 +128,27 @@ class AmwalOrderDetails implements AmwalOrderInterface
 
         if (!$order->getId()) {
             throw new \Exception('Order not found, please check the provided Amwal order ID.');
+        }
+        return $order;
+    }
+
+
+    /**
+     * @param string $orderId
+     * @return \Magento\Sales\Api\Data\OrderInterface
+     * @throws \Exception
+     */
+    private function getOrderById($orderId)
+    {
+        // Build a search criteria to filter orders by custom attribute
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('increment_id', $orderId, 'eq');
+        $searchCriteria = $searchCriteria->create();
+
+        // Search for order with the provided custom attribute value and get the order data
+        $order = $this->orderRepository->getList($searchCriteria)->getFirstItem();
+
+        if (!$order->getId()) {
+            throw new \Exception('Order not found, please check the provided Order ID.');
         }
         return $order;
     }

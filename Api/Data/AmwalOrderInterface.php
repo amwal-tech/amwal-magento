@@ -15,6 +15,14 @@ interface AmwalOrderInterface
 
 
     /**
+     * Get order details by order ID.
+     *
+     * @param string $orderId
+     * @return array
+     */
+    public function getOrderByOrderId($orderId);
+
+    /**
      * Update order status by order ID and new status.
      *
      * @return bool
