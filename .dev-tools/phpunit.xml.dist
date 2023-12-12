@@ -5,11 +5,13 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          stopOnFailure="false">
+
     <testsuites>
         <testsuite name="Amwal_Payments">
-            <directory suffix=".php">app/code/Amwal/Payments/Test/Unit/Model</directory>
+            <directory suffix="Test.php">vendor/amwal/payments/Test/Unit</directory>
         </testsuite>
     </testsuites>
+
 
     <filter>
         <whitelist>

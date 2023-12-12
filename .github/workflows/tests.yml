@@ -5,7 +5,7 @@ on:
   push:
 
 jobs:
-  analyse:
+  test:
     runs-on: ubuntu-latest
 
     strategy:
@@ -18,7 +18,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -35,6 +34,17 @@ jobs:
         working-directory: .dev-tools
         run: composer install
 
-      - name: Execute tests
+      - name: Extract Branch Name
+        run: |
+          BRANCH_NAME=$(echo "$GITHUB_REF" | sed 's/refs\/heads\///')
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Get The Branch Name
+        run: echo "The branch name is ${{ env.BRANCH_NAME }}"
+
+      - name: Install Dependencies
         working-directory: .dev-tools
+        run: composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
+
+      - name: Execute tests
         run: ./vendor/bin/phpunit -c phpunit.xml.dist --testsuite Amwal_Payments
