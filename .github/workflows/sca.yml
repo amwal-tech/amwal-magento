@@ -68,16 +68,16 @@ jobs:
             severity: 10
             standard: 'Magento2'
 
-      - name: ٌRun static code analysis
+      - name: Run PHP Mess Detector
+          if: always()
+          uses: MAD-I-T/magento-actions@master
+          with:
+            process: 'mess-detector'
+            md_src_path: 'magento/vendor/amwal/payments'
+
+      - name: Run static code analysis
           if: always()
           uses: MAD-I-T/magento-actions@master
           with:
             process: 'phpstan'
             exec_path: 'vendor/amwal/payments'
-
-      - name: Run Mess Detector
-          if: always()
-          uses: MAD-I-T/magento-actions@master
-          with:
-            process: 'mess-detector'
-            md_src_path: 'vendor/amwal/payments'
