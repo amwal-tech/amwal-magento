@@ -79,11 +79,11 @@ jobs:
         run: echo "The branch name is ${{ env.BRANCH_NAME }}"
 
       - name: Install Dependencies
-        run: composer packgae amwal/payments:dev-${{ env.BRANCH_NAME }}
+        run: cd magento && composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
       - name: Check if the amwal payments package is installed
         run: composer show amwal/payments
-        
+
       - name: Run Amwal Payments Tests
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
