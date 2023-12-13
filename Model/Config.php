@@ -144,6 +144,8 @@ class Config
      */
     public function getCountryCode(): string
     {
+        // TODO: Currently, it returns a static value ('SA'), which might not reflect the actual system or user settings.
+        return 'SA';
         if ($this->shouldUseSystemCountrySettings()) {
             return $this->scopeConfig->getValue(
                 'general/country/default',
