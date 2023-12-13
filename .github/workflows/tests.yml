@@ -84,6 +84,9 @@ jobs:
       - name: Check if the amwal payments package is installed
         run: composer show amwal/payments
 
+      - name: List
+        run: ls -la
+
       - name: Run Amwal Payments Tests
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
