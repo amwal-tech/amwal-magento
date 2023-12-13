@@ -39,8 +39,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          path: Amwal_Payments
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -68,7 +66,7 @@ jobs:
         run: composer install
 
       - working-directory: .dev-tools
-        run: composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../Amwal_Payments/composer.json
+        run: composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
 
       - working-directory: .dev-tools
         run: ./vendor/bin/php-cs-fixer fix -vvv --diff --dry-run
