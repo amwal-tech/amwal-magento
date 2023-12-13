@@ -8,12 +8,7 @@
        findUnusedCode='false'
 >
     <projectFiles>
-        <directory name='../Model' />
-        <directory name='../Plugin' />
-        <directory name='../Cron' />
-        <directory name='../Block' />
-        <directory name='../Api' />
-        <directory name='../ViewModel' />
+        <directory name='../Amwal_Payments/' />
         <ignoreFiles>
             <directory name='./' />
         </ignoreFiles>

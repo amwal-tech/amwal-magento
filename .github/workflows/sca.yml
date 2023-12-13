@@ -39,6 +39,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          path: Amwal_Payments
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
