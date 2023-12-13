@@ -67,7 +67,7 @@ jobs:
           testsuite: "Memory Usage Tests"
 
       - name: List
-        run: cd magento && ls -la
+        run: ls -la
 
       - name: Extract Branch Name
         id: extract_branch
@@ -79,13 +79,13 @@ jobs:
         run: echo "The branch name is ${{ env.BRANCH_NAME }}"
 
       - name: Install Dependencies
-        run: sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
+        run: cd magento && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
       - name: Check if the amwal payments package is installed
-        run: composer show amwal/payments
+        run: cd magento && composer show amwal/payments
 
       - name: List
-        run: ls -la
+        run: cd magento &&  ls -la
 
       - name: Run Amwal Payments Tests
         if: ${{true}}
