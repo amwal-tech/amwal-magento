@@ -1,7 +1,6 @@
 name: Static code analysis
 
 on:
-  pull_request:
   push:
 
 jobs:
@@ -59,6 +58,21 @@ jobs:
 
       - name: List
         run: cd magento &&  ls -la
+
+      - name: Extract Branch Name
+        id: extract_branch
+        run: |
+          BRANCH_NAME=$(echo "$GITHUB_REF" | sed 's/refs\/heads\///')
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Get The Branch Name
+        run: echo "The branch name is ${{ env.BRANCH_NAME }}"
+
+      - name: Authentication
+        run: cd magento && sudo composer config http-basic.repo.magento.com ${{secrets.MAGENTO_USERNAME}} ${{secrets.MAGENTO_PASSWORD}}
+
+      - name: Install Dependencies
+        run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
       - name: Run PHP Mess Detector
         if: always()
