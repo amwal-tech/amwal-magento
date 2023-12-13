@@ -58,23 +58,26 @@ jobs:
           no_push: 1
 
       - name: Run PHP Code Sniffer
-          uses: MAD-I-T/magento-actions@master
-          env:
-            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-          with:
-            process: 'phpcs-test'
-            extension: 'magento/vendor/amwal/payments'
-            severity: 10
-            standard: 'Magento2'
+        if: always()
+        uses: MAD-I-T/magento-actions@master
+        env:
+          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+        with:
+          process: 'phpcs-test'
+          extension: 'magento/vendor/amwal/payments'
+          severity: 10
+          standard: 'Magento2'
 
       - name: Run PHP Mess Detector
-          uses: MAD-I-T/magento-actions@master
-          with:
-            process: 'mess-detector'
-            md_src_path: 'magento/vendor/amwal/payments'
+        if: always()
+        uses: MAD-I-T/magento-actions@master
+        with:
+          process: 'mess-detector'
+          md_src_path: 'magento/vendor/amwal/payments'
 
       - name: Run static code analysis
-          uses: MAD-I-T/magento-actions@master
-          with:
-            process: 'phpstan'
-            exec_path: 'vendor/amwal/payments'
+        if: always()
+        uses: MAD-I-T/magento-actions@master
+        with:
+          process: 'phpstan'
+          exec_path: 'vendor/amwal/payments'
