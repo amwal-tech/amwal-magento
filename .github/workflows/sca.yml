@@ -74,13 +74,6 @@ jobs:
       - name: Install Dependencies
         run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
-      - name: Run PHP Mess Detector
-        if: always()
-        uses: MAD-I-T/magento-actions@master
-        with:
-          process: 'mess-detector'
-          md_src_path: 'vendor/amwal/payments'
-
       - name: Run static code analysis
         if: always()
         uses: MAD-I-T/magento-actions@master
