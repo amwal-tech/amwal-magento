@@ -58,7 +58,6 @@ jobs:
           no_push: 1
 
       - name: Run PHP Code Sniffer
-          if: always()
           uses: MAD-I-T/magento-actions@master
           env:
             COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
@@ -69,14 +68,12 @@ jobs:
             standard: 'Magento2'
 
       - name: Run PHP Mess Detector
-          if: always()
           uses: MAD-I-T/magento-actions@master
           with:
             process: 'mess-detector'
             md_src_path: 'magento/vendor/amwal/payments'
 
       - name: Run static code analysis
-          if: always()
           uses: MAD-I-T/magento-actions@master
           with:
             process: 'phpstan'
