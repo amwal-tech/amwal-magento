@@ -73,9 +73,17 @@ jobs:
 
       - working-directory: .dev-tools
         run: ls -la
+        
+      - name: 'phpstan'
+          if: always()
+          uses: MAD-I-T/magento-actions@master
+          with:
+            process: 'phpstan'
+            exec_path: 'vendor/amwal/payments'
 
-      - working-directory: .dev-tools
-        run: ./vendor/bin/phpstan
-
-      - working-directory: .dev-tools
-        run: ./vendor/bin/psalm --no-progress --shepherd
+      - name: 'mess detector'
+          if: always()
+          uses: MAD-I-T/magento-actions@master
+          with:
+            process: 'mess-detector'
+            md_src_path: 'vendor/amwal/payments'
