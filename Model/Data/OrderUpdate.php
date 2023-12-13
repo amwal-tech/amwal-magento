@@ -36,7 +36,7 @@ class OrderUpdate
     private InvoiceOrder $invoiceAmwalOrder;
     private LoggerInterface $logger;
     private AmwalClientFactory $amwalClientFactory;
-    private SentryExceptionReport $sentryExceptionReportr;
+    private SentryExceptionReport $sentryExceptionReport;
 
     const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
@@ -55,7 +55,7 @@ class OrderUpdate
         InvoiceOrder              $invoiceAmwalOrder,
         LoggerInterface           $logger,
         AmwalClientFactory        $amwalClientFactory,
-        SentryExceptionReport     $sentryExceptionReportr
+        SentryExceptionReport     $sentryExceptionReport
     )
     {
         $this->orderRepository = $orderRepository;
@@ -69,7 +69,7 @@ class OrderUpdate
         $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->logger = $logger;
         $this->amwalClientFactory = $amwalClientFactory;
-        $this->sentryExceptionReport = $sentryExceptionReportr;
+        $this->SentryExceptionReport = $sentryExceptionReport;
     }
 
     /*
@@ -141,7 +141,7 @@ class OrderUpdate
             }
             return $status == 'success'? $amwalOrderData : false;
         } catch (\Exception $e) {
-            $this->sentryExceptionReport->report($e->getMessage());
+            $this->SentryExceptionReport->report($e->getMessage());
             return false;
         }
     }
@@ -218,7 +218,7 @@ class OrderUpdate
                 $e->getMessage()
             );
             $this->logger->error($message);
-            $this->sentryExceptionReport->report($e->getMessage());
+            $this->SentryExceptionReport->report($e->getMessage());
             return;
         }
     }
@@ -276,7 +276,7 @@ class OrderUpdate
             }
             return true;
         } catch (\Exception $e) {
-            $this->sentryExceptionReport->report($e);
+            $this->SentryExceptionReport->report($e);
             return false;
         }
     }

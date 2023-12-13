@@ -87,3 +87,12 @@ jobs:
         with:
           process: 'phpstan'
           exec_path: 'vendor/amwal/payments'
+
+      - name: Run Magento Standards Checks
+        if: always()
+        uses: MAD-I-T/magento-actions@v3.20
+        with:
+          process: 'phpcs-test'
+          extension: 'Amwal_Payments'
+          severity: 10
+          standard: 'Magento2'

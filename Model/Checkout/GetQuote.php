@@ -121,7 +121,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->refIdManagement = $refIdManagement;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->checkoutSession = $checkoutSession;
-        $this->sentryExceptionReport = $sentryExceptionReport;
+        $this->SentryExceptionReport = $sentryExceptionReport;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
@@ -267,7 +267,7 @@ class GetQuote extends AmwalCheckoutAction
     private function throwException($message = null, Throwable $originalException = null): void
     {
         if($originalException){
-            $this->sentryExceptionReport->report($originalException);
+            $this->SentryExceptionReport->report($originalException);
         }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
