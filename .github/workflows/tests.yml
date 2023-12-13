@@ -69,6 +69,21 @@ jobs:
       - name: List
         run: ls -la
 
+      - name: Extract Branch Name
+        id: extract_branch
+        run: |
+          BRANCH_NAME=$(echo "$GITHUB_REF" | sed 's/refs\/heads\///')
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Get The Branch Name
+        run: echo "The branch name is ${{ env.BRANCH_NAME }}"
+
+      - name: Install Dependencies
+        run: composer packgae amwal/payments:dev-${{ env.BRANCH_NAME }}
+
+      - name: Check if the amwal payments package is installed
+        run: composer show amwal/payments
+        
       - name: Run Amwal Payments Tests
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
@@ -77,4 +92,4 @@ jobs:
         with:
           process: 'unit-test'
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
-          unit_test_subset_path: '../Amwal_Payments/'
+          unit_test_subset_path: '../magento/vendor/amwal/payments/Test/Unit'
