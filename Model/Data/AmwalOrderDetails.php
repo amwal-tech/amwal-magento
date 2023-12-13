@@ -138,7 +138,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
      * @return \Magento\Sales\Api\Data\OrderInterface
      * @throws \Exception
      */
-    private function getOrderById($orderId)
+    private function getOrderById(string $orderId)
     {
         // Build a search criteria to filter orders by custom attribute
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('increment_id', $orderId, 'eq');
