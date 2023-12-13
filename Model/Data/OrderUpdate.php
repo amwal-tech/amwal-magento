@@ -69,7 +69,7 @@ class OrderUpdate
         $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->logger = $logger;
         $this->amwalClientFactory = $amwalClientFactory;
-        $this->SentryExceptionReport = $sentryExceptionReport;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /*
@@ -141,7 +141,7 @@ class OrderUpdate
             }
             return $status == 'success'? $amwalOrderData : false;
         } catch (\Exception $e) {
-            $this->SentryExceptionReport->report($e->getMessage());
+            $this->sentryExceptionReport->report($e->getMessage());
             return false;
         }
     }
@@ -218,7 +218,7 @@ class OrderUpdate
                 $e->getMessage()
             );
             $this->logger->error($message);
-            $this->SentryExceptionReport->report($e->getMessage());
+            $this->sentryExceptionReport->report($e->getMessage());
             return;
         }
     }
@@ -276,7 +276,7 @@ class OrderUpdate
             }
             return true;
         } catch (\Exception $e) {
-            $this->SentryExceptionReport->report($e);
+            $this->sentryExceptionReport->report($e);
             return false;
         }
     }
