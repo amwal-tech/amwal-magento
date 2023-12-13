@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2]
+        php: [ 8.2 ]
 
     name: PHP ${{ matrix.php }}
 
@@ -57,31 +57,25 @@ jobs:
           magento_version: 2.4.6
           no_push: 1
 
-      - name: Configure GitHub Token
-        run: composer config --global --auth github-oauth.github.com ${{ secrets.GIT_TOKEN }}
+      - name: Run PHP Code Sniffer
+          if: always()
+          uses: MAD-I-T/magento-actions@master
+          env:
+            COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+          with:
+            process: 'phpcs-test'
+            extension: 'magento/vendor/amwal/payments'
+            severity: 10
+            standard: 'Magento2'
 
-      - run: composer validate --strict
-
-      - working-directory: .dev-tools
-        run: composer install
-
-      - working-directory: .dev-tools
-        run: composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
-
-      - working-directory: .dev-tools
-        run: ./vendor/bin/php-cs-fixer fix -vvv --diff --dry-run
-
-      - working-directory: .dev-tools
-        run: ls -la
-        
-      - name: 'phpstan'
+      - name: ٌRun static code analysis
           if: always()
           uses: MAD-I-T/magento-actions@master
           with:
             process: 'phpstan'
             exec_path: 'vendor/amwal/payments'
 
-      - name: 'mess detector'
+      - name: Run Mess Detector
           if: always()
           uses: MAD-I-T/magento-actions@master
           with:
