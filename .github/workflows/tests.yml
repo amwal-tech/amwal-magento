@@ -78,15 +78,14 @@ jobs:
       - name: Get The Branch Name
         run: echo "The branch name is ${{ env.BRANCH_NAME }}"
 
+      - name: Authentication
+        run: sudo composer config http-basic.repo.magento.com ${{secrets.MAGENTO_USERNAME}} ${{secrets.MAGENTO_PASSWORD}}
+
       - name: Install Dependencies
         run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
 
       - name: Check if the amwal payments package is installed
         run: cd magento && composer show amwal/payments
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
 
       - name: List
         run: cd magento &&  ls -la
