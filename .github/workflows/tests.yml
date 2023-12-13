@@ -79,7 +79,7 @@ jobs:
         run: echo "The branch name is ${{ env.BRANCH_NAME }}"
 
       - name: Authentication
-        run: sudo composer config http-basic.repo.magento.com ${{secrets.MAGENTO_USERNAME}} ${{secrets.MAGENTO_PASSWORD}}
+        run: cd magento && sudo composer config http-basic.repo.magento.com ${{secrets.MAGENTO_USERNAME}} ${{secrets.MAGENTO_PASSWORD}}
 
       - name: Install Dependencies
         run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
