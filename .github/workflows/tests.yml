@@ -78,11 +78,8 @@ jobs:
       - name: Get The Branch Name
         run: echo "The branch name is ${{ env.BRANCH_NAME }}"
 
-      - name: Change composer.json permissions
-        run: chmod 777 ./magento/composer.json
-
       - name: Install Dependencies
-        run: composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
+        run: sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
       - name: Check if the amwal payments package is installed
         run: composer show amwal/payments
