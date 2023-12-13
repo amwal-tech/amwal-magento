@@ -84,9 +84,6 @@ jobs:
       - name: Install Dependencies
         run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
-      - name: Check if the amwal payments package is installed
-        run: cd magento && composer show amwal/payments
-
       - name: List
         run: cd magento &&  ls -la
 
