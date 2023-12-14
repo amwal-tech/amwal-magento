@@ -97,18 +97,26 @@ jobs:
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
           unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
 
-      - name: Generate Allure Report
-        run: |
-          cd magento && vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --log-junit junit.xml --testdox-html report.html --coverage-html coverage
+    - name: Load test report history
+      uses: actions/checkout@v3
+      if: always()
+      continue-on-error: true
+      with:
+        ref: gh-pages
+        path: gh-pages
 
-      - name: Publish Allure Report
-        uses: simple-elf/allure-report-action@v1
-        if: always()
-        with:
-          allure_results: magento/allure-results
-          gh_pages_branch: 'gh-pages'
-          gh_pages: true
-          allure_history: true
-          github_run_id: ${{ github.run_id }}
-          github_repo: ${{ github.repository }}
-          github_token: ${{ secrets.GIT_TOKEN }}
+    - name: Build test report
+      uses: simple-elf/allure-report-action@v1.7
+      if: always()
+      with:
+        gh_pages: gh-pages
+        allure_history: allure-history
+        allure_results: build/allure-results
+
+    - name: Publish test report
+      uses: peaceiris/actions-gh-pages@v3
+      if: always()
+      with:
+        github_token: ${{ secrets.GIT_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: allure-history
