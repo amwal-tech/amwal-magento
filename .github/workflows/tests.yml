@@ -57,18 +57,6 @@ jobs:
           magento_version: 2.4.6
           no_push: 1
 
-      - name: Run Memory Usage Tests
-        if: ${{true}}
-        uses: MAD-I-T/magento-actions@master
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          process: 'integration-test'
-          testsuite: "Memory Usage Tests"
-
-      - name: List
-        run: ls -la
-
       - name: Extract Branch Name
         id: extract_branch
         run: |
@@ -113,10 +101,8 @@ jobs:
           allure_history: allure-history
           allure_results: build/allure-results
 
-      - name: Publish test report
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Download test report
+        uses: actions/download-artifact@v2
         if: always()
         with:
-          github_token: ${{ secrets.GIT_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: allure-history
+          name: allure-report
