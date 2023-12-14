@@ -97,22 +97,15 @@ jobs:
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
           unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
 
-      - name: Run Amwal Payments Tests with Allure Reporting
-        if: ${{true}}
-        uses: MAD-I-T/magento-actions@master
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          process: 'unit-test'
-          unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
-          unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
-          allure_results_path: 'allure-results'
+      - name: Generate Allure Report
+        run: |
+          cd magento && php vendor/bin/phpunit --log-junit junit.xml --testdox-html report.html --log-allure ./allure-results
 
       - name: Publish Allure Report
         uses: simple-elf/allure-report-action@v1
         if: always()
         with:
-          allure_results: allure-results
+          allure_results: magento/allure-results
           gh_pages_branch: 'gh-pages'
           gh_pages: true
           allure_history: true
