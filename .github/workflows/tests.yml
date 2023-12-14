@@ -99,7 +99,7 @@ jobs:
 
       - name: Generate Allure Report
         run: |
-          cd magento && vendor/bin/phpunit -c magento/vendor/amwal/payments/phpunit.xml.dist --log-junit junit.xml --testdox-html report.html --coverage-html coverage
+          cd magento && vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --log-junit junit.xml --testdox-html report.html --coverage-html coverage
 
       - name: Publish Allure Report
         uses: simple-elf/allure-report-action@v1
