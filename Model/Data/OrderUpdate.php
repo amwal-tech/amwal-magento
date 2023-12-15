@@ -142,7 +142,7 @@ class OrderUpdate
             return $status == 'success'? $amwalOrderData : false;
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
-            $this->sentryExceptionReport->report($e->getMessage());
+            $this->sentryExceptionReport->report($e);
             throw $e;
         }
     }
