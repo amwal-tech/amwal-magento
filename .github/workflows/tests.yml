@@ -101,8 +101,10 @@ jobs:
           allure_history: allure-history
           allure_results: build/allure-results
 
-      - name: Download test report
-        uses: actions/download-artifact@v2
-        if: always()
-        with:
-          name: allure-report
+      - name: Publish test report
+          uses: peaceiris/actions-gh-pages@v3
+          if: always()
+          with:
+            github_token: ${{ secrets.GIT_TOKEN }}
+            publish_branch: gh-pages
+            publish_dir: allure-history
