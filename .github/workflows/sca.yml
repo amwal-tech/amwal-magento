@@ -82,15 +82,15 @@ jobs:
           exec_path: 'vendor/amwal/payments'
 
       - name: Configure GitHub Token
-        run: composer config --global --auth github-oauth.github.com ${{ secrets.GIT_TOKEN }}
+        run: sudo composer config --global --auth github-oauth.github.com ${{ secrets.GIT_TOKEN }}
 
-      - run: composer validate --strict
-
-      - working-directory: .dev-tools
-        run: composer install
+      - run: sudo composer validate --strict
 
       - working-directory: .dev-tools
-        run: composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
+        run: sudo composer install
+
+      - working-directory: .dev-tools
+        run: sudo composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
 
       - working-directory: .dev-tools
         run: ./vendor/bin/php-cs-fixer fix -vvv --diff --dry-run
