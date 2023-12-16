@@ -81,3 +81,5 @@ jobs:
           process: 'phpstan'
           exec_path: 'vendor/amwal/payments'
 
+      - working-directory: .dev-tools
+        run: ./vendor/bin/psalm --no-progress --shepherd
