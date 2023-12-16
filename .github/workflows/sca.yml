@@ -81,6 +81,9 @@ jobs:
           process: 'phpstan'
           exec_path: 'vendor/amwal/payments'
 
+      - name: Configure GitHub Token
+        run: composer config --global --auth github-oauth.github.com ${{ secrets.GIT_TOKEN }}
+
       - run: composer validate --strict
 
       - working-directory: .dev-tools
