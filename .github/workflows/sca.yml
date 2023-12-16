@@ -81,5 +81,19 @@ jobs:
           process: 'phpstan'
           exec_path: 'vendor/amwal/payments'
 
+      - run: composer validate --strict
+
+      - working-directory: .dev-tools
+        run: composer install
+
+      - working-directory: .dev-tools
+        run: composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
+
+      - working-directory: .dev-tools
+        run: ./vendor/bin/php-cs-fixer fix -vvv --diff --dry-run
+
+      - name: List
+        run: ls -la
+
       - working-directory: .dev-tools
         run: ./vendor/bin/psalm --no-progress --shepherd
