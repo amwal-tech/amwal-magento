@@ -87,7 +87,7 @@ jobs:
 
       - name: Run Amwal Payments Tests
         if: ${{true}}
-        run: cd magento && php vendor/bin/phpunit --coverage-html build/coverage
+        run: cd magento && php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
