@@ -102,9 +102,9 @@ jobs:
           allure_results: build/allure-results
 
       - name: Publish test report
-          uses: peaceiris/actions-gh-pages@v3
-          if: always()
-          with:
-            github_token: ${{ secrets.GIT_TOKEN }}
-            publish_branch: gh-pages
-            publish_dir: allure-history
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GIT_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
