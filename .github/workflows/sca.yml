@@ -99,4 +99,4 @@ jobs:
         run: ls -la
 
       - working-directory: .dev-tools
-        run: ./vendor/bin/psalm --no-progress --shepherd
+        run: ./vendor/bin/psalm --shepherd --show-info=true --output-format=github
