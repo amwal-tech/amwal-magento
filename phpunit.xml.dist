@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit colors="true"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         stopOnFailure="false">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         cacheResult="false"
+         colors="true">
 
-    <logging>
-        <log type="allure" target="./allure-results" />
-    </logging>
+    <testsuites>
+        <testsuite name="Amwal_Payments">
+            <directory suffix="Test.php">../Test/Unit</directory>
+        </testsuite>
+    </testsuites>
 
     <php>
-        <ini name="error_reporting" value="E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT"/>
-        <env name="MAGE_MODE" value="developer"/>
+        <ini name="error_reporting" value="-1" />
+        <env name="APP_ENV" value="testing" />
     </php>
+
+    <coverage cacheDirectory="build/cache">
+        <include>
+            <directory suffix=".php">../</directory>
+        </include>
+        <report>
+            <html outputDirectory="build/coverage"/>
+        </report>
+    </coverage>
 </phpunit>
