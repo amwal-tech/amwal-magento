@@ -20,6 +20,9 @@
         <include>
             <directory suffix=".php">../magento/vendor/amwal/payments</directory>
         </include>
+        <exclude>
+            <directory suffix=".php">../magento/setup/src/Magento/Setup</directory>
+        </exclude>
         <report>
             <html outputDirectory="build/coverage"/>
         </report>

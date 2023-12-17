@@ -88,9 +88,15 @@ jobs:
       - name: Set File Permissions
         run: sudo chmod -R 777 magento
 
-      - name: Run Amwal Payments Tests
+      - name: Install Allure Commandline
+        run: sudo apt-get install allure
+
+      - name: Run Amwal Payments Tests with Coverage and Allure
         if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage
+        run: cd magento && sudo php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage --log-junit build/allure-results/result.xml
+
+      - name: Generate Allure Report
+        run: allure generate magento/build/allure-results -o magento/build/allure-report --clean
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
@@ -98,3 +104,8 @@ jobs:
           name: coverage-report
           path: magento/build/coverage
 
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v2
+        with:
+          name: allure-report
+          path: magento/build/allure-report
