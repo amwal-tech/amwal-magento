@@ -7,8 +7,13 @@
          bootstrap="../../../dev/tests/unit/framework/bootstrap.php">
     <coverage>
         <include>
-            <directory suffix=".php">vendor/amwal/payments</directory>
+            <directory suffix=".php">../../../app/code/*</directory>
+            <directory suffix=".php">../../../vendor/amwal/payments</directory>
         </include>
+        <exclude>
+            <directory>../../../app/code/*/*/Test</directory>
+            <directory>../../../vendor/amwal/payments/Test</directory>
+        </exclude>
     </coverage>
     <php>
         <ini name="memory_limit" value="-1"/>
