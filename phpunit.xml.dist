@@ -4,7 +4,7 @@
          colors="true"
          columns="max"
          beStrictAboutTestsThatDoNotTestAnything="false"
-         bootstrap="dev/tests/unit/framework/bootstrap.php">
+         bootstrap="../../../dev/tests/unit/framework/bootstrap.php">
     <coverage>
         <include>
             <directory suffix=".php">vendor/amwal/payments</directory>
