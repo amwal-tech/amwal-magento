@@ -86,7 +86,7 @@ jobs:
           unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
 
       - name: Copy amwal_payments to app/code
-        run: sudo cp -r magento/vendor/amwal/payments magento/app/code/Amwal/Payments
+        run: sudo cp -R magento/vendor/amwal/payments/* magento/app/code/Amwal/Payments
 
       - name: Set File Permissions
         run: sudo chmod -R 777 magento
