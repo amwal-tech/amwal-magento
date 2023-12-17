@@ -72,9 +72,6 @@ jobs:
       - name: Install Dependencies
         run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
-      - name: Adjust permissions for Allure directory
-        run: chmod -R 777 magento/var/allure-results
-
       - name: List
         run: cd magento &&  ls -la
 
@@ -88,9 +85,12 @@ jobs:
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
           unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
 
+      - name: Set File Permissions
+        run: sudo chmod -R 777 magento
+
       - name: Run Amwal Payments Tests
         if: ${{true}}
-        run: cd magento && php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage
+        run: cd magento && sudo php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
