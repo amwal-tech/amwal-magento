@@ -47,11 +47,6 @@ jobs:
           extensions: pcov, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader
           coverage: pcov
 
-      - name: Install Allure
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y allure
-
       - name: Install Fresh Magento Repo
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
@@ -89,25 +84,21 @@ jobs:
           process: 'unit-test'
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
           unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
+          coverage: 1
+          coverage_html: 1
+          coverage_html_path: 'build/coverage'
+          coverage_clover: 'build/logs/clover.xml'
+          coverage_clover_path: 'build/logs/clover.xml'
 
       - name: Set File Permissions
         run: sudo chmod -R 777 magento
 
-      - name: Run Amwal Payments Tests with Coverage and Allure
+      - name: Run Amwal Payments Tests with Coverage
         if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage --log-junit build/allure-results/result.xml
-
-      - name: Generate Allure Report
-        run: allure generate magento/build/allure-results -o magento/build/allure-report --clean
+        run: cd magento && sudo php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
           name: coverage-report
           path: magento/build/coverage
-
-      - name: Upload Allure report
-        uses: actions/upload-artifact@v2
-        with:
-          name: allure-report
-          path: magento/build/allure-report
