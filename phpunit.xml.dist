@@ -1,15 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
-         cacheResult="false"
-         colors="true">
-    <testsuites>
-        <testsuite name="Amwal_Payments">
-            <directory suffix="Test.php">Test/Unit</directory>
-        </testsuite>
-    </testsuites>
+         colors="true"
+         columns="max"
+         beStrictAboutTestsThatDoNotTestAnything="false"
+         bootstrap="dev/tests/unit/framework/bootstrap.php">
+    <coverage>
+        <include>
+            <directory suffix=".php">vendor/amwal/payments</directory>
+        </include>
+    </coverage>
     <php>
-        <ini name="error_reporting" value="-1"/>
-        <env name="APP_ENV" value="testing"/>
+        <ini name="memory_limit" value="-1"/>
+        <ini name="date.timezone" value="America/Los_Angeles"/>
+        <ini name="xdebug.max_nesting_level" value="200"/>
     </php>
+    <listeners>
+        <listener class="Yandex\Allure\PhpUnit\AllurePhpUnit">
+            <arguments>
+                <string>var/allure-results</string> <!-- XML files output directory -->
+                <boolean>true</boolean> <!-- Whether to delete previous results on rerun -->
+                <array> <!-- A list of custom annotations to ignore (optional) -->
+                    <element key="codingStandardsIgnoreStart">
+                        <string>codingStandardsIgnoreStart</string>
+                    </element>
+                    <element key="codingStandardsIgnoreEnd">
+                        <string>codingStandardsIgnoreEnd</string>
+                    </element>
+                    <element key="cover">
+                        <string>cover</string>
+                    </element>
+                    <element key="expectedExceptionMessageRegExp">
+                        <string>expectedExceptionMessageRegExp</string>
+                    </element>
+                </array>
+            </arguments>
+        </listener>
+        <listener class="Magento\Framework\TestFramework\Unit\Listener\ReplaceObjectManager"/>
+    </listeners>
 </phpunit>
