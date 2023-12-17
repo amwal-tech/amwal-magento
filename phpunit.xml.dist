@@ -3,33 +3,13 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
          cacheResult="false"
          colors="true">
-
     <testsuites>
         <testsuite name="Amwal_Payments">
-            <directory suffix="Test.php">magento/vendor/amwal/payments/Test/Unit</directory>
+            <directory suffix="Test.php">Test/Unit</directory>
         </testsuite>
     </testsuites>
-
     <php>
-        <ini name="error_reporting" value="-1" />
-        <env name="APP_ENV" value="testing" />
+        <ini name="error_reporting" value="-1"/>
+        <env name="APP_ENV" value="testing"/>
     </php>
-
-    <filter>
-        <whitelist>
-            <directory suffix=".php">app/code/</directory>
-            <exclude>
-                <directory suffix=".php">app/code/*/*/Test</directory>
-            </exclude>
-        </whitelist>
-    </filter>
-
-    <coverage cacheDirectory="build/cache">
-        <include>
-            <directory suffix=".php">magento/vendor/amwal/payments</directory>
-        </include>
-        <report>
-            <html outputDirectory="build/coverage"/>
-        </report>
-    </coverage>
 </phpunit>

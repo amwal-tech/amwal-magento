@@ -85,12 +85,15 @@ jobs:
           unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
           unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
 
+      - name: Copy amwal_payments to app/code
+        run: sudo cp -r magento/vendor/amwal/payments app/code/Amwal/Payments
+
       - name: Set File Permissions
         run: sudo chmod -R 777 magento
 
       - name: Run Amwal Payments Tests with Coverage
         if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --coverage-html build/coverage vendor/amwal/payments/Test/Unit
+        run: cd magento && sudo php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist --coverage-html build/coverage --testsuite Amwal_Payments
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
