@@ -15,6 +15,15 @@
         <env name="APP_ENV" value="testing" />
     </php>
 
+    <filter>
+        <whitelist>
+            <directory suffix=".php">app/code/</directory>
+            <exclude>
+                <directory suffix=".php">app/code/*/*/Test</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
     <coverage cacheDirectory="build/cache">
         <include>
             <directory suffix=".php">magento/vendor/amwal/payments</directory>
