@@ -7,7 +7,7 @@
 
     <testsuites>
         <testsuite name="Amwal_Payments">
-            <directory suffix="Test.php">../Test/Unit</directory>
+            <directory suffix="Test.php">../magento/vendor/amwal/payments/Test/Unit</directory>
         </testsuite>
     </testsuites>
 
@@ -18,7 +18,7 @@
 
     <coverage cacheDirectory="build/cache">
         <include>
-            <directory suffix=".php">../</directory>
+            <directory suffix=".php">../magento/vendor/amwal/payments</directory>
         </include>
         <report>
             <html outputDirectory="build/coverage"/>
