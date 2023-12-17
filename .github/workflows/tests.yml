@@ -95,7 +95,7 @@ jobs:
 
       - name: Run Amwal Payments Tests with Coverage and Allure
         if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage --log-junit build/allure-results/result.xml
+        run: cd magento && sudo php vendor/bin/phpunit -c phpunit.xml.dist vendor/amwal/payments/Test/Unit --coverage-html build/coverage --log-junit build/allure-results/result.xml
 
       - name: Generate Allure Report
         run: allure generate magento/build/allure-results -o magento/build/allure-report --clean
