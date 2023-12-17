@@ -47,6 +47,11 @@ jobs:
           extensions: pcov, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader
           coverage: pcov
 
+      - name: Install Allure
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y allure
+
       - name: Install Fresh Magento Repo
         if: ${{true}}
         uses: MAD-I-T/magento-actions@master
@@ -87,14 +92,6 @@ jobs:
 
       - name: Set File Permissions
         run: sudo chmod -R 777 magento
-
-      - name: Install Allure
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository ppa:qameta/allure
-          sudo apt-get update
-          sudo apt-get install -y allure
 
       - name: Run Amwal Payments Tests with Coverage and Allure
         if: ${{true}}
