@@ -42,6 +42,7 @@ class OrderUpdate
         'amwal_order_id' => 'id',
         'ref_id' => 'ref_id',
     ];
+    const DEFAULT_CURRENCY_CODE = 'SAR';
 
     public function __construct(
         OrderRepositoryInterface  $orderRepository,
@@ -245,9 +246,9 @@ class OrderUpdate
      */
     private function dataValidation(Order $order, DataObject $amwalOrderData)
     {
-        if ($order->getOrderCurrencyCode() != $amwalOrderData->getMerchantCountryCode()) {
-            $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'merchant_country_code', $order->getOrderCurrencyCode(), $amwalOrderData->getMerchantCountryCode()));
-            throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'merchant_country_code', $order->getOrderCurrencyCode(), $amwalOrderData->getMerchantCountryCode()));
+        if ($order->getOrderCurrencyCode() != self::DEFAULT_CURRENCY_CODE) {
+            $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
+            throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
         }
         if (floatval($order->getBaseGrandTotal()) != floatval($amwalOrderData->getTotalAmount())) {
             $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'base_grand_total', 'total_amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount()));
