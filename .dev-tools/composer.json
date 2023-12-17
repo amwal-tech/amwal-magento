@@ -26,12 +26,5 @@
             "magento/magento-composer-installer": false,
             "phpstan/extension-installer": true
         }
-    },
-    "extra": {
-        "phpstan": {
-            "includes": [
-                "extension.neon"
-            ]
-        }
     }
 }
