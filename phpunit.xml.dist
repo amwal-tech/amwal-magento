@@ -4,6 +4,9 @@
          colors="true"
          columns="max"
          verbose="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         beStrictAboutOutputDuringTests="true"
          bootstrap="../../../dev/tests/unit/framework/bootstrap.php">
 
     <coverage processUncoveredFiles="true">
