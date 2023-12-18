@@ -78,19 +78,15 @@ jobs:
       - name: Set File Permissions
         run: sudo chmod -R 777 magento
 
-      - name: Run Amwal Payments Tests html coverage
+      - name: Run Amwal Payments Tests Suite
         if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --coverage-html build/coverage --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
+        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --colors=always --coverage-text --coverage-clover build/logs/clover.xml  --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml --coverage-html build/coverage/html --coverage-filter Amwal_Payments
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
           name: html-coverage-report
-          path: magento/build/coverage
-
-      - name: Run Amwal Payments clover coverage
-        if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --colors=always --coverage-text --coverage-clover build/logs/clover.xml  --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
+          path: magento/build/coverage/html
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
