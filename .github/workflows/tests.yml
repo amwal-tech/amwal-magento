@@ -102,3 +102,8 @@ jobs:
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+            fail_ci_if_error: true
+            flags: unittests
+            files: magento/build/logs/clover.xml
+            verbose: true
