@@ -129,4 +129,4 @@ jobs:
         with:
             fail_ci_if_error: true
             flags: phpunit
-            files: magento/build/logs/cobertura.xml
+            files: magento/build/coverage/cobertura.xml
