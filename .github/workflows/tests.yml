@@ -90,7 +90,7 @@ jobs:
 
       - name: Run Amwal Payments clover coverage
         if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --coverage-clover build/logs/clover.xml --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
+        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --colors=always --coverage-text --coverage-clover build/logs/clover.xml  --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
