@@ -4,15 +4,13 @@
          colors="true"
          columns="max"
          verbose="true"
+         forceCoversAnnotation="true"
          beStrictAboutCoversAnnotation="true"
          beStrictAboutOutputDuringTests="true"
          beStrictAboutTodoAnnotatedTests="true"
          cacheResultFile=".phpunit.cache/test-results"
          convertDeprecationsToExceptions="true"
          executionOrder="depends,defects"
-         failOnRisky="true"
-         failOnWarning="true"
-         forceCoversAnnotation="true"
          bootstrap="../../../dev/tests/unit/framework/bootstrap.php">
     <coverage
         cacheDirectory=".phpunit.cache/code-coverage"
