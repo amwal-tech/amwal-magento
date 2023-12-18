@@ -1,0 +1,4 @@
+fixes:
+  - "/home/runner/work/amwal-magento/amwal-magento/magento/vendor/amwal/payments/::"
+  - "magento/vendor/amwal/payments/::"
+  - "./magento/vendor/amwal/payments/::"
