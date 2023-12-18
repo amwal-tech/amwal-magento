@@ -32,6 +32,8 @@ class GetCartButtonConfig extends GetConfig
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
+        $quote = null;
+
         if ($cartId) {
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             if ($quoteIdMask) {
@@ -89,14 +91,22 @@ class GetCartButtonConfig extends GetConfig
 
         $street = $shippingAddress->getStreet()[0] ?? '';
         $street2 = $shippingAddress->getStreet()[1] ?? '';
-        $formatedAddress = json_encode(['street1' => $street, 'street2' => $street2, 'city' => $shippingAddress->getCity(), 'state' => $shippingAddress->getRegion() ?? $shippingAddress->getCity(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
+        $addressComponents = [
+            'street1' => $street,
+            'street2' => $street2,
+            'city' => $shippingAddress->getCity(),
+            'state' => $shippingAddress->getRegion() ?? $shippingAddress->getCity(),
+            'country' => $shippingAddress->getCountryId(),
+            'postcode' => $shippingAddress->getPostcode()
+        ];
+        $formattedAddress = json_encode($addressComponents);
 
-        $buttonConfig->setAddressRequired(false);
-        $buttonConfig->setInitialAddress($formatedAddress ?? null);
+        $buttonConfig->setInitialAddress($formattedAddress);
         $buttonConfig->setInitialEmail($shippingAddress->getEmail() ?? $billingAddress->getEmail() ?? $customer->getEmail() ?? null);
         $buttonConfig->setInitialPhone($shippingAddress->getTelephone() ?? $billingAddress->getTelephone() ?? null);
         $buttonConfig->setInitialFirstName($shippingAddress->getFirstname() ?? $billingAddress->getFirstname() ?? $customer->getFirstname() ?? null);
         $buttonConfig->setInitialLastName($shippingAddress->getLastname() ?? $billingAddress->getLastname() ?? $customer->getLastname() ?? null);
+        $buttonConfig->setAddressRequired(false);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
     }

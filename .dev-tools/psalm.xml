@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<psalm errorLevel='7'
+       resolveFromConfigFile='true'
+       xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+       xmlns='https://getpsalm.org/schema/config'
+       xsi:schemaLocation='https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd'
+       findUnusedBaselineEntry='true'
+       findUnusedCode='false'
+>
+    <projectFiles>
+        <directory name='../Model' />
+        <directory name='../Plugin' />
+        <directory name='../Cron' />
+        <directory name='../Block' />
+        <directory name='../Api' />
+        <directory name='../ViewModel' />
+        <directory name='../Test' />
+        <ignoreFiles>
+            <directory name='./' />
+        </ignoreFiles>
+    </projectFiles>
+
+    <issueHandlers>
+        <MethodSignatureMismatch errorLevel='suppress' />
+        <UndefinedClass errorLevel='suppress' />
+    </issueHandlers>
+</psalm>

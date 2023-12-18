@@ -44,6 +44,7 @@ class AddressResolver
     private ResourceConnection $resourceConnection;
     private LoggerInterface $logger;
     private LocaleResolver $localeResolver;
+    private AmwalAddressId $amwalAddressId;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -56,7 +57,8 @@ class AddressResolver
         Config $config,
         ResourceConnection $resourceConnection,
         LoggerInterface $logger,
-        LocaleResolver $localeResolver
+        LocaleResolver $localeResolver,
+        AmwalAddressId $amwalAddressId
     ) {
         $this->customerRepository = $customerRepository;
         $this->customerSession = $customerSession;
@@ -69,6 +71,7 @@ class AddressResolver
         $this->resourceConnection = $resourceConnection;
         $this->logger = $logger;
         $this->localeResolver = $localeResolver;
+        $this->amwalAddressId = $amwalAddressId;
     }
 
     /**
@@ -76,6 +79,7 @@ class AddressResolver
      * @param bool $isGuest
      * @return AddressInterface
      * @throws LocalizedException
+     * @throws RuntimeException
      */
     public function execute(DataObject $amwalOrderData, bool $isGuest): AddressInterface
     {
@@ -90,7 +94,7 @@ class AddressResolver
 
         if ($amwalAddressId = $amwalAddress->getId()) {
             $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-                AmwalAddressId::ATTRIBUTE_CODE,
+                $this->amwalAddressId->getAttributeCode(),
                 $amwalAddressId
             )->addFilter(
                 'parent_id',
@@ -168,7 +172,7 @@ class AddressResolver
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function createAddress(DataObject $amwalOrderData, bool $isGuest): AddressInterface
+    public function createAddress(DataObject $amwalOrderData, bool $isGuest): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
@@ -201,7 +205,7 @@ class AddressResolver
         }
 
         $customerAddress->setCustomAttribute(
-            AmwalAddressId::ATTRIBUTE_CODE,
+            $this->amwalAddressId->getAttributeCode(),
             $amwalAddress->getId() ?? self::TEMPORARY_DATA_VALUE
         );
 
@@ -218,7 +222,7 @@ class AddressResolver
      * @param AmwalAddressInterface $amwalAddress
      * @return bool
      */
-    private function isAddressMatched(AddressInterface $customerAddress, AmwalAddressInterface $amwalAddress): bool
+    public function isAddressMatched(AddressInterface $customerAddress, AmwalAddressInterface $amwalAddress): bool
     {
         if ($customerAddress->getCountryId() !== $amwalAddress->getCountry()) {
             return false;
@@ -346,7 +350,7 @@ class AddressResolver
      */
     private function assignAmwalAddressIdToCustomerAddress(AddressInterface $customerAddress, string $id): void
     {
-        $customerAddress->setCustomAttribute(AmwalAddressId::ATTRIBUTE_CODE, $id);
+        $customerAddress->setCustomAttribute($this->amwalAddressId->getAttributeCode(), $id);
         $this->addressRepository->save($customerAddress);
     }
 
@@ -356,7 +360,7 @@ class AddressResolver
      * @return void
      * @throws LocalizedException
      */
-    private function updateTmpAddressData(AddressInterface $customerAddress, DataObject $amwalOrderData): void
+    public function updateTmpAddressData(AddressInterface $customerAddress, DataObject $amwalOrderData): void
     {
         $customerAddress->setFirstname($amwalOrderData->getClientFirstName());
         $customerAddress->setLastname($amwalOrderData->getClientLastName());
@@ -417,7 +421,7 @@ class AddressResolver
      * @param DataObject $amwalOrderData
      * @return string
      */
-    private function getFirstName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): string
+    public function getFirstName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): string
     {
         if ($amwalAddress->getFirstName()) {
             return $amwalAddress->getFirstName();
@@ -434,7 +438,7 @@ class AddressResolver
      * @param DataObject $amwalOrderData
      * @return string
      */
-    private function getLastName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): ?string
+    public function getLastName(AmwalAddressInterface $amwalAddress, DataObject $amwalOrderData): ?string
     {
         if ($amwalAddress->getLastName()) {
             return $amwalAddress->getLastName();

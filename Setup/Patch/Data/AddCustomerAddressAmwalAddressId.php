@@ -77,4 +77,12 @@ class AddCustomerAddressAmwalAddressId implements DataPatchInterface
     {
         return [];
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAttributeCode(): string
+    {
+        return self::ATTRIBUTE_CODE;
+    }
 }

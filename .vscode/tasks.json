@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Run GitHub Actions",
+        "type": "shell",
+        "command": "act",
+        "args": ["-P ubuntu-latest=catthehacker/ubuntu:act-latest"],
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+  }
+  
