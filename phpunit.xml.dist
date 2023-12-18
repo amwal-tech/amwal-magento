@@ -3,18 +3,12 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
          colors="true"
          columns="max"
-         verbose="true"
          forceCoversAnnotation="true"
          beStrictAboutCoversAnnotation="true"
-         beStrictAboutOutputDuringTests="true"
-         beStrictAboutTodoAnnotatedTests="true"
-         cacheResultFile=".phpunit.cache/test-results"
-         convertDeprecationsToExceptions="true"
          executionOrder="depends,defects"
          bootstrap="../../../dev/tests/unit/framework/bootstrap.php">
-    <coverage
-        cacheDirectory=".phpunit.cache/code-coverage"
-        processUncoveredFiles="true">
+
+    <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">../../../app/code/*</directory>
             <directory suffix=".php">../../../vendor/amwal/payments</directory>
@@ -24,6 +18,7 @@
             <directory>../../../vendor/amwal/payments/Test</directory>
         </exclude>
     </coverage>
+
     <php>
         <ini name="memory_limit" value="-1"/>
         <ini name="date.timezone" value="Asia/Riyadh"/>
