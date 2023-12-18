@@ -98,6 +98,10 @@ jobs:
           name: clover-coverage-report
           path: magento/build/logs/clover.xml
 
+      - name: Run Amwal Payments Tests codecov
+        if: ${{true}}
+        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --coverage-clover coverage.xml --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
@@ -105,5 +109,5 @@ jobs:
         with:
             fail_ci_if_error: true
             flags: unittests
-            files: magento/build/logs/clover.xml
+            files: magento/coverage.xml
             verbose: true
