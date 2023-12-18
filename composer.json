@@ -40,7 +40,6 @@
     "require": {
         "php": ">=7.4.0",
         "giggsey/libphonenumber-for-php": "^8.13.7",
-        "magento/framework": "^103.0.4",
         "sentry/sdk": "^3.0"
     },
     "autoload": {

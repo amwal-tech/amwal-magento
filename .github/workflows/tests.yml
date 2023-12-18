@@ -1,10 +1,9 @@
-name: Static code analysis
+name: Tests
 
-on:
-  push:
+on: [push]
 
 jobs:
-  analyse:
+  test:
     runs-on: ubuntu-latest
 
     services:
@@ -31,20 +30,22 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [ 8.2 ]
+        php: [8.2]
 
     name: PHP ${{ matrix.php }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          path: Amwal_Payments
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: none, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader
-          coverage: none
+          extensions: xdebug, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader,pcntl, posix
+          coverage: xdebug
 
       - name: Install Fresh Magento Repo
         if: ${{true}}
@@ -55,9 +56,6 @@ jobs:
           process: 'create-project'
           magento_version: 2.4.6
           no_push: 1
-
-      - name: List
-        run: cd magento &&  ls -la
 
       - name: Extract Branch Name
         id: extract_branch
@@ -74,29 +72,38 @@ jobs:
       - name: Install Dependencies
         run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
 
-      - name: Run static code analysis
-        if: always()
-        uses: MAD-I-T/magento-actions@master
-        with:
-          process: 'phpstan'
-          exec_path: 'vendor/amwal/payments'
-
-      - name: Configure GitHub Token
-        run: sudo composer config --global --auth github-oauth.github.com ${{ secrets.GIT_TOKEN }}
-
-      - run: sudo composer validate --strict
-
-      - working-directory: .dev-tools
-        run: sudo composer install
-
-      - working-directory: .dev-tools
-        run: sudo composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
-
-      - working-directory: .dev-tools
-        run: ./vendor/bin/php-cs-fixer fix -vvv --diff --dry-run
-
       - name: List
-        run: ls -la
+        run: cd magento &&  ls -la
 
-      - working-directory: .dev-tools
-        run: ./vendor/bin/psalm --shepherd --show-info=true --output-format=github
+      - name: Run Amwal Payments Tests
+        if: ${{true}}
+        uses: MAD-I-T/magento-actions@master
+        env:
+          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+        with:
+          process: 'unit-test'
+          unit_test_config: 'dev/tests/unit/phpunit.xml.dist'
+          unit_test_subset_path: 'vendor/amwal/payments/Test/Unit'
+
+      - name: Set File Permissions
+        run: sudo chmod -R 777 magento
+
+      - name: Run Amwal Payments Tests html coverage
+        if: ${{true}}
+        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --coverage-html build/coverage --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: html-coverage-report
+          path: magento/build/coverage
+
+      - name: Run Amwal Payments clover coverage
+        if: ${{true}}
+        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --coverage-clover build/logs/clover.xml vendor/amwal/payments/Test/Unit
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: clover-coverage-report
+          path: magento/build/logs/clover.xml

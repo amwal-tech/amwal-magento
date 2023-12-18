@@ -1,0 +1,6 @@
+parameters:
+  level: 1
+  ignoreErrors:
+    - '#Access to an undefined property\s+.+#'
+    - '#Use service contracts to persist entities in favour of\s+.+#'
+    - '#Setter methods like \$this\(.+\)::setTemplate\(\) are deprecated in Block classes, use constructor arguments instead#'

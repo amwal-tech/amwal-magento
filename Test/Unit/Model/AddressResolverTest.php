@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Unit\Model;
+namespace Amwal\Payments\Test\Unit\Model;
 
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Amwal\Payments\Model\AddressResolver;
@@ -183,9 +183,24 @@ class AddressResolverTest extends TestCase
     private $testObject;
 
     /**
+     * @var Customer|MockObject
+     */
+    private $customer;
+
+    /**
+     * @var CustomerFactory|MockObject
+     */
+    private $customerFactory;
+
+    /**
      * @var Address
      */
     private $address;
+
+    /**
+     * @var \Magento\Customer\Model\ResourceModel\Address|MockObject
+     */
+    private $resource;
 
     /**
      * Main set up method

@@ -36,7 +36,7 @@ class OrderUpdate
     private InvoiceOrder $invoiceAmwalOrder;
     private LoggerInterface $logger;
     private AmwalClientFactory $amwalClientFactory;
-    private SentryExceptionReport $sentryExceptionReportr;
+    private SentryExceptionReport $sentryExceptionReport;
 
     const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
@@ -55,7 +55,7 @@ class OrderUpdate
         InvoiceOrder              $invoiceAmwalOrder,
         LoggerInterface           $logger,
         AmwalClientFactory        $amwalClientFactory,
-        SentryExceptionReport     $sentryExceptionReportr
+        SentryExceptionReport     $sentryExceptionReport
     )
     {
         $this->orderRepository = $orderRepository;
@@ -69,7 +69,7 @@ class OrderUpdate
         $this->invoiceAmwalOrder = $invoiceAmwalOrder;
         $this->logger = $logger;
         $this->amwalClientFactory = $amwalClientFactory;
-        $this->sentryExceptionReport = $sentryExceptionReportr;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /*
