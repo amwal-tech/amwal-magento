@@ -7,7 +7,6 @@
          beStrictAboutCoversAnnotation="true"
          beStrictAboutOutputDuringTests="true"
          beStrictAboutTodoAnnotatedTests="true"
-         bootstrap="vendor/autoload.php"
          cacheResultFile=".phpunit.cache/test-results"
          convertDeprecationsToExceptions="true"
          executionOrder="depends,defects"
