@@ -15,7 +15,7 @@
 [![CI status](https://github.com/amwal-tech/amwal-magento/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
 [![Tests status](https://github.com/amwal-tech/amwal-magento/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
 [![SCA status](https://github.com/amwal-tech/amwal-magento/actions/workflows/sca.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
-[![Codecov](https://codecov.io/github/amwal-tech/amwal-magento/branch/develop/graph/badge.svg?token=6Z986R91N2)](https://app.codecov.io/github/amwal-tech/amwal-magento)
+[![codecov](https://codecov.io/github/amwal-tech/amwal-magento/graph/badge.svg?token=6Z986R91N2)](https://codecov.io/github/amwal-tech/amwal-magento)
 [![Type coverage](https://shepherd.dev/github/amwal-tech/amwal-magento/coverage.svg)](https://shepherd.dev/github/amwal-tech/amwal-magento)
 
 Amwal is an emerging leader in authentication, identity orchestration, and frictionless payment solutions.
