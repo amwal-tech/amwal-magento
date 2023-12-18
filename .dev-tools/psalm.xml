@@ -5,16 +5,12 @@
        xmlns='https://getpsalm.org/schema/config'
        xsi:schemaLocation='https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd'
        findUnusedBaselineEntry='true'
-       findUnusedCode='false'
+       findUnusedCode='true'
+       findUnusedVariablesAndParams='true'
+       strictBinaryOperands='true'
 >
     <projectFiles>
-        <directory name='../Model' />
-        <directory name='../Plugin' />
-        <directory name='../Cron' />
-        <directory name='../Block' />
-        <directory name='../Api' />
-        <directory name='../ViewModel' />
-        <directory name='../Test' />
+        <directory name='../magento/vendor/amwal/payments' />
         <ignoreFiles>
             <directory name='./' />
         </ignoreFiles>
