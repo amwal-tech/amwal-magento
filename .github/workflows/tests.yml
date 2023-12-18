@@ -97,6 +97,30 @@ jobs:
         with:
           name: clover-coverage-report
           path: magento/build/logs/clover.xml
+          
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: cobertura-coverage-report
+          path: magento/build/coverage/cobertura.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: crap4j-coverage-report
+          path: magento/build/coverage/crap4j.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-xml-coverage-report
+          path: magento/build/coverage/coverage-xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: junit-coverage-report
+          path: magento/build/junit.xml
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
