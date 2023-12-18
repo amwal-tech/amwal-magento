@@ -30,7 +30,7 @@ jobs:
 
       - name: Install Dependencies and Upgrade
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER }} "cd /var/www/html && composer require amwal/payments:dev-${{ env.BRANCH_NAME }} && bin/magento setup:upgrade && bin/magento setup:di:compile && bin/magento setup:static-content:deploy -f && bin/magento cache:flush"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER }} "cd /var/www/html && composer require amwal/payments:dev-${{ env.BRANCH_NAME }} --no-interaction && bin/magento setup:upgrade && bin/magento setup:di:compile && bin/magento setup:static-content:deploy -f && bin/magento cache:flush"
 
       - name: Set the permission
         run: |
