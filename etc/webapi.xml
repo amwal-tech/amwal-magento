@@ -43,6 +43,12 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/amwal/order/:order_id" method="GET">
+        <service class="Amwal\Payments\Api\Data\AmwalOrderInterface" method="getOrderByOrderId"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
     <route url="/V1/amwal/order/status" method="POST">
         <service class="Amwal\Payments\Api\Data\AmwalOrderInterface" method="updateOrderStatus"/>
         <resources>
