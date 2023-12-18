@@ -35,7 +35,6 @@ class SentryExceptionReport
         if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
             return;
         }
-
         Sentry\configureScope(function (Scope $scope) {
             // Add extra context data to the exception
             $scope->setExtra('domain', $_SERVER['HTTP_HOST'] ?? 'runtime cli');
