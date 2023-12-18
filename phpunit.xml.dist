@@ -3,9 +3,6 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
          colors="true"
          columns="max"
-         forceCoversAnnotation="true"
-         beStrictAboutCoversAnnotation="true"
-         executionOrder="depends,defects"
          bootstrap="../../../dev/tests/unit/framework/bootstrap.php">
 
     <coverage processUncoveredFiles="true">
