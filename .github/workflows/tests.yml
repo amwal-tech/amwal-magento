@@ -97,7 +97,7 @@ jobs:
         with:
           name: clover-coverage-report
           path: magento/build/logs/clover.xml
-          
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
@@ -128,6 +128,5 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
             fail_ci_if_error: true
-            flags: unittests
-            files: magento/build/logs/clover.xml
-            verbose: true
+            flags: phpunit
+            files: magento/build/logs/cobertura.xml
