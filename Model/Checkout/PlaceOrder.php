@@ -29,6 +29,7 @@ use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Throwable;
 
 class PlaceOrder extends AmwalCheckoutAction
 {
