@@ -146,6 +146,7 @@ class Config
     {
         // TODO: Currently, it returns a static value ('SA'), which might not reflect the actual system or user settings.
         return 'SA';
+        /*
         if ($this->shouldUseSystemCountrySettings()) {
             return $this->scopeConfig->getValue(
                 'general/country/default',
@@ -153,6 +154,7 @@ class Config
             );
         }
         return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_COUNTRY_CODE, ScopeInterface::SCOPE_WEBSITE);
+        */
     }
 
     /**
