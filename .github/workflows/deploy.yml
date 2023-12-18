@@ -30,9 +30,13 @@ jobs:
       - name: Install Dependencies
         run: echo "composer packgae amwal/payments:dev-${{ env.BRANCH_NAME }}"
 
+      - name: Remove the package
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER }} "rm -fr /var/www/html/vendor/amwal/payments"
+
       - name: Install Dependencies and Upgrade
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER }} "cd /var/www/html && git reset --hard && composer require amwal/payments:dev-${{ env.BRANCH_NAME }} && bin/magento setup:upgrade && bin/magento setup:di:compile && bin/magento setup:static-content:deploy -f && bin/magento cache:flush"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER }} "cd /var/www/html && composer require amwal/payments:dev-${{ env.BRANCH_NAME }} && bin/magento setup:upgrade && bin/magento setup:di:compile && bin/magento setup:static-content:deploy -f && bin/magento cache:flush"
 
       - name: Set the permission
         run: |
