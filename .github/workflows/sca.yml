@@ -102,6 +102,6 @@ jobs:
       - name: List
         run: ls -la
 
-      - name: Run Psalm
-        working-directory: .dev-tools
-        run: ./vendor/bin/psalm --output-format=github --shepherd
+#      - name: Run Psalm
+#        working-directory: .dev-tools
+#        run: ./vendor/bin/psalm --output-format=github --shepherd

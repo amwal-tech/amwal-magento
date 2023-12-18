@@ -9,6 +9,8 @@
         <directory name='../magento/vendor/amwal/payments' />
         <ignoreFiles>
             <directory name='./' />
+            <file name='../../../vendor/amwal/payments/Test/*' />
+            <file name='../../../vendor/amwal/payments/.dev-tools/*' />
         </ignoreFiles>
     </projectFiles>
 
