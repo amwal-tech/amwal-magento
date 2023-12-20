@@ -98,7 +98,7 @@ class GetConfig
      * @param RefIdDataInterface $refIdData
      * @return void
      */
-    protected function addGenericButtonConfig(AmwalButtonConfig $buttonConfig, RefIdDataInterface $refIdData, Quote $quote): void
+    public function addGenericButtonConfig(AmwalButtonConfig $buttonConfig, RefIdDataInterface $refIdData, Quote $quote): void
     {
         $customerSession = $this->customerSessionFactory->create();
 
@@ -133,7 +133,6 @@ class GetConfig
             $buttonConfig->setInitialFirstName($initialAddressData['firstname']);
             $buttonConfig->setInitialLastName($initialAddressData['lastname']);
         }
-
     }
 
 
@@ -141,7 +140,7 @@ class GetConfig
      * @param Session $customerSession
      * @return array
      */
-    protected function getInitialAddressData(Session $customerSession, Quote $quote)
+    public function getInitialAddressData(Session $customerSession, Quote $quote)
     {
         $customer = $customerSession->getCustomer();
 
@@ -183,7 +182,7 @@ class GetConfig
      * @param string|null $cartId
      * @return string
      */
-    protected function getButtonId(?string $cartId): string
+    public function getButtonId(?string $cartId): string
     {
         $id = AmwalButtonConfigInterface::ID_PREFIX;
         if ($cartId) {
@@ -193,7 +192,12 @@ class GetConfig
     }
 
 
-    protected function phoneFormat($phone_number, $country)
+    /**
+     * @param string $phone_number
+     * @param string $country
+     * @return string
+     */
+    public function phoneFormat($phone_number, $country)
     {
         if (strpos($phone_number, '+') === 0) {
             return $phone_number;
