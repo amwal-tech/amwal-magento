@@ -83,20 +83,21 @@ class GetConfigTest extends TestCase
 
     public function testAddGenericButtonConfig()
     {
-        // Create mock objects for the dependencies that need to be injected
         $buttonConfig = $this->createMock(AmwalButtonConfig::class);
         $refIdData = $this->createMock(RefIdDataInterface::class);
         $quote = $this->createMock(Quote::class);
 
+        $this->customerSession = $this->createMock(Session::class);
+        $this->customerSession->method('isLoggedIn')->willReturn(true);
+        $this->getConfig->customerSession = $this->customerSession;
+
         // Call the method
         $this->getConfig->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
-        // Assert that the properties of $buttonConfig have been set correctly
         $this->assertEquals('quick-buy', $buttonConfig->getLabel());
         $this->assertTrue($buttonConfig->getAddressHandshake());
-        // Add more assertions for other properties as needed
-    }
 
+    }
 
     public function testGetInitialAddressData()
     {
@@ -105,7 +106,6 @@ class GetConfigTest extends TestCase
         $mockQuote = $this->createMock(Quote::class);
         $mockAmwalAddressFactory = $this->createMock(AmwalAddressInterfaceFactory::class);
 
-        // Mock Address and AmwalAddress (or the implementation of AmwalAddressInterface)
         $mockAddress = $this->createMock(Address::class);
         $mockAmwalAddress = $this->createMock(AmwalAddressInterface::class);
 
