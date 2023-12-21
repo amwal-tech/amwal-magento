@@ -90,8 +90,8 @@ class GetConfigTest extends TestCase
         'enablePreCheckoutTrigger' => self::ENABLE_PRE_CHECKOUT_TRIGGER,
         'darkMode' => self::DARK_MODE,
         'enablePrePayTrigger' => self::ENABLE_PRE_PAY_TRIGGER,
-        'installmentOptionsUrl' => self::INSTALLMENT_OPTIONS_URL
-        'initialAddress' => self::INITIAL_ADDRESS
+        'installmentOptionsUrl' => self::INSTALLMENT_OPTIONS_URL,
+        'initialAddress' => json_encode(self::INITIAL_ADDRESS)
     ];
 
     protected function setUp(): void
