@@ -63,6 +63,10 @@ class GetConfigTest extends TestCase
     private const DARK_MODE = 'off';
     private const ENABLE_PRE_PAY_TRIGGER = true;
     private const INSTALLMENT_OPTIONS_URL = '';
+    private const PLUGIN_VERSION = '1.0.0';
+    private const COUNTRY_CODE = 'SA';
+    private const MERCHANT_TEST_MODE = 'qa';
+    private const POSTCODE_OPTIONAL_COUNTRIES = ['SA'];
     private const INITIAL_ADDRESS = [
         'city' => self::CITY,
         'state' => self::STATE,
@@ -91,7 +95,11 @@ class GetConfigTest extends TestCase
         'darkMode' => self::DARK_MODE,
         'enablePrePayTrigger' => self::ENABLE_PRE_PAY_TRIGGER,
         'installmentOptionsUrl' => self::INSTALLMENT_OPTIONS_URL,
-        'initialAddress' => self::INITIAL_ADDRESS
+        'initialAddress' => self::INITIAL_ADDRESS,
+        'pluginVersion' => self::PLUGIN_VERSION,
+        'countryCode' => self::COUNTRY_CODE,
+        'testEnvironment' => self::MERCHANT_TEST_MODE,
+        'postcodeOptionalCountries' => self::POSTCODE_OPTIONAL_COUNTRIES
     ];
 
     protected function setUp(): void
@@ -153,13 +161,17 @@ class GetConfigTest extends TestCase
         $this->assertFalse($this->buttonConfigMock->getDisabled());
         $this->assertEquals('amwal-checkout', $this->buttonConfigMock->getId());
         $this->assertEquals(['SA'], $this->buttonConfigMock->getAllowedAddressCountries());
-        $this->assertEquals(['SA'], $this->buttonConfigMock->getAllowedAddressCities());
-        $this->assertEquals(['SA'], $this->buttonConfigMock->getAllowedAddressStates());
+        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_CITIES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressCities());
+        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_STATES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressStates());
         $this->assertTrue($this->buttonConfigMock->getEnablePreCheckoutTrigger());
         $this->assertEquals('off', $this->buttonConfigMock->getDarkMode());
         $this->assertTrue($this->buttonConfigMock->getEnablePrePayTrigger());
-        $this->assertEquals('', $this->buttonConfigMock->getMerchantId());
-        $this->assertEquals('', $this->buttonConfigMock->getInstallmentOptionsUrl());
+        $this->assertEquals(self::MERCHANT_ID, $this->buttonConfigMock->getMerchantId());
+        $this->assertEquals(self::INSTALLMENT_OPTIONS_URL, $this->buttonConfigMock->getInstallmentOptionsUrl());
+        $this->assertEquals(self::PLUGIN_VERSION, $this->buttonConfigMock->getPluginVersion());
+        $this->assertEquals(self::COUNTRY_CODE, $this->buttonConfigMock->getCountryCode());
+        $this->assertEquals(self::MERCHANT_TEST_MODE, $this->buttonConfigMock->getTestEnvironment());
+        $this->assertEquals(self::POSTCODE_OPTIONAL_COUNTRIES, $this->buttonConfigMock->getPostCodeOptionalCountries());
     }
 
     public function testGetInitialAddressData()
@@ -183,7 +195,6 @@ class GetConfigTest extends TestCase
         //$result = $this->getConfig->getInitialAddressData($mockCustomerSession, $mockQuote);
         //$this->assertIsArray($result);
     }
-
 
 
     public function testGetButtonId()
@@ -225,7 +236,10 @@ class GetConfigTest extends TestCase
     private function setButtonConfigData(bool $useTmp = false): void
     {
         foreach (self::MOCK_BUTTON_CONFIG_DATA as $key => $value) {
-          $this->buttonConfigMock->method('get' . ucfirst($key))->willReturn($value);
+            if (in_array($key, ['allowedAddressCities', 'allowedAddressStates', 'initialAddress'], true)) {
+                $value = json_encode($value, JSON_FORCE_OBJECT);
+            }
+            $this->buttonConfigMock->method('get' . ucfirst($key))->willReturn($value);
         }
     }
 }
