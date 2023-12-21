@@ -91,7 +91,7 @@ class GetConfigTest extends TestCase
         'darkMode' => self::DARK_MODE,
         'enablePrePayTrigger' => self::ENABLE_PRE_PAY_TRIGGER,
         'installmentOptionsUrl' => self::INSTALLMENT_OPTIONS_URL,
-        'initialAddress' => json_encode(self::INITIAL_ADDRESS)
+        'initialAddress' => self::INITIAL_ADDRESS
     ];
 
     protected function setUp(): void
