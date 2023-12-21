@@ -46,6 +46,54 @@ class GetConfigTest extends TestCase
     private const STREET_1 = 'Street 123';
     private const STREET_2 = '12345, Region';
 
+    private const MERCHANT_ID = 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47';
+    private const AMOUNT = 100.00;
+    private const LABEL = 'quick-buy';
+    private const ADDRESS_HANDSHAKE = true;
+    private const ADDRESS_REQUIRED = true;
+    private const EMAIL_REQUIRED = true;
+    private const REF_ID = '';
+    private const SHOW_PAYMENT_BRANDS = true;
+    private const DISABLED = false;
+    private const ID = 'amwal-checkout';
+    private const ALLOWED_ADDRESS_COUNTRIES = ['SA'];
+    private const ALLOWED_ADDRESS_CITIES = ['SA' => ['1110' => ['Riyadh'], '1111' => ['Dammam']]];
+    private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
+    private const ENABLE_PRE_CHECKOUT_TRIGGER = true;
+    private const DARK_MODE = 'off';
+    private const ENABLE_PRE_PAY_TRIGGER = true;
+    private const INSTALLMENT_OPTIONS_URL = '';
+    private const INITIAL_ADDRESS = [
+        'city' => self::CITY,
+        'state' => self::STATE,
+        'postcode' => self::POSTCODE,
+        'country' => self::COUNTRY,
+        'street1' => self::STREET_1,
+        'street2' => self::STREET_2,
+        'email' => self::EMAIL
+    ];
+
+    private const MOCK_BUTTON_CONFIG_DATA = [
+        'merchantId' => self::MERCHANT_ID,
+        'amount' => self::AMOUNT,
+        'label' => self::LABEL,
+        'addressHandshake' => self::ADDRESS_HANDSHAKE,
+        'addressRequired' => self::ADDRESS_REQUIRED,
+        'emailRequired' => self::EMAIL_REQUIRED,
+        'refId' => self::REF_ID,
+        'showPaymentBrands' => self::SHOW_PAYMENT_BRANDS,
+        'disabled' => self::DISABLED,
+        'id' => self::ID,
+        'allowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
+        'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
+        'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
+        'enablePreCheckoutTrigger' => self::ENABLE_PRE_CHECKOUT_TRIGGER,
+        'darkMode' => self::DARK_MODE,
+        'enablePrePayTrigger' => self::ENABLE_PRE_PAY_TRIGGER,
+        'installmentOptionsUrl' => self::INSTALLMENT_OPTIONS_URL
+        'initialAddress' => self::INITIAL_ADDRESS
+    ];
+
     protected function setUp(): void
     {
         $mockButtonConfigFactory = $this->createMock(AmwalButtonConfigFactory::class);
@@ -79,6 +127,8 @@ class GetConfigTest extends TestCase
             $mockRegionCollectionFactory,
             $mockQuoteIdMaskFactory
         );
+        $this->buttonConfigMock = $this->createMock(AmwalButtonConfigInterface::class);
+        $this->setButtonConfigData();
     }
 
     public function testAddGenericButtonConfig()
@@ -94,9 +144,22 @@ class GetConfigTest extends TestCase
         // Call the method
         $this->getConfig->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
-        $this->assertEquals('quick-buy', $buttonConfig->getLabel());
-        $this->assertTrue($buttonConfig->getAddressHandshake());
-
+        $this->assertEquals('quick-buy', $this->buttonConfigMock->getLabel());
+        $this->assertTrue($this->buttonConfigMock->getAddressHandshake());
+        $this->assertTrue($this->buttonConfigMock->getAddressRequired());
+        $this->assertTrue($this->buttonConfigMock->getEmailRequired());
+        $this->assertEquals('', $this->buttonConfigMock->getRefId());
+        $this->assertTrue($this->buttonConfigMock->getShowPaymentBrands());
+        $this->assertFalse($this->buttonConfigMock->getDisabled());
+        $this->assertEquals('amwal-checkout', $this->buttonConfigMock->getId());
+        $this->assertEquals(['SA'], $this->buttonConfigMock->getAllowedAddressCountries());
+        $this->assertEquals(['SA'], $this->buttonConfigMock->getAllowedAddressCities());
+        $this->assertEquals(['SA'], $this->buttonConfigMock->getAllowedAddressStates());
+        $this->assertTrue($this->buttonConfigMock->getEnablePreCheckoutTrigger());
+        $this->assertEquals('off', $this->buttonConfigMock->getDarkMode());
+        $this->assertTrue($this->buttonConfigMock->getEnablePrePayTrigger());
+        $this->assertEquals('', $this->buttonConfigMock->getMerchantId());
+        $this->assertEquals('', $this->buttonConfigMock->getInstallmentOptionsUrl());
     }
 
     public function testGetInitialAddressData()
@@ -154,5 +217,15 @@ class GetConfigTest extends TestCase
         $addressMock->method('getStreet')->willReturn([self::STREET_1, self::STREET_2]);
 
         return $addressMock;
+    }
+
+    /**
+     * Test adding generic button configuration
+     */
+    private function setButtonConfigData(bool $useTmp = false): void
+    {
+        foreach (self::MOCK_BUTTON_CONFIG_DATA as $key => $value) {
+          $this->buttonConfigMock->method('get' . ucfirst($key))->willReturn($value);
+        }
     }
 }
