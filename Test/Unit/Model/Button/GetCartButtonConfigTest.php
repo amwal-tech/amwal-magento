@@ -13,6 +13,8 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Magento\Quote\Model\Quote\Address;
+use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\QuoteIdMask;
 
 class GetCartButtonConfigTest extends TestCase
 {
@@ -26,7 +28,40 @@ class GetCartButtonConfigTest extends TestCase
     private const STATE = 'Riyadh';
     private const STREET_1 = 'Street 123';
     private const STREET_2 = '12345, Region';
-    private const MERCHANT_TEST_MODE = 'qa';
+    private const ALLOWED_ADDRESS_COUNTRIES = ['SA'];
+    private const ALLOWED_ADDRESS_CITIES = ['SA' => ['1110' => ['Riyadh'], '1111' => ['Dammam']]];
+    private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
+    private const CART_ID = 'vyO7NEqZbs1Rv6Z7NLewdlLpC0qufkmJ';
+    private const QUOTE_ID = 1;
+    private const ID = 'amwal-checkout';
+    private const AMOUNT = 100.00;
+
+    private const INITIAL_ADDRESS = [
+        'city' => self::CITY,
+        'state' => self::STATE,
+        'postcode' => self::POSTCODE,
+        'country' => self::COUNTRY,
+        'street1' => self::STREET_1,
+        'street2' => self::STREET_2,
+        'email' => self::EMAIL
+    ];
+
+    private const MOCK_BUTTON_CONFIG_DATA = [
+        'addressRequired' => false,
+        'enablePrePayTrigger' => true,
+        'enablePreCheckoutTrigger' => false,
+        'initialAddress' => self::INITIAL_ADDRESS,
+        'initialEmail' => self::EMAIL,
+        'initialPhone' => self::PHONE_NUMBER,
+        'initialFirstName' => self::FIRST_NAME,
+        'initialLastName' => self::LAST_NAME,
+        'allowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
+        'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
+        'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
+        'id' => self::ID,
+        'cartId' => self::CART_ID,
+        'amount' => self::AMOUNT
+    ];
 
     private $getCartButtonConfig;
     private $checkoutSessionMock;
@@ -40,6 +75,7 @@ class GetCartButtonConfigTest extends TestCase
 
         $this->checkoutSessionMock = $this->createMock(CheckoutSession::class);
         $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
+        $this->buttonConfigMock = $this->createMock(AmwalButtonConfigInterface::class);
 
         $this->getCartButtonConfig = $objectManager->getObject(
             GetCartButtonConfig::class,
@@ -48,6 +84,8 @@ class GetCartButtonConfigTest extends TestCase
                 'cartRepository' => $this->cartRepositoryMock
             ]
         );
+
+        $this->setButtonConfigData();
     }
 
     /**
@@ -59,11 +97,27 @@ class GetCartButtonConfigTest extends TestCase
         $amwalButtonConfigMock = $this->createMock(AmwalButtonConfig::class);
         $refIdDataMock = $this->createMock(RefIdDataInterface::class);
         $quoteMock = $this->createMock(Quote::class);
+        $cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
+        $quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
+        $checkoutSessionFactoryMock = $this->createMock(CheckoutSessionFactory::class);
+        $checkoutSessionMock = $this->createMock(CheckoutSession::class);
+        $quoteIdMaskMock = $this->createMock(QuoteIdMask::class);
 
-        $this->checkoutSessionMock->method('getQuote')->willReturn($quoteMock);
-        $this->cartRepositoryMock->method('get')->willReturn($quoteMock);
+        $quoteMock->method('getShippingAddress')->willReturn($this->createMockAddress());
+        $quoteMock->method('getBillingAddress')->willReturn($this->createMockAddress());
+        $quoteMock->method('getId')->willReturn(self::QUOTE_ID);
+
+        $quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
+        $checkoutSessionFactoryMock->method('create')->willReturn($checkoutSessionMock);
+        $checkoutSessionMock->method('getQuote')->willReturn($quoteMock);
+        $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
+        $cartRepositoryMock->method('get')->willReturn($quoteMock);
+
+        // Assert outcomes
+        $this->assertEquals($amwalButtonConfigMock, $this->getCartButtonConfig->execute($refIdDataMock, $checkoutType, self::CART_ID));
 
     }
+
 
     /**
      * Test adding regular checkout button configuration
@@ -74,30 +128,26 @@ class GetCartButtonConfigTest extends TestCase
         $quoteMock = $this->createMock(Quote::class);
 
         $this->checkoutSessionMock->method('getQuote')->willReturn($quoteMock);
-
-        $shippingAddressMock = $this->createMockAddress();
-        $billingAddressMock = $this->createMockAddress();
-
-        $quoteMock->method('getShippingAddress')->willReturn($shippingAddressMock);
-        $quoteMock->method('getBillingAddress')->willReturn($billingAddressMock);
-
-        $amwalButtonConfigMock->expects($this->once())->method('setAddressRequired')->with(false);
-        $amwalButtonConfigMock->expects($this->once())->method('setEnablePrePayTrigger')->with(true);
-        $amwalButtonConfigMock->expects($this->once())->method('setEnablePreCheckoutTrigger')->with(false);
-        $amwalButtonConfigMock->expects($this->once())->method('setInitialAddress')->with(json_encode([
-            'street1' => self::STREET_1,
-            'street2' => self::STREET_2,
-            'city' => self::CITY,
-            'state' => self::STATE,
-            'country' => self::COUNTRY,
-            'postcode' => self::POSTCODE
-        ]));
-        $amwalButtonConfigMock->expects($this->once())->method('setInitialEmail')->with(self::EMAIL);
-        $amwalButtonConfigMock->expects($this->once())->method('setInitialPhone')->with(self::PHONE_NUMBER);
-        $amwalButtonConfigMock->expects($this->once())->method('setInitialFirstName')->with(self::FIRST_NAME);
-        $amwalButtonConfigMock->expects($this->once())->method('setInitialLastName')->with(self::LAST_NAME);
+        $quoteMock->method('getShippingAddress')->willReturn($this->createMockAddress());
+        $quoteMock->method('getBillingAddress')->willReturn($this->createMockAddress());
 
         $this->getCartButtonConfig->addRegularCheckoutButtonConfig($amwalButtonConfigMock, $quoteMock);
+
+        // Assert outcomes
+        $this->assertEquals(json_encode(self::INITIAL_ADDRESS), $this->buttonConfigMock->getInitialAddress());
+        $this->assertEquals(self::EMAIL, $this->buttonConfigMock->getInitialEmail());
+        $this->assertEquals(self::PHONE_NUMBER, $this->buttonConfigMock->getInitialPhone());
+        $this->assertEquals(self::FIRST_NAME, $this->buttonConfigMock->getInitialFirstName());
+        $this->assertEquals(self::LAST_NAME, $this->buttonConfigMock->getInitialLastName());
+        $this->assertEquals(false, $this->buttonConfigMock->getAddressRequired());
+        $this->assertEquals(true, $this->buttonConfigMock->getEnablePrePayTrigger());
+        $this->assertEquals(false, $this->buttonConfigMock->getEnablePreCheckoutTrigger());
+        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_CITIES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressCities());
+        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_STATES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressStates());
+        $this->assertEquals(self::ALLOWED_ADDRESS_COUNTRIES, $this->buttonConfigMock->getAllowedAddressCountries());
+        $this->assertEquals(self::ID, $this->buttonConfigMock->getId());
+        $this->assertEquals(self::CART_ID, $this->buttonConfigMock->getCartId());
+        $this->assertEquals(self::AMOUNT, $this->buttonConfigMock->getAmount());
     }
 
     /**
@@ -134,5 +184,18 @@ class GetCartButtonConfigTest extends TestCase
         $addressMock->method('getStreet')->willReturn([self::STREET_1, self::STREET_2]);
 
         return $addressMock;
+    }
+
+    /**
+     * Test adding generic button configuration
+     */
+    private function setButtonConfigData(bool $useTmp = false): void
+    {
+        foreach (self::MOCK_BUTTON_CONFIG_DATA as $key => $value) {
+            if (in_array($key, ['allowedAddressCities', 'allowedAddressStates', 'initialAddress'], true)) {
+                $value = json_encode($value, JSON_FORCE_OBJECT);
+            }
+            $this->buttonConfigMock->method('get' . ucfirst($key))->willReturn($value);
+        }
     }
 }

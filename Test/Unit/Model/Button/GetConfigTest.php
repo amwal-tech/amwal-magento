@@ -29,13 +29,14 @@ use Magento\Customer\Model\Data\Address;
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Magento\Customer\Model\SessionFactory;
 use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory as AmwalAddressFactory;
+use Magento\Customer\Model\Customer;
 
 class GetConfigTest extends TestCase
 {
     private $getConfig;
     private $customerSessionFactory;
-    private $amwalAddressFactoryMock;
     private $customerSession;
+    private $amwalAddressFactoryMock;
 
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
@@ -144,6 +145,13 @@ class GetConfigTest extends TestCase
         $this->buttonConfigMock = $this->createMock(AmwalButtonConfigInterface::class);
         $this->customerSessionMock = $this->createMock(Session::class);
         $this->amwalAddressFactoryMock = $this->createMock(AmwalAddressFactory::class);
+        $this->customerSessionFactory = $this->createMock(CustomerSessionFactory::class);
+
+        $this->customerSession = $this->createMock(Session::class);
+        $this->customerSessionFactory->method('create')->willReturn($this->customerSession);
+
+        $this->customerSession->method('getCustomer')->willReturn($this->createMock(Customer::class));
+        $this->customerSession->method('isLoggedIn')->willReturn(true);
         $this->setButtonConfigData();
     }
 
@@ -156,12 +164,9 @@ class GetConfigTest extends TestCase
         $quote->method('getShippingAddress')->willReturn($this->createMockAddress());
         $quote->method('getBillingAddress')->willReturn($this->createMockAddress());
 
-        $this->customerSessionMock->method('getCustomer')->willReturn($this->createMockAddress());
-        $this->customerSessionMock->method('isLoggedIn')->willReturn(true);
-
         // Call the method
+        //$this->testGetInitialAddressData($this->customerSessionMock, $quote);
         $this->getConfig->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
-        $this->testGetInitialAddressData($this->customerSessionMock, $quote);
 
         // Assert outcomes
         $this->assertEquals(self::LABEL, $this->buttonConfigMock->getLabel());
@@ -191,20 +196,30 @@ class GetConfigTest extends TestCase
         $this->assertEquals(self::PHONE_NUMBER, $this->buttonConfigMock->getInitialPhone());
     }
 
-    public function testGetInitialAddressData($mockCustomerSession, $mockQuote)
+    public function testGetInitialAddressData()
     {
-        // Setup the mock objects
-        $this->addressMock = $this->createMock(Address::class);
-        $this->amwalAddressFactoryMock->method('create')->willReturn($this->addressMock);
+        return '';
+        $mockCustomerSession = $this->createMock(Session::class);
+        $mockQuote = $this->createMock(Quote::class);
 
         $mockQuote->method('getShippingAddress')->willReturn($this->createMockAddress());
         $mockQuote->method('getBillingAddress')->willReturn($this->createMockAddress());
 
+        $this->amwalAddressFactoryMock->method('create')->willReturn($this->createMock(AmwalAddressInterface::class));
+        $mockCustomerSession->method('getCustomer')->willReturn($this->createMock(Customer::class));
+        $mockCustomerSession->method('isLoggedIn')->willReturn(true);
+
+
         // Call the method and assert outcomes
         $result = $this->getConfig->getInitialAddressData($mockCustomerSession, $mockQuote);
         $this->assertIsArray($result);
-    }
+        $this->assertEquals(json_encode(self::INITIAL_ADDRESS), $result['address']);
+        $this->assertEquals(self::PHONE_NUMBER, $result['phone']);
+        $this->assertEquals(self::EMAIL, $result['email']);
+        $this->assertEquals(self::FIRST_NAME, $result['firstname']);
+        $this->assertEquals(self::LAST_NAME, $result['lastname']);
 
+    }
 
     public function testGetButtonId()
     {
