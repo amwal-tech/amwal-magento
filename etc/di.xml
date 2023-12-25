@@ -120,4 +120,7 @@
     <type name="Magento\Sales\Model\ResourceModel\Order\Grid\Collection">
         <plugin name="AmwalSalesOrderGrid" type="\Amwal\Payments\Plugin\Sales\Order\SalesOrderGridPlugin" />
     </type>
+    <type name="Magento\Quote\Model\QuoteManagement">
+        <plugin name="amwal_quote_update" type="Amwal\Payments\Plugin\Quote\UpdateQuote" sortOrder="10" />
+    </type>
 </config>
