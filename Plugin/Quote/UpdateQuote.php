@@ -7,9 +7,25 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteManagement;
 use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
+use Magento\Store\Model\StoreManagerInterface;
 
 class UpdateQuote
 {
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * Constructor
+     *
+     * @param StoreManagerInterface $storeManager
+     */
+    public function __construct(StoreManagerInterface $storeManager)
+    {
+        $this->storeManager = $storeManager;
+    }
+
     /**
      * Before submit quote plugin
      * @param QuoteManagement $subject
@@ -17,9 +33,11 @@ class UpdateQuote
      */
     public function beforeSubmit(QuoteManagement $subject, Quote $quote)
     {
+        $store = $this->storeManager->getStore();
         $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
         $quote->getPayment()->setQuote($quote);
         $quote->setPaymentMethod(ConfigProvider::CODE);
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+        $quote->setStoreId($store->getId());
     }
 }
