@@ -72,6 +72,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                         self.productButtonContainer.classList.remove('hidden');
                     }
                 }, this);
+                checkAddToCartButton();
             })
             amwalButtonObserver.observe(self.productButtonContainer, {
                 childList: true,
@@ -81,6 +82,18 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             });
 
             const addToCartForm = $("#" + formID);
+
+            /**
+             * Check if the 'Add to Cart' button is enabled and displayed.
+             */
+            const checkAddToCartButton = () => {
+                const addToCartButton = addToCartForm.find('button[type="submit"]');
+                if (addToCartButton.length && addToCartButton.is(':visible')) {
+                    self.productButtonContainer.classList.remove('hidden');
+                } else {
+                  self.productButtonContainer.classList.add('hidden');
+                }
+            }
 
             /**
              * Check if the product form is valid
