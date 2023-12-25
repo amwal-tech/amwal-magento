@@ -39,6 +39,11 @@ class UpdateQuoteTest extends TestCase
      */
     private $storeMock;
 
+    /**
+     * @var Payment|MockObject
+     */
+    private $paymentMock;
+
     private const STORE_ID = 1;
 
     protected function setUp(): void
