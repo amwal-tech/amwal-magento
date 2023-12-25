@@ -5,9 +5,6 @@ namespace Amwal\Payments\Plugin\Quote;
 
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteManagement;
-use Magento\Quote\Api\Data\AddressInterface;
-use Magento\Quote\Api\Data\PaymentInterface;
-use Magento\Quote\Api\Data\ShippingInterface;
 use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 
