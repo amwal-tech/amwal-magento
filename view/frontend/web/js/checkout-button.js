@@ -72,7 +72,6 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                         self.productButtonContainer.classList.remove('hidden');
                     }
                 }, this);
-                checkAddToCartButton();
             })
             amwalButtonObserver.observe(self.productButtonContainer, {
                 childList: true,
@@ -84,24 +83,13 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             const addToCartForm = $("#" + formID);
 
             /**
-             * Check if the 'Add to Cart' button is enabled and displayed.
-             */
-            const checkAddToCartButton = () => {
-                const addToCartButton = addToCartForm.find('button[type="submit"]');
-                if (addToCartButton.length && addToCartButton.is(':visible')) {
-                    self.productButtonContainer.classList.remove('hidden');
-                } else {
-                  self.productButtonContainer.classList.add('hidden');
-                }
-            }
-
-            /**
              * Check if the product form is valid
              * @return Boolean
              */
             const isProductFormValid = () => {
+                const addToCartButton = addToCartForm.find('button[type="submit"]');
                 addToCartForm.validation();
-                const formIsValid = addToCartForm.validation('isValid');
+                const formIsValid = addToCartForm.validation('isValid') && addToCartButton.length && addToCartButton.is(':visible');
                 addToCartForm.validation('clearError');
                 return formIsValid;
             }
