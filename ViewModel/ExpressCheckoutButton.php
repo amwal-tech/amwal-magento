@@ -88,8 +88,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function isExpressCheckoutActive(): bool
     {
-        $storeCurrencyCode = $this->storeManager->getStore()->getCurrentCurrencyCode();
-        return true; //!(!$this->config->isActive() || !$this->config->isExpressCheckoutActive());
+        return !(!$this->config->isActive() || !$this->config->isExpressCheckoutActive());
     }
 
     /**
