@@ -18,6 +18,17 @@ use Magento\Quote\Model\QuoteIdMask;
 
 class GetCartButtonConfigTest extends TestCase
 {
+    private $buttonConfigMock;
+    private $buttonConfigFactoryMock;
+    private $quoteIdMaskFactoryMock;
+    private $checkoutSessionFactoryMock;
+    private $quoteIdMaskMock;
+    private $quoteMock;
+    private $cartRepositoryMock;
+    private $quoteRepositoryMock;
+    private $checkoutSessionMock;
+    private $getCartButtonConfig;
+
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
     private const PHONE_NUMBER = '+95512345678';
@@ -62,10 +73,6 @@ class GetCartButtonConfigTest extends TestCase
         'cartId' => self::CART_ID,
         'amount' => self::AMOUNT
     ];
-
-    private $getCartButtonConfig;
-    private $checkoutSessionMock;
-    private $cartRepositoryMock;
 
     protected function setUp(): void
     {
