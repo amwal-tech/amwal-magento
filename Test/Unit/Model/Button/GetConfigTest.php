@@ -37,7 +37,18 @@ class GetConfigTest extends TestCase
     private $customerSessionFactory;
     private $customerSession;
     private $amwalAddressFactoryMock;
-
+    private $buttonConfigMock;
+    private $customerSessionMock;
+    private $storeManagerMock;
+    private $checkoutSessionFactoryMock;
+    private $cityHelperMock;
+    private $refIdManagementMock;
+    private $cartRepositoryMock;
+    private $productRepositoryMock;
+    private $jsonSerializerMock;
+    private $regionCollectionFactoryMock;
+    private $quoteIdMaskFactoryMock;
+    
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
     private const PHONE_NUMBER = '+95512345678';
