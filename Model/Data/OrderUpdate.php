@@ -249,7 +249,7 @@ class OrderUpdate
             $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
             throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
         }
-        if (floatval($order->getGrandTotal()) != floatval($amwalOrderData->getTotalAmount())) {
+        if ((float)$order->getGrandTotal() != (float)$amwalOrderData->getTotalAmount()) {
             $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
             throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
         }

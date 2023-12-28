@@ -52,6 +52,7 @@ class UpdateQuoteTest extends TestCase
 
     private const STORE_ID = 1;
     private const CURRENCY_CODE = 'SAR';
+    private const AMWAL_ORDER_ID = '06da61df-33b9-49f2-bf3e-f36cf70d3428';
 
     protected function setUp(): void
     {
@@ -76,7 +77,10 @@ class UpdateQuoteTest extends TestCase
         $storeIdPassed = null;
         $isAmwalApiCallPassed = null;
         $importDataArgument = null;
-        $currencyCodePassed = null;
+
+        $this->quoteMock->method('getData')
+            ->with($this->equalTo('amwal_order_id'))
+            ->willReturn(self::AMWAL_ORDER_ID);
 
         $this->quoteMock->expects($this->once())
             ->method('setData')
@@ -94,10 +98,6 @@ class UpdateQuoteTest extends TestCase
 
         $this->quoteMock->expects($this->once())
             ->method('setStoreId')
-            ->with($this->equalTo(self::STORE_ID));
-
-        $this->quoteMock->expects($this->once())
-            ->method('setStoreId')
             ->with($this->equalTo(self::STORE_ID))
             ->willReturnCallback(function ($storeId) use (&$storeIdPassed) {
                 $storeIdPassed = $storeId;
@@ -110,5 +110,6 @@ class UpdateQuoteTest extends TestCase
         $this->assertEquals(true, $isAmwalApiCallPassed);
         $this->assertEquals(['method' => ConfigProvider::CODE], $importDataArgument);
         $this->assertEquals(self::CURRENCY_CODE, $this->configMock->getCurrencyCode());
+        $this->assertEquals(self::AMWAL_ORDER_ID, $this->quoteMock->getData('amwal_order_id'));
     }
 }

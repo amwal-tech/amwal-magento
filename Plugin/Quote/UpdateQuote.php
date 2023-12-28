@@ -42,7 +42,7 @@ class UpdateQuote
     public function beforeSubmit(QuoteManagement $subject, Quote $quote)
     {
         $store = $this->storeManager->getStore();
-        if (!$quote->getAmwalOrderId()) {
+        if (!$quote->getData('amwal_order_id')) {
             return;
         }
         $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
