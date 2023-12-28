@@ -26,6 +26,8 @@
                 <cronjob_enable>1</cronjob_enable>
                 <order_status_changed_customer_email>1</order_status_changed_customer_email>
                 <order_status_changed_admin_email>1</order_status_changed_admin_email>
+                <country_code><![CDATA[SA]]></country_code>
+                <currency_code><![CDATA[SAR]]></currency_code>
             </amwal_payments>
         </payment>
         <dev>

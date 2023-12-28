@@ -117,8 +117,6 @@ class PayOrder extends AmwalCheckoutAction
         }
 
         $quote = $this->quoteRepository->get($order->getQuoteId());
-        $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
-
         $this->updateCustomerName($order, $amwalOrderData);
         $this->updateAddressData($quote, $amwalOrderData);
         $this->updateAddressData($order, $amwalOrderData);

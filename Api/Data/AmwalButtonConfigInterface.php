@@ -31,9 +31,7 @@ interface AmwalButtonConfigInterface
     public const INITIAL_PHONE = 'initial_phone';
     public const PLUGIN_VERSION = 'plugin_version';
     public const CART_ID = 'cart_id';
-
     public const INITIAL_FIRST_NAME = 'initial_first_name';
-
     public const INITIAL_LAST_NAME = 'initial_last_name';
 
     /**
@@ -334,5 +332,4 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setCartId(?string $cartId): AmwalButtonConfigInterface;
-
 }

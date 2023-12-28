@@ -88,7 +88,8 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
              */
             const isProductFormValid = () => {
                 addToCartForm.validation();
-                const formIsValid = addToCartForm.validation('isValid');
+                const currency = document.querySelector('meta[property="product:price:currency"]').getAttribute('content');
+                const formIsValid = addToCartForm.validation('isValid') && currency === 'SAR';
                 addToCartForm.validation('clearError');
                 return formIsValid;
             }

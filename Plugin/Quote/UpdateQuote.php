@@ -8,6 +8,7 @@ use Magento\Quote\Model\QuoteManagement;
 use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Magento\Store\Model\StoreManagerInterface;
+use Amwal\Payments\Model\Config;
 
 class UpdateQuote
 {
@@ -17,13 +18,20 @@ class UpdateQuote
     private $storeManager;
 
     /**
+     * @var Config
+     */
+    private $config;
+
+    /**
      * Constructor
      *
      * @param StoreManagerInterface $storeManager
+     * @param Config $config
      */
-    public function __construct(StoreManagerInterface $storeManager)
+    public function __construct(StoreManagerInterface $storeManager, Config $config)
     {
         $this->storeManager = $storeManager;
+        $this->config = $config;
     }
 
     /**
@@ -39,5 +47,11 @@ class UpdateQuote
         $quote->setPaymentMethod(ConfigProvider::CODE);
         $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
         $quote->setStoreId($store->getId());
+
+        $quote->setQuoteCurrencyCode($this->config->getCurrencyCode());
+        $quote->setStoreCurrencyCode($this->config->getCurrencyCode());
+        $quote->setGlobalCurrencyCode($this->config->getCurrencyCode());
+
+        $quote->save();
     }
 }

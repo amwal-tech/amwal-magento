@@ -114,6 +114,7 @@ class InvoiceOrder extends AmwalCheckoutAction
         $status = $this->config->getOrderConfirmedStatus();
         $order->setState($status);
         $order->setStatus($status);
+        $order->setOrderCurrencyCode($this->config->getCurrencyCode());
 
         $order->addCommentToStatusHistory(
             __('Successfully completed Amwal payment with transaction ID %1', $amwalOrderData->getId())
