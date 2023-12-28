@@ -42,6 +42,9 @@ class UpdateQuote
     public function beforeSubmit(QuoteManagement $subject, Quote $quote)
     {
         $store = $this->storeManager->getStore();
+        if (!$quote->getAmwalOrderId()) {
+            return;
+        }
         $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
         $quote->getPayment()->setQuote($quote);
         $quote->setPaymentMethod(ConfigProvider::CODE);

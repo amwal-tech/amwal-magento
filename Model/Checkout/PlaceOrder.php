@@ -205,6 +205,7 @@ class PlaceOrder extends AmwalCheckoutAction
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
+        $quote->setAmwalOrderId($amwalOrderId);
         $this->quoteRepository->save($quote);
 
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
