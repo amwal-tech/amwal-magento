@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Magento\Quote\Model\Quote\Payment;
+use Amwal\Payments\Model\Config;
 
 class UpdateQuoteTest extends TestCase
 {
@@ -44,7 +45,13 @@ class UpdateQuoteTest extends TestCase
      */
     private $paymentMock;
 
+    /**
+     * @var Config|MockObject
+     */
+    private $configMock;
+
     private const STORE_ID = 1;
+    private const CURRENCY_CODE = 'SAR';
 
     protected function setUp(): void
     {
@@ -58,7 +65,10 @@ class UpdateQuoteTest extends TestCase
         $this->paymentMock = $this->createMock(Payment::class);
         $this->quoteMock->method('getPayment')->willReturn($this->paymentMock);
 
-        $this->updateQuote = new UpdateQuote($this->storeManagerMock);
+        $this->configMock = $this->createMock(Config::class);
+        $this->configMock->method('getCurrencyCode')->willReturn(self::CURRENCY_CODE);
+
+        $this->updateQuote = new UpdateQuote($this->storeManagerMock, $this->configMock);
     }
 
     public function testBeforeSubmit()
@@ -66,6 +76,7 @@ class UpdateQuoteTest extends TestCase
         $storeIdPassed = null;
         $isAmwalApiCallPassed = null;
         $importDataArgument = null;
+        $currencyCodePassed = null;
 
         $this->quoteMock->expects($this->once())
             ->method('setData')
@@ -92,11 +103,12 @@ class UpdateQuoteTest extends TestCase
                 $storeIdPassed = $storeId;
             });
 
-        $this->updateQuote->beforeSubmit($this->quoteManagementMock, $this->quoteMock);
+        $this->updateQuote->beforeSubmit($this->quoteManagementMock, $this->quoteMock, $this->configMock);
 
         // Assert outcomes
         $this->assertEquals(self::STORE_ID, $storeIdPassed);
         $this->assertEquals(true, $isAmwalApiCallPassed);
         $this->assertEquals(['method' => ConfigProvider::CODE], $importDataArgument);
+        $this->assertEquals(self::CURRENCY_CODE, $this->configMock->getCurrencyCode());
     }
 }
