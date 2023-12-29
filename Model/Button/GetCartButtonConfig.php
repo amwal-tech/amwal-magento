@@ -14,6 +14,8 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+
+
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
@@ -44,6 +46,7 @@ class GetCartButtonConfig extends GetConfig
             }
             $buttonConfig->setCartId($cartId);
         }
+        $buttonConfig->setQuote($quote->getData());
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
         $buttonConfig->setAmount($this->getAmount($quote));

@@ -5,9 +5,30 @@ namespace Amwal\Payments\Model\Data;
 
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Magento\Framework\DataObject;
+use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 
 class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
 {
+
+    /**
+     * @var JsonSerializer
+     */
+    private $jsonSerializer;
+
+    /**
+     * Constructor
+     *
+     * @param JsonSerializer $jsonSerializer
+     * @param array $data
+     */
+    public function __construct(
+        JsonSerializer $jsonSerializer,
+        array $data = []
+    ) {
+        $this->jsonSerializer = $jsonSerializer;
+        parent::__construct($data);
+    }
+
 
     /**
      * @inheritDoc
@@ -442,5 +463,23 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     public function setInitialLastName(?string $initialLastName): AmwalButtonConfigInterface
     {
         return $this->setData(self::INITIAL_LAST_NAME, $initialLastName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getQuote(): string
+    {
+        return $this->getData(self::QUOTE);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setQuote($quote): AmwalButtonConfigInterface
+    {
+        $jsonQuote = $this->jsonSerializer->serialize($quote);
+        $this->setData(self::QUOTE, $jsonQuote);
+        return $this;
     }
 }

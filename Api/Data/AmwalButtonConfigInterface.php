@@ -31,6 +31,8 @@ interface AmwalButtonConfigInterface
     public const INITIAL_PHONE = 'initial_phone';
     public const PLUGIN_VERSION = 'plugin_version';
     public const CART_ID = 'cart_id';
+    public const QUOTE = 'quote';
+
 
     public const INITIAL_FIRST_NAME = 'initial_first_name';
 
@@ -335,4 +337,17 @@ interface AmwalButtonConfigInterface
      */
     public function setCartId(?string $cartId): AmwalButtonConfigInterface;
 
+
+    /**
+     * @return string|null
+     */
+    public function getQuote(): string;
+
+    /**
+     * Set quote data.
+     *
+     * @param string $quote
+     * @return AmwalButtonConfigInterface
+     */
+    public function setQuote($quote): AmwalButtonConfigInterface;
 }
