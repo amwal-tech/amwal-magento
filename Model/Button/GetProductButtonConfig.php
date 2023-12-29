@@ -3,11 +3,9 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Button;
 
-use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
-use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 

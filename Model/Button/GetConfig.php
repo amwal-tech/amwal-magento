@@ -20,12 +20,9 @@ use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionColl
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\QuoteIdMask;
-use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
-use Magento\Framework\Locale\ResolverInterface;
 
 class GetConfig
 {
@@ -42,8 +39,6 @@ class GetConfig
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
     protected RegionCollectionFactory $regionCollectionFactory;
-    protected RegionFactory $regionFactory;
-    protected QuoteIdMaskFactory $quoteIdMaskFactory;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -59,7 +54,6 @@ class GetConfig
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
      * @param RegionCollectionFactory $regionCollectionFactory
-     *
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
@@ -74,8 +68,7 @@ class GetConfig
         CartRepositoryInterface $cartRepository,
         ProductRepositoryInterface $productRepository,
         Json $jsonSerializer,
-        RegionCollectionFactory $regionCollectionFactory,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        RegionCollectionFactory $regionCollectionFactory
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -90,12 +83,12 @@ class GetConfig
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
         $this->regionCollectionFactory = $regionCollectionFactory;
-        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
     /**
      * @param AmwalButtonConfig $buttonConfig
      * @param RefIdDataInterface $refIdData
+     * @param Quote $quote
      * @return void
      */
     protected function addGenericButtonConfig(AmwalButtonConfig $buttonConfig, RefIdDataInterface $refIdData, Quote $quote): void
@@ -139,9 +132,10 @@ class GetConfig
 
     /**
      * @param Session $customerSession
+     * @param Quote $quote
      * @return array
      */
-    protected function getInitialAddressData(Session $customerSession, Quote $quote)
+    protected function getInitialAddressData(Session $customerSession, Quote $quote): array
     {
         $customer = $customerSession->getCustomer();
 
@@ -180,31 +174,39 @@ class GetConfig
     }
 
     /**
-     * @param string|null $cartId
+     * @param string|int|null $suffixId
      * @return string
      */
-    protected function getButtonId(?string $cartId): string
+    protected function getButtonId($suffixId): string
     {
         $id = AmwalButtonConfigInterface::ID_PREFIX;
-        if ($cartId) {
-            return $id . $cartId;
+        if ($suffixId) {
+            return $id . $suffixId;
         }
         return $id . 'newquote';
     }
 
-
-    protected function phoneFormat($phone_number, $country)
+    /**
+     * @param string $phoneNumber
+     * @param string $country
+     * @return string
+     */
+    protected function phoneFormat(string $phoneNumber, string $country): string
     {
-        if (strpos($phone_number, '+') === 0) {
-            return $phone_number;
+        if (strpos($phoneNumber, '+') === 0) {
+            return $phoneNumber;
         }
+
         if (class_exists('libphonenumber\PhoneNumberUtil')) {
             $phoneNumberUtil = PhoneNumberUtil::getInstance();
             try {
-                $phoneNumberProto = $phoneNumberUtil->parse($phone_number, $country);
-                $phone_number = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+                $phoneNumberProto = $phoneNumberUtil->parse($phoneNumber, $country);
+                if ($phoneNumberProto) {
+                    $phoneNumber = $phoneNumberUtil->format($phoneNumberProto, \libphonenumber\PhoneNumberFormat::E164);
+                }
             } catch (\libphonenumber\NumberParseException $e) {}
         }
-        return $phone_number;
+
+        return $phoneNumber;
     }
 }
