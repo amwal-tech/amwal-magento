@@ -18,7 +18,7 @@ use Magento\Customer\Model\Session;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\GuestCartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
@@ -38,7 +38,7 @@ class GetConfig
     protected CityHelper $cityHelper;
     protected AmwalAddressInterfaceFactory $amwalAddressFactory;
     protected RefIdManagementInterface $refIdManagement;
-    protected CartRepositoryInterface $cartRepository;
+    protected GuestCartRepositoryInterface $guestCartRepository;
     protected ProductRepositoryInterface $productRepository;
     protected Json $jsonSerializer;
     protected RegionCollectionFactory $regionCollectionFactory;
@@ -55,7 +55,7 @@ class GetConfig
      * @param CityHelper $cityHelper
      * @param AmwalAddressInterfaceFactory $amwalAddressFactory
      * @param RefIdManagementInterface $refIdManagement
-     * @param CartRepositoryInterface $cartRepository
+     * @param GuestCartRepositoryInterface $guestCartRepository
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
      * @param RegionCollectionFactory $regionCollectionFactory
@@ -71,7 +71,7 @@ class GetConfig
         CityHelper $cityHelper,
         AmwalAddressInterfaceFactory $amwalAddressFactory,
         RefIdManagementInterface $refIdManagement,
-        CartRepositoryInterface $cartRepository,
+        GuestCartRepositoryInterface $guestCartRepository,
         ProductRepositoryInterface $productRepository,
         Json $jsonSerializer,
         RegionCollectionFactory $regionCollectionFactory,
@@ -86,7 +86,7 @@ class GetConfig
         $this->cityHelper = $cityHelper;
         $this->amwalAddressFactory = $amwalAddressFactory;
         $this->refIdManagement = $refIdManagement;
-        $this->cartRepository = $cartRepository;
+        $this->guestCartRepository = $guestCartRepository;
         $this->productRepository = $productRepository;
         $this->jsonSerializer = $jsonSerializer;
         $this->regionCollectionFactory = $regionCollectionFactory;
