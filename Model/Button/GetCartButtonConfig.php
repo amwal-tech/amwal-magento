@@ -48,7 +48,9 @@ class GetCartButtonConfig extends GetConfig
                 $cartId = $this->quoteIdMaskFactory->create()->setQuoteId($quote->getId())->save()->getMaskedId();
             }
             $buttonConfig->setCartId($cartId);
-            $this->amwalQuote->getQuote($quote->getId());
+            if ($quote->getId()) {
+                $this->amwalQuote->getQuote($quote->getId());
+            }
         }
 
         $buttonConfig->setQuote(json_encode($quote->getData()));
