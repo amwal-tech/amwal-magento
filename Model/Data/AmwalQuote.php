@@ -7,6 +7,7 @@ use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Quote\Api\CartTotalRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Quote\Model\Quote;
 
@@ -15,10 +16,13 @@ class AmwalQuote
     protected CartRepositoryInterface $cartRepository;
     protected StoreManagerInterface $storeManager;
     protected OrderRepositoryInterface $orderRepository;
+    protected CartTotalRepositoryInterface $cartTotalRepository;
 
     /**
      * @param CartRepositoryInterface $cartRepository
      * @param StoreManagerInterface $storeManager
+     * @param OrderRepositoryInterface $orderRepository
+     *
      */
     public function __construct(
         CartRepositoryInterface $cartRepository,
@@ -41,14 +45,12 @@ class AmwalQuote
         $quote->setStoreCurrencyCode($quote->getStore()->getBaseCurrencyCode());
         $quote->setBaseCurrencyCode($quote->getStore()->getBaseCurrencyCode());
         $quote->setQuoteCurrencyCode($quote->getStore()->getBaseCurrencyCode());
-        $quote->setCurrency();
+        $quote->setGlobalCurrencyCode("SAR");
+        $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
-        $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
-        $quote->getPayment()->setQuote($quote);
-        $quote->setPaymentMethod(ConfigProvider::CODE);
-        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
-
         $this->cartRepository->save($quote);
+
+        dd($quote->getGlobalCurrencyCode());
     }
 
     /**
@@ -63,10 +65,10 @@ class AmwalQuote
         $order->setStoreCurrencyCode($order->getStore()->getBaseCurrencyCode());
         $order->setBaseCurrencyCode($order->getStore()->getBaseCurrencyCode());
         $order->setOrderCurrencyCode($order->getStore()->getBaseCurrencyCode());
-        $order->setCurrency();
-        $order->collectTotals();
+        $order->setSubtotal($order->getBaseSubtotal());
         $order->setGrandTotal($order->getBaseGrandTotal());
         $order->setTotalDue($order->getBaseTotalDue());
+        $order->setTotalPaid($order->getBaseTotalPaid());
 
         $this->orderRepository->save($order);
     }

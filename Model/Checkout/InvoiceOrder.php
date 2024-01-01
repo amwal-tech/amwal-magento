@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Data\AmwalQuote;
 use Amwal\Payments\Model\ErrorReporter;
 use Exception;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -31,6 +32,7 @@ class InvoiceOrder extends AmwalCheckoutAction
     private OrderRepositoryInterface $orderRepository;
     private CheckoutSession $checkoutSession;
     private ManagerInterface $messageManager;
+    private AmwalQuote $amwalQuote;
 
     /**
      * @param InvoiceRepositoryInterface $invoiceRepository
@@ -43,6 +45,7 @@ class InvoiceOrder extends AmwalCheckoutAction
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
+     * @param AmwalQuote $amwalQuote
      */
     public function __construct(
         InvoiceRepositoryInterface $invoiceRepository,
@@ -54,7 +57,8 @@ class InvoiceOrder extends AmwalCheckoutAction
         ManagerInterface $messageManager,
         ErrorReporter $errorReporter,
         Config $config,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        AmwalQuote $amwalQuote
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->invoiceRepository = $invoiceRepository;
@@ -64,6 +68,7 @@ class InvoiceOrder extends AmwalCheckoutAction
         $this->orderRepository = $orderRepository;
         $this->checkoutSession = $checkoutSession;
         $this->messageManager = $messageManager;
+        $this->amwalQuote = $amwalQuote;
     }
 
     /**
@@ -74,6 +79,8 @@ class InvoiceOrder extends AmwalCheckoutAction
      */
     public function execute(OrderInterface $order, DataObject $amwalOrderData): void
     {
+        $this->amwalQuote->getOrder($order->getId());
+
         if ($order->getState() === Order::STATE_PAYMENT_REVIEW) {
             $order->setState(Order::STATE_NEW);
         }

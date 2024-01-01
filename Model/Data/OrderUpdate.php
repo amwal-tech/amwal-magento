@@ -22,6 +22,7 @@ use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Psr\Log\LoggerInterface;
 use Amwal\Payments\Model\AmwalClientFactory;
 use Magento\Framework\DataObject;
+use Amwal\Payments\Model\Data\AmwalQuote;
 
 class OrderUpdate
 {
@@ -37,6 +38,7 @@ class OrderUpdate
     private LoggerInterface $logger;
     private AmwalClientFactory $amwalClientFactory;
     private SentryExceptionReport $sentryExceptionReport;
+    private AmwalQuote $amwalQuote;
 
     const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
@@ -56,7 +58,8 @@ class OrderUpdate
         InvoiceOrder              $invoiceAmwalOrder,
         LoggerInterface           $logger,
         AmwalClientFactory        $amwalClientFactory,
-        SentryExceptionReport     $sentryExceptionReport
+        SentryExceptionReport     $sentryExceptionReport,
+        AmwalQuote                $amwalQuote
     )
     {
         $this->orderRepository = $orderRepository;
@@ -71,6 +74,7 @@ class OrderUpdate
         $this->logger = $logger;
         $this->amwalClientFactory = $amwalClientFactory;
         $this->sentryExceptionReport = $sentryExceptionReport;
+        $this->amwalQuote = $amwalQuote;
     }
 
     /**
@@ -84,6 +88,8 @@ class OrderUpdate
     public function update($order, $trigger, $sendAdminEmail = true)
     {
         try {
+            $this->amwalQuote->getOrder($order->getId());
+
             $amwalOrderId = $order->getAmwalOrderId();
             if (!$amwalOrderId) {
                 throw new \Exception(sprintf('Order %s does not have an Amwal Order ID', $order->getIncrementId()));
