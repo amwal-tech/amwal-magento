@@ -8,6 +8,7 @@ use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
+use Amwal\Payments\Model\Data\AmwalQuote;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
@@ -46,6 +47,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private GetAmwalOrderData $getAmwalOrderData;
     private SentryExceptionReport $sentryExceptionReport;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private AmwalQuote $amwalQuote;
 
     /**
      * @param QuoteManagement $quoteManagement
@@ -64,6 +66,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Config $config
      * @param LoggerInterface $logger
+     * @param AmwalQuote $amwalQuote
      */
     public function __construct(
         QuoteManagement $quoteManagement,
@@ -81,7 +84,8 @@ class PlaceOrder extends AmwalCheckoutAction
         SentryExceptionReport $sentryExceptionReport,
         Config $config,
         LoggerInterface $logger,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        AmwalQuote $amwalQuote
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
@@ -97,6 +101,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->sentryExceptionReport = $sentryExceptionReport;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->amwalQuote = $amwalQuote;
     }
 
     /**
@@ -214,6 +219,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
 
         $this->orderRepository->save($order);
+
+        $this->amwalQuote->getQuote($order->getQuoteId());
+        $this->amwalQuote->getOrder($order->getId());
 
         $this->setAmwalOrderDetails->execute($order, $amwalOrderId, $triggerContext);
 

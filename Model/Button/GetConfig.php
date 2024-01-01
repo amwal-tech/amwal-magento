@@ -26,6 +26,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
+use Amwal\Payments\Model\Data\AmwalQuote;
 
 class GetConfig
 {
@@ -44,6 +45,7 @@ class GetConfig
     protected RegionCollectionFactory $regionCollectionFactory;
     protected RegionFactory $regionFactory;
     protected QuoteIdMaskFactory $quoteIdMaskFactory;
+    protected AmwalQuote $amwalQuote;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -59,6 +61,7 @@ class GetConfig
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
      * @param RegionCollectionFactory $regionCollectionFactory
+     * @param AmwalQuote $amwalQuote
      *
      */
     public function __construct(
@@ -75,7 +78,8 @@ class GetConfig
         ProductRepositoryInterface $productRepository,
         Json $jsonSerializer,
         RegionCollectionFactory $regionCollectionFactory,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        AmwalQuote $amwalQuote
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
@@ -91,6 +95,7 @@ class GetConfig
         $this->jsonSerializer = $jsonSerializer;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->amwalQuote = $amwalQuote;
     }
 
     /**

@@ -35,6 +35,7 @@ interface AmwalButtonConfigInterface
     public const INITIAL_FIRST_NAME = 'initial_first_name';
 
     public const INITIAL_LAST_NAME = 'initial_last_name';
+    public const QUOTE = 'quote';
 
     /**
      * @return string
@@ -335,4 +336,14 @@ interface AmwalButtonConfigInterface
      */
     public function setCartId(?string $cartId): AmwalButtonConfigInterface;
 
+    /**
+     * @return string|null
+     */
+    public function getQuote(): ?string;
+
+    /**
+     * @param string|null $quote
+     * @return AmwalButtonConfigInterface
+     */
+    public function setQuote(?string $quote): AmwalButtonConfigInterface;
 }

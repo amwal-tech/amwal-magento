@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Checkout;
 
+use Amwal\Payments\Model\Data\AmwalQuote;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
@@ -60,6 +61,7 @@ class GetQuote extends AmwalCheckoutAction
     private CheckoutSession $checkoutSession;
     private SentryExceptionReport $sentryExceptionHandler;
     private QuoteIdMaskFactory $quoteIdMaskFactory;
+    protected AmwalQuote $amwalQuote;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -103,7 +105,8 @@ class GetQuote extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        AmwalQuote $amwalQuote
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->customerRepository = $customerRepository;
@@ -123,6 +126,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->checkoutSession = $checkoutSession;
         $this->sentryExceptionReport = $sentryExceptionReport;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->amwalQuote = $amwalQuote;
     }
 
     /**
@@ -365,6 +369,7 @@ class GetQuote extends AmwalCheckoutAction
             $quote = $this->checkoutSession->getQuote();
             if ($quote) {
                 $this->logDebug(sprintf('Quote with ID %s found.', $quote->getId()));
+                $this->amwalQuote->getQuote($quote->getId());
                 return $quote;
             }
             $this->logDebug('No quote found. Creating a new quote');
@@ -377,7 +382,7 @@ class GetQuote extends AmwalCheckoutAction
             $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
             $quote = $this->quoteRepository->get($quoteId);
         }
-
+        $this->amwalQuote->getQuote($quote->getId());
         return $quote;
     }
 
@@ -458,7 +463,8 @@ class GetQuote extends AmwalCheckoutAction
             'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
             'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
             'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
-            'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
+            'additional_fee_description' => $this->getAdditionalFeeDescription($quote),
+            'quote' => $quote->getData(),
         ];
     }
 

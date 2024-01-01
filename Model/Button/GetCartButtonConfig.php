@@ -39,6 +39,7 @@ class GetCartButtonConfig extends GetConfig
             if ($quoteIdMask) {
                 $quoteId = (int) $quoteIdMask->getQuoteId();
                 $quote = $this->cartRepository->get($quoteId);
+                $this->amwalQuote->getQuote($quoteId);
             }
         }else{
             $quote = $this->checkoutSessionFactory->create()->getQuote();
@@ -47,7 +48,10 @@ class GetCartButtonConfig extends GetConfig
                 $cartId = $this->quoteIdMaskFactory->create()->setQuoteId($quote->getId())->save()->getMaskedId();
             }
             $buttonConfig->setCartId($cartId);
+            $this->amwalQuote->getQuote($quote->getId());
         }
+
+        $buttonConfig->setQuote(json_encode($quote->getData()));
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
         $buttonConfig->setAmount($this->getAmount($quote));
