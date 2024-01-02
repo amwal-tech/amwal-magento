@@ -377,7 +377,7 @@ class GetQuote extends AmwalCheckoutAction
             $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
             $quote = $this->quoteRepository->get($quoteId);
         }
-
+        $quote->setStoreId($this->storeManager->getStore()->getId());
         return $quote;
     }
 
@@ -458,7 +458,8 @@ class GetQuote extends AmwalCheckoutAction
             'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
             'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
             'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
-            'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
+            'additional_fee_description' => $this->getAdditionalFeeDescription($quote),
+            'quote' => $quote->getData()
         ];
     }
 

@@ -30,6 +30,7 @@ use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Throwable;
+use Magento\Store\Model\StoreManagerInterface;
 
 class PlaceOrder extends AmwalCheckoutAction
 {
@@ -46,6 +47,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private GetAmwalOrderData $getAmwalOrderData;
     private SentryExceptionReport $sentryExceptionReport;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
+    protected StoreManagerInterface $storeManager;
 
     /**
      * @param QuoteManagement $quoteManagement
@@ -64,6 +66,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Config $config
      * @param LoggerInterface $logger
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         QuoteManagement $quoteManagement,
@@ -81,7 +84,8 @@ class PlaceOrder extends AmwalCheckoutAction
         SentryExceptionReport $sentryExceptionReport,
         Config $config,
         LoggerInterface $logger,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        StoreManagerInterface    $storeManager
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
@@ -97,6 +101,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->getAmwalOrderData = $getAmwalOrderData;
         $this->sentryExceptionReport = $sentryExceptionReport;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -206,7 +211,6 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
-
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
         $this->quoteRepository->save($quote);
@@ -234,6 +238,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
+
         if ($order) {
             if( $order->getState() !== Order::STATE_PENDING_PAYMENT) {
                 throw new RuntimeException('Found an existing order with same transacation Id with non pending payment state');
@@ -244,6 +249,15 @@ class PlaceOrder extends AmwalCheckoutAction
             $order->cancel();
             $order->setAmwalOrderId($amwalOrderId . '-canceled');
             $this->orderRepository->save($order);
+        }
+        if($this->config->isQuoteOverrideEnabled()){
+            $quote->setStoreId($this->storeManager->getStore()->getId());
+            $quote->setStoreCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
+            $quote->setBaseCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
+            $quote->setQuoteCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
+            $quote->setTotalsCollectedFlag(false);
+            $quote->collectTotals();
+            $this->quoteRepository->save($quote);
         }
 
         $order = $this->quoteManagement->submit($quote);
@@ -271,6 +285,14 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalOrderId($amwalOrderId);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
+
+        if($this->config->isQuoteOverrideEnabled()){
+            $order->setStoreId($this->storeManager->getStore()->getId());
+            $order->setSubtotal($order->getBaseSubtotal());
+            $order->setGrandTotal($order->getBaseGrandTotal());
+            $order->setTotalDue($order->getBaseTotalDue());
+            $order->setTotalPaid($order->getBaseTotalPaid());
+        }
 
         return $order;
     }

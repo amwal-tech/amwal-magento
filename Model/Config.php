@@ -47,7 +47,7 @@ class Config
     public const XML_CONFIG_PATH_CRONJOB_ENABLE = 'payment/amwal_payments/cronjob_enable';
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_CUSTOMER_EMAIL = 'payment/amwal_payments/order_status_changed_customer_email';
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL = 'payment/amwal_payments/order_status_changed_admin_email';
-
+    public const XML_CONFIG_PATH_QUOTE_OVERRIDE = 'payment/amwal_payments/quote_override';
     /**
      * @var string
      */
@@ -439,5 +439,13 @@ class Config
     public function isOrderStatusChangedAdminEmailEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isQuoteOverrideEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_QUOTE_OVERRIDE, ScopeInterface::SCOPE_WEBSITE);
     }
 }
