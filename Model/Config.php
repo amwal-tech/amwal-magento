@@ -446,6 +446,6 @@ class Config
      */
     public function isQuoteOverrideEnabled(): bool
     {
-        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_QUOTE_OVERRIDE, ScopeInterface::SCOPE_WEBSITE);
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_QUOTE_OVERRIDE);
     }
 }

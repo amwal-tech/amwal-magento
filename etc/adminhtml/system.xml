@@ -231,7 +231,7 @@
                         <label>Quote override</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/quote_override</config_path>
-                        <tooltip>Enable quote override</tooltip>
+                        <tooltip>If enabled, will override certain quote data. Use only if you are having issues related to quote amounts or currencies</tooltip>
                     </field>
                 </group>
             </group>

@@ -47,7 +47,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private GetAmwalOrderData $getAmwalOrderData;
     private SentryExceptionReport $sentryExceptionReport;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
-    protected StoreManagerInterface $storeManager;
+    private StoreManagerInterface $storeManager;
 
     /**
      * @param QuoteManagement $quoteManagement
@@ -85,7 +85,7 @@ class PlaceOrder extends AmwalCheckoutAction
         Config $config,
         LoggerInterface $logger,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        StoreManagerInterface    $storeManager
+        StoreManagerInterface $storeManager
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
@@ -237,7 +237,6 @@ class PlaceOrder extends AmwalCheckoutAction
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
-
 
         if ($order) {
             if( $order->getState() !== Order::STATE_PENDING_PAYMENT) {
