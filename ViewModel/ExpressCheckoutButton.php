@@ -19,7 +19,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     public const TRIGGER_CONTEXT_PRODUCT_DETAIL = 'product-detail-page';
     public const TRIGGER_CONTEXT_MINICART = 'minicart';
     public const TRIGGER_CONTEXT_CART = 'cart';
-
+    public const AMWAL_CURRENCY = 'SAR';
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
 
 
@@ -88,7 +88,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function isExpressCheckoutActive(): bool
     {
-        return !(!$this->config->isActive() || !$this->config->isExpressCheckoutActive());
+        return !(!$this->config->isActive() || !$this->config->isExpressCheckoutActive() || $this->storeManager->getStore()->getCurrentCurrencyCode() != self::AMWAL_CURRENCY);
     }
 
     /**
