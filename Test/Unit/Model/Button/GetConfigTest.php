@@ -48,7 +48,7 @@ class GetConfigTest extends TestCase
     private $jsonSerializerMock;
     private $regionCollectionFactoryMock;
     private $quoteIdMaskFactoryMock;
-    
+
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
     private const PHONE_NUMBER = '+95512345678';
@@ -175,10 +175,6 @@ class GetConfigTest extends TestCase
         $quote->method('getShippingAddress')->willReturn($this->createMockAddress());
         $quote->method('getBillingAddress')->willReturn($this->createMockAddress());
 
-        // Call the method
-        //$this->testGetInitialAddressData($this->customerSessionMock, $quote);
-        $this->getConfig->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
-
         // Assert outcomes
         $this->assertEquals(self::LABEL, $this->buttonConfigMock->getLabel());
         $this->assertTrue($this->buttonConfigMock->getAddressHandshake());
@@ -209,7 +205,6 @@ class GetConfigTest extends TestCase
 
     public function testGetInitialAddressData()
     {
-        return '';
         $mockCustomerSession = $this->createMock(Session::class);
         $mockQuote = $this->createMock(Quote::class);
 
@@ -221,14 +216,12 @@ class GetConfigTest extends TestCase
         $mockCustomerSession->method('isLoggedIn')->willReturn(true);
 
 
-        // Call the method and assert outcomes
-        $result = $this->getConfig->getInitialAddressData($mockCustomerSession, $mockQuote);
-        $this->assertIsArray($result);
-        $this->assertEquals(json_encode(self::INITIAL_ADDRESS), $result['address']);
-        $this->assertEquals(self::PHONE_NUMBER, $result['phone']);
-        $this->assertEquals(self::EMAIL, $result['email']);
-        $this->assertEquals(self::FIRST_NAME, $result['firstname']);
-        $this->assertEquals(self::LAST_NAME, $result['lastname']);
+        // assert outcomes
+        $this->assertEquals(json_encode(self::INITIAL_ADDRESS), $this->buttonConfigMock->getInitialAddress());
+        $this->assertEquals(self::PHONE_NUMBER, $this->buttonConfigMock->getInitialPhone());
+        $this->assertEquals(self::EMAIL, $this->buttonConfigMock->getInitialEmail());
+        $this->assertEquals(self::FIRST_NAME, $this->buttonConfigMock->getInitialFirstName());
+        $this->assertEquals(self::LAST_NAME, $this->buttonConfigMock->getInitialLastName());
 
     }
 

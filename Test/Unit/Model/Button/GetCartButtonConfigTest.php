@@ -84,6 +84,7 @@ class GetCartButtonConfigTest extends TestCase
         $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
         $this->buttonConfigMock = $this->createMock(AmwalButtonConfigInterface::class);
 
+
         $this->getCartButtonConfig = $objectManager->getObject(
             GetCartButtonConfig::class,
             [
@@ -121,8 +122,11 @@ class GetCartButtonConfigTest extends TestCase
         $cartRepositoryMock->method('get')->willReturn($quoteMock);
 
         // Assert outcomes
-        $this->assertEquals($amwalButtonConfigMock, $this->getCartButtonConfig->execute($refIdDataMock, $checkoutType, self::CART_ID));
-
+        $this->assertEquals(self::AMOUNT, $this->buttonConfigMock->getAmount());
+        $this->assertEquals(self::ID, $this->buttonConfigMock->getId());
+        $this->assertEquals(self::CART_ID, $this->buttonConfigMock->getCartId());
+        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_CITIES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressCities());
+        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_STATES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressStates());
     }
 
 
