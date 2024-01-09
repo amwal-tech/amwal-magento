@@ -72,7 +72,7 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function getAmount($quote): float
+    public function getAmount($quote): float
     {
         return (float)$quote->getGrandTotal();
     }

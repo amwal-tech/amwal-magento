@@ -84,51 +84,17 @@ class GetCartButtonConfigTest extends TestCase
         $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
         $this->buttonConfigMock = $this->createMock(AmwalButtonConfigInterface::class);
 
-
         $this->getCartButtonConfig = $objectManager->getObject(
             GetCartButtonConfig::class,
             [
                 'checkoutSession' => $this->checkoutSessionMock,
-                'cartRepository' => $this->cartRepositoryMock
+                'cartRepository' => $this->cartRepositoryMock,
+                'buttonConfig' => $this->buttonConfigMock
             ]
         );
 
         $this->setButtonConfigData();
     }
-
-    /**
-     * Test the execution of GetCartButtonConfig
-     * @dataProvider dataProviderForExecute
-     */
-    public function testExecuteReturnsAmwalButtonConfigInterface($checkoutType): void
-    {
-        $amwalButtonConfigMock = $this->createMock(AmwalButtonConfig::class);
-        $refIdDataMock = $this->createMock(RefIdDataInterface::class);
-        $quoteMock = $this->createMock(Quote::class);
-        $cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
-        $quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
-        $checkoutSessionFactoryMock = $this->createMock(CheckoutSessionFactory::class);
-        $checkoutSessionMock = $this->createMock(CheckoutSession::class);
-        $quoteIdMaskMock = $this->createMock(QuoteIdMask::class);
-
-        $quoteMock->method('getShippingAddress')->willReturn($this->createMockAddress());
-        $quoteMock->method('getBillingAddress')->willReturn($this->createMockAddress());
-        $quoteMock->method('getId')->willReturn(self::QUOTE_ID);
-
-        $quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
-        $checkoutSessionFactoryMock->method('create')->willReturn($checkoutSessionMock);
-        $checkoutSessionMock->method('getQuote')->willReturn($quoteMock);
-        $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
-        $cartRepositoryMock->method('get')->willReturn($quoteMock);
-
-        // Assert outcomes
-        $this->assertEquals(self::AMOUNT, $this->buttonConfigMock->getAmount());
-        $this->assertEquals(self::ID, $this->buttonConfigMock->getId());
-        $this->assertEquals(self::CART_ID, $this->buttonConfigMock->getCartId());
-        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_CITIES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressCities());
-        $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_STATES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressStates());
-    }
-
 
     /**
      * Test adding regular checkout button configuration
@@ -162,17 +128,26 @@ class GetCartButtonConfigTest extends TestCase
     }
 
     /**
-     * Test adding generic button configuration
+     * Test getting amount
      */
-    public function dataProviderForExecute()
+    public function testGetAmount(): void
     {
-        return [
-            ['regular-checkout'],
-            ['product-listing-page'],
-            ['product-detail-page'],
-            ['minicart'],
-            ['cart'],
-        ];
+        $quoteMock = $this->getMockBuilder(Quote::class)
+            ->addMethods(['getGrandTotal'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $quoteMock->method('getGrandTotal')->willReturn(self::AMOUNT);
+
+        $this->assertEquals(self::AMOUNT, $this->getCartButtonConfig->getAmount($quoteMock));
+    }
+
+    /**
+     * Test getting allowed address countries
+     */
+    public function testGetCityCodes(): void
+    {
+        $this->assertEquals([], $this->getCartButtonConfig->getCityCodes());
     }
 
     /**
