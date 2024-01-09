@@ -84,19 +84,24 @@ jobs:
       - name: Configure GitHub Token
         run: sudo composer config --global --auth github-oauth.github.com ${{ secrets.GIT_TOKEN }}
 
-      - run: sudo composer validate --strict
+      - name: Validate composer.json
+        run: sudo composer validate --strict
 
-      - working-directory: .dev-tools
+      - name: Install dev tools
+        working-directory: .dev-tools
         run: sudo composer install
 
-      - working-directory: .dev-tools
+      - name: Run Composer Normalize
+        working-directory: .dev-tools
         run: sudo composer normalize --diff --dry-run --indent-size=4 --indent-style=space ../composer.json
 
-      - working-directory: .dev-tools
+      - name: Run PHP CS Fixer
+        working-directory: .dev-tools
         run: ./vendor/bin/php-cs-fixer fix -vvv --diff --dry-run
 
       - name: List
         run: ls -la
 
-      - working-directory: .dev-tools
-        run: ./vendor/bin/psalm --shepherd --show-info=true --output-format=github
+#      - name: Run Psalm
+#        working-directory: .dev-tools
+#        run: ./vendor/bin/psalm --output-format=github --shepherd

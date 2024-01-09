@@ -1,22 +1,16 @@
 <?xml version='1.0'?>
-<psalm errorLevel='7'
+<psalm errorLevel='1'
        resolveFromConfigFile='true'
        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
        xmlns='https://getpsalm.org/schema/config'
        xsi:schemaLocation='https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd'
-       findUnusedBaselineEntry='true'
-       findUnusedCode='false'
 >
     <projectFiles>
-        <directory name='../Model' />
-        <directory name='../Plugin' />
-        <directory name='../Cron' />
-        <directory name='../Block' />
-        <directory name='../Api' />
-        <directory name='../ViewModel' />
-        <directory name='../Test' />
+        <directory name='../magento/vendor/amwal/payments' />
         <ignoreFiles>
             <directory name='./' />
+            <file name='../../../vendor/amwal/payments/Test/*' />
+            <file name='../../../vendor/amwal/payments/.dev-tools/*' />
         </ignoreFiles>
     </projectFiles>
 

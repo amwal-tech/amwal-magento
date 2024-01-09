@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
          colors="true"
          columns="max"
-         beStrictAboutTestsThatDoNotTestAnything="false"
+         verbose="true"
          bootstrap="../../../dev/tests/unit/framework/bootstrap.php">
-    <coverage>
+
+    <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">../../../app/code/*</directory>
             <directory suffix=".php">../../../vendor/amwal/payments</directory>
@@ -15,9 +16,10 @@
             <directory>../../../vendor/amwal/payments/Test</directory>
         </exclude>
     </coverage>
+
     <php>
         <ini name="memory_limit" value="-1"/>
-        <ini name="date.timezone" value="America/Los_Angeles"/>
+        <ini name="date.timezone" value="Asia/Riyadh"/>
         <ini name="xdebug.max_nesting_level" value="200"/>
     </php>
 </phpunit>
