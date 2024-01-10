@@ -36,6 +36,7 @@ class GetConfigTest extends TestCase
     private $getConfig;
     private $customerSessionFactory;
     private $customerSession;
+    private $amwalAddress;
     private $amwalAddressFactoryMock;
     private $buttonConfigMock;
     private $customerSessionMock;
@@ -137,6 +138,7 @@ class GetConfigTest extends TestCase
         $mockRegionCollectionFactory = $this->createMock(RegionCollectionFactory::class);
         $mockQuoteIdMaskFactory = $this->createMock(QuoteIdMaskFactory::class);
 
+
         $this->getConfig = new GetConfig(
             $mockButtonConfigFactory,
             $mockConfig,
@@ -163,6 +165,10 @@ class GetConfigTest extends TestCase
 
         $this->customerSession->method('getCustomer')->willReturn($this->createMock(Customer::class));
         $this->customerSession->method('isLoggedIn')->willReturn(true);
+
+        $this->amwalAddress = $this->createMock(AmwalAddressInterface::class);
+        $this->amwalAddressFactoryMock->method('create')->willReturn($this->amwalAddress);
+
         $this->setButtonConfigData();
     }
 
@@ -174,6 +180,8 @@ class GetConfigTest extends TestCase
 
         $quote->method('getShippingAddress')->willReturn($this->createMockAddress());
         $quote->method('getBillingAddress')->willReturn($this->createMockAddress());
+
+        $this->getConfig->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $this->customerSession, $this->amwalAddress);
 
         // Assert outcomes
         $this->assertEquals(self::LABEL, $this->buttonConfigMock->getLabel());
@@ -245,7 +253,11 @@ class GetConfigTest extends TestCase
      */
     private function createMockAddress(): Address
     {
-        $addressMock = $this->createMock(Address::class);
+        $addressMock = $this->getMockBuilder(Address::class)
+            ->addMethods(['getRegionCode', 'getStreetLine', 'getEmail'])
+            ->onlyMethods(['getFirstname', 'getLastname', 'getTelephone', 'getPostcode', 'getCountryId', 'getCity', 'getStreet'])
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $addressMock->method('getFirstname')->willReturn(self::FIRST_NAME);
         $addressMock->method('getLastname')->willReturn(self::LAST_NAME);
@@ -254,7 +266,17 @@ class GetConfigTest extends TestCase
         $addressMock->method('getCountryId')->willReturn(self::COUNTRY);
         $addressMock->method('getCity')->willReturn(self::CITY);
         $addressMock->method('getStreet')->willReturn([self::STREET_1, self::STREET_2]);
+        $addressMock->method('getRegionCode')->willReturn(self::STATE);
+        $addressMock->method('getStreetLine')->willReturn(self::STREET_1);
+        $addressMock->method('getEmail')->willReturn(self::EMAIL);
 
+        $this->amwalAddress->method('getCity')->willReturn(self::CITY);
+        $this->amwalAddress->method('getState')->willReturn(self::STATE);
+        $this->amwalAddress->method('getPostcode')->willReturn(self::POSTCODE);
+        $this->amwalAddress->method('getCountry')->willReturn(self::COUNTRY);
+        $this->amwalAddress->method('getStreet1')->willReturn(self::STREET_1);
+        $this->amwalAddress->method('getStreet2')->willReturn(self::STREET_2);
+        $this->amwalAddress->method('getEmail')->willReturn(self::EMAIL);
         return $addressMock;
     }
 

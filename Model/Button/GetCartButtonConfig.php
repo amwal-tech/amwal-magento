@@ -14,10 +14,12 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
+
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
@@ -48,7 +50,11 @@ class GetCartButtonConfig extends GetConfig
             }
             $buttonConfig->setCartId($cartId);
         }
-        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
+
+        $customerSession = $this->customerSessionFactory->create();
+        $initialAddress = $this->amwalAddressFactory->create();
+
+        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
 
         $buttonConfig->setAmount($this->getAmount($quote));
         $buttonConfig->setId($this->getButtonId($cartId));
