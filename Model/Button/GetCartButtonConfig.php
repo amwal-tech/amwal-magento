@@ -34,6 +34,8 @@ class GetCartButtonConfig extends GetConfig
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
+        $customerSession = $this->customerSessionFactory->create();
+        $initialAddress = $this->amwalAddressFactory->create();
         $quote = null;
 
         if ($cartId) {
@@ -50,15 +52,9 @@ class GetCartButtonConfig extends GetConfig
             }
             $buttonConfig->setCartId($cartId);
         }
-
-        $customerSession = $this->customerSessionFactory->create();
-        $initialAddress = $this->amwalAddressFactory->create();
-
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
-
-        $buttonConfig->setAmount($this->getAmount($quote));
         $buttonConfig->setId($this->getButtonId($cartId));
-
+        $buttonConfig->setAmount($this->getAmount($quote));
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
