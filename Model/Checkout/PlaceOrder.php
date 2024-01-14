@@ -321,7 +321,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param string $customerEmail
      * @return void
      */
-    private function setCustomerEmail(CartInterface $quote, string $customerEmail): void
+    public function setCustomerEmail(CartInterface $quote, string $customerEmail): void
     {
         $quote->setCustomerEmail($customerEmail);
 
