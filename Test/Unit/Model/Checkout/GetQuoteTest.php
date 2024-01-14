@@ -25,12 +25,18 @@ use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\ShippingMethodManagement;
 use Magento\Quote\Api\Data\ShippingMethodInterface;
-use Magento\Checkout\Model\Session;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Framework\DataObject;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Customer\Model\Customer;
+use Magento\Customer\Model\CustomerFactory;
+use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\Api\AttributeValue;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Framework\DataObject\Factory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -52,6 +58,10 @@ class GetQuoteTest extends TestCase
     private $addressResolver;
     private $customerRepository;
     private $sentryExceptionReport;
+    private $productRepository;
+    private $customerFactory;
+    private $customerSession;
+    private $objectFactory;
 
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
@@ -66,6 +76,11 @@ class GetQuoteTest extends TestCase
     private const TOTAL = 100.0;
     private const TOTAL_TAX = 10.0;
     private const QUOTE_ID = 123;
+    private const REF_ID = '1f80146ddd68d71f9064af90d1afc83ccdc99e13595afcfce60dea15be8b7ec4';
+    private const IS_GUEST_QUOTE = false;
+    private const AMWAL_ADDRESS_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
+    private const TRIGGER_CONTEXT = 'cart';
+    private const ORDER_ITEMS = [];
 
     protected function setUp(): void
     {
@@ -81,11 +96,14 @@ class GetQuoteTest extends TestCase
         $this->quoteIdMaskFactory = $this->createMock(QuoteIdMaskFactory::class);
         $this->cartRepository = $this->createMock(CartInterface::class);
         $this->shippingMethodManagement = $this->createMock(ShippingMethodManagement::class);
-        $this->checkoutSession = $this->createMock(Session::class);
+        $this->checkoutSession = $this->createMock(CheckoutSession::class);
         $this->addressResolver = $this->createMock(AddressResolver::class);
         $this->customerRepository = $this->createMock(CustomerRepositoryInterface::class);
         $this->sentryExceptionReport = $this->createMock(SentryExceptionReport::class);
-
+        $this->productRepository = $this->createMock(ProductRepositoryInterface::class);
+        $this->customerFactory = $this->createMock(CustomerFactory::class);
+        $this->customerSession = $this->createMock(CustomerSession::class);
+        $this->objectFactory = $this->createMock(Factory::class);
 
         $this->getQuote = $this->objectManager->getObject(
             GetQuote::class,
@@ -102,9 +120,181 @@ class GetQuoteTest extends TestCase
                 'checkoutSession' => $this->checkoutSession,
                 'addressResolver' => $this->addressResolver,
                 'customerRepository' => $this->customerRepository,
-                'sentryExceptionReport' => $this->sentryExceptionReport
+                'sentryExceptionReport' => $this->sentryExceptionReport,
+                'productRepository' => $this->productRepository,
+                'customerFactory' => $this->customerFactory,
+                'customerSession' => $this->customerSession,
+                'objectFactory' => $this->objectFactory
             ]
         );
+    }
+
+    /**
+     * Test the createQuote method.
+     *
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function testCreateQuote()
+    {
+        // Mock data and parameters
+        $orderItems = [
+            $this->createMockOrderItem('123', 2),
+            $this->createMockOrderItem('456', 1),
+        ];
+        $customer = $this->createMockCustomer();
+
+        // Set expectations for the mock objects
+        $this->storeManager->method('getStore')->willReturn($this->createMockStore());
+        $this->customerSession->method('getCustomer')->willReturn($customer);
+
+        $customer->method('getGroupId')->willReturn(0);
+        $quoteMock = $this->createMockQuote();
+
+        $quoteMock->expects($this->once())
+            ->method('setCustomerGroupId')
+            ->with($customer->getGroupId());
+
+        // Mock product repository calls
+        $this->productRepository->expects($this->exactly(2))
+            ->method('getById')
+            ->withConsecutive(['123'], ['456'])
+            ->willReturnOnConsecutiveCalls(
+                $this->createMockProduct('123'),
+                $this->createMockProduct('456')
+            );
+
+        // Mock quote and quote repository calls
+        $this->quoteFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($quoteMock);
+
+        $validRequest = $this->getMockBuilder(DataObject::class)
+            ->onlyMethods(['setData'])
+            ->getMock();
+
+        $validRequest->method('setData')->willReturnSelf();
+
+        $this->objectFactory->method('create')->willReturn($validRequest);
+
+        $this->quoteRepository->expects($this->once())
+            ->method('save');
+
+        // Assertions based on the expected result
+        $result = $this->getQuote->createQuote($orderItems);
+        $this->assertInstanceOf(Quote::class, $result);
+    }
+
+    /**
+     * Helper method to create a mock order item.
+     *
+     * @param string $productId
+     * @param int $qty
+     * @return DataObject|MockObject
+     */
+    private function createMockOrderItem(string $productId, int $qty)
+    {
+        $item = $this->getMockBuilder(DataObject::class)
+            ->addMethods(['getProductId', 'getQty'])
+            ->getMock();
+
+        $item->expects($this->any())
+            ->method('getProductId')
+            ->willReturn($productId);
+        $item->expects($this->any())
+            ->method('getQty')
+            ->willReturn($qty);
+
+        return $item;
+    }
+
+    /**
+     * Helper method to create a mock product.
+     *
+     * @param string $productId
+     * @return MockObject
+     */
+    private function createMockProduct(string $productId): MockObject
+    {
+        $productMock = $this->createMock(Product::class);
+        $productMock->method('getId')->willReturn($productId);
+
+        return $productMock;
+    }
+
+    /**
+     * Helper method to create a mock quote.
+     *
+     * @return MockObject
+     */
+    private function createMockQuote(): MockObject
+    {
+        $quoteMock = $this->getMockBuilder(Quote::class)
+            ->addMethods(['setCustomerGroupId'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        return $quoteMock;
+    }
+
+    /**
+     * Helper method to create a mock store.
+     *
+     * @return MockObject
+     */
+    private function createMockStore(): MockObject
+    {
+        return $this->createMock(Store::class);
+    }
+
+    /**
+     * Helper method to create a mock customer.
+     *
+     * @return MockObject
+     */
+    private function createMockCustomer(): MockObject
+    {
+        return $this->createMock(Customer::class);
+    }
+
+    /**
+     * Test the getCustomerAddress method.
+     *
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function testGetCustomerAddress()
+    {
+        // Mock data and parameters
+        $amwalOrderDataMock = $this->getMockBuilder(DataObject::class)->getMock();
+
+        // Mock AddressInterface object
+        $customerAddressMock = $this->getMockBuilder(AddressInterface::class)
+            ->addMethods(['getData'])
+            ->getMockForAbstractClass();
+
+        $customerAddressMock->method('getData')->willReturn([
+            'firstname' => self::FIRST_NAME,
+            'lastname' => self::LAST_NAME,
+            'country_id' => self::COUNTRY,
+            'city' => self::CITY,
+            'postcode' => self::POSTCODE,
+            'street' => [self::STREET_1, self::STREET_2],
+            'telephone' => self::PHONE_NUMBER,
+            'custom_attributes' => [
+                'amwal_address_id' => new AttributeValue(['attribute_code' => 'amwal_address_id', 'value' => self::AMWAL_ADDRESS_ID])
+            ]
+        ]);
+
+        // Set expectations for the mock objects
+        $this->addressResolver->expects($this->once())
+            ->method('execute')
+            ->with($amwalOrderDataMock, self::IS_GUEST_QUOTE)
+            ->willReturn($customerAddressMock);
+
+        // Assertions based on the expected result
+        $result = $this->getQuote->getCustomerAddress($amwalOrderDataMock, self::REF_ID, self::IS_GUEST_QUOTE);
+        $this->assertInstanceOf(AddressInterface::class, $result);
     }
 
     /**
@@ -116,9 +306,6 @@ class GetQuoteTest extends TestCase
         $quoteMock = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
             ->getMock();
-
-        $orderItems = [];
-        $triggerContext = 'cart';
 
         // Set expectations for the mock objects
         $this->checkoutSession->method('getQuote')->willReturn(null);
@@ -140,7 +327,7 @@ class GetQuoteTest extends TestCase
             ->willReturn($quoteMock);
 
         // Assertions based on the expected result
-        $result = $this->getQuote->getQuote(self::QUOTE_ID, $orderItems, $triggerContext);
+        $result = $this->getQuote->getQuote(self::QUOTE_ID, self::ORDER_ITEMS, self::TRIGGER_CONTEXT);
         $this->assertInstanceOf(Quote::class, $result);
     }
 
