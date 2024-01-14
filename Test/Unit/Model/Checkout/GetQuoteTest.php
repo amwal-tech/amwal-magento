@@ -85,9 +85,6 @@ class GetQuoteTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
-        parent::setUpBeforeClass();
-        parent::setUp();
-
         // Create mock objects for dependencies
         $this->refIdManagement = $this->createMock(RefIdManagementInterface::class);
         $this->quoteRepository = $this->createMock(QuoteRepositoryInterface::class);
@@ -129,6 +126,62 @@ class GetQuoteTest extends TestCase
                 'objectFactory' => $this->objectFactory
             ]
         );
+    }
+
+    /**
+     * Test the createQuote method.
+     *
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function testCreateQuote()
+    {
+        // Mock data and parameters
+        $orderItems = [
+            $this->createMockOrderItem('123', 2),
+            $this->createMockOrderItem('456', 1),
+        ];
+        $customer = $this->createMockCustomer();
+
+        // Set expectations for the mock objects
+        $this->storeManager->method('getStore')->willReturn($this->createMockStore());
+        $this->customerSession->method('getCustomer')->willReturn($customer);
+
+        $customer->method('getGroupId')->willReturn(0);
+        $quoteMock = $this->createMockQuote();
+
+        $quoteMock->expects($this->once())
+            ->method('setCustomerGroupId')
+            ->with($customer->getGroupId());
+
+        // Mock product repository calls
+        $this->productRepository->expects($this->exactly(2))
+            ->method('getById')
+            ->withConsecutive(['123'], ['456'])
+            ->willReturnOnConsecutiveCalls(
+                $this->createMockProduct('123'),
+                $this->createMockProduct('456')
+            );
+
+        // Mock quote and quote repository calls
+        $this->quoteFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($quoteMock);
+
+        $validRequest = $this->getMockBuilder(DataObject::class)
+            ->onlyMethods(['setData'])
+            ->getMock();
+
+        $validRequest->method('setData')->willReturnSelf();
+
+        $this->objectFactory->method('create')->willReturn($validRequest);
+
+        $this->quoteRepository->expects($this->once())
+            ->method('save');
+
+        // Assertions based on the expected result
+        $result = $this->getQuote->createQuote($orderItems);
+        $this->assertInstanceOf(Quote::class, $result);
     }
 
     /**
