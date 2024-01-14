@@ -336,7 +336,7 @@ class GetQuote extends AmwalCheckoutAction
             $customerAddress = $this->addressResolver->execute($amwalOrderData, $isGuestQuote);
             $this->logDebug(sprintf(
                 'Resolved customer address with data: %s',
-                json_encode($customerAddress->getData(), JSON_THROW_ON_ERROR)
+                json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
             ));
         } catch (LocalizedException|RuntimeException $e) {
             $message = sprintf(
