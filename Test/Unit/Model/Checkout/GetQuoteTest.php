@@ -84,9 +84,8 @@ class GetQuoteTest extends TestCase
 
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->objectManager = new ObjectManager($this);
+        parent::setUp();
 
         // Create mock objects for dependencies
         $this->refIdManagement = $this->createMock(RefIdManagementInterface::class);
