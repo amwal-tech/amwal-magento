@@ -58,7 +58,7 @@ class GetQuote extends AmwalCheckoutAction
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private CheckoutSession $checkoutSession;
-    private SentryExceptionReport $sentryExceptionHandler;
+    private SentryExceptionReport $sentryExceptionReport;
     private QuoteIdMaskFactory $quoteIdMaskFactory;
 
     /**
