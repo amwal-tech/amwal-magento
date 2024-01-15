@@ -16,6 +16,8 @@ use Magento\Quote\Model\Quote\AddressFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -28,6 +30,10 @@ class PlaceOrderTest extends TestCase
     private $quoteAddressFactoryMock;
     private $orderRepositoryMock;
     private $loggerMock;
+    private $quoteMock;
+    private $orderMock;
+    private $addressMock;
+    private $searchCriteriaBuilderMock;
 
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
@@ -40,7 +46,7 @@ class PlaceOrderTest extends TestCase
     private const STREET_1 = 'Street 123';
     private const STREET_2 = '12345, Region';
     private const REF_ID = '1f80146ddd68d71f9064af90d1afc83ccdc99e13595afcfce60dea15be8b7ec4';
-    private const AMWAL_ORDER_ID = '123456789';
+    private const AMWAL_ORDER_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
 
     protected function setUp(): void
     {
@@ -69,6 +75,7 @@ class PlaceOrderTest extends TestCase
         $this->quoteAddressFactoryMock = $this->createMock(AddressFactory::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
         $this->loggerMock = $this->createMock(LoggerInterface::class);
+        $this->searchCriteriaBuilderMock = $this->createMock(SearchCriteriaBuilder::class);
 
 
         $this->placeOrder = $this->objectManager->getObject(
@@ -78,7 +85,8 @@ class PlaceOrderTest extends TestCase
                 'quoteManagement' => $this->quoteManagementMock,
                 'quoteAddressFactory' => $this->quoteAddressFactoryMock,
                 'orderRepository' => $this->orderRepositoryMock,
-                'logger' => $this->loggerMock
+                'logger' => $this->loggerMock,
+                'searchCriteriaBuilder' => $this->searchCriteriaBuilderMock
             ]
         );
     }
@@ -96,6 +104,8 @@ class PlaceOrderTest extends TestCase
         $orderMock->method('getState')->willReturn(Order::STATE_PENDING_PAYMENT);
         $orderMock->method('getEntityId')->willReturn(2);
 
+        $this->orderRepositoryMock->method('getList')->willReturn($this->createOrderList([$orderMock]));
+
         // Set expectations for Quote Management mock
         $this->quoteManagementMock->expects($this->once())
             ->method('submit')
@@ -109,7 +119,7 @@ class PlaceOrderTest extends TestCase
             ->willReturn($orderMock);
 
         // Call the method to be tested
-        $resultOrder = $this->placeOrder->createOrder($this->quoteMock, self::REF_ID, self::AMWAL_ORDER_ID);
+        $resultOrder = $this->placeOrder->createOrder($this->quoteMock, self::AMWAL_ORDER_ID, self::REF_ID);
 
         // Assertions
         $this->assertSame($orderMock, $resultOrder);
@@ -118,6 +128,7 @@ class PlaceOrderTest extends TestCase
         $this->assertEquals(self::AMWAL_ORDER_ID, $orderMock->getAmwalOrderId());
         $this->assertEquals('Amwal Transaction ID: ' . self::AMWAL_ORDER_ID, $orderMock->getVisibleStatusHistory()[0]->getComment());
         $this->assertEquals(self::REF_ID, $orderMock->getRefId());
+        $this->assertSame($orderMock, $this->placeOrder->getOrderByAmwalOrderId(self::AMWAL_ORDER_ID));
     }
 
     /**
@@ -207,5 +218,19 @@ class PlaceOrderTest extends TestCase
         $addressMock->method('getStreet')->willReturn([self::STREET_1, self::STREET_2]);
 
         return $addressMock;
+    }
+
+    /**
+     * Helper method to create a mock order list for the repository
+     */
+    private function createOrderList(array $orders): OrderSearchResultInterface
+    {
+        $orderList = $this->getMockBuilder(OrderSearchResultInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $orderList->method('getItems')->willReturn($orders);
+
+        return $orderList;
     }
 }

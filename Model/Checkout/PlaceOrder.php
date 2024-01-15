@@ -344,7 +344,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param $amwalOrderId
      * @return OrderInterface|null
      */
-    private function getOrderByAmwalOrderId($amwalOrderId): ?OrderInterface
+    public function getOrderByAmwalOrderId($amwalOrderId): ?OrderInterface
     {
         // Build a search criteria to filter orders by custom attribute
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId);
