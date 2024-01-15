@@ -11,9 +11,9 @@ abstract class AmwalCheckoutAction
 {
     public const IS_AMWAL_API_CALL  = 'is_amwal_api_call';
 
-    protected ErrorReporter $errorReporter;
-    protected Config $config;
-    protected LoggerInterface $logger;
+    protected $errorReporter;
+    protected $config;
+    protected $logger;
 
     public function __construct(
         ErrorReporter $errorReporter,

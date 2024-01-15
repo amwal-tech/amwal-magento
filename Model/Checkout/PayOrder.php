@@ -34,16 +34,16 @@ use Magento\Framework\Webapi\Exception as WebapiException;
 
 class PayOrder extends AmwalCheckoutAction
 {
-    private CartRepositoryInterface $quoteRepository;
-    private CheckoutSession $checkoutSession;
-    private GetAmwalOrderData $getAmwalOrderData;
-    private OrderRepositoryInterface $orderRepository;
-    private ManagerInterface $messageManager;
-    private OrderPaymentRepositoryInterface $paymentRepository;
-    private CustomerRepositoryInterface $customerRepository;
-    private CustomerSession $customerSession;
-    private CustomerManagement $customerManagement;
-    private OrderUpdate $orderUpdate;
+    private $quoteRepository;
+    private $checkoutSession;
+    private $getAmwalOrderData;
+    private $orderRepository;
+    private $messageManager;
+    private $paymentRepository;
+    private $customerRepository;
+    private $customerSession;
+    private $customerManagement;
+    private $orderUpdate;
 
 
     /**

@@ -28,6 +28,9 @@ function ($, Component, $t) {
             self.getLocale = function () {
                 return document.documentElement.lang;
             }
+            self.getScopeCode = function () {
+                return window.checkoutConfig.storeCode;
+            }
             const applePayObserver = new MutationObserver((mutations) => {
                 applePayObserver.disconnect();
                 mutations.forEach((mutation) => {
@@ -80,6 +83,7 @@ function ($, Component, $t) {
 
             self.amwalButtonContainer = document.getElementById(self.amwalButtonId);
             self.amwalButtonContainer.setAttribute('data-locale', self.getLocale());
+            self.amwalButtonContainer.setAttribute('data-scope-code', self.getScopeCode());
             if (window.renderReactElement) {
                 window.renderReactElement(self.amwalButtonContainer);
             }

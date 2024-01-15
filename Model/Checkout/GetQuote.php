@@ -43,23 +43,23 @@ use Magento\Quote\Model\QuoteIdMaskFactory;
 
 class GetQuote extends AmwalCheckoutAction
 {
-    private CustomerRepositoryInterface $customerRepository;
-    private Session $customerSession;
-    private QuoteFactory $quoteFactory;
-    private StoreManagerInterface $storeManager;
-    private ProductRepositoryInterface $productRepository;
-    private AmwalAddressInterfaceFactory $amwalAddressFactory;
-    private AddressFactory $quoteAddressFactory;
-    private QuoteRepositoryInterface $quoteRepository;
-    private ManagerInterface $messageManager;
-    private ShippingMethodManagement $shippingMethodManagement;
-    private AddressResolver $addressResolver;
-    private Factory $objectFactory;
-    private RefIdManagementInterface $refIdManagement;
-    private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
-    private CheckoutSession $checkoutSession;
-    private SentryExceptionReport $sentryExceptionHandler;
-    private QuoteIdMaskFactory $quoteIdMaskFactory;
+    private $customerRepository;
+    private $customerSession;
+    private $quoteFactory;
+    private $storeManager;
+    private $productRepository;
+    private $amwalAddressFactory;
+    private $quoteAddressFactory;
+    private $quoteRepository;
+    private $messageManager;
+    private $shippingMethodManagement;
+    private $addressResolver;
+    private $objectFactory;
+    private $refIdManagement;
+    private $maskedQuoteIdToQuoteId;
+    private $checkoutSession;
+    private $sentryExceptionHandler;
+    private $quoteIdMaskFactory;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository

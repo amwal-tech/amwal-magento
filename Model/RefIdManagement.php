@@ -9,7 +9,7 @@ use Magento\Framework\Encryption\EncryptorInterface;
 
 class RefIdManagement implements RefIdManagementInterface
 {
-    private EncryptorInterface $encryptor;
+    private $encryptor;
 
     /**
      * @param EncryptorInterface $encryptor

@@ -33,17 +33,17 @@ class AddressResolver
      */
     public const TEMPORARY_DATA_VALUE = 'undefined';
 
-    private CustomerRepositoryInterface $customerRepository;
-    private Session $customerSession;
-    private AddressRepositoryInterface $addressRepository;
-    private AddressInterfaceFactory $addressDataFactory;
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
-    private RegionCollectionFactory $regionCollectionFactory;
-    private RegionInterfaceFactory $regionFactory;
-    private Config $config;
-    private ResourceConnection $resourceConnection;
-    private LoggerInterface $logger;
-    private LocaleResolver $localeResolver;
+    private $customerRepository;
+    private $customerSession;
+    private $addressRepository;
+    private $addressDataFactory;
+    private $searchCriteriaBuilder;
+    private $regionCollectionFactory;
+    private $regionFactory;
+    private $config;
+    private $resourceConnection;
+    private $logger;
+    private $localeResolver;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,

@@ -19,30 +19,27 @@ class ExpressCheckoutButton implements ArgumentInterface
     public const TRIGGER_CONTEXT_PRODUCT_DETAIL = 'product-detail-page';
     public const TRIGGER_CONTEXT_MINICART = 'minicart';
     public const TRIGGER_CONTEXT_CART = 'cart';
-
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
-
 
     /**
      * @var AmwalConfig
      */
-    protected AmwalConfig $config;
+    private $config;
 
     /**
      * @var Random
      */
-    private Random $random;
+    private $random;
 
     /**
      * @var SessionFactory
      */
-    private SessionFactory $checkoutSessionFactory;
+    private $checkoutSessionFactory;
 
     /**
      * @var StoreManagerInterface
      */
-    private StoreManagerInterface $storeManager;
-
+    private $storeManager;
 
     /**
      * @param AmwalConfig $config

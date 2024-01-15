@@ -25,18 +25,18 @@ use Magento\Framework\DataObject;
 
 class OrderUpdate
 {
-    private OrderRepositoryInterface $orderRepository;
-    private StoreManagerInterface $storeManager;
-    private GetAmwalOrderData $getAmwalOrderData;
-    private Config $config;
-    private OrderNotifier $orderNotifier;
-    private TransportInterfaceFactory $transportFactory;
-    private MessageInterface $message;
-    private ScopeConfigInterface $scopeConfig;
-    private InvoiceOrder $invoiceAmwalOrder;
-    private LoggerInterface $logger;
-    private AmwalClientFactory $amwalClientFactory;
-    private SentryExceptionReport $sentryExceptionReportr;
+    private $orderRepository;
+    private $storeManager;
+    private $getAmwalOrderData;
+    private $config;
+    private $orderNotifier;
+    private $transportFactory;
+    private $message;
+    private $scopeConfig;
+    private $invoiceAmwalOrder;
+    private $logger;
+    private $amwalClientFactory;
+    private $sentryExceptionReportr;
 
     const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
