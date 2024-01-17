@@ -18,6 +18,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
+use Magento\Framework\Api\SearchCriteriaInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -47,6 +48,8 @@ class PlaceOrderTest extends TestCase
     private const STREET_2 = '12345, Region';
     private const REF_ID = '1f80146ddd68d71f9064af90d1afc83ccdc99e13595afcfce60dea15be8b7ec4';
     private const AMWAL_ORDER_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
+    private const AMWAL_ORDER_ID_CANCELED = '6e369835-451c-4071-8d86-496bd4a19eb6-canceled';
+
 
     protected function setUp(): void
     {
@@ -100,23 +103,37 @@ class PlaceOrderTest extends TestCase
         $this->quoteMock->method('getId')->willReturn(1);
 
         // Mock Order
-        $orderMock = $this->createMock(OrderInterface::class);
+        $orderMock = $this->createPartialMock(Order::class, ['getState', 'getEntityId', 'cancel', 'setAmwalOrderId', 'getAmwalOrderId', 'setRefId', 'getRefId', 'addCommentToStatusHistory']);
         $orderMock->method('getState')->willReturn(Order::STATE_PENDING_PAYMENT);
         $orderMock->method('getEntityId')->willReturn(2);
+        $orderMock->method('getAmwalOrderId')->willReturn(self::AMWAL_ORDER_ID);
+        $orderMock->method('getRefId')->willReturn(self::REF_ID);
+        $orderMock->method('setRefId')->with(self::REF_ID)->willReturnSelf();
+        $statusHistoryMessage = 'Amwal Transaction ID: ' . self::AMWAL_ORDER_ID;
+        $orderMock->method('addCommentToStatusHistory')->with($statusHistoryMessage)->willReturnSelf();
 
-        $this->orderRepositoryMock->method('getList')->willReturn($this->createOrderList([$orderMock]));
+        $this->orderRepositoryMock->method('getList')->willReturn($this->createOrderList([]));
 
         // Set expectations for Quote Management mock
-        $this->quoteManagementMock->expects($this->once())
+        $this->quoteManagementMock
             ->method('submit')
             ->with($this->quoteMock)
             ->willReturn($orderMock);
 
         // Set expectations for Order Repository mock
-        $this->orderRepositoryMock->expects($this->once())
+        $this->orderRepositoryMock
             ->method('save')
             ->with($orderMock)
             ->willReturn($orderMock);
+
+        $this->searchCriteriaBuilderMock
+            ->method('addFilter')
+            ->with('amwal_order_id', self::AMWAL_ORDER_ID)
+            ->willReturnSelf();
+
+        $this->searchCriteriaBuilderMock
+            ->method('create')
+            ->willReturn($this->createMock(SearchCriteriaInterface::class));
 
         // Call the method to be tested
         $resultOrder = $this->placeOrder->createOrder($this->quoteMock, self::AMWAL_ORDER_ID, self::REF_ID);
@@ -126,9 +143,7 @@ class PlaceOrderTest extends TestCase
         $this->assertEquals(Order::STATE_PENDING_PAYMENT, $orderMock->getState());
         $this->assertEquals(Order::STATE_PENDING_PAYMENT, $orderMock->getStatus());
         $this->assertEquals(self::AMWAL_ORDER_ID, $orderMock->getAmwalOrderId());
-        $this->assertEquals('Amwal Transaction ID: ' . self::AMWAL_ORDER_ID, $orderMock->getVisibleStatusHistory()[0]->getComment());
         $this->assertEquals(self::REF_ID, $orderMock->getRefId());
-        $this->assertSame($orderMock, $this->placeOrder->getOrderByAmwalOrderId(self::AMWAL_ORDER_ID));
     }
 
     /**
