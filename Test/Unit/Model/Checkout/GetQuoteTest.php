@@ -36,6 +36,7 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Api\AttributeValue;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Quote\Model\Quote\Address\Total\AbstractTotal;
 use Magento\Framework\DataObject\Factory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -106,6 +107,7 @@ class GetQuoteTest extends TestCase
         $this->objectFactory = $this->createMock(Factory::class);
         $this->quoteMock = $this->getMockBuilder(CartInterface::class)
             ->addMethods(['getTotals', 'getData'])
+            ->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
         $this->getQuote = $this->objectManager->getObject(
@@ -491,7 +493,7 @@ class GetQuoteTest extends TestCase
     {
         // Mock data and parameters
         $totals = [
-            'amasty_extrafee' => $this->getMockBuilder(Total::class)
+            'amasty_extrafee' => $this->getMockBuilder(AbstractTotal::class)
                 ->addMethods(['getValueInclTax'])
                 ->getMock(),
         ];
@@ -512,7 +514,7 @@ class GetQuoteTest extends TestCase
     {
         // Mock data and parameters
         $totals = [
-            'amasty_extrafee' => $this->getMockBuilder(Total::class)
+            'amasty_extrafee' => $this->getMockBuilder(AbstractTotal::class)
                 ->addMethods(['getTitle'])
                 ->getMock(),
         ];
