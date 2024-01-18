@@ -62,6 +62,7 @@ class GetQuoteTest extends TestCase
     private $customerFactory;
     private $customerSession;
     private $objectFactory;
+    private $quoteMock;
 
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
