@@ -103,6 +103,9 @@ class GetQuoteTest extends TestCase
         $this->customerFactory = $this->createMock(CustomerFactory::class);
         $this->customerSession = $this->createMock(CustomerSession::class);
         $this->objectFactory = $this->createMock(Factory::class);
+        $this->quoteMock = $this->getMockBuilder(CartInterface::class)
+            ->addMethods(['getTotals', 'getData'])
+            ->getMockForAbstractClass();
 
         $this->getQuote = $this->objectManager->getObject(
             GetQuote::class,
@@ -217,6 +220,11 @@ class GetQuoteTest extends TestCase
     {
         $productMock = $this->createMock(Product::class);
         $productMock->method('getId')->willReturn($productId);
+        $productMock->method('isSalable')->willReturn(true);
+
+        // Mock getTypeInstance method
+        $typeInstanceMock = $this->createMock(Product\Type\AbstractType::class);
+        $productMock->method('getTypeInstance')->willReturn($typeInstanceMock);
 
         return $productMock;
     }
@@ -481,10 +489,6 @@ class GetQuoteTest extends TestCase
     public function testGetAdditionalFeeAmount()
     {
         // Mock data and parameters
-        $quoteMock = $this->getMockBuilder(CartInterface::class)
-            ->addMethods(['getTotals'])
-            ->getMockForAbstractClass();
-
         $totals = [
             'amasty_extrafee' => $this->getMockBuilder(Total::class)
                 ->addMethods(['getValueInclTax'])
@@ -492,11 +496,11 @@ class GetQuoteTest extends TestCase
         ];
 
         // Set expectations for the mock objects
-        $quoteMock->method('getTotals')->willReturn($totals);
+        $this->quoteMock->method('getTotals')->willReturn($totals);
         $totals['amasty_extrafee']->method('getValueInclTax')->willReturn(self::TOTAL + self::TOTAL_TAX);
 
         // Assertions based on the expected result
-        $result = $this->getQuote->getAdditionalFeeAmount($quoteMock);
+        $result = $this->getQuote->getAdditionalFeeAmount($this->quoteMock);
         $this->assertEquals(self::TOTAL + self::TOTAL_TAX, $result);
     }
 
@@ -506,10 +510,6 @@ class GetQuoteTest extends TestCase
     public function testGetAdditionalFeeDescription()
     {
         // Mock data and parameters
-        $quoteMock = $this->getMockBuilder(CartInterface::class)
-            ->addMethods(['getTotals', 'getData'])
-            ->getMockForAbstractClass();
-
         $totals = [
             'amasty_extrafee' => $this->getMockBuilder(Total::class)
                 ->addMethods(['getTitle'])
@@ -517,15 +517,15 @@ class GetQuoteTest extends TestCase
         ];
 
         // Set expectations for the mock objects
-        $quoteMock->method('getTotals')->willReturn($totals);
-        $quoteMock->method('getData')->with('applied_amasty_fee_flag')->willReturn(true);
+        $this->quoteMock->method('getTotals')->willReturn($totals);
+        $this->quoteMock->method('getData')->with('applied_amasty_fee_flag')->willReturn(true);
         $titleMock = $this->getMockBuilder(Phrase::class)->setConstructorArgs(['Fee Description'])->getMock();
         $titleMock->method('getArguments')->willReturn(['Fee Description']);
 
         $totals['amasty_extrafee']->method('getTitle')->willReturn($titleMock);
 
         // Assertions based on the expected result
-        $result = $this->getQuote->getAdditionalFeeDescription($quoteMock);
+        $result = $this->getQuote->getAdditionalFeeDescription($this->quoteMock);
         $this->assertEquals('Fee Description', $result);
     }
 
