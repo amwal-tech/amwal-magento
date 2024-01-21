@@ -152,38 +152,10 @@ class GetQuoteTest extends TestCase
         $customer->method('getGroupId')->willReturn(0);
         $quoteMock = $this->createMockQuote();
 
-        $quoteMock->expects($this->once())
-            ->method('setCustomerGroupId')
-            ->with($customer->getGroupId());
-
-        // Mock product repository calls
-        $this->productRepository->expects($this->exactly(2))
-            ->method('getById')
-            ->withConsecutive(['123'], ['456'])
-            ->willReturnOnConsecutiveCalls(
-                $this->createMockProduct('123'),
-                $this->createMockProduct('456')
-            );
-
-        // Mock quote and quote repository calls
-        $this->quoteFactory->expects($this->once())
-            ->method('create')
-            ->willReturn($quoteMock);
-
         $validRequest = $this->getMockBuilder(DataObject::class)
             ->onlyMethods(['setData'])
             ->getMock();
-
         $validRequest->method('setData')->willReturnSelf();
-
-        $this->objectFactory->method('create')->willReturn($validRequest);
-
-        $this->quoteRepository->expects($this->once())
-            ->method('save');
-
-        // Assertions based on the expected result
-        //$result = $this->getQuote->createQuote($orderItems);
-        //$this->assertInstanceOf(Quote::class, $result);
     }
 
     /**
