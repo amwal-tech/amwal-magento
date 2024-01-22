@@ -443,4 +443,20 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     {
         return $this->setData(self::INITIAL_LAST_NAME, $initialLastName);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getErrorMessage(): ?array
+    {
+        return $this->getData(self::ERROR_MESSAGE);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setErrorMessage(?array $errorMessage): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::ERROR_MESSAGE, $errorMessage);
+    }
 }

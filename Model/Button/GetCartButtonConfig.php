@@ -46,12 +46,13 @@ class GetCartButtonConfig extends GetConfig
             if (!$cartId && $quote->getId()) {
                 $cartId = $this->quoteIdMaskFactory->create()->setQuoteId($quote->getId())->save()->getMaskedId();
             }
-            $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
         $buttonConfig->setAmount($this->getAmount($quote));
         $buttonConfig->setId($this->getButtonId($cartId));
+        $buttonConfig->setCartId($cartId);
+        $this->validateButtonConfig($buttonConfig);
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -164,5 +165,23 @@ class GetCartButtonConfig extends GetConfig
         }
 
         return $limitedRegionCodes;
+    }
+
+    /**
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @return void
+     */
+    public function validateButtonConfig(AmwalButtonConfigInterface $buttonConfig): void
+    {
+        $errors = [];
+        if (!$buttonConfig->getCartId()) {
+            $buttonConfig->setDisabled(true);
+            $errors[] = __('Cart ID is missing');
+        }
+        if (!$this->quoteIdMaskFactory->create()->load($buttonConfig->getCartId(), 'masked_id')->getQuoteId()) {
+            $buttonConfig->setDisabled(true);
+            $errors[] = __('Cart ID is invalid or expired');
+        }
+        $buttonConfig->setErrorMessage($errors);
     }
 }

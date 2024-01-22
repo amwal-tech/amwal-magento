@@ -33,6 +33,7 @@ export interface IAmwalButtonConfig {
   initial_last_name: string
   installment_options_url: string
   cart_id: string
+  error_message: any
 }
 
 export interface IRefIdData {
