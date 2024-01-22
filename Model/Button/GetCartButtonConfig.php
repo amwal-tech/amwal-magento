@@ -14,10 +14,12 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
+
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
@@ -32,6 +34,8 @@ class GetCartButtonConfig extends GetConfig
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
+        $customerSession = $this->customerSessionFactory->create();
+        $initialAddress = $this->amwalAddressFactory->create();
         $quote = null;
 
         if ($cartId) {
@@ -47,13 +51,12 @@ class GetCartButtonConfig extends GetConfig
                 $cartId = $this->quoteIdMaskFactory->create()->setQuoteId($quote->getId())->save()->getMaskedId();
             }
         }
-        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
-
+        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
         $buttonConfig->setAmount($this->getAmount($quote));
         $buttonConfig->setId($this->getButtonId($cartId));
         $buttonConfig->setCartId($cartId);
         $this->validateButtonConfig($buttonConfig);
-
+      
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
@@ -73,7 +76,7 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function getAmount($quote): float
+    public function getAmount($quote): float
     {
         return (float)$quote->getGrandTotal();
     }
