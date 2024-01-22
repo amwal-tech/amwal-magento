@@ -29,21 +29,21 @@ use Magento\Framework\Locale\ResolverInterface;
 
 class GetConfig
 {
-    protected AmwalButtonConfigFactory $buttonConfigFactory;
-    protected Config $config;
-    protected ExpressCheckoutButton $viewModel;
-    protected StoreManagerInterface $storeManager;
-    protected CustomerSessionFactory $customerSessionFactory;
-    protected CheckoutSessionFactory $checkoutSessionFactory;
-    protected CityHelper $cityHelper;
-    protected AmwalAddressInterfaceFactory $amwalAddressFactory;
-    protected RefIdManagementInterface $refIdManagement;
-    protected CartRepositoryInterface $cartRepository;
-    protected ProductRepositoryInterface $productRepository;
-    protected Json $jsonSerializer;
-    protected RegionCollectionFactory $regionCollectionFactory;
-    protected RegionFactory $regionFactory;
-    protected QuoteIdMaskFactory $quoteIdMaskFactory;
+    protected $buttonConfigFactory;
+    protected $config;
+    protected $viewModel;
+    protected $storeManager;
+    protected $customerSessionFactory;
+    protected $checkoutSessionFactory;
+    protected $cityHelper;
+    protected $amwalAddressFactory;
+    protected $refIdManagement;
+    protected $cartRepository;
+    protected $productRepository;
+    protected $jsonSerializer;
+    protected $regionCollectionFactory;
+    protected $regionFactory;
+    protected $quoteIdMaskFactory;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory

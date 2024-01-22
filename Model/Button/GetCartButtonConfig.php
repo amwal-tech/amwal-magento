@@ -16,8 +16,8 @@ use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 class GetCartButtonConfig extends GetConfig
 {
-    protected Json $jsonSerializer;
-    protected CityHelper $cityHelper;
+    protected $jsonSerializer;
+    protected $cityHelper;
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext

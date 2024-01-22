@@ -19,37 +19,37 @@ class ConfigProvider implements ConfigProviderInterface
     /**
      * @var Config
      */
-    private Config $config;
+    private $config;
 
     /**
      * @var RefIdManagementInterface
      */
-    private RefIdManagementInterface $refIdManagement;
+    private $refIdManagement;
 
     /**
      * @var RefIdDataInterfaceFactory
      */
-    private RefIdDataInterfaceFactory $refIdDataFactory;
+    private $refIdDataFactory;
 
     /**
      * @var CustomerSession
      */
-    private CustomerSession $customerSession;
+    private $customerSession;
 
     /**
      * @var CheckoutSession
      */
-    private CheckoutSession $checkoutSession;
+    private $checkoutSession;
 
     /**
      * @var CityHelper
      */
-    private CityHelper $cityHelper;
+    private $cityHelper;
 
     /**
      * @var DirectoryHelper
      */
-    private DirectoryHelper $directoryHelper;
+    private $directoryHelper;
 
     /**
      * @param Config $config

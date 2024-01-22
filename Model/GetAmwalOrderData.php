@@ -13,11 +13,11 @@ use Psr\Log\LoggerInterface;
 class GetAmwalOrderData
 {
 
-    private AmwalClientFactory $amwalClientFactory;
-    private AmwalAddressInterfaceFactory $amwalAddressFactory;
-    private Json $jsonSerializer;
-    private Factory $objectFactory;
-    private LoggerInterface $logger;
+    private $amwalClientFactory;
+    private $amwalAddressFactory;
+    private $jsonSerializer;
+    private $objectFactory;
+    private $logger;
 
     public function __construct(
         AmwalClientFactory $amwalClientFactory,

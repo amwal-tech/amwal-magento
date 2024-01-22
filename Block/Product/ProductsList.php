@@ -30,12 +30,12 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
     /**
      * @var Config
      */
-    private Config $config;
+    private $config;
 
     /**
      * @var StoreManagerInterface
      */
-    private StoreManagerInterface $storeManager;
+    private $storeManager;
 
 
     /**
@@ -67,10 +67,9 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
         array                       $data = [],
         Json                        $json = null,
         LayoutFactory               $layoutFactory = null,
-        EncoderInterface            $urlEncoder = null,
-        CategoryRepositoryInterface $categoryRepository = null
+        EncoderInterface            $urlEncoder = null
     ) {
-        parent::__construct($context, $productCollectionFactory, $catalogProductVisibility, $httpContext, $sqlBuilder, $rule, $conditionsHelper, $data, $json, $layoutFactory, $urlEncoder, $categoryRepository);
+        parent::__construct($context, $productCollectionFactory, $catalogProductVisibility, $httpContext, $sqlBuilder, $rule, $conditionsHelper, $data, $json, $layoutFactory, $urlEncoder);
         $this->config = $config;
         $this->storeManager = $storeManager;
     }

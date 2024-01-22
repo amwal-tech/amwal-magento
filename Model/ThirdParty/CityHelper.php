@@ -12,12 +12,12 @@ class CityHelper
     /**
      * @var ResourceConnection
      */
-    private ResourceConnection $resourceConnection;
+    private $resourceConnection;
 
     /**
      * @var ResolverInterface
      */
-    protected ResolverInterface $localeResolver;
+    protected $localeResolver;
 
     /**
      * @param ResourceConnection $resourceConnection

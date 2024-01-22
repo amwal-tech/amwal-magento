@@ -9,28 +9,26 @@ use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Backend\Block\Widget\Button;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\Url;
-use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
 class ValidateMerchantIdButton extends Field
 {
     /**
      * @var Config
      */
-    private Config $config;
+    private $config;
 
     /**
      * @param Context $context
      * @param Config $config
      * @param array $data
-     * @param SecureHtmlRenderer|null $secureRenderer
      */
     public function __construct(
         Context $context,
         Config $config,
-        array $data = [],
-        ?SecureHtmlRenderer $secureRenderer = null
-    ){
-        parent::__construct($context, $data, $secureRenderer);
+        array $data = []
+    )
+    {
+        parent::__construct($context, $data);
         $this->config = $config;
     }
 

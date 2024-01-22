@@ -12,12 +12,12 @@ class ErrorReporter
     /**
      * @var AmwalClientFactory
      */
-    private AmwalClientFactory $amwalClientFactory;
+    private $amwalClientFactory;
 
     /**
      * @var LoggerInterface
      */
-    private LoggerInterface $logger;
+    private $logger;
 
     /**
      * @param AmwalClientFactory $amwalClientFactory

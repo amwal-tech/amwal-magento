@@ -14,11 +14,11 @@ use Amwal\Payments\Model\Data\OrderUpdate;
 
 class PendingOrdersUpdate
 {
-    private OrderRepositoryInterface $orderRepository;
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
-    private LoggerInterface $logger;
-    private Config $config;
-    private OrderUpdate $orderUpdate;
+    private $orderRepository;
+    private $searchCriteriaBuilder;
+    private $logger;
+    private $config;
+    private $orderUpdate;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,

@@ -32,19 +32,19 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class PlaceOrder extends AmwalCheckoutAction
 {
-    private QuoteManagement $quoteManagement;
-    private AddressFactory $quoteAddressFactory;
-    private QuoteRepositoryInterface $quoteRepository;
-    private ManagerInterface $messageManager;
-    private AddressResolver $addressResolver;
-    private OrderRepositoryInterface $orderRepository;
-    private RefIdManagementInterface $refIdManagement;
-    private UpdateShippingMethod $updateShippingMethod;
-    private SetAmwalOrderDetails $setAmwalOrderDetails;
-    private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
-    private GetAmwalOrderData $getAmwalOrderData;
-    private SentryExceptionReport $sentryExceptionReport;
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private $quoteManagement;
+    private $quoteAddressFactory;
+    private $quoteRepository;
+    private $messageManager;
+    private $addressResolver;
+    private $orderRepository;
+    private $refIdManagement;
+    private $updateShippingMethod;
+    private $setAmwalOrderDetails;
+    private $maskedQuoteIdToQuoteId;
+    private $getAmwalOrderData;
+    private $sentryExceptionReport;
+    private $searchCriteriaBuilder;
 
     /**
      * @param QuoteManagement $quoteManagement

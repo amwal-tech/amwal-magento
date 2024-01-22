@@ -12,7 +12,7 @@ class SentryExceptionReport
     /**
      * @var Config
      */
-    protected Config $config;
+    protected $config;
 
     /**
      * SentryExceptionReport constructor.

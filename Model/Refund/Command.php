@@ -19,11 +19,11 @@ use Psr\Log\LoggerInterface;
 class Command implements CommandInterface
 {
 
-    private AmwalClientFactory $amwalClientFactory;
-    private Config $config;
-    private OrderRepositoryInterface $orderRepository;
-    private Context $context;
-    private LoggerInterface $logger;
+    private $amwalClientFactory;
+    private $config;
+    private $orderRepository;
+    private $context;
+    private $logger;
 
     /**
      * @param AmwalClientFactory $amwalClientFactory

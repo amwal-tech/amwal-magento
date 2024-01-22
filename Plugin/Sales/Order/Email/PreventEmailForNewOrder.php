@@ -14,7 +14,7 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 class PreventEmailForNewOrder
 {
 
-    private Config $config;
+    private $config;
 
     /**
      * @param Config $config

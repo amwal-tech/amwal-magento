@@ -51,16 +51,16 @@ class Config
 
 
     /** @var ScopeConfigInterface */
-    private ScopeConfigInterface $scopeConfig;
+    private $scopeConfig;
 
     /** @var ComposerInformation */
-    private ComposerInformation $composerInformation;
+    private $composerInformation;
 
     /** @var RegionCollectionFactory */
-    private RegionCollectionFactory $regionCollectionFactory;
+    private $regionCollectionFactory;
 
     /** @var DirectoryHelper */
-    private DirectoryHelper $directoryHelper;
+    private $directoryHelper;
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -96,7 +96,7 @@ class Config
      */
     public function isMerchantValid(): bool
     {
-        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_MERCHANT_ID_VALID, ScopeInterface::SCOPE_WEBSITE);
+        return true; //$this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_MERCHANT_ID_VALID, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**

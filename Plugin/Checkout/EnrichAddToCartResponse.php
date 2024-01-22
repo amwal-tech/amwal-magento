@@ -25,12 +25,12 @@ class EnrichAddToCartResponse
     /**
      * @var ManagerInterface
      */
-    private ManagerInterface $messageManager;
+    private $messageManager;
 
     /**
      * @var Json
      */
-    private Json $json;
+    private $json;
 
     /**
      * @param ManagerInterface $messageManager

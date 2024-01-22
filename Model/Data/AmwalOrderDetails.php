@@ -15,13 +15,13 @@ use Amwal\Payments\Model\Data\OrderUpdate;
 
 class AmwalOrderDetails implements AmwalOrderInterface
 {
-    protected $orderRepository;
-    protected $searchCriteriaBuilder;
-    private Request $restRequest;
-    private StoreManagerInterface $storeManager;
-    private GetAmwalOrderData $getAmwalOrderData;
-    private Config $config;
-    private OrderUpdate $orderUpdate;
+    private $orderRepository;
+    private $searchCriteriaBuilder;
+    private $restRequest;
+    private $storeManager;
+    private $getAmwalOrderData;
+    private $config;
+    private $orderUpdate;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,

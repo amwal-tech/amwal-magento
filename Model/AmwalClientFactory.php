@@ -12,12 +12,12 @@ class AmwalClientFactory
     /**
      * @var GuzzleClientFactory
      */
-    private GuzzleClientFactory $guzzleClientFactory;
+    private $guzzleClientFactory;
 
     /**
      * @var Config
      */
-    private Config $config;
+    private $config;
 
     /**
      * @param GuzzleClientFactory $guzzleClientFactory

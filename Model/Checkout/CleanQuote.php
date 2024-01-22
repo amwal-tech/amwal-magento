@@ -13,8 +13,8 @@ use Psr\Log\LoggerInterface;
 
 class CleanQuote extends AmwalCheckoutAction
 {
-    private CheckoutSession $checkoutSession;
-    private CartRepositoryInterface $cartRepository;
+    private $checkoutSession;
+    private $cartRepository;
 
     /**
      * @param CheckoutSession $checkoutSession

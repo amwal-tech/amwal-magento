@@ -19,27 +19,27 @@ class ExpressCheckoutCartButton extends Template
     /**
      * @var Config
      */
-    private Config $config;
+    private $config;
 
     /**
      * @var ScopeConfigInterface
      */
-    private ScopeConfigInterface $scopeConfig;
+    private $scopeConfig;
 
     /**
      * @var CustomerSessionFactory
      */
-    private CustomerSessionFactory $customerSessionFactory;
+    private $customerSessionFactory;
 
     /**
      * @var CheckoutSessionFactory
      */
-    private CheckoutSessionFactory $checkoutSessionFactory;
+    private $checkoutSessionFactory;
 
     /**
      * @var CartRepositoryInterface
      */
-    private CartRepositoryInterface $quoteRepository;
+    private $quoteRepository;
 
     /**
      * @param Context $context

@@ -1,11 +1,9 @@
 <?php
 use Magento\Catalog\Block\Product\ProductList\Item\Block;
-use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 
 /**
- * @var Escaper $escaper
  * @var Template|Block $block
  * @var ExpressCheckoutButton $viewModel
  */
@@ -18,12 +16,12 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
     <?= $viewModel->getStyleCss() ?>
 </style>
 <?php if ($viewModel->shouldRender($triggerContext)): ?>
-    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?> <?= $escaper->escapeHtmlAttr($triggerContext) ?>"
-         data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
-         data-locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
-         data-scope-code="<?= $escaper->escapeHtmlAttr($viewModel->getStoreCode()) ?>"
-         <?= $formSelector ? 'data-form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
-         id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?> <?= $triggerContext ?>"
+         data-trigger-context="<?= $triggerContext ?>"
+         data-locale="<?= $viewModel->getLocale() ?>"
+         data-scope-code="<?= $viewModel->getStoreCode() ?>"
+        <?= $formSelector ? 'data-form-selector="' . $formSelector . '"' : '' ?>
+         id="<?= $buttonId ?>"
     >
     </div>
     <script type="text/x-magento-init">
@@ -33,8 +31,8 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
                     "buttonId" : "<?= $buttonId ?>",
                     "triggerContext": "<?= $triggerContext ?>",
                     "hideProceedToCheckout": <?= $viewModel->shouldHideProceedToCheckout()? "true": "false" ?>
-                }
-            }
         }
+    }
+}
     </script>
 <?php endif; ?>

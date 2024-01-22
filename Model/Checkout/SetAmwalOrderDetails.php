@@ -19,9 +19,9 @@ use Magento\Framework\UrlInterface;
 class SetAmwalOrderDetails extends AmwalCheckoutAction
 {
 
-    private AmwalClientFactory $amwalClientFactory;
-    private StoreManagerInterface $storeManager;
-    private Json $json;
+    private $amwalClientFactory;
+    private $storeManager;
+    private $json;
 
     /**
      * @param AmwalClientFactory $amwalClientFactory

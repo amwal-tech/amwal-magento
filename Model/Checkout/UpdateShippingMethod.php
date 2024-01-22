@@ -17,8 +17,8 @@ use Psr\Log\LoggerInterface;
 class UpdateShippingMethod extends AmwalCheckoutAction
 {
 
-    private CartRepositoryInterface $quoteRepository;
-    private ShippingMethodManagementInterface $shippingMethodManagement;
+    private $quoteRepository;
+    private $shippingMethodManagement;
 
     public function __construct(
         CartRepositoryInterface $quoteRepository,

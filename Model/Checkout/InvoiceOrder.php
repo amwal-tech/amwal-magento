@@ -24,13 +24,13 @@ use Psr\Log\LoggerInterface;
 
 class InvoiceOrder extends AmwalCheckoutAction
 {
-    private InvoiceRepositoryInterface $invoiceRepository;
-    private ScopeConfigInterface $scopeConfig;
-    private InvoiceSender $invoiceSender;
-    private BuilderInterface $transactionBuilder;
-    private OrderRepositoryInterface $orderRepository;
-    private CheckoutSession $checkoutSession;
-    private ManagerInterface $messageManager;
+    private $invoiceRepository;
+    private $scopeConfig;
+    private $invoiceSender;
+    private $transactionBuilder;
+    private $orderRepository;
+    private $checkoutSession;
+    private $messageManager;
 
     /**
      * @param InvoiceRepositoryInterface $invoiceRepository

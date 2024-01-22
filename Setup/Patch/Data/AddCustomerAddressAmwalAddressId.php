@@ -19,12 +19,12 @@ class AddCustomerAddressAmwalAddressId implements DataPatchInterface
     /**
      * @var ModuleDataSetupInterface
      */
-    private ModuleDataSetupInterface $moduleDataSetup;
+    private $moduleDataSetup;
 
     /**
      * @var EavSetupFactory
      */
-    private EavSetupFactory $eavSetupFactory;
+    private $eavSetupFactory;
 
     /**
      * @param ModuleDataSetupInterface $moduleDataSetup
