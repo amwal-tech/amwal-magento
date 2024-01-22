@@ -341,7 +341,7 @@ interface AmwalButtonConfigInterface
     public function getErrorMessage(): ?array;
 
     /**
-     * @param array|null $errorMessage
+     * @param (string|Phrase)[]|null $errorMessage
      * @return AmwalButtonConfigInterface
      */
     public function setErrorMessage(?array $errorMessage): AmwalButtonConfigInterface;
