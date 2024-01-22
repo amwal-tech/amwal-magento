@@ -83,37 +83,37 @@ jobs:
         run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --colors=always --coverage-text --coverage-clover build/logs/clover.xml  --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml --coverage-html build/coverage/html --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2.1
+        uses: actions/upload-artifact@v4
         with:
           name: html-coverage-report
           path: magento/build/coverage/html
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2.1
+        uses: actions/upload-artifact@v4
         with:
           name: clover-coverage-report
           path: magento/build/logs/clover.xml
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2.1
+        uses: actions/upload-artifact@v4
         with:
           name: cobertura-coverage-report
           path: magento/build/coverage/cobertura.xml
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2.1
+        uses: actions/upload-artifact@v4
         with:
           name: crap4j-coverage-report
           path: magento/build/coverage/crap4j.xml
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2.1
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-xml-coverage-report
           path: magento/build/coverage/coverage-xml
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2.1
+        uses: actions/upload-artifact@v4
         with:
           name: junit-coverage-report
           path: magento/build/junit.xml
