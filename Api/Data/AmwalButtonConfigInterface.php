@@ -31,10 +31,9 @@ interface AmwalButtonConfigInterface
     public const INITIAL_PHONE = 'initial_phone';
     public const PLUGIN_VERSION = 'plugin_version';
     public const CART_ID = 'cart_id';
-
     public const INITIAL_FIRST_NAME = 'initial_first_name';
-
     public const INITIAL_LAST_NAME = 'initial_last_name';
+    public const SHOW_DISCOUNT_RIBBON = 'show_discount_ribbon';
 
     /**
      * @return string
@@ -335,4 +334,15 @@ interface AmwalButtonConfigInterface
      */
     public function setCartId(?string $cartId): AmwalButtonConfigInterface;
 
+
+    /**
+     * @return bool
+     */
+    public function getShowDiscountRibbon(): bool;
+
+    /**
+     * @param bool $showDiscountRibbon
+     * @return AmwalButtonConfigInterface
+     */
+    public function setShowDiscountRibbon(bool $showDiscountRibbon): AmwalButtonConfigInterface;
 }

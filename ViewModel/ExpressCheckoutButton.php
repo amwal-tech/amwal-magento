@@ -11,7 +11,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
-
+use Magento\Framework\App\Request\Http;
+use Magento\Catalog\Model\ProductRepository;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -43,23 +44,39 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     private StoreManagerInterface $storeManager;
 
+    /**
+     * @var Http
+     */
+    private Http $request;
+
+    /**
+     * @var ProductRepository
+     */
+    private ProductRepository $productRepository;
+
 
     /**
      * @param AmwalConfig $config
      * @param Random $random
      * @param SessionFactory $checkoutSessionFactory
      * @param StoreManagerInterface $storeManager
+     * @param Http $request
+     * @param ProductRepository $productRepository
      */
     public function __construct(
         AmwalConfig $config,
         Random $random,
         SessionFactory $checkoutSessionFactory,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        Http $request,
+        ProductRepository $productRepository
     ) {
         $this->config = $config;
         $this->random = $random;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
         $this->storeManager = $storeManager;
+        $this->request = $request;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -153,4 +170,67 @@ class ExpressCheckoutButton implements ArgumentInterface
             return '';
         }
     }
+
+    /**
+     * @param ProductInterface|null $product
+     * @return float
+     */
+    public function getProductDiscount(?ProductInterface $product): float
+    {
+        $productId = $this->request->getParam('id');
+        if ($product) {
+            $discountAmount = $this->getDiscountAmount($product);
+            return $discountAmount;
+        }
+        if ($productId) {
+            $discountAmount = $this->getDiscountAmount($productId);
+            return $discountAmount;
+        }
+        try {
+            $quote = $this->checkoutSessionFactory->create()->getQuote();
+            $items = $quote->getAllItems();
+            $discountAmount = 0;
+            foreach ($items as $item) {
+                $discountAmount += $this->getDiscountAmount($item->getProductId());
+            }
+            return $discountAmount;
+        } catch (NoSuchEntityException|LocalizedException $e) {
+            return 0;
+        }
+        return 0;
+    }
+
+    /**
+     * @param ProductInterface|null $product
+     * @return float
+     */
+    public function getProductAmount(?ProductInterface $product): float
+    {
+        $productId = $this->request->getParam('id');
+        if ($product) {
+            return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+        }
+        if ($productId) {
+            $product = $this->productRepository->getById($productId);
+            return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+        }
+        return 0;
+    }
+
+    /**
+     * @param $productId
+     * @return float
+     */
+    public function getDiscountAmount($productId): float
+    {
+        $product = $this->productRepository->getById($productId);
+        $discountAmount = 0;
+        try {
+            $discountAmount = $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue() - $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+        } catch (NoSuchEntityException $e) {
+            return 0;
+        }
+        return $discountAmount;
+    }
+
 }

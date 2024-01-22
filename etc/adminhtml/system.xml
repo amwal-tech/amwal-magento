@@ -93,6 +93,13 @@
                         <config_path>payment/amwal_payments/style_css</config_path>
                         <tooltip>Custom style CSS to be applied to the Amwal checkout button</tooltip>
                     </field>
+
+                    <field id="show_discount_ribbon" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Show Discount Ribbon</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/show_discount_ribbon</config_path>
+                        <tooltip>Toggle to enable discount ribbon</tooltip>
+                    </field>
                 </group>
 
                 <!-- Address Attribute Settings -->

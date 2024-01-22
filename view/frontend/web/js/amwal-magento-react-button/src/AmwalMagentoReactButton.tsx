@@ -7,6 +7,8 @@ interface AmwalMagentoReactButtonProps {
   triggerContext: string
   locale?: string
   scopeCode?: string
+  productDiscount?: number
+  productAmount?: number
   preCheckoutTask?: () => Promise<void>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
@@ -21,6 +23,8 @@ const AmwalMagentoReactButton = ({
   triggerContext,
   locale,
   scopeCode,
+  productDiscount,
+  productAmount,
   preCheckoutTask,
   onSuccessTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
@@ -317,9 +321,9 @@ const AmwalMagentoReactButton = ({
     ? <AmwalCheckoutButton
         ref={buttonRef}
         id={config.id}
-        amount={amount}
+        amount={amount == 0 ? productAmount : amount}
         taxes={taxes}
-        discount={discount}
+        discount={discount == 0 ? productDiscount : discount}
         fees={fees}
         feesDescription={feesDescription}
         shippingMethods={shippingMethods}
@@ -351,7 +355,8 @@ const AmwalMagentoReactButton = ({
         postcodeOptionalCountries={JSON.stringify(config.post_code_optional_countries) as any}
         initialFirstName={config.initial_first_name}
         initialLastName={config.initial_last_name}
-        installmentOptionsUrl={config.installment_options_url}
+        showDiscountRibbon={config.show_discount_ribbon}
+        // installmentOptionsUrl={config.installment_options_url}
         locale={locale}
     />
     : <></>

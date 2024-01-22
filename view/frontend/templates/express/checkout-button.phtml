@@ -13,6 +13,8 @@ $viewModel = $this->getViewModel();
 $buttonId = $viewModel->getUniqueId();
 $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
+$productDiscount = $viewModel->getProductDiscount($block->getProduct());
+$productAmount = $viewModel->getProductAmount($block->getProduct());
 ?>
 <style>
     <?= $viewModel->getStyleCss() ?>
@@ -22,6 +24,8 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
          data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          data-locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
          data-scope-code="<?= $escaper->escapeHtmlAttr($viewModel->getStoreCode()) ?>"
+         data-discount="<?= $escaper->escapeHtmlAttr($productDiscount) ?>"
+         data-amount="<?= $escaper->escapeHtmlAttr($productAmount) ?>"
          <?= $formSelector ? 'data-form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
          id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
     >
