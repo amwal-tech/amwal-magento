@@ -56,7 +56,7 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setId($this->getButtonId($cartId));
         $buttonConfig->setCartId($cartId);
         $this->validateButtonConfig($buttonConfig);
-      
+
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
@@ -181,7 +181,7 @@ class GetCartButtonConfig extends GetConfig
             $buttonConfig->setDisabled(true);
             $errors[] = __('Cart ID is missing');
         }
-        if (!$this->quoteIdMaskFactory->create()->load($buttonConfig->getCartId(), 'masked_id')->getQuoteId()) {
+        if ($buttonConfig->getCartId() && !$this->quoteIdMaskFactory->create()->load($buttonConfig->getCartId(), 'masked_id')->getQuoteId()) {
             $buttonConfig->setDisabled(true);
             $errors[] = __('Cart ID is invalid or expired');
         }
