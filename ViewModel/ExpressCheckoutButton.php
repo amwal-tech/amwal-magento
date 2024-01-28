@@ -178,6 +178,16 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function getProductDiscount(?ProductInterface $product): float
     {
         $productId = $this->request->getParam('id');
+        $discountAmount = 0;
+        if($this->checkoutSessionFactory->create()->getQuote()->getItemsCount() > 0){
+            $quote = $this->checkoutSessionFactory->create()->getQuote();
+            $items = $quote->getAllItems();
+            foreach ($items as $item) {
+                $discountAmount += $this->getDiscountAmount($item->getProductId());
+            }
+            $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
+            return $discountAmount;
+        }
         if ($product) {
             $discountAmount = $this->getDiscountAmount($product);
             return $discountAmount;
@@ -186,18 +196,7 @@ class ExpressCheckoutButton implements ArgumentInterface
             $discountAmount = $this->getDiscountAmount($productId);
             return $discountAmount;
         }
-        try {
-            $quote = $this->checkoutSessionFactory->create()->getQuote();
-            $items = $quote->getAllItems();
-            $discountAmount = 0;
-            foreach ($items as $item) {
-                $discountAmount += $this->getDiscountAmount($item->getProductId());
-            }
-            return $discountAmount;
-        } catch (NoSuchEntityException|LocalizedException $e) {
-            return 0;
-        }
-        return 0;
+        return $discountAmount;
     }
 
     /**
@@ -232,5 +231,4 @@ class ExpressCheckoutButton implements ArgumentInterface
         }
         return $discountAmount;
     }
-
 }
