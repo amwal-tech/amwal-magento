@@ -4,6 +4,7 @@ namespace Amwal\Payments\Block\Widget;
 
 use Amwal\Payments\Model\Config;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Block\Product\Context;
 use Magento\Catalog\Block\Product\ListProduct;
@@ -128,6 +129,47 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
             return '';
         }
         return parent::_toHtml();
+    }
+
+    /**
+     * @return float
+     */
+    public function getProductDiscount(): float
+    {
+        $product = $this->getProduct();
+        $discountAmount = 0;
+        if ($product) {
+            $discountAmount = $this->getDiscountAmount($product);
+            return $discountAmount;
+        }
+        return $discountAmount;
+    }
+
+    /**
+     * @return float
+     */
+    public function getProductAmount(): float
+    {
+        $product = $this->getProduct();
+        if ($product) {
+            return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+        }
+        return 0;
+    }
+
+    /**
+     * @param $product
+     * @return float
+     */
+    public function getDiscountAmount($product): float
+    {
+        $discountAmount = 0;
+        try {
+            $discountAmount = $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue() - $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+        } catch (NoSuchEntityException $e) {
+            return 0;
+        }
+        return $discountAmount;
     }
 
 }
