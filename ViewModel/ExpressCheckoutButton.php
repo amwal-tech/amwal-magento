@@ -189,7 +189,7 @@ class ExpressCheckoutButton implements ArgumentInterface
             return $discountAmount;
         }
         if ($product) {
-            $discountAmount = $this->getDiscountAmount($product);
+            $discountAmount = $this->getDiscountAmount($product->getId());
             return $discountAmount;
         }
         if ($productId) {
@@ -207,6 +207,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     {
         $productId = $this->request->getParam('id');
         if ($product) {
+            $product = $this->productRepository->getById($product->getId());
             return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
         }
         if ($productId) {
