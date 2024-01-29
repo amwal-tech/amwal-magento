@@ -517,7 +517,13 @@ class GetQuote extends AmwalCheckoutAction
         if (!$grandTotal) {
             $this->throwException(__('Unable to calculate order total'));
         }
-
+        if ($this->config->isDiscountRibbonEnabled()) {
+            $regularPrice = 0;
+            foreach ($quote->getAllItems() as $item) {
+                $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            }
+            return $regularPrice;
+        }
         return $grandTotal;
     }
 

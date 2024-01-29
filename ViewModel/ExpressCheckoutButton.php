@@ -208,11 +208,18 @@ class ExpressCheckoutButton implements ArgumentInterface
         $productId = $this->request->getParam('id');
         if ($product) {
             $product = $this->productRepository->getById($product->getId());
-            return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+            return $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
         }
         if ($productId) {
             $product = $this->productRepository->getById($productId);
-            return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+            return $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+        }
+        if($this->checkoutSessionFactory->create()->getQuote()->getItemsCount() > 0){
+            $amount = 0;
+            foreach ($this->checkoutSessionFactory->create()->getQuote()->getAllItems() as $item) {
+                $amount += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            }
+            return $amount;
         }
         return 0;
     }

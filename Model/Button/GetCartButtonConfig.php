@@ -74,6 +74,13 @@ class GetCartButtonConfig extends GetConfig
      */
     private function getAmount($quote): float
     {
+        if ($this->config->isDiscountRibbonEnabled()) {
+            $regularPrice = 0;
+            foreach ($quote->getAllItems() as $item) {
+                $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            }
+            return $regularPrice;
+        }
         return (float)$quote->getGrandTotal();
     }
 
