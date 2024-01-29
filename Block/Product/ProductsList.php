@@ -137,45 +137,4 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
         }
         return parent::_toHtml();
     }
-
-    /**
-     * @param $product
-     * @return float
-     */
-    public function getProductDiscount($product): float
-    {
-        $discountAmount = 0;
-        if ($product) {
-            $discountAmount = $this->getDiscountAmount($product);
-            return $discountAmount;
-        }
-        return $discountAmount;
-    }
-
-    /**
-     * @param $product
-     * @return float
-     */
-    public function getProductAmount($product): float
-    {
-        if ($product) {
-            return $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
-        }
-        return 0;
-    }
-
-    /**
-     * @param $product
-     * @return float
-     */
-    public function getDiscountAmount($product): float
-    {
-        $discountAmount = 0;
-        try {
-            $discountAmount = $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue() - $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
-        } catch (NoSuchEntityException $e) {
-            return 0;
-        }
-        return $discountAmount;
-    }
 }

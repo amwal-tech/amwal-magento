@@ -7,8 +7,7 @@ interface AmwalMagentoReactButtonProps {
   triggerContext: string
   locale?: string
   scopeCode?: string
-  productDiscount?: number
-  productAmount?: number
+  productId?: string
   preCheckoutTask?: () => Promise<void>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
@@ -23,8 +22,7 @@ const AmwalMagentoReactButton = ({
   triggerContext,
   locale,
   scopeCode,
-  productDiscount,
-  productAmount,
+  productId,
   preCheckoutTask,
   onSuccessTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
@@ -67,6 +65,7 @@ const AmwalMagentoReactButton = ({
         refIdData: initalRefIdData,
         triggerContext,
         cartId: overrideCartId ?? cartId,
+        productId,
         locale
       })
     })
@@ -78,6 +77,7 @@ const AmwalMagentoReactButton = ({
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
+        setDiscount(data.discount)
         setCartId(data.cart_id)
       })
       .catch(err => { console.log(err) })
@@ -98,7 +98,8 @@ const AmwalMagentoReactButton = ({
         trigger_context: triggerContext,
         ref_id_data: refIdData,
         order_items: [],
-        cartId: overrideCartId ?? cartId
+        cartId: overrideCartId ?? cartId,
+        productId
       })
     })
 
@@ -277,7 +278,8 @@ const AmwalMagentoReactButton = ({
           refIdData,
           triggerContext,
           locale,
-          cartId: overrideCartId ?? cartId
+          cartId: overrideCartId ?? cartId,
+          productId
         })
       })
     }
@@ -292,6 +294,7 @@ const AmwalMagentoReactButton = ({
       })
       .then(data => {
         setAmount(data.amount)
+        setDiscount(data.discount)
         setTriggerPreCheckoutAck(true)
       })
       .catch(err => {
@@ -321,9 +324,9 @@ const AmwalMagentoReactButton = ({
     ? <AmwalCheckoutButton
         ref={buttonRef}
         id={config.id}
-        amount={amount == 0 ? productAmount : amount}
+        amount={amount}
         taxes={taxes}
-        discount={discount == 0 ? productDiscount : discount}
+        discount={discount}
         fees={fees}
         feesDescription={feesDescription}
         shippingMethods={shippingMethods}

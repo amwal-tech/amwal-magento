@@ -456,7 +456,8 @@ class GetQuote extends AmwalCheckoutAction
             'subtotal' => $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency),
             'tax_amount' => $taxAmount,
             'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
-            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
+            //'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
+            'discount_amount' => $this->getDiscountAmount($quote, $useBaseCurrency),
             'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
             'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
         ];
@@ -525,6 +526,26 @@ class GetQuote extends AmwalCheckoutAction
             return $regularPrice;
         }
         return $grandTotal;
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @param bool $useBaseCurrency
+     * @return float
+     * @throws LocalizedException
+     */
+    public function getDiscountAmount(CartInterface $quote, bool $useBaseCurrency): float
+    {
+        $discountAmount = 0;
+        if ($quote->getItemsCount() > 0) {
+            foreach ($quote->getAllItems() as $item) {
+                $priceInfo = $item->getProduct()->getPriceInfo();
+                $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+            }
+            $discountAmount += $useBaseCurrency ? abs((float)$quote->getShippingAddress()->getBaseDiscountAmount()) : abs((float)$quote->getShippingAddress()->getDiscountAmount());
+            return $discountAmount;
+        }
+        return $discountAmount;
     }
 
     /**

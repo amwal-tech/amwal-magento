@@ -21,8 +21,6 @@ $triggerContext = $block->getTriggerContext();
 $productsList = ObjectManager::getInstance()->get(ProductsList::class);
 $postParams = $productsList->getAddToCartPostParams($product);
 $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
-$productDiscount = $block->getProductDiscount();
-$productAmount = $block->getProductAmount();
 ?>
 <style>
     .product-image-photo {
@@ -100,8 +98,6 @@ $productAmount = $block->getProductAmount();
                      data-locale="<?= $escaper->escapeHtmlAttr($block->getLocale()) ?>"
                      data-scope-code="<?= $escaper->escapeHtmlAttr($block->getStoreCode()) ?>"
                      data-form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
-                     data-discount="<?= $escaper->escapeHtmlAttr($productDiscount) ?>"
-                     data-amount="<?= $escaper->escapeHtmlAttr($productAmount) ?>"
                      id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
                 >
                 </div>

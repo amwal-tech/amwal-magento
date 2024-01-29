@@ -14,6 +14,8 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Quote\Api\Data\CartInterface;
+
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
@@ -28,7 +30,9 @@ class GetCartButtonConfig extends GetConfig
     public function execute(
             RefIdDataInterface $refIdData,
             string $triggerContext = null,
-            ?string $cartId = null): AmwalButtonConfigInterface
+            ?string $cartId = null,
+            ?string $productId = null
+    ): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
@@ -51,7 +55,9 @@ class GetCartButtonConfig extends GetConfig
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
 
         $buttonConfig->setAmount($this->getAmount($quote));
+        $buttonConfig->setDiscount($this->getDiscountAmount($quote));
         $buttonConfig->setId($this->getButtonId($cartId));
+        $buttonConfig->setProductId($productId);
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -79,9 +85,29 @@ class GetCartButtonConfig extends GetConfig
             foreach ($quote->getAllItems() as $item) {
                 $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
             }
-            return $regularPrice;
+            return (float)$regularPrice;
         }
         return (float)$quote->getGrandTotal();
+    }
+
+
+    /**
+     * @param int|null $quoteId
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getDiscountAmount($quote): float
+    {
+        $discountAmount = 0;
+        if ($this->config->isDiscountRibbonEnabled()) {
+            foreach ($quote->getAllItems() as $item) {
+                $priceInfo = $item->getProduct()->getPriceInfo();
+                $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+            }
+        }
+        $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
+        return $discountAmount;
     }
 
     /**

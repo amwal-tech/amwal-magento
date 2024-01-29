@@ -76,8 +76,6 @@ use Magento\Checkout\Model\Cart;
                                                             $buttonId = $block->getUniqueId();
                                                             $triggerContext = $block->getTriggerContext();
                                                             $locale = $block->getLocale();
-                                                            $productDiscount = $block->getProductDiscount($_item);
-                                                            $productAmount = $block->getProductAmount($_item);
                                                         ?>
                                                         <form data-role="tocart-form" data-product-sku="<?= $block->escapeHtml($_item->getSku()) ?>" action="<?= $block->escapeUrl($postParams['action']) ?>" method="post" id="form-<?= $escaper->escapeHtmlAttr($buttonId) ?>">
                                                             <input type="hidden" name="product" value="<?= $block->escapeHtmlAttr($postParams['data']['product']) ?>">
@@ -94,8 +92,6 @@ use Magento\Checkout\Model\Cart;
                                                              data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
                                                              data-locale="<?= $escaper->escapeHtmlAttr($locale) ?>"
                                                              data-scope-code="<?= $escaper->escapeHtmlAttr($block->getStoreCode()) ?>"
-                                                             data-discount="<?= $escaper->escapeHtmlAttr($productDiscount) ?>"
-                                                             data-amount="<?= $escaper->escapeHtmlAttr($productAmount) ?>"
                                                              data-form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
                                                              id="<?= $escaper->escapeHtmlAttr($buttonId) ?>">
                                                         </div>
