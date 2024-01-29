@@ -152,7 +152,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
     {
         $product = $this->getProduct();
         if ($product) {
-            return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+            return $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
         }
         return 0;
     }

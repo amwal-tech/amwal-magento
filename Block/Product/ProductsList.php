@@ -159,7 +159,7 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
     public function getProductAmount($product): float
     {
         if ($product) {
-            return $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+            return $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
         }
         return 0;
     }
