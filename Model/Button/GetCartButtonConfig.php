@@ -32,7 +32,7 @@ class GetCartButtonConfig extends GetConfig
             RefIdDataInterface $refIdData,
             string $triggerContext = null,
             ?string $cartId = null,
-            ?string $productId = null
+            ?int $productId = null
     ): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
@@ -56,11 +56,9 @@ class GetCartButtonConfig extends GetConfig
             $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
-
-        $buttonConfig->setAmount($this->getAmount($quote));
-        $buttonConfig->setDiscount($this->getDiscountAmount($quote));
+        $buttonConfig->setAmount($this->getAmount($quote, $productId));
+        $buttonConfig->setDiscount($this->getDiscountAmount($quote, $productId));
         $buttonConfig->setId($this->getButtonId($cartId));
-        $buttonConfig->setProductId($productId);
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -77,18 +75,24 @@ class GetCartButtonConfig extends GetConfig
 
     /**
      * @param int|null $quoteId
+     * @param int|null $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getAmount($quote): float
+    public function getAmount($quote, $productId = null): float
     {
         if ($this->config->isDiscountRibbonEnabled()) {
-            $regularPrice = 0;
-            foreach ($quote->getAllItems() as $item) {
-                $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            if ($productId) {
+                $product = $this->productRepository->getById($productId);
+                return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            }else {
+                $regularPrice = 0;
+                foreach ($quote->getAllItems() as $item) {
+                    $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+                }
+                return (float)$regularPrice;
             }
-            return (float)$regularPrice;
         }
         return (float)$quote->getGrandTotal();
     }
@@ -96,17 +100,24 @@ class GetCartButtonConfig extends GetConfig
 
     /**
      * @param int|null $quoteId
+     * @param int|null $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getDiscountAmount($quote): float
+    public function getDiscountAmount($quote, $productId = null): float
     {
         $discountAmount = 0;
         if ($this->config->isDiscountRibbonEnabled()) {
-            foreach ($quote->getAllItems() as $item) {
-                $priceInfo = $item->getProduct()->getPriceInfo();
+            if ($productId) {
+                $product = $this->productRepository->getById($productId);
+                $priceInfo = $product->getPriceInfo();
                 $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+            }else {
+                foreach ($quote->getAllItems() as $item) {
+                    $priceInfo = $item->getProduct()->getPriceInfo();
+                    $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+                }
             }
         }
         $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());

@@ -479,7 +479,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getProductId(): ?string
+    public function getProductId(): ?int
     {
         return $this->getData(self::PRODUCT_ID);
     }
@@ -487,7 +487,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function setProductId(?string $productId): AmwalButtonConfigInterface
+    public function setProductId(?int $productId): AmwalButtonConfigInterface
     {
         return $this->setData(self::PRODUCT_ID, $productId);
     }

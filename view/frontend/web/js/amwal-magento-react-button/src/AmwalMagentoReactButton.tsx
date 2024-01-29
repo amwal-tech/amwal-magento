@@ -278,8 +278,7 @@ const AmwalMagentoReactButton = ({
           refIdData,
           triggerContext,
           locale,
-          cartId: overrideCartId ?? cartId,
-          productId
+          cartId: overrideCartId ?? cartId
         })
       })
     }

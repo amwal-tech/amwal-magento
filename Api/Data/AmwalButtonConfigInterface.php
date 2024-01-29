@@ -364,11 +364,11 @@ interface AmwalButtonConfigInterface
     /**
      * @return string|null
      */
-    public function getProductId(): ?string;
+    public function getProductId(): ?int;
 
     /**
      * @param string|null $productId
      * @return AmwalButtonConfigInterface
      */
-    public function setProductId(?string $productId): AmwalButtonConfigInterface;
+    public function setProductId(?int $productId): AmwalButtonConfigInterface;
 }
