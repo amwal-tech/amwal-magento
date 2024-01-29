@@ -137,4 +137,5 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
         }
         return parent::_toHtml();
     }
+
 }

@@ -456,7 +456,6 @@ class GetQuote extends AmwalCheckoutAction
             'subtotal' => $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency),
             'tax_amount' => $taxAmount,
             'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
-            //'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
             'discount_amount' => $this->getDiscountAmount($quote, $useBaseCurrency),
             'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
             'additional_fee_description' => $this->getAdditionalFeeDescription($quote)

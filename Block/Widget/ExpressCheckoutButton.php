@@ -4,7 +4,6 @@ namespace Amwal\Payments\Block\Widget;
 
 use Amwal\Payments\Model\Config;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
-use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Block\Product\Context;
 use Magento\Catalog\Block\Product\ListProduct;
