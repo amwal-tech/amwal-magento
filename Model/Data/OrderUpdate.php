@@ -245,19 +245,22 @@ class OrderUpdate
      */
     private function dataValidation(Order $order, DataObject $amwalOrderData)
     {
+        if($order->getState() == Order::STATE_PROCESSING) {
+            return false;
+        }
         if ($order->getOrderCurrencyCode() != self::DEFAULT_CURRENCY_CODE) {
-            $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
+            $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
             throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
         }
         if ((float)$order->getTotalDue() != (float)$amwalOrderData->getTotalAmount()) {
-            $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'total_due', 'total_amount', $order->getTotalDue(), $amwalOrderData->getTotalAmount()));
+            $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), 'total_due', 'total_amount', (float)$order->getTotalDue(), $amwalOrderData->getTotalAmount()));
             throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'total_due', 'total_amount', $order->getTotalDue(), $amwalOrderData->getTotalAmount()));
         }
         foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
             $orderValue = $order->getData($orderMethod);
             $amwalValue = $amwalOrderData->getData($amwalMethod);
             if ($orderValue != $amwalValue) {
-                $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
+                $this->sendAdminEmail($order, 'Order (%1) needs Attention', $this->dataValidationMessage($order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
                 throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
             }
         }
