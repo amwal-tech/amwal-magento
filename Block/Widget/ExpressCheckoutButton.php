@@ -129,4 +129,5 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         }
         return parent::_toHtml();
     }
+
 }

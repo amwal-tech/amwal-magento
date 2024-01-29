@@ -55,7 +55,7 @@ class GetCartButtonConfig extends GetConfig
             }
             $buttonConfig->setCartId($cartId);
         }
-        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
+        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
 
         $buttonConfig->setAmount($this->getAmount($quote));
         $buttonConfig->setDiscount($this->getDiscountAmount($quote));
