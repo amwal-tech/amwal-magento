@@ -456,7 +456,7 @@ class GetQuote extends AmwalCheckoutAction
             'subtotal' => $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency),
             'tax_amount' => $taxAmount,
             'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
-            'discount_amount' => $this->getDiscountAmount($quote, $useBaseCurrency),
+            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
             'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
             'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
         ];
@@ -497,27 +497,6 @@ class GetQuote extends AmwalCheckoutAction
         }
 
         return $feeDescription;
-    }
-
-    /**
-     * @param CartInterface $quote
-     * @param bool $useBaseCurrency
-     * @return float
-     * @throws LocalizedException
-     */
-    public function getAmount(CartInterface $quote, bool $useBaseCurrency): float
-    {
-        $grandTotal = $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal();
-
-        $totals = $quote->getTotals();
-        if ($quote->getData('applied_amasty_fee_flag') && isset($totals['amasty_extrafee'])) {
-            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
-            $grandTotal -= $extraFee;
-        }
-        if (!$grandTotal) {
-            $this->throwException(__('Unable to calculate order total'));
-        }
-        return $grandTotal;
     }
 
     /**
