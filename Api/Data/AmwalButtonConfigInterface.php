@@ -35,7 +35,6 @@ interface AmwalButtonConfigInterface
     public const INITIAL_LAST_NAME = 'initial_last_name';
     public const SHOW_DISCOUNT_RIBBON = 'show_discount_ribbon';
     public const DISCOUNT = 'discount';
-    public const PRODUCT_ID = 'product_id';
 
     /**
      * @return string
@@ -359,16 +358,4 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setDiscount(float $discount): AmwalButtonConfigInterface;
-
-
-    /**
-     * @return string|null
-     */
-    public function getProductId(): ?int;
-
-    /**
-     * @param string|null $productId
-     * @return AmwalButtonConfigInterface
-     */
-    public function setProductId(?int $productId): AmwalButtonConfigInterface;
 }

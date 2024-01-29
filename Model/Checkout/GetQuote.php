@@ -517,13 +517,6 @@ class GetQuote extends AmwalCheckoutAction
         if (!$grandTotal) {
             $this->throwException(__('Unable to calculate order total'));
         }
-        if ($this->config->isDiscountRibbonEnabled()) {
-            $regularPrice = 0;
-            foreach ($quote->getAllItems() as $item) {
-                $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
-            }
-            return $regularPrice;
-        }
         return $grandTotal;
     }
 
@@ -535,15 +528,7 @@ class GetQuote extends AmwalCheckoutAction
      */
     public function getDiscountAmount(CartInterface $quote, bool $useBaseCurrency): float
     {
-        $discountAmount = 0;
-        if ($quote->getItemsCount() > 0) {
-            foreach ($quote->getAllItems() as $item) {
-                $priceInfo = $item->getProduct()->getPriceInfo();
-                $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
-            }
-            $discountAmount += $useBaseCurrency ? abs((float)$quote->getShippingAddress()->getBaseDiscountAmount()) : abs((float)$quote->getShippingAddress()->getDiscountAmount());
-            return $discountAmount;
-        }
+        $discountAmount = $useBaseCurrency ? abs((float)$quote->getShippingAddress()->getBaseDiscountAmount()) : abs((float)$quote->getShippingAddress()->getDiscountAmount());
         return $discountAmount;
     }
 

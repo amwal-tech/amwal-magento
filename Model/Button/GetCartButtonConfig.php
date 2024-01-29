@@ -32,7 +32,7 @@ class GetCartButtonConfig extends GetConfig
             RefIdDataInterface $refIdData,
             string $triggerContext = null,
             ?string $cartId = null,
-            ?int $productId = null
+            ?string $productId = null
     ): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
@@ -75,7 +75,7 @@ class GetCartButtonConfig extends GetConfig
 
     /**
      * @param int|null $quoteId
-     * @param int|null $productId
+     * @param string|null $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -100,7 +100,7 @@ class GetCartButtonConfig extends GetConfig
 
     /**
      * @param int|null $quoteId
-     * @param int|null $productId
+     * @param string|null $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
