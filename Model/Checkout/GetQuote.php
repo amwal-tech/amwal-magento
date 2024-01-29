@@ -505,10 +505,19 @@ class GetQuote extends AmwalCheckoutAction
      * @return float
      * @throws LocalizedException
      */
-    public function getDiscountAmount(CartInterface $quote, bool $useBaseCurrency): float
+    public function getAmount(CartInterface $quote, bool $useBaseCurrency): float
     {
-        $discountAmount = $useBaseCurrency ? abs((float)$quote->getShippingAddress()->getBaseDiscountAmount()) : abs((float)$quote->getShippingAddress()->getDiscountAmount());
-        return $discountAmount;
+        $grandTotal = $useBaseCurrency ? $quote->getBaseGrandTotal() : $quote->getGrandTotal();
+
+        $totals = $quote->getTotals();
+        if ($quote->getData('applied_amasty_fee_flag') && isset($totals['amasty_extrafee'])) {
+            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
+            $grandTotal -= $extraFee;
+        }
+        if (!$grandTotal) {
+            $this->throwException(__('Unable to calculate order total'));
+        }
+        return $grandTotal;
     }
 
     /**
