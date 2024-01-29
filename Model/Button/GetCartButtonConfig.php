@@ -20,6 +20,7 @@ class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
+
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
@@ -36,6 +37,8 @@ class GetCartButtonConfig extends GetConfig
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
+        $customerSession = $this->customerSessionFactory->create();
+        $initialAddress = $this->amwalAddressFactory->create();
         $quote = null;
 
         if ($cartId) {
@@ -78,7 +81,7 @@ class GetCartButtonConfig extends GetConfig
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function getAmount($quote): float
+    public function getAmount($quote): float
     {
         if ($this->config->isDiscountRibbonEnabled()) {
             $regularPrice = 0;
