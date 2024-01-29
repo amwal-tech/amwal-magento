@@ -469,7 +469,7 @@ class GetQuoteTest extends TestCase
             'subtotal' => 95.0,
             'tax_amount' => 5.0,
             'shipping_amount' => 10.0,
-            'discount_amount' => 0.0,
+            'discount_amount' => 2.0,
             'additional_fee_amount' => 0.0,
             'additional_fee_description' => '',
         ];
