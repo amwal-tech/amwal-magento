@@ -138,8 +138,20 @@ class GetCartButtonConfigTest extends TestCase
             ->getMock();
 
         $quoteMock->method('getGrandTotal')->willReturn(self::AMOUNT);
+        $this->assertEquals(self::AMOUNT, $this->getCartButtonConfig->getAmount($quoteMock, $this->buttonConfigMock, null));
+    }
 
-        $this->assertEquals(self::AMOUNT, $this->getCartButtonConfig->getAmount($quoteMock));
+    /**
+     * Test getting discount amount
+     */
+    public function testGetDiscountAmount(): void
+    {
+        $quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $quoteMock->method('getShippingAddress')->willReturn($this->createMockAddress());
+        $this->assertEquals(0, $this->getCartButtonConfig->getDiscountAmount($quoteMock, $this->buttonConfigMock, null));
     }
 
     /**
