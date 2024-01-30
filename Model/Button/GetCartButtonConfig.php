@@ -56,8 +56,12 @@ class GetCartButtonConfig extends GetConfig
             $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
-        $buttonConfig->setAmount($this->getAmount($quote, $productId));
-        $buttonConfig->setDiscount($this->getDiscountAmount($quote, $productId));
+        if ($triggerContext === 'regular-checkout') {
+            $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
+        }
+
+        $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setId($this->getButtonId($cartId));
 
         if ($limitedCities = $this->getCityCodesJson()) {
@@ -66,23 +70,20 @@ class GetCartButtonConfig extends GetConfig
         if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
-
-        if ($triggerContext === 'regular-checkout') {
-            $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
-        }
         return $buttonConfig;
     }
 
     /**
      * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
      * @param string|null $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getAmount($quote, $productId = null): float
+    public function getAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
-        if ($this->config->isDiscountRibbonEnabled()) {
+        if ($buttonConfig->getShowDiscountRibbon()) {
             if ($productId) {
                 $product = $this->productRepository->getById($productId);
                 return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
@@ -100,15 +101,16 @@ class GetCartButtonConfig extends GetConfig
 
     /**
      * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
      * @param string|null $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getDiscountAmount($quote, $productId = null): float
+    public function getDiscountAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
         $discountAmount = 0;
-        if ($this->config->isDiscountRibbonEnabled()) {
+        if ($buttonConfig->getShowDiscountRibbon()) {
             if ($productId) {
                 $product = $this->productRepository->getById($productId);
                 $priceInfo = $product->getPriceInfo();
@@ -156,6 +158,7 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
+        $buttonConfig->setShowDiscountRibbon(false);
     }
 
 
