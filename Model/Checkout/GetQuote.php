@@ -419,7 +419,6 @@ class GetQuote extends AmwalCheckoutAction
             $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
             if (empty($rate->getMethodTitle())) {
                 $this->logger->warning('Shipping method title is empty. Falling back to ID as title: ' . $id);
-                continue;
             }
             $availableRates[$id] = [
                 'carrier_title' => $rate->getMethodTitle() ?? $id,
