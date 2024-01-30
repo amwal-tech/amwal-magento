@@ -11,7 +11,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\App\Request\Http;
+use Magento\Framework\View\Context;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -43,29 +43,29 @@ class ExpressCheckoutButton implements ArgumentInterface
     private StoreManagerInterface $storeManager;
 
     /**
-     * @var Http
+     * @var Context
      */
-    private Http $request;
+    private $context;
 
     /**
      * @param AmwalConfig $config
      * @param Random $random
      * @param SessionFactory $checkoutSessionFactory
      * @param StoreManagerInterface $storeManager
-     * @param Http $request
+     * @param Context $context
      */
     public function __construct(
         AmwalConfig $config,
         Random $random,
         SessionFactory $checkoutSessionFactory,
         StoreManagerInterface $storeManager,
-        Http $request
+        Context $context
     ) {
         $this->config = $config;
         $this->random = $random;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
         $this->storeManager = $storeManager;
-        $this->request = $request;
+        $this->context = $context;
     }
 
     /**
@@ -165,7 +165,7 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function getProductId()
     {
-        $productId = $this->request->getParam('id');
+        $productId = $this->context->getParam('id');
         return $productId;
     }
 }
