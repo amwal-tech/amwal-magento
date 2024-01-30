@@ -40,6 +40,6 @@
   },
   "dependencies": {
     "amwal-checkout-button": "^0.0.53-alpha",
-    "amwal-checkout-button-react": "^0.0.53-alpha-3"
+    "amwal-checkout-button-react": "^0.0.53-alpha-4"
   }
 }

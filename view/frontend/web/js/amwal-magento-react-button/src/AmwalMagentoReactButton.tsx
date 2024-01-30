@@ -358,7 +358,7 @@ const AmwalMagentoReactButton = ({
         initialFirstName={config.initial_first_name}
         initialLastName={config.initial_last_name}
         showDiscountRibbon={config.show_discount_ribbon}
-        // installmentOptionsUrl={config.installment_options_url}
+        installmentOptionsUrl={config.installment_options_url}
         locale={locale}
     />
     : <></>
