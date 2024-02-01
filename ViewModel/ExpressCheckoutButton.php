@@ -69,17 +69,6 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function shouldRender(string $triggerContext): bool
     {
         $shouldRender = $this->isExpressCheckoutActive();
-
-        // Don't render the quick checkout for Product listing or detail if there are already items in the cart.
-        try {
-            if (in_array($triggerContext, [self::TRIGGER_CONTEXT_PRODUCT_LIST, self::TRIGGER_CONTEXT_PRODUCT_DETAIL]) &&
-                $this->checkoutSessionFactory->create()->getQuote()->hasItems()) {
-                $shouldRender =  false;
-            }
-        } catch (NoSuchEntityException|LocalizedException $e) {
-            // No need to do anything
-        }
-
         return $shouldRender;
     }
 

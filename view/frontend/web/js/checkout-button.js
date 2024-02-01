@@ -71,6 +71,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     }else {
                         self.productButtonContainer.classList.remove('hidden');
                     }
+                    addFormListeners();
                 }, this);
             })
             amwalButtonObserver.observe(self.productButtonContainer, {
@@ -94,10 +95,24 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             }
 
             /**
+             * Check if the cart is empty
+             * @return Boolean
+             */
+            const isCartEmpty = () => {
+                const cart = customerData.get('cart');
+                return cart().summary_count == 0;
+            }
+
+            /**
              * Toggle the button disabled attribute based on form status
              */
             const updateButtonStatus = () => {
                 const amwalButton = $("#" + self.buttonId +" amwal-checkout-button");
+                if (isCartEmpty()) {
+                    amwalButton.removeClass('hidden');
+                }else {
+                    amwalButton.addClass('hidden');
+                }
                 if (isProductFormValid()) {
                     amwalButton.removeAttr('disabled');
                 } else {
