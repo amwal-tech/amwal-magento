@@ -87,7 +87,7 @@ class GetCartButtonConfig extends GetConfig
             if ($productId) {
                 $product = $this->productRepository->getById($productId);
                 return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
-            }else {
+            } else {
                 $regularPrice = 0;
                 foreach ($quote->getAllItems() as $item) {
                     $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
