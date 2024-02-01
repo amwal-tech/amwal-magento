@@ -36,8 +36,7 @@ class OrderUpdateTest extends TestCase
     private $logger;
     private $amwalClientFactory;
     private $sentryExceptionReport;
-
-
+    private $orderUpdate;
     private const AMWAL_ORDER_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
     private const ORDER_ID = '000000001';
     private const CURRENCY_CODE = 'SAR';
