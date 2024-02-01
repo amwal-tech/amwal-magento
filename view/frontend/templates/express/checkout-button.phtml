@@ -17,7 +17,6 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
 <style>
     <?= $viewModel->getStyleCss() ?>
 </style>
-<?php if ($viewModel->shouldRender($triggerContext)): ?>
     <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?> <?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          data-locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
@@ -37,4 +36,3 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
             }
         }
     </script>
-<?php endif; ?>
