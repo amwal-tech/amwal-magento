@@ -81,21 +81,31 @@ class OrderUpdateTest extends TestCase
         $this->orderUpdate = $orderUpdate;
     }
 
-    public function testUpdateSuccess()
+    /**
+     * @dataProvider dataProviderTestUpdateTrigger
+     */
+    public function testUpdateSuccess($trigger)
     {
         // Mock Order object
         $order = $this->getMockBuilder(Order::class)
             ->addMethods(['getAmwalOrderId'])
-            ->onlyMethods(['getState', 'getGrandTotal', 'getBaseGrandTotal', 'getOrderCurrencyCode', 'getIncrementId'])
+            ->onlyMethods(['getState', 'getGrandTotal', 'getBaseGrandTotal', 'getOrderCurrencyCode', 'getIncrementId', 'hasInvoices', 'addStatusHistoryComment'])
             ->disableOriginalConstructor()
             ->getMock();
+
+        $store = $this->createMockStore();
+        $this->storeManager->expects($this->once())
+            ->method('getStore')
+            ->willReturn($store);
 
         $order->expects($this->any())
             ->method('getAmwalOrderId')
             ->willReturn(self::AMWAL_ORDER_ID);
 
         // Mock GetAmwalOrderData result
-        $amwalOrderData = $this->createMock(DataObject::class);
+        $amwalOrderData = $this->createPartialMock(DataObject::class, ['getStatus', 'getTotalAmount']);
+        $amwalOrderData->method('getStatus')->willReturn('success');
+        $amwalOrderData->method('getTotalAmount')->willReturn(100.00);
         $this->getAmwalOrderData->method('execute')->willReturn($amwalOrderData);
 
         // Mock Amwal order data validation result
@@ -112,15 +122,28 @@ class OrderUpdateTest extends TestCase
         $order->method('getOrderCurrencyCode')->willReturn(self::CURRENCY_CODE);
         $order->method('getAmwalOrderId')->willReturn(self::AMWAL_ORDER_ID);
         $order->method('getIncrementId')->willReturn(self::ORDER_ID);
+        $order->method('hasInvoices')->willReturn(true);
+
+        $amwalOrderId = $order->getAmwalOrderId();
+        $status = $amwalOrderData->getStatus();
+        if($trigger == 'PendingOrdersUpdate') {
+            $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderId);
+        } elseif($trigger == 'AmwalOrderDetails') {
+            $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
+        } elseif($trigger == 'PayOrder') {
+            $historyComment = __('Successfully completed Amwal payment with transaction ID: %1', $amwalOrderId);
+        } else {
+            $historyComment = __('Order status updated to (%1) by Amwal Payments', $status);
+        }
+        $order->expects($this->once())->method('addStatusHistoryComment')->with($historyComment);
 
         // Expectations
         $this->orderRepository->expects($this->once())->method('save')->with($order);
         $this->orderNotifier->expects($this->once())->method('notify')->with($order);
         $this->transportFactory->expects($this->once())->method('create')->willReturn($this->createMock(Transport::class));
 
-        $result = $this->orderUpdate->update($order, 'PendingOrdersUpdate', true);
-
         // Assert the result
+        $result = $this->orderUpdate->update($order, $trigger, true);
         $this->assertInstanceOf(DataObject::class, $result);
     }
 
@@ -188,5 +211,18 @@ class OrderUpdateTest extends TestCase
 
         $storeMock->method('getBaseUrl')->willReturn(self::BASE_URL);
         return $storeMock;
+    }
+
+    /**
+     * @dataProvider dataProviderTestUpdateTrigger
+     */
+    public function dataProviderTestUpdateTrigger()
+    {
+        return [
+            ['PendingOrdersUpdate'],
+            ['AmwalOrderDetails'],
+            ['PayOrder'],
+            ['OrderUpdate'],
+        ];
     }
 }
