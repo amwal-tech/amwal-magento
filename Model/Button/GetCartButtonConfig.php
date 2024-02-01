@@ -56,7 +56,7 @@ class GetCartButtonConfig extends GetConfig
             $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
-        if ($triggerContext === 'regular-checkout') {
+        if ($triggerContext ===  ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
 
