@@ -15,6 +15,7 @@ use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\Data\CartInterface;
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 
 class GetCartButtonConfig extends GetConfig
 {
