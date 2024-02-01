@@ -115,7 +115,7 @@ class GetCartButtonConfig extends GetConfig
                 $product = $this->productRepository->getById($productId);
                 $priceInfo = $product->getPriceInfo();
                 $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
-            }else {
+            } else {
                 foreach ($quote->getAllItems() as $item) {
                     $priceInfo = $item->getProduct()->getPriceInfo();
                     $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
