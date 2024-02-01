@@ -14,6 +14,8 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Quote\Api\Data\CartInterface;
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 
 class GetCartButtonConfig extends GetConfig
 {
@@ -30,7 +32,9 @@ class GetCartButtonConfig extends GetConfig
     public function execute(
             RefIdDataInterface $refIdData,
             string $triggerContext = null,
-            ?string $cartId = null): AmwalButtonConfigInterface
+            ?string $cartId = null,
+            ?string $productId = null
+    ): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
@@ -53,30 +57,74 @@ class GetCartButtonConfig extends GetConfig
             $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
+        if ($triggerContext ===  ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
+            $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
+        }
+
+        $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setId($this->getButtonId($cartId));
-        $buttonConfig->setAmount($this->getAmount($quote));
+
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
         }
         if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
-
-        if ($triggerContext === 'regular-checkout') {
-            $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
-        }
         return $buttonConfig;
     }
 
     /**
      * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getAmount($quote): float
+    public function getAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
+        if ($buttonConfig->getShowDiscountRibbon()) {
+            if ($productId) {
+                $product = $this->productRepository->getById($productId);
+                return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            } else {
+                $regularPrice = 0;
+                foreach ($quote->getAllItems() as $item) {
+                    $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+                }
+                return (float)$regularPrice;
+            }
+        }
         return (float)$quote->getGrandTotal();
+    }
+
+
+    /**
+     * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getDiscountAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    {
+        $discountAmount = 0;
+        if ($buttonConfig->getShowDiscountRibbon()) {
+            if ($productId) {
+                $product = $this->productRepository->getById($productId);
+                $priceInfo = $product->getPriceInfo();
+                $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+            } else {
+                foreach ($quote->getAllItems() as $item) {
+                    $priceInfo = $item->getProduct()->getPriceInfo();
+                    $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+                }
+            }
+        }
+        $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
+        return $discountAmount;
     }
 
     /**
@@ -111,6 +159,7 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger(false);
+        $buttonConfig->setShowDiscountRibbon(false);
     }
 
 

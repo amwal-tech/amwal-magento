@@ -443,4 +443,36 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     {
         return $this->setData(self::INITIAL_LAST_NAME, $initialLastName);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getShowDiscountRibbon(): bool
+    {
+        return $this->getData(self::SHOW_DISCOUNT_RIBBON);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setShowDiscountRibbon(bool $showDiscountRibbon): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::SHOW_DISCOUNT_RIBBON, $showDiscountRibbon);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDiscount(): float
+    {
+        return $this->getData(self::DISCOUNT);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDiscount(float $discount): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::DISCOUNT, $discount);
+    }
 }

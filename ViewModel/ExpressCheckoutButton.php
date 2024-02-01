@@ -11,7 +11,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
-
+use Magento\Framework\View\Context;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -19,9 +19,9 @@ class ExpressCheckoutButton implements ArgumentInterface
     public const TRIGGER_CONTEXT_PRODUCT_DETAIL = 'product-detail-page';
     public const TRIGGER_CONTEXT_MINICART = 'minicart';
     public const TRIGGER_CONTEXT_CART = 'cart';
+    public const TRIGGER_CONTEXT_REGULAR_CHECKOUT = 'regular-checkout';
     public const AMWAL_CURRENCY = 'SAR';
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
-
 
     /**
      * @var AmwalConfig
@@ -43,23 +43,30 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     private StoreManagerInterface $storeManager;
 
+    /**
+     * @var Context
+     */
+    private $context;
 
     /**
      * @param AmwalConfig $config
      * @param Random $random
      * @param SessionFactory $checkoutSessionFactory
      * @param StoreManagerInterface $storeManager
+     * @param Context $context
      */
     public function __construct(
         AmwalConfig $config,
         Random $random,
         SessionFactory $checkoutSessionFactory,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        Context $context
     ) {
         $this->config = $config;
         $this->random = $random;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
         $this->storeManager = $storeManager;
+        $this->context = $context;
     }
 
     /**
@@ -141,5 +148,13 @@ class ExpressCheckoutButton implements ArgumentInterface
         } catch (NoSuchEntityException $e) {
             return '';
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getProductId()
+    {
+        return $this->context->getParam('id');
     }
 }

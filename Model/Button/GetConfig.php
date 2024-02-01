@@ -110,8 +110,7 @@ class GetConfig
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
         $buttonConfig->setAllowedAddressCountries($this->config->getAllowedAddressCountries());
-
-
+        $buttonConfig->setShowDiscountRibbon($this->config->isDiscountRibbonEnabled());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
         $buttonConfig->setEmailRequired(!$customerSession->isLoggedIn());

@@ -516,7 +516,6 @@ class GetQuote extends AmwalCheckoutAction
         if (!$grandTotal) {
             $this->throwException(__('Unable to calculate order total'));
         }
-
         return $grandTotal;
     }
 
