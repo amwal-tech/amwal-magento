@@ -165,7 +165,6 @@ class ExpressCheckoutButton implements ArgumentInterface
      */
     public function getProductId()
     {
-        $productId = $this->context->getParam('id');
-        return $productId;
+        return $this->context->getParam('id');
     }
 }
