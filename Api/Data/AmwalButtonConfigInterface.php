@@ -335,7 +335,6 @@ interface AmwalButtonConfigInterface
      */
     public function setCartId(?string $cartId): AmwalButtonConfigInterface;
 
-
     /**
      * @return bool
      */
