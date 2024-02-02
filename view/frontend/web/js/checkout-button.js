@@ -100,7 +100,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
              */
             const isCartEmpty = () => {
                 const cart = customerData.get('cart');
-                return cart().summary_count == 0;
+                return !cart().summary_count;
             }
 
             /**
