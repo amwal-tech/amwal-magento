@@ -209,6 +209,12 @@ class PlaceOrder extends AmwalCheckoutAction
 
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
+
+        // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
+        if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
+            $quote->setCustomerIsGuest(true);
+        }
+
         $this->quoteRepository->save($quote);
 
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
@@ -246,7 +252,8 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->orderRepository->save($order);
         }
 
-        $order = $this->quoteManagement->submit($quote);
+        $orderId = $this->quoteManagement->placeOrder($quote->getId());
+        $order = $this->orderRepository->get($orderId);
 
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 

@@ -116,8 +116,11 @@ class PlaceOrderTest extends TestCase
 
         // Set expectations for Quote Management mock
         $this->quoteManagementMock
-            ->method('submit')
-            ->with($this->quoteMock)
+            ->method('placeOrder')
+            ->willReturn(1);
+
+        $this->orderRepositoryMock
+            ->method('get')
             ->willReturn($orderMock);
 
         // Set expectations for Order Repository mock
