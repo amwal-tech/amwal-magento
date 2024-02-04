@@ -158,7 +158,7 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setInitialLastName($shippingAddress->getLastname() ?? $billingAddress->getLastname() ?? $customer->getLastname() ?? null);
         $buttonConfig->setAddressRequired(false);
         $buttonConfig->setEnablePrePayTrigger(true);
-        $buttonConfig->setEnablePreCheckoutTrigger(false);
+        $buttonConfig->setEnablePreCheckoutTrigger($this->config->isPreCheckoutTriggerEnabled());
         $buttonConfig->setShowDiscountRibbon(false);
     }
 
