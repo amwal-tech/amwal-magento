@@ -234,6 +234,12 @@
                         <config_path>payment/amwal_payments/sentry_report</config_path>
                         <tooltip>Enable reporting of errors to Amwal Sentry</tooltip>
                     </field>
+                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Enable Pre Checkout Trigger</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/enable_pre_checkout_trigger</config_path>
+                        <tooltip>Enable Pre Checkout Trigger</tooltip>
+                    </field>
                 </group>
             </group>
         </section>
