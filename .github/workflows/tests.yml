@@ -125,5 +125,4 @@ jobs:
         with:
             fail_ci_if_error: true
             flags: phpunit
-            provider: github-actions
             files: magento/build/coverage/cobertura.xml
