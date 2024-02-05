@@ -377,7 +377,9 @@ class GetQuote extends AmwalCheckoutAction
             $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
             $quote = $this->quoteRepository->get($quoteId);
         }
-        $quote->setStoreId($this->storeManager->getStore()->getId());
+        if($this->config->isQuoteOverrideEnabled()) {
+            $quote->setStoreId($this->storeManager->getStore()->getId());
+        }
         return $quote;
     }
 
