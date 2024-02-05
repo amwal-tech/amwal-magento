@@ -240,6 +240,12 @@
                         <config_path>payment/amwal_payments/quote_override</config_path>
                         <tooltip>If enabled, will override certain quote data. Use only if you are having issues related to quote amounts or currencies</tooltip>
                     </field>
+                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Enable Pre Checkout Trigger</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/enable_pre_checkout_trigger</config_path>
+                        <tooltip>Enable Pre Checkout Trigger</tooltip>
+                    </field>
                 </group>
             </group>
         </section>

@@ -27,6 +27,7 @@
                 <order_status_changed_customer_email>1</order_status_changed_customer_email>
                 <order_status_changed_admin_email>1</order_status_changed_admin_email>
                 <show_discount_ribbon>1</show_discount_ribbon>
+                <enable_pre_checkout_trigger>0</enable_pre_checkout_trigger>
             </amwal_payments>
         </payment>
         <dev>

@@ -49,6 +49,7 @@ class Config
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL = 'payment/amwal_payments/order_status_changed_admin_email';
     public const XML_CONFIG_PATH_QUOTE_OVERRIDE = 'payment/amwal_payments/quote_override';
     public const XML_CONFIG_PATH_DISCOUNT_RIBBON = 'payment/amwal_payments/show_discount_ribbon';
+    public const XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER = 'payment/amwal_payments/enable_pre_checkout_trigger';
 
   /**
      * @var string
@@ -458,4 +459,13 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_DISCOUNT_RIBBON, ScopeInterface::SCOPE_WEBSITE);
     }
+
+    /**
+     * @return bool
+     */
+    public function isPreCheckoutTriggerEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER, ScopeInterface::SCOPE_WEBSITE);
+    }
+
 }
