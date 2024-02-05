@@ -7,6 +7,7 @@ interface AmwalMagentoReactButtonProps {
   triggerContext: string
   locale?: string
   scopeCode?: string
+  productId?: string
   preCheckoutTask?: () => Promise<void>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
@@ -21,6 +22,7 @@ const AmwalMagentoReactButton = ({
   triggerContext,
   locale,
   scopeCode,
+  productId,
   preCheckoutTask,
   onSuccessTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
@@ -63,6 +65,7 @@ const AmwalMagentoReactButton = ({
         refIdData: initalRefIdData,
         triggerContext,
         cartId: overrideCartId ?? cartId,
+        productId,
         locale
       })
     })
@@ -74,6 +77,7 @@ const AmwalMagentoReactButton = ({
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
+        setDiscount(data.discount)
         setCartId(data.cart_id)
       })
       .catch(err => { console.log(err) })
@@ -94,7 +98,8 @@ const AmwalMagentoReactButton = ({
         trigger_context: triggerContext,
         ref_id_data: refIdData,
         order_items: [],
-        cartId: overrideCartId ?? cartId
+        cartId: overrideCartId ?? cartId,
+        productId
       })
     })
 
@@ -288,6 +293,7 @@ const AmwalMagentoReactButton = ({
       })
       .then(data => {
         setAmount(data.amount)
+        setDiscount(data.discount)
         setTriggerPreCheckoutAck(true)
       })
       .catch(err => {
@@ -351,6 +357,7 @@ const AmwalMagentoReactButton = ({
         postcodeOptionalCountries={JSON.stringify(config.post_code_optional_countries) as any}
         initialFirstName={config.initial_first_name}
         initialLastName={config.initial_last_name}
+        showDiscountRibbon={config.show_discount_ribbon}
         installmentOptionsUrl={config.installment_options_url}
         locale={locale}
     />

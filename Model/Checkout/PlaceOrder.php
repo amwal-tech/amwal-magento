@@ -213,6 +213,12 @@ class PlaceOrder extends AmwalCheckoutAction
         }
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
+
+        // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
+        if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
+            $quote->setCustomerIsGuest(true);
+        }
+
         $this->quoteRepository->save($quote);
 
         $order = $this->createOrder($quote, $amwalOrderId, $refId);
@@ -259,7 +265,8 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->quoteRepository->save($quote);
         }
 
-        $order = $this->quoteManagement->submit($quote);
+        $orderId = $this->quoteManagement->placeOrder($quote->getId());
+        $order = $this->orderRepository->get($orderId);
 
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
 
@@ -342,7 +349,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param string $customerEmail
      * @return void
      */
-    private function setCustomerEmail(CartInterface $quote, string $customerEmail): void
+    public function setCustomerEmail(CartInterface $quote, string $customerEmail): void
     {
         $quote->setCustomerEmail($customerEmail);
 
@@ -365,7 +372,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param $amwalOrderId
      * @return OrderInterface|null
      */
-    private function getOrderByAmwalOrderId($amwalOrderId): ?OrderInterface
+    public function getOrderByAmwalOrderId($amwalOrderId): ?OrderInterface
     {
         // Build a search criteria to filter orders by custom attribute
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('amwal_order_id', $amwalOrderId);

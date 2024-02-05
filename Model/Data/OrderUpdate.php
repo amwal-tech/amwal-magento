@@ -152,7 +152,7 @@ class OrderUpdate
      * @param OrderInterface $order
      * @return bool
      */
-    private function isPayValid(OrderInterface $order): bool
+    public function isPayValid(OrderInterface $order): bool
     {
         $orderState = $order->getState();
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
@@ -231,7 +231,7 @@ class OrderUpdate
      * @param OrderInterface $order
      * @return string
      */
-    private function getOrderUrl(OrderInterface $order): string
+    public function getOrderUrl(OrderInterface $order): string
     {
         return $this->storeManager->getStore()->getBaseUrl() . 'sales/order/view/order_id/' . $order->getEntityId();
     }
@@ -243,21 +243,21 @@ class OrderUpdate
      * @param DataObject $amwalOrderData
      * @return bool|string True if validation passes, otherwise returns error message.
      */
-    private function dataValidation(Order $order, DataObject $amwalOrderData)
+    public function dataValidation(Order $order, DataObject $amwalOrderData)
     {
         if ($order->getOrderCurrencyCode() != self::DEFAULT_CURRENCY_CODE) {
-            $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
+            $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
             throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
         }
-        if (floatval($order->getBaseGrandTotal()) != floatval($amwalOrderData->getTotalAmount())) {
-            $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), 'base_grand_total', 'total_amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount()));
-            throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'base_grand_total', 'total_amount', $order->getBaseGrandTotal(), $amwalOrderData->getTotalAmount()));
+        if ((float)$order->getGrandTotal() != (float)$amwalOrderData->getTotalAmount()) {
+            $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
+            throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
         }
         foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
             $orderValue = $order->getData($orderMethod);
             $amwalValue = $amwalOrderData->getData($amwalMethod);
             if ($orderValue != $amwalValue) {
-                $this->sendAdminEmail($order, 'Order (%s) needs Attention', $this->dataValidationMessage($order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
+                $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
                 throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
             }
         }

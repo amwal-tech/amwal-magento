@@ -25,8 +25,10 @@ class GetProductButtonConfig extends GetConfig
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
         $quote = $this->checkoutSessionFactory->create()->getQuote();
+        $customerSession = $this->customerSessionFactory->create();
+        $initialAddress = $this->amwalAddressFactory->create();
 
-        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
+        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
 
         $buttonConfig->setAmount($this->getAmount($productId));
         $buttonConfig->setId($this->getButtonId($productId));
