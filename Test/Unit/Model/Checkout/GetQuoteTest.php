@@ -381,13 +381,14 @@ class GetQuoteTest extends TestCase
     private function createRateMock(string $carrierCode, string $methodCode, string $methodTitle, float $priceInclTax): MockObject
     {
         $rateMock = $this->getMockBuilder(ShippingMethodInterface::class)
-            ->onlyMethods(['getCarrierCode', 'getMethodCode', 'getMethodTitle', 'getPriceInclTax'])
+            ->onlyMethods(['getCarrierCode', 'getMethodCode', 'getMethodTitle', 'getPriceInclTax', 'getAvailable'])
             ->getMockForAbstractClass();
 
         $rateMock->method('getCarrierCode')->willReturn($carrierCode);
         $rateMock->method('getMethodCode')->willReturn($methodCode);
         $rateMock->method('getMethodTitle')->willReturn($methodTitle);
         $rateMock->method('getPriceInclTax')->willReturn($priceInclTax);
+        $rateMock->method('getAvailable')->willReturn(true);
 
         return $rateMock;
     }
