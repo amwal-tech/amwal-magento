@@ -426,7 +426,11 @@ class GetQuote extends AmwalCheckoutAction
                     'price' => number_format((float)$rate->getPriceInclTax(), 2)
                 ];
             }else{
-                $this->logger->warning('Shipping method: ' . $id . ' have a error: ' . $rate->getErrorMessage());
+                $this->logger->warning(sprintf(
+                    'Shipping method: %s has an error: %s',
+                    $id,
+                    $rate->getErrorMessage()
+                ));
             }
         }
         try {
