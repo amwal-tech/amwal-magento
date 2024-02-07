@@ -420,10 +420,18 @@ class GetQuote extends AmwalCheckoutAction
             if (empty($rate->getMethodTitle())) {
                 $this->logger->warning('Shipping method title is empty. Falling back to ID as title: ' . $id);
             }
-            $availableRates[$id] = [
-                'carrier_title' => $rate->getMethodTitle() ?? $id,
-                'price' => number_format((float)$rate->getPriceInclTax(), 2)
-            ];
+            if ($rate->getAvailable()) {
+                $availableRates[$id] = [
+                    'carrier_title' => $rate->getMethodTitle() ?? $id,
+                    'price' => number_format((float)$rate->getPriceInclTax(), 2)
+                ];
+            }else{
+                $this->logger->warning(sprintf(
+                    'Shipping method: %s has an error: %s',
+                    $id,
+                    $rate->getErrorMessage()
+                ));
+            }
         }
         try {
             $this->logDebug(sprintf(
