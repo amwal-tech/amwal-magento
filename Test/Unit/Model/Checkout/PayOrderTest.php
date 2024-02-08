@@ -229,6 +229,8 @@ class PayOrderTest extends TestCase
         // Mock order
         $orderMock = $this->createMock(OrderInterface::class);
         $orderMock->method('getQuoteId')->willReturn(self::ORDER_ID);
+        $orderMock->method('getEntityId')->willReturn(self::ORDER_ID);
+
 
         // Mock quote
         $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
