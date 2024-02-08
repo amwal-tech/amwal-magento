@@ -292,7 +292,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
 
-        if($this->config->isQuoteOverrideEnabled()){
+        if ($this->config->isQuoteOverrideEnabled()) {
             $order->setStoreId($this->storeManager->getStore()->getId());
             $order->setSubtotal($order->getBaseSubtotal());
             $order->setGrandTotal($order->getBaseGrandTotal());
