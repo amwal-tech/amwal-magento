@@ -255,7 +255,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $order->setAmwalOrderId($amwalOrderId . '-canceled');
             $this->orderRepository->save($order);
         }
-        if($this->config->isQuoteOverrideEnabled()){
+        if ($this->config->isQuoteOverrideEnabled()) {
             $quote->setStoreId($this->storeManager->getStore()->getId());
             $quote->setStoreCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
             $quote->setBaseCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
