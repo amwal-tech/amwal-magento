@@ -23,7 +23,6 @@ class ExpressCheckoutButton implements ArgumentInterface
     public const AMWAL_CURRENCY = 'SAR';
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
 
-
     /**
      * @var AmwalConfig
      */
