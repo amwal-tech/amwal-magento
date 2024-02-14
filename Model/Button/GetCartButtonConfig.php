@@ -91,7 +91,7 @@ class GetCartButtonConfig extends GetConfig
             } else {
                 $regularPrice = 0;
                 foreach ($quote->getAllVisibleItems() as $item) {
-                    $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+                    $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue() * $item->getQty();
                 }
                 return (float)$regularPrice - abs((float)$quote->getShippingAddress()->getDiscountAmount());
             }
@@ -119,7 +119,8 @@ class GetCartButtonConfig extends GetConfig
             } else {
                 foreach ($quote->getAllVisibleItems() as $item) {
                     $priceInfo = $item->getProduct()->getPriceInfo();
-                    $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+                    $price = $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+                    $discountAmount += abs($price * $item->getQty());
                 }
             }
         }
