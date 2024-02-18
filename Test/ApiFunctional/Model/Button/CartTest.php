@@ -169,10 +169,6 @@ class CartTest extends WebapiAbstract
         $this->assertTrue(is_numeric($response['amount']));
         $this->assertGreaterThan(0, $response['amount']);
 
-        echo "Cart ID: " . $cartId . "\n";
-        echo "RFQ ID: " . $response['ref_id'] . "\n";
-
-
         $tempData = [
             'cartId' => $cartId,
             'refId' => $response['ref_id'],
