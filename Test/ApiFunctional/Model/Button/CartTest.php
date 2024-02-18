@@ -113,11 +113,6 @@ class CartTest extends WebapiAbstract
         $quote = $this->objectManager->create(Quote::class);
         $quote->load($item['quote_id']);
 
-//        $quote->getBillingAddress()->addData(self::ADDRESS_DATA);
-//        $quote->getShippingAddress()->addData(self::ADDRESS_DATA);
-//        $quote->setCustomerEmail(self::ADDRESS_DATA['client_email']);
-//        $quote->save();
-
         $this->assertNotEmpty($quote->getId());
 
         $serviceInfoForGetCartButtonConfig = [
