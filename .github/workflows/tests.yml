@@ -84,7 +84,7 @@ jobs:
 
       - name: Run Amwal Payments ApiFunctional Tests Suite
         if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c dev/tests/api-functional/phpunit_rest.xml.dist --colors=always --coverage-text --coverage-clover build/logs/clover.xml  --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml --coverage-html build/coverage/html --testsuite Amwal_Payments_ApiFunctional vendor/amwal/payments/Test/ApiFunctional
+        run: cd magento && sudo php vendor/bin/phpunit -c $(pwd)/dev/tests/api-functional/phpunit_rest.xml.dist vendor/amwal/payments/Test/ApiFunctional/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
