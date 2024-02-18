@@ -212,7 +212,7 @@ class GetConfig
      */
     public function phoneFormat($phone_number, $country)
     {
-        if (strpos($phone_number, '+') === 0) {
+        if (!empty($phone_number) && strpos($phone_number, '+') === 0) {
             return $phone_number;
         }
         if (class_exists('libphonenumber\PhoneNumberUtil')) {
