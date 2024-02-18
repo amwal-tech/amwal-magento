@@ -1,10 +1,10 @@
 <?php
 
 return array (
-  'cartId' => 'mxQpsY6icZod8uUhbUB4kAzy326HtecJ',
+  'cartId' => 'E3DQWsOTcYsKZRuDIC5eAnxRQ5qAwKHY',
   'refId' => '3fb534fe30c84b258f15c3a44e47f8719a38c5ce655193d318310d42138c0cad',
-  'orderId' => 16,
-  'amwal_order_id' => 'af43d2e7-9c25-480b-8a20-e7a121f14654',
+  'orderId' => 28,
+  'amwal_order_id' => '41975e34-5cb0-44df-8a31-2ab405f4a9ed',
   'merchantId' => 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47',
   'available_rates' => 
   array (

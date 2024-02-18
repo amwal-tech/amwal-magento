@@ -177,10 +177,11 @@ class CartTest extends WebapiAbstract
         echo "Cart ID: " . $cartId . "\n";
         echo "RFQ ID: " . $response['ref_id'] . "\n";
 
+
         $tempData = [
             'cartId' => $cartId,
             'refId' => $response['ref_id'],
-            'orderId' => 16,
+            'orderId' => $quote->getEntityId(),
         ];
         file_put_contents(__DIR__ . '../../../_files/TempData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
     }

@@ -123,10 +123,6 @@ class PlaceOrderTest extends WebapiAbstract
                 'merchant_english_business_name' => null,
                 'merchant_key' => $tempData['merchantId'],
                 'merchant_payout' => null,
-                'order_details' => [
-                    'order_position' => 'product-detail-page',
-                    'plugin_version' => 'Magento 1.0.32'
-                ],
                 'paymentBrand' => null,
                 'payment_method' => null,
                 'ref_id' => $tempData['refId'],
@@ -136,7 +132,7 @@ class PlaceOrderTest extends WebapiAbstract
                     'label' => $tempData['available_rates']['freeshipping_freeshipping']['carrier_title'],
                     'price' => $tempData['available_rates']['freeshipping_freeshipping']['price']
                 ],
-                'status' => null,
+                'status' => 'success',
                 'store_domain' => 'https://woo.amwal.dev',
                 'store_logo' => 'https://qa-backend.sa.amwal.tech/media/store_logo/download.png',
                 'taxes' => $tempData['tax_amount'],
@@ -164,6 +160,13 @@ class PlaceOrderTest extends WebapiAbstract
 
         // Perform assertions
         $this->assertEquals('pending_payment', $response['state']);
+        $this->assertArrayHasKey('entity_id', $response);
+
+        $newTempData = [
+            'orderId' => $response['entity_id'],
+        ];
+        $tempData = array_merge($tempData, $newTempData);
+        file_put_contents(__DIR__ . '../../../_files/TempData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
     }
 
     /**

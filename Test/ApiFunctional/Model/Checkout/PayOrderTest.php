@@ -45,9 +45,10 @@ class PayOrderTest extends WebapiAbstract
         ];
 
         $requestData = [
-            'order_id' => $tempData['orderId'],
-            'amwal_order_id' => $tempData['amwal_order_id'],
+            'order_id' => '13',
+            'amwal_order_id' => '32574861-7bdf-414b-b65b-3736258644cd',
         ];
+
         $response = $this->_webApiCall($serviceInfoForPayOrder, $requestData);
         $this->assertIsBool($response);
     }
