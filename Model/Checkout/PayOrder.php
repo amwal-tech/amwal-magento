@@ -166,7 +166,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param DataObject $amwalOrderData
      * @return void
      */
-    private function updateCustomerName(OrderInterface $order, DataObject $amwalOrderData): void
+    public function updateCustomerName(OrderInterface $order, DataObject $amwalOrderData): void
     {
         $order->setCustomerFirstname($amwalOrderData->getClientFirstName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
         $order->setCustomerLastname($amwalOrderData->getClientLastName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
@@ -177,7 +177,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param Phrase|string|null $message
      * @return void
      */
-    private function addError($message = null): void
+    public function addError($message = null): void
     {
         $genericMessage = __('Something went wrong while placing your order. Please contact us to complete the order.');
         $this->messageManager->addErrorMessage($message ?? $genericMessage);
@@ -272,7 +272,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param string $email
      * @return bool
      */
-    private function customerWithEmailExists(string $email): bool
+    public function customerWithEmailExists(string $email): bool
     {
         try {
             $this->customerRepository->get($email);
@@ -288,7 +288,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param DataObject $amwalOrderData
      * @return bool
      */
-    private function shouldCreateCustomer(OrderInterface $order, DataObject $amwalOrderData): bool
+    public function shouldCreateCustomer(OrderInterface $order, DataObject $amwalOrderData): bool
     {
         if (!$email = $amwalOrderData->getClientEmail() ?? $order->getCustomerEmail()) {
             return false;
