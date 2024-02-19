@@ -13,6 +13,10 @@ class GetQuoteTest extends WebapiAbstract
     private const SERVICE_VERSION = 'V1';
     private const SERVICE_NAME = 'Amwal';
     private const RESOURCE_PATH = '/V1/amwal/get-quote';
+    private const EXPECTED_KEYS = [
+        'cart_id', 'available_rates', 'amount', 'subtotal', 'tax_amount', 'shipping_amount',
+        'discount_amount', 'additional_fee_amount', 'additional_fee_description'
+    ];
 
     /**
      * @var \Magento\TestFramework\ObjectManager
@@ -30,7 +34,7 @@ class GetQuoteTest extends WebapiAbstract
      */
     public function testGetQuote()
     {
-        $tempData = require __DIR__ . '../../../_files/TempData.php';
+        $tempData = require __DIR__ . '../../../_files/GetCartData.php';
 
         $serviceInfoForAmwalCart = [
             'rest' => [
@@ -131,15 +135,9 @@ class GetQuoteTest extends WebapiAbstract
         $response = reset($response);
 
         // Perform assertions
-        $this->assertArrayHasKey('cart_id', $response);
-        $this->assertArrayHasKey('available_rates', $response);
-        $this->assertArrayHasKey('amount', $response);
-        $this->assertArrayHasKey('subtotal', $response);
-        $this->assertArrayHasKey('tax_amount', $response);
-        $this->assertArrayHasKey('shipping_amount', $response);
-        $this->assertArrayHasKey('discount_amount', $response);
-        $this->assertArrayHasKey('additional_fee_amount', $response);
-        $this->assertArrayHasKey('additional_fee_description', $response);
+        foreach (self::EXPECTED_KEYS as $key) {
+            $this->assertArrayHasKey($key, $response);
+        }
 
         // Validate specific values if needed
         $this->assertTrue(is_numeric($response['amount']));
@@ -163,13 +161,14 @@ class GetQuoteTest extends WebapiAbstract
             'additional_fee_amount' => $response['additional_fee_amount'],
             'additional_fee_description' => $response['additional_fee_description'],
         ];
-        file_put_contents(__DIR__ . '../../../_files/TempData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
+        file_put_contents(__DIR__ . '../../../_files/GetCartData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
     }
 
 
     /**
-     * @param $serviceInfo
-     * @param $requestData
+     * @param $url
+     * @param $data
+     * @param string $method
      * @return mixed
      */
     private function _executeCurl($url, $data, $method = 'POST')

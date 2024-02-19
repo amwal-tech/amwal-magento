@@ -31,7 +31,7 @@ class PlaceOrderTest extends WebapiAbstract
 
     public function testPlaceOrder()
     {
-        $tempData = require __DIR__ . '../../../_files/TempData.php';
+        $tempData = require __DIR__ . '../../../_files/GetCartData.php';
 
         $serviceInfoForPlaceOrder = [
             'rest' => [
@@ -166,12 +166,13 @@ class PlaceOrderTest extends WebapiAbstract
             'orderId' => $response['entity_id'],
         ];
         $tempData = array_merge($tempData, $newTempData);
-        file_put_contents(__DIR__ . '../../../_files/TempData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
+        file_put_contents(__DIR__ . '../../../_files/GetCartData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
     }
 
     /**
-     * @param $serviceInfo
-     * @param $requestData
+     * @param $url
+     * @param $data
+     * @param string $method
      * @return mixed
      */
     private function _executeCurl($url, $data, $method = 'POST')

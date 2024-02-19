@@ -29,7 +29,14 @@ class CartTest extends WebapiAbstract
         'client_first_name' => 'Ahmed',
         'client_last_name' => 'Mardi',
     ];
-
+    private const EXPECTED_KEYS = [
+        'merchant_id', 'amount', 'country_code', 'dark_mode', 'email_required',
+        'address_required', 'address_handshake', 'ref_id', 'label', 'disabled',
+        'show_payment_brands', 'enable_pre_checkout_trigger', 'enable_pre_pay_trigger',
+        'id', 'test_environment', 'allowed_address_countries', 'allowed_address_states',
+        'plugin_version', 'post_code_optional_countries', 'installment_options_url',
+        'show_discount_ribbon', 'discount'
+    ];
 
     /**
      * @var \Magento\TestFramework\ObjectManager
@@ -141,28 +148,9 @@ class CartTest extends WebapiAbstract
         $this->assertIsArray($response);
 
         // Perform assertions
-        $this->assertArrayHasKey('merchant_id', $response);
-        $this->assertArrayHasKey('amount', $response);
-        $this->assertArrayHasKey('country_code', $response);
-        $this->assertArrayHasKey('dark_mode', $response);
-        $this->assertArrayHasKey('email_required', $response);
-        $this->assertArrayHasKey('address_required', $response);
-        $this->assertArrayHasKey('address_handshake', $response);
-        $this->assertArrayHasKey('ref_id', $response);
-        $this->assertArrayHasKey('label', $response);
-        $this->assertArrayHasKey('disabled', $response);
-        $this->assertArrayHasKey('show_payment_brands', $response);
-        $this->assertArrayHasKey('enable_pre_checkout_trigger', $response);
-        $this->assertArrayHasKey('enable_pre_pay_trigger', $response);
-        $this->assertArrayHasKey('id', $response);
-        $this->assertArrayHasKey('test_environment', $response);
-        $this->assertArrayHasKey('allowed_address_countries', $response);
-        $this->assertArrayHasKey('allowed_address_states', $response);
-        $this->assertArrayHasKey('plugin_version', $response);
-        $this->assertArrayHasKey('post_code_optional_countries', $response);
-        $this->assertArrayHasKey('installment_options_url', $response);
-        $this->assertArrayHasKey('show_discount_ribbon', $response);
-        $this->assertArrayHasKey('discount', $response);
+        foreach (self::EXPECTED_KEYS as $key) {
+            $this->assertArrayHasKey($key, $response);
+        }
 
         // Validate specific values if needed
         $this->assertTrue(is_string($response['merchant_id']));
@@ -174,6 +162,6 @@ class CartTest extends WebapiAbstract
             'refId' => $response['ref_id'],
             'orderId' => $quote->getEntityId(),
         ];
-        file_put_contents(__DIR__ . '../../../_files/TempData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
+        file_put_contents(__DIR__ . '../../../_files/GetCartData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
     }
 }
