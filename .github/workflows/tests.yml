@@ -75,8 +75,7 @@ jobs:
           COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         with:
           process: 'integration-test'
-          elasticsearch: 1
-          integration_class: "/magento/vendor/amwal/payments/Test/ApiFunctional/Model/Button/CartTest.php"
+          testsuite: 'Amwal Payments'
 
       - name: Extract Branch Name
         id: extract_branch
