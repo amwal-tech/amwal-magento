@@ -123,8 +123,8 @@ class GetCartButtonConfig extends GetConfig
                     $discountAmount += abs($price * $item->getQty());
                 }
             }
+            $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
         }
-        $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
         return $discountAmount;
     }
 
