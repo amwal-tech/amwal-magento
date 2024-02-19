@@ -78,6 +78,8 @@ const AmwalMagentoReactButton = ({
         setConfig(data)
         setAmount(data.amount)
         setDiscount(data.discount)
+        setTaxes(data.tax)
+        setFees(data.fees)
         setCartId(data.cart_id)
       })
       .catch(err => { console.log(err) })
