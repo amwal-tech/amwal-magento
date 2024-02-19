@@ -64,10 +64,7 @@ jobs:
           COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
         with:
           process: 'integration-test'
-          elasticsearch: 1
-          integration_class: |
-            "./testsuite/Magento/MemoryUsageTest.php"
-            "./vendor/amwal/payments/Test/ApiFunctional/"
+          integration_class: "./testsuite/Magento/MemoryUsageTest.php"
           integration_filter: "testAppReinitializationNoMemoryLeak"
 
       - name: Extract Branch Name
