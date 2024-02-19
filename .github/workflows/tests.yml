@@ -65,8 +65,7 @@ jobs:
         with:
           process: 'integration-test'
           elasticsearch: 1
-          integration_class: "./testsuite/Magento/MemoryUsageTest.php"
-          integration_filter: "testAppReinitializationNoMemoryLeak"
+          integration_class: "../../../dev/tests/api-functional/testsuite/Magento/Quote/Api/GuestCartAddingItemsTest.php"
 
       - name: 'amwal integration ApiFunctional tests'
         if: ${{true}}
