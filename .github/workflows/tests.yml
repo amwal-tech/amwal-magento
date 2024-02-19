@@ -65,6 +65,10 @@ jobs:
         with:
           process: 'integration-test'
           elasticsearch: 1
+          integration_class: |
+            "./testsuite/Magento/MemoryUsageTest.php"
+            "./vendor/amwal/payments/Test/ApiFunctional/"
+          integration_filter: "testAppReinitializationNoMemoryLeak"
 
       - name: Extract Branch Name
         id: extract_branch
@@ -90,14 +94,6 @@ jobs:
       - name: Run Amwal Payments Unit Tests Suite
         if: ${{true}}
         run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --colors=always --coverage-text --coverage-clover build/logs/clover.xml  --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml --coverage-html build/coverage/html --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
-
-      - name: Run GuestCartAddingItemsTest
-        if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c $(pwd)/dev/tests/api-functional/phpunit_rest.xml.dist dev/tests/api-functional/testsuite/Magento/Quote/Api/GuestCartAddingItemsTest.php
-
-      - name: Run Amwal Payments ApiFunctional Tests Suite
-        if: ${{true}}
-        run: cd magento && sudo php vendor/bin/phpunit -c $(pwd)/dev/tests/api-functional/phpunit_rest.xml.dist vendor/amwal/payments/Test/ApiFunctional/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
