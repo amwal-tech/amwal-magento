@@ -76,7 +76,7 @@ jobs:
         with:
           process: 'integration-test'
           elasticsearch: 1
-          integration_class: "./vendor/amwal/payments/Test/ApiFunctional/Model/Button/CartTest.php"
+          integration_class: "/magento/vendor/amwal/payments/Test/ApiFunctional/Model/Button/CartTest.php"
 
       - name: Extract Branch Name
         id: extract_branch
