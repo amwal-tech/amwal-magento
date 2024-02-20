@@ -93,7 +93,7 @@ class GetCartButtonConfig extends GetConfig
                 foreach ($quote->getAllVisibleItems() as $item) {
                     $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue() * $item->getQty();
                 }
-                return (float)$regularPrice - abs((float)$quote->getShippingAddress()->getDiscountAmount());
+                return (float)$regularPrice;
             }
         }
         return (float)$quote->getGrandTotal();
