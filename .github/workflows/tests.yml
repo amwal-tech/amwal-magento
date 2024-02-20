@@ -57,25 +57,6 @@ jobs:
           magento_version: 2.4.6
           no_push: 1
 
-      - name: 'launch magento2 integration test custom testsuite'
-        if: ${{true}}
-        uses: MAD-I-T/magento-actions@master
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          process: 'integration-test'
-          elasticsearch: 1
-          integration_class: "../../../dev/tests/api-functional/testsuite/Magento/Quote/Api/GuestCartAddingItemsTest.php"
-
-      - name: 'amwal integration ApiFunctional tests'
-        if: ${{true}}
-        uses: MAD-I-T/magento-actions@master
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          process: 'integration-test'
-          testsuite: 'Amwal Payments'
-
       - name: Extract Branch Name
         id: extract_branch
         run: |
@@ -96,6 +77,22 @@ jobs:
 
       - name: Set File Permissions
         run: sudo chmod -R 777 magento
+
+      - name: 'launch magento2 integration test custom testsuite'
+        if: ${{true}}
+        uses: MAD-I-T/magento-actions@master
+        env:
+          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+        with:
+          process: 'integration-test'
+          integration_class: "./testsuite/Magento/MemoryUsageTest.php"
+          integration_filter: "testAppReinitializationNoMemoryLeak"
+
+      - name: Run Amwal Functional API Tests Suite
+        run: |
+          cd magento
+          envsubst < dev/tests/integration/etc/install-config-mysql.php | tee dev/tests/api-functional/config/install-config-mysql.php
+          sudo php vendor/bin/phpunit -c $(pwd)/dev/tests/api-functional/phpunit_rest.xml.dist vendor/amwal/payments/Test/ApiFunctional/
 
       - name: Run Amwal Payments Unit Tests Suite
         if: ${{true}}
