@@ -30,7 +30,7 @@ class PayOrderTest extends WebapiAbstract
 
     public function testPayOrder()
     {
-        $tempData = require __DIR__ . '../../../_files/TempData.php';
+        $tempData = require __DIR__ . '../../../_files/GetCartData.php';
 
         $serviceInfoForPayOrder = [
             'rest' => [
