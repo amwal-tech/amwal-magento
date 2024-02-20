@@ -139,7 +139,7 @@ class GetCartButtonConfig extends GetConfig
      */
     public function getTaxAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
-        return (float)$quote->getShippingAddress()->getTaxAmount();;
+        return (float)$quote->getShippingAddress()->getTaxAmount();
     }
 
     /**
