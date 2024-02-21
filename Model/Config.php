@@ -121,9 +121,9 @@ class Config
     public function shouldHideProceedToCheckout(): bool
     {
         return $this->isExpressCheckoutActive() && $this->scopeConfig->isSetFlag(
-                self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
-                ScopeInterface::SCOPE_WEBSITE
-            );
+            self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
+            ScopeInterface::SCOPE_WEBSITE
+        );
     }
 
     /**
@@ -451,7 +451,7 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_QUOTE_OVERRIDE);
     }
-  
+
     /**
      * @return bool
      */

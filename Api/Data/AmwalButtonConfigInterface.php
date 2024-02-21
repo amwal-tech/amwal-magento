@@ -34,6 +34,8 @@ interface AmwalButtonConfigInterface
     public const INITIAL_LAST_NAME = 'initial_last_name';
     public const SHOW_DISCOUNT_RIBBON = 'show_discount_ribbon';
     public const DISCOUNT = 'discount';
+    public const TAX = 'tax';
+    public const FEES = 'fees';
 
     /**
      * @return string
@@ -345,4 +347,26 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setDiscount(float $discount): AmwalButtonConfigInterface;
+
+    /**
+     * @return float
+     */
+    public function getTax(): float;
+
+    /**
+     * @param float $tax
+     * @return AmwalButtonConfigInterface
+     */
+    public function setTax(float $tax): AmwalButtonConfigInterface;
+
+    /**
+     * @return float
+     */
+    public function getFees(): float;
+
+    /**
+     * @param float $fees
+     * @return AmwalButtonConfigInterface
+     */
+    public function setFees(float $fees): AmwalButtonConfigInterface;
 }
