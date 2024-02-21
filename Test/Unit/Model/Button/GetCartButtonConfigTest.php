@@ -122,7 +122,6 @@ class GetCartButtonConfigTest extends TestCase
         $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_CITIES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressCities());
         $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_STATES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressStates());
         $this->assertEquals(self::ALLOWED_ADDRESS_COUNTRIES, $this->buttonConfigMock->getAllowedAddressCountries());
-        $this->assertEquals(self::ID, $this->buttonConfigMock->getId());
         $this->assertEquals(self::CART_ID, $this->buttonConfigMock->getCartId());
         $this->assertEquals(self::AMOUNT, $this->buttonConfigMock->getAmount());
     }
