@@ -10,7 +10,7 @@ export const renderReactElement = (container: Element): void => {
   const buttonId = container.getAttribute('data-button-id')
   const formSelector = container.getAttribute('data-form-selector')
   if (triggerContext) {
-    const submitAddToCart = async (): Promise<void> => {
+    const submitAddToCart = async (): Promise<string | undefined> => {
       if (!formSelector) return
       const cartForm = document.querySelector(formSelector)
       if (cartForm == null) throw new Error('Product form not found')

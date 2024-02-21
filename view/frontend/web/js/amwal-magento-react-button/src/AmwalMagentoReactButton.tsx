@@ -9,7 +9,7 @@ interface AmwalMagentoReactButtonProps {
   scopeCode?: string
   productId?: string
   buttonId?: string
-  preCheckoutTask?: () => Promise<void>
+  preCheckoutTask?: () => Promise<string | undefined>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
   baseUrl?: string
@@ -270,7 +270,7 @@ const AmwalMagentoReactButton = ({
   }
 
   const handleAmwalPreCheckoutTrigger = (_event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
-    const getConfig = async (): Promise<Response> => {
+    const getConfig = async (preCheckoutCartId?: string): Promise<Response> => {
       return await fetch(`${baseUrl}/amwal/button/cart`, {
         method: 'POST',
         headers: {
@@ -282,12 +282,12 @@ const AmwalMagentoReactButton = ({
           refIdData,
           triggerContext,
           locale,
-          cartId: overrideCartId ?? cartId
+          cartId: preCheckoutCartId ?? overrideCartId ?? cartId
         })
       })
     }
     const preCheckoutPromise = (preCheckoutTask != null)
-      ? preCheckoutTask().then(async () => await getConfig())
+      ? preCheckoutTask().then(async (preCheckoutCartId?: string) => await getConfig(preCheckoutCartId))
       : getConfig()
     preCheckoutPromise
       .then(async response => {
