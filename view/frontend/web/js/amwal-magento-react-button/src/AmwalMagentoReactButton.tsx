@@ -79,9 +79,9 @@ const AmwalMagentoReactButton = ({
       .then(data => {
         setConfig(data)
         setAmount(data.amount)
-        if (data.discount) setDiscount(data.discount)
-        if (data.tax) setTaxes(data.tax)
-        if (data.fees) setFees(data.fees)
+        setDiscount(data.discount ?? 0)
+        setTaxes(data.tax ?? 0)
+        setFees(data.fees ?? 0)
         setCartId(data.cart_id)
       })
       .catch(err => { console.log(err) })
@@ -297,7 +297,7 @@ const AmwalMagentoReactButton = ({
       })
       .then(data => {
         setAmount(data.amount)
-        setDiscount(data.discount)
+        setDiscount(data.discount ?? 0)
         setTriggerPreCheckoutAck(true)
       })
       .catch(err => {
