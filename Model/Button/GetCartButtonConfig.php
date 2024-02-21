@@ -63,6 +63,8 @@ class GetCartButtonConfig extends GetConfig
 
         $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setTax($this->getTaxAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setFees($this->getFeesAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setId($this->getButtonId($cartId));
 
         if ($limitedCities = $this->getCityCodesJson()) {
@@ -125,6 +127,37 @@ class GetCartButtonConfig extends GetConfig
         }
         $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
         return $discountAmount;
+    }
+
+    /**
+     * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getTaxAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    {
+        return (float)$quote->getShippingAddress()->getTaxAmount();
+    }
+
+    /**
+     * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getFeesAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    {
+        $extraFee = 0;
+        $totals = $quote->getTotals();
+        if (isset($totals['amasty_extrafee'])) {
+            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
+        }
+        return $extraFee;
     }
 
     /**
