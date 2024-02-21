@@ -70,7 +70,6 @@ class GetConfigTest extends TestCase
     private const REF_ID = 'ad271ffbaf46814a3cd671ac1e26b855a0bf049ee6513d744fe98a45a8dde77b';
     private const SHOW_PAYMENT_BRANDS = true;
     private const DISABLED = false;
-    private const ID = 'amwal-checkout';
     private const ALLOWED_ADDRESS_COUNTRIES = ['SA'];
     private const ALLOWED_ADDRESS_CITIES = ['SA' => ['1110' => ['Riyadh'], '1111' => ['Dammam']]];
     private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
@@ -191,7 +190,6 @@ class GetConfigTest extends TestCase
         $this->assertEquals(self::REF_ID, $this->buttonConfigMock->getRefId());
         $this->assertTrue($this->buttonConfigMock->getShowPaymentBrands());
         $this->assertFalse($this->buttonConfigMock->getDisabled());
-        $this->assertEquals(self::ID, $this->buttonConfigMock->getId());
         $this->assertEquals(self::ALLOWED_ADDRESS_COUNTRIES, $this->buttonConfigMock->getAllowedAddressCountries());
         $this->assertTrue($this->buttonConfigMock->getEnablePreCheckoutTrigger());
         $this->assertEquals('off', $this->buttonConfigMock->getDarkMode());

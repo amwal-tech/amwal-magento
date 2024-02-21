@@ -44,7 +44,6 @@ class GetCartButtonConfigTest extends TestCase
     private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
     private const CART_ID = 'vyO7NEqZbs1Rv6Z7NLewdlLpC0qufkmJ';
     private const QUOTE_ID = 1;
-    private const ID = 'amwal-checkout';
     private const AMOUNT = 100.00;
 
     private const INITIAL_ADDRESS = [
@@ -69,7 +68,6 @@ class GetCartButtonConfigTest extends TestCase
         'allowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
         'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
         'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
-        'id' => self::ID,
         'cartId' => self::CART_ID,
         'amount' => self::AMOUNT
     ];
