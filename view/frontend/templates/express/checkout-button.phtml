@@ -13,6 +13,7 @@ $viewModel = $this->getViewModel();
 $buttonId = $viewModel->getUniqueId();
 $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
+$checkoutButtonId = $viewModel->getCheckoutButtonId();
 ?>
 <style>
     <?= $viewModel->getStyleCss() ?>
@@ -23,6 +24,7 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
          data-locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
          data-scope-code="<?= $escaper->escapeHtmlAttr($viewModel->getStoreCode()) ?>"
          data-product-id="<?= $escaper->escapeHtmlAttr($viewModel->getProductId()) ?>"
+         data-button-id="<?= $escaper->escapeHtmlAttr($checkoutButtonId) ?>"
          <?= $formSelector ? 'data-form-selector="' . $escaper->escapeHtmlAttr($formSelector) . '"' : '' ?>
          id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
     >

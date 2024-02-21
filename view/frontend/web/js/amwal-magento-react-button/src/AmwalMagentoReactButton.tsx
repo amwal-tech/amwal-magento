@@ -8,6 +8,7 @@ interface AmwalMagentoReactButtonProps {
   locale?: string
   scopeCode?: string
   productId?: string
+  buttonId?: string
   preCheckoutTask?: () => Promise<void>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
   emptyCartOnCancellation?: boolean
@@ -23,6 +24,7 @@ const AmwalMagentoReactButton = ({
   locale,
   scopeCode,
   productId,
+  buttonId,
   preCheckoutTask,
   onSuccessTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
@@ -324,7 +326,7 @@ const AmwalMagentoReactButton = ({
   return (config != null)
     ? <AmwalCheckoutButton
         ref={buttonRef}
-        id={config.id}
+        id={buttonId}
         amount={amount}
         taxes={taxes}
         discount={discount}
