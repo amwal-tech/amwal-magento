@@ -41,6 +41,7 @@ const ReactPage= () => {
         extraHeaders={{
           'x-access-token': 'abc'
         }}
+        buttonId="amwal-checkout-knmch"
         overrideCartId={cartId}
         redirectURL={redirectURL}
     />
@@ -61,4 +62,4 @@ const ReactPage= () => {
 | overrideCartId            | string \| undefined                                      | Useful when you want to provide your own cartId. |
 | redirectURL               | string \| undefined                                      | URL to redirect to after checkout is completed. Only effective if `performSuccessRedirection` is not set|
 | performSuccessRedirection | (orderId: string)  =>  void \| undefined | A function that performs redirect on success, orderId has the magento order id |
-
+| buttonId                  | string                                                   | The id of the button that will be rendered. This is useful when you want to have multiple buttons on the same page. |

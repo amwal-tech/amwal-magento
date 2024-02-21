@@ -101,7 +101,6 @@ class GetConfigTest extends TestCase
         'refId' => self::REF_ID,
         'showPaymentBrands' => self::SHOW_PAYMENT_BRANDS,
         'disabled' => self::DISABLED,
-        'id' => self::ID,
         'allowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
         'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
         'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
