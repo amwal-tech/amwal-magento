@@ -220,22 +220,6 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getId(): string
-    {
-        return $this->getData(self::ID);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setId(string $id): AmwalButtonConfigInterface
-    {
-        return $this->setData(self::ID, $id);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getTestEnvironment(): ?string
     {
         return $this->getData(self::TEST_ENVIRONMENT);

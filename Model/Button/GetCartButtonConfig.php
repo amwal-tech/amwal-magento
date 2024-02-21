@@ -63,7 +63,6 @@ class GetCartButtonConfig extends GetConfig
 
         $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
-        $buttonConfig->setId($this->getButtonId($cartId));
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);

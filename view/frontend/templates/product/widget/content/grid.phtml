@@ -76,6 +76,7 @@ use Magento\Checkout\Model\Cart;
                                                             $buttonId = $block->getUniqueId();
                                                             $triggerContext = $block->getTriggerContext();
                                                             $locale = $block->getLocale();
+                                                            $checkoutButtonId = $block->getCheckoutButtonId();
                                                         ?>
                                                         <form data-role="tocart-form" data-product-sku="<?= $block->escapeHtml($_item->getSku()) ?>" action="<?= $block->escapeUrl($postParams['action']) ?>" method="post" id="form-<?= $escaper->escapeHtmlAttr($buttonId) ?>">
                                                             <input type="hidden" name="product" value="<?= $block->escapeHtmlAttr($postParams['data']['product']) ?>">
@@ -93,6 +94,8 @@ use Magento\Checkout\Model\Cart;
                                                              data-locale="<?= $escaper->escapeHtmlAttr($locale) ?>"
                                                              data-scope-code="<?= $escaper->escapeHtmlAttr($block->getStoreCode()) ?>"
                                                              data-form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                                                             data-product-id="<?= $escaper->escapeHtmlAttr($_item->getId()) ?>"
+                                                             data-button-id="<?= $escaper->escapeHtmlAttr($checkoutButtonId) ?>"
                                                              id="<?= $escaper->escapeHtmlAttr($buttonId) ?>">
                                                         </div>
                                                         <script type="text/x-magento-init">

@@ -7,6 +7,7 @@ export const renderReactElement = (container: Element): void => {
   const locale = container.getAttribute('data-locale')
   const scopeCode = container.getAttribute('data-scope-code')
   const productId = container.getAttribute('data-product-id')
+  const buttonId = container.getAttribute('data-button-id')
   const formSelector = container.getAttribute('data-form-selector')
   if (triggerContext) {
     const submitAddToCart = async (): Promise<void> => {
@@ -33,6 +34,7 @@ export const renderReactElement = (container: Element): void => {
             locale={locale ?? undefined}
             scopeCode={scopeCode ?? undefined}
             productId={productId ?? undefined}
+            buttonId={buttonId ?? undefined}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />)
   }
