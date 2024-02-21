@@ -104,7 +104,7 @@ class Config
      */
     public function isExpressCheckoutActive(): bool
     {
-        return true;
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_EXPRESS_CHECKOUT_ACTIVE, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
@@ -112,7 +112,7 @@ class Config
      */
     public function isRegularCheckoutActive(): bool
     {
-        return true;
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_REGULAR_CHECKOUT_ACTIVE, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
@@ -120,7 +120,10 @@ class Config
      */
     public function shouldHideProceedToCheckout(): bool
     {
-        return true;
+        return return $this->isExpressCheckoutActive() && $this->scopeConfig->isSetFlag(
+            self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
+            ScopeInterface::SCOPE_WEBSITE
+        );
     }
 
     /**
