@@ -120,7 +120,7 @@ class Config
      */
     public function shouldHideProceedToCheckout(): bool
     {
-        return return $this->isExpressCheckoutActive() && $this->scopeConfig->isSetFlag(
+        return $this->isExpressCheckoutActive() && $this->scopeConfig->isSetFlag(
             self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
             ScopeInterface::SCOPE_WEBSITE
         );
