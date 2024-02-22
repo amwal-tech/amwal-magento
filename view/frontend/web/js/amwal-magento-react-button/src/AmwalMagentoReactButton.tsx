@@ -11,6 +11,7 @@ interface AmwalMagentoReactButtonProps {
   buttonId?: string
   preCheckoutTask?: () => Promise<string | undefined>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
+  onCancelTask?: () => Promise<void>
   emptyCartOnCancellation?: boolean
   baseUrl?: string
   extraHeaders?: Record<string, string>
@@ -27,6 +28,7 @@ const AmwalMagentoReactButton = ({
   buttonId,
   preCheckoutTask,
   onSuccessTask,
+  onCancelTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
   baseUrl = scopeCode ? `/rest/${scopeCode}/V1` : '/rest/V1',
   extraHeaders,
@@ -188,6 +190,11 @@ const AmwalMagentoReactButton = ({
       if (placedOrderId) {
         completeOrder(event.detail.orderId)
       }
+    } else if (onCancelTask) {
+      onCancelTask()
+        .catch(err => {
+          console.log(err)
+        })
     } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
       fetch(`${baseUrl}/amwal/clean-quote`, {
@@ -287,7 +294,13 @@ const AmwalMagentoReactButton = ({
       })
     }
     const preCheckoutPromise = (preCheckoutTask != null)
-      ? preCheckoutTask().then(async (preCheckoutCartId?: string) => await getConfig(preCheckoutCartId))
+      ? preCheckoutTask().then(async (preCheckoutCartId?: string) => {
+        const response = await getConfig(preCheckoutCartId)
+        if (preCheckoutCartId) {
+          setCartId(preCheckoutCartId)
+        }
+        return response
+      })
       : getConfig()
     preCheckoutPromise
       .then(async response => {
