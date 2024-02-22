@@ -299,6 +299,7 @@ const AmwalMagentoReactButton = ({
         setAmount(data.amount)
         setDiscount(data.discount ?? 0)
         setTriggerPreCheckoutAck(true)
+        if (data.cart_id) setCartId(data.cart_id)
       })
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
