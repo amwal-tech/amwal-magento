@@ -18,6 +18,7 @@ interface AmwalMagentoReactButtonProps {
   overrideCartId?: string
   redirectURL?: string
   performSuccessRedirection?: (orderId: string) => void
+  debug?: boolean
 }
 
 const AmwalMagentoReactButton = ({
@@ -34,7 +35,8 @@ const AmwalMagentoReactButton = ({
   extraHeaders,
   overrideCartId,
   redirectURL = '/checkout/onepage/success',
-  performSuccessRedirection = () => { window.location.href = redirectURL }
+  performSuccessRedirection = () => { window.location.href = redirectURL },
+  debug
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -315,6 +317,7 @@ const AmwalMagentoReactButton = ({
         if (data.cart_id) setCartId(data.cart_id)
       })
       .catch(err => {
+        console.error(err)
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
           detail: {
             description: err?.toString()
@@ -378,6 +381,7 @@ const AmwalMagentoReactButton = ({
         showDiscountRibbon={config.show_discount_ribbon}
         installmentOptionsUrl={config.installment_options_url}
         locale={locale}
+        debug={debug}
     />
     : <></>
 }
