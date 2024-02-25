@@ -9,8 +9,9 @@ interface AmwalMagentoReactButtonProps {
   scopeCode?: string
   productId?: string
   buttonId?: string
-  preCheckoutTask?: () => Promise<void>
+  preCheckoutTask?: () => Promise<string | undefined>
   onSuccessTask?: (Info: ISuccessInfo) => Promise<void>
+  onCancelTask?: () => Promise<void>
   emptyCartOnCancellation?: boolean
   baseUrl?: string
   extraHeaders?: Record<string, string>
@@ -27,6 +28,7 @@ const AmwalMagentoReactButton = ({
   buttonId,
   preCheckoutTask,
   onSuccessTask,
+  onCancelTask,
   emptyCartOnCancellation = triggerContext === 'product-listing-page' || triggerContext === 'product-detail-page' || triggerContext === 'product-list-widget' || triggerContext === 'amwal-widget',
   baseUrl = scopeCode ? `/rest/${scopeCode}/V1` : '/rest/V1',
   extraHeaders,
@@ -188,6 +190,11 @@ const AmwalMagentoReactButton = ({
       if (placedOrderId) {
         completeOrder(event.detail.orderId)
       }
+    } else if (onCancelTask) {
+      onCancelTask()
+        .catch(err => {
+          console.log(err)
+        })
     } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
       fetch(`${baseUrl}/amwal/clean-quote`, {
@@ -270,7 +277,7 @@ const AmwalMagentoReactButton = ({
   }
 
   const handleAmwalPreCheckoutTrigger = (_event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
-    const getConfig = async (): Promise<Response> => {
+    const getConfig = async (preCheckoutCartId?: string): Promise<Response> => {
       return await fetch(`${baseUrl}/amwal/button/cart`, {
         method: 'POST',
         headers: {
@@ -282,12 +289,18 @@ const AmwalMagentoReactButton = ({
           refIdData,
           triggerContext,
           locale,
-          cartId: overrideCartId ?? cartId
+          cartId: preCheckoutCartId ?? overrideCartId ?? cartId
         })
       })
     }
     const preCheckoutPromise = (preCheckoutTask != null)
-      ? preCheckoutTask().then(async () => await getConfig())
+      ? preCheckoutTask().then(async (preCheckoutCartId?: string) => {
+        const response = await getConfig(preCheckoutCartId)
+        if (preCheckoutCartId) {
+          setCartId(preCheckoutCartId)
+        }
+        return response
+      })
       : getConfig()
     preCheckoutPromise
       .then(async response => {
@@ -299,6 +312,7 @@ const AmwalMagentoReactButton = ({
         setAmount(data.amount)
         setDiscount(data.discount ?? 0)
         setTriggerPreCheckoutAck(true)
+        if (data.cart_id) setCartId(data.cart_id)
       })
       .catch(err => {
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
