@@ -18,6 +18,7 @@ interface AmwalMagentoReactButtonProps {
   overrideCartId?: string
   redirectURL?: string
   performSuccessRedirection?: (orderId: string) => void
+  debug?: boolean
 }
 
 const AmwalMagentoReactButton = ({
@@ -34,7 +35,8 @@ const AmwalMagentoReactButton = ({
   extraHeaders,
   overrideCartId,
   redirectURL = '/checkout/onepage/success',
-  performSuccessRedirection = () => { window.location.href = redirectURL }
+  performSuccessRedirection = () => { window.location.href = redirectURL },
+  debug
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -86,7 +88,7 @@ const AmwalMagentoReactButton = ({
         setFees(data.fees ?? 0)
         setCartId(data.cart_id)
       })
-      .catch(err => { console.log(err) })
+      .catch(err => { console.error(err) })
   }, [])
 
   const getQuote = async (addressData?: IAddress): Promise<void> => {
@@ -144,7 +146,7 @@ const AmwalMagentoReactButton = ({
             error: err?.toString()
           }
         }))
-        console.log(err)
+        console.error(err)
       })
   }
 
@@ -171,7 +173,7 @@ const AmwalMagentoReactButton = ({
         if (onSuccessTask) {
           onSuccessTask({ order_id: placedOrderId, amwal_transaction_id: amwalOrderId })
             .catch(err => {
-              console.log(err)
+              console.error(err)
             })
             .finally(() => {
               setFinishedUpdatingOrder(true)
@@ -181,7 +183,7 @@ const AmwalMagentoReactButton = ({
         }
       })
       .catch(err => {
-        console.log(err)
+        console.error(err)
       })
   }
   const handleAmwalDismissed = (event: AmwalCheckoutButtonCustomEvent<AmwalDismissalStatus>): void => {
@@ -193,7 +195,7 @@ const AmwalMagentoReactButton = ({
     } else if (onCancelTask) {
       onCancelTask()
         .catch(err => {
-          console.log(err)
+          console.error(err)
         })
     } else if (emptyCartOnCancellation) {
       buttonRef.current?.setAttribute('disabled', 'true')
@@ -224,6 +226,8 @@ const AmwalMagentoReactButton = ({
         buttonRef.current?.dismissModal().finally(() => {
           performSuccessRedirection(placedOrderId)
         })
+      } else {
+        console.error('Unexpected state. placedOrderId is undefined after finished updating order and receiving success')
       }
     }
   }, [finishedUpdatingOrder, receivedSuccess])
@@ -267,7 +271,7 @@ const AmwalMagentoReactButton = ({
   const handleAmwalPrePayTrigger = (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): void => {
     asyncHandleAmwalPrePayTrigger(event)
       .catch((err) => {
-        console.log(err)
+        console.error(err)
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
           detail: {
             description: err?.toString()
@@ -315,6 +319,7 @@ const AmwalMagentoReactButton = ({
         if (data.cart_id) setCartId(data.cart_id)
       })
       .catch(err => {
+        console.error(err)
         buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
           detail: {
             description: err?.toString()
@@ -378,6 +383,7 @@ const AmwalMagentoReactButton = ({
         showDiscountRibbon={config.show_discount_ribbon}
         installmentOptionsUrl={config.installment_options_url}
         locale={locale}
+        debug={debug}
     />
     : <></>
 }
