@@ -27,8 +27,8 @@ class PlaceOrderTest extends WebapiAbstract
 
     /**
      * Test placeOrder
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
-
     public function testPlaceOrder()
     {
         $tempData = require __DIR__ . '../../../_files/GetCartData.php';

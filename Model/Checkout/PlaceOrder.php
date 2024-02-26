@@ -32,6 +32,9 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Throwable;
 use Magento\Store\Model\StoreManagerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class PlaceOrder extends AmwalCheckoutAction
 {
     private QuoteManagement $quoteManagement;
@@ -67,6 +70,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param Config $config
      * @param LoggerInterface $logger
      * @param StoreManagerInterface $storeManager
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         QuoteManagement $quoteManagement,
@@ -114,6 +118,9 @@ class PlaceOrder extends AmwalCheckoutAction
      * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function execute(
         $cartId,

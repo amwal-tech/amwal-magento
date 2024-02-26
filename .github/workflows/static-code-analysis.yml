@@ -1,0 +1,14 @@
+name: Static Code Analysis
+on: [push,pull_request]
+
+jobs:
+  static:
+    name: Magento 2 Coding Standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extdn/github-actions-m2/magento-coding-standard/8.2@master
+        with:
+          phpcs_severity: 8
+          phpcs_report: full
+          phpcs_extensions: php

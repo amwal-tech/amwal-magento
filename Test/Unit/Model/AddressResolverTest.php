@@ -33,6 +33,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Amwal\Payments\Model\AddressResolver
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class AddressResolverTest extends TestCase
 {

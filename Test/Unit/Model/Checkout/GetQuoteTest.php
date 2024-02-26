@@ -43,27 +43,20 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class GetQuoteTest extends TestCase
 {
     private $getQuote;
-    private $objectManager;
-    private $refIdManagement;
     private $quoteRepository;
-    private $logger;
-    private $quoteFactory;
     private $storeManager;
     private $config;
     private $quoteIdMaskFactory;
-    private $cartRepository;
     private $shippingMethodManagement;
     private $checkoutSession;
     private $addressResolver;
-    private $customerRepository;
-    private $sentryExceptionReport;
-    private $productRepository;
-    private $customerFactory;
     private $customerSession;
-    private $objectFactory;
 
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
@@ -86,46 +79,46 @@ class GetQuoteTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->objectManager = new ObjectManager($this);
+        $objectManager = new ObjectManager($this);
         // Create mock objects for dependencies
-        $this->refIdManagement = $this->createMock(RefIdManagementInterface::class);
+        $refIdManagement = $this->createMock(RefIdManagementInterface::class);
         $this->quoteRepository = $this->createMock(QuoteRepositoryInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->quoteFactory = $this->createMock(QuoteFactory::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $quoteFactory = $this->createMock(QuoteFactory::class);
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
         $this->config = $this->createMock(Config::class);
         $this->quoteIdMaskFactory = $this->createMock(QuoteIdMaskFactory::class);
-        $this->cartRepository = $this->createMock(CartInterface::class);
+        $cartRepository = $this->createMock(CartInterface::class);
         $this->shippingMethodManagement = $this->createMock(ShippingMethodManagement::class);
         $this->checkoutSession = $this->createMock(CheckoutSession::class);
         $this->addressResolver = $this->createMock(AddressResolver::class);
-        $this->customerRepository = $this->createMock(CustomerRepositoryInterface::class);
-        $this->sentryExceptionReport = $this->createMock(SentryExceptionReport::class);
-        $this->productRepository = $this->createMock(ProductRepositoryInterface::class);
-        $this->customerFactory = $this->createMock(CustomerFactory::class);
+        $customerRepository = $this->createMock(CustomerRepositoryInterface::class);
+        $sentryExceptionReport = $this->createMock(SentryExceptionReport::class);
+        $productRepository = $this->createMock(ProductRepositoryInterface::class);
+        $customerFactory = $this->createMock(CustomerFactory::class);
         $this->customerSession = $this->createMock(CustomerSession::class);
-        $this->objectFactory = $this->createMock(Factory::class);
+        $objectFactory = $this->createMock(Factory::class);
 
-        $this->getQuote = $this->objectManager->getObject(
+        $this->getQuote = $objectManager->getObject(
             GetQuote::class,
             [
-                'refIdManagement' => $this->refIdManagement,
+                'refIdManagement' => $refIdManagement,
                 'quoteRepository' => $this->quoteRepository,
-                'logger' => $this->logger,
-                'quoteFactory' => $this->quoteFactory,
+                'logger' => $logger,
+                'quoteFactory' => $quoteFactory,
                 'storeManager' => $this->storeManager,
                 'config' => $this->config,
                 'quoteIdMaskFactory' => $this->quoteIdMaskFactory,
-                'cartRepository' => $this->cartRepository,
+                'cartRepository' => $cartRepository,
                 'shippingMethodManagement' => $this->shippingMethodManagement,
                 'checkoutSession' => $this->checkoutSession,
                 'addressResolver' => $this->addressResolver,
-                'customerRepository' => $this->customerRepository,
-                'sentryExceptionReport' => $this->sentryExceptionReport,
-                'productRepository' => $this->productRepository,
-                'customerFactory' => $this->customerFactory,
+                'customerRepository' => $customerRepository,
+                'sentryExceptionReport' => $sentryExceptionReport,
+                'productRepository' => $productRepository,
+                'customerFactory' => $customerFactory,
                 'customerSession' => $this->customerSession,
-                'objectFactory' => $this->objectFactory
+                'objectFactory' => $objectFactory
             ]
         );
     }
@@ -139,10 +132,6 @@ class GetQuoteTest extends TestCase
     public function testCreateQuote()
     {
         // Mock data and parameters
-        $orderItems = [
-            $this->createMockOrderItem('123', 2),
-            $this->createMockOrderItem('456', 1),
-        ];
         $customer = $this->createMockCustomer();
 
         // Set expectations for the mock objects
@@ -150,91 +139,11 @@ class GetQuoteTest extends TestCase
         $this->customerSession->method('getCustomer')->willReturn($customer);
 
         $customer->method('getGroupId')->willReturn(0);
-        $quoteMock = $this->createMockQuote();
 
         $validRequest = $this->getMockBuilder(DataObject::class)
             ->onlyMethods(['setData'])
             ->getMock();
         $validRequest->method('setData')->willReturnSelf();
-    }
-
-    /**
-     * Helper method to create a mock order item.
-     *
-     * @param string $productId
-     * @param int $qty
-     * @return DataObject|MockObject
-     */
-    private function createMockOrderItem(string $productId, int $qty)
-    {
-        $item = $this->getMockBuilder(DataObject::class)
-            ->addMethods(['getProductId', 'getQty'])
-            ->getMock();
-
-        $item->expects($this->any())
-            ->method('getProductId')
-            ->willReturn($productId);
-        $item->expects($this->any())
-            ->method('getQty')
-            ->willReturn($qty);
-
-        return $item;
-    }
-
-    /**
-     * Helper method to create a mock product.
-     *
-     * @param string $productId
-     * @return MockObject
-     */
-    private function createMockProduct(string $productId): MockObject
-    {
-        $productMock = $this->getMockBuilder(Product::class)
-            ->addMethods([
-                'representProduct'
-            ])
-            ->onlyMethods(['getId','getTypeInstance', 'isSalable', 'getPrice', 'getFinalPrice', 'getQty'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $productMock->method('getId')->willReturn($productId);
-        $productMock->method('isSalable')->willReturn(true);
-
-        $typeInstanceMock = $this->getMockBuilder(AbstractType::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['prepareForCartAdvanced', 'getParentProductId', 'setStickWithinParent'])
-            ->getMockForAbstractClass();
-
-        // Configure behavior for the type instance mock
-        $typeInstanceMock->method('prepareForCartAdvanced')->willReturn($typeInstanceMock);
-        $typeInstanceMock->method('getParentProductId')->willReturn($productId);
-        $typeInstanceMock->method('setStickWithinParent')->willReturn($typeInstanceMock);
-
-        // Configure the main product mock to return the type instance mock
-        $productMock->method('getTypeInstance')->willReturn($typeInstanceMock);
-
-        // Other mock configurations
-        $productMock->method('getPrice')->willReturn(100);
-        $productMock->method('getFinalPrice')->willReturn(100);
-        $productMock->method('getQty')->willReturn(1);
-        $productMock->method('representProduct')->with($productMock)->willReturn(true);
-
-        return $productMock;
-    }
-
-
-    /**
-     * Helper method to create a mock quote.
-     *
-     * @return MockObject
-     */
-    private function createMockQuote(): MockObject
-    {
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['setCustomerGroupId'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        return $quoteMock;
     }
 
     /**
@@ -588,33 +497,5 @@ class GetQuoteTest extends TestCase
 
         $false_base_currency_result = $this->getQuote->getSubtotal($shippingAddressMock, self::TOTAL_TAX, false);
         $this->assertEquals(self::TOTAL, $false_base_currency_result);
-    }
-
-
-    /**
-     * Create a mock address
-     *
-     * @return Address
-     */
-    private function createMockAddress(): Address
-    {
-        $addressMock = $this->getMockBuilder(Address::class)
-            ->addMethods(['getRegionCode', 'getStreetLine', 'getEmail'])
-            ->onlyMethods(['getFirstname', 'getLastname', 'getTelephone', 'getPostcode', 'getCountryId', 'getCity', 'getStreet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $addressMock->method('getFirstname')->willReturn(self::FIRST_NAME);
-        $addressMock->method('getLastname')->willReturn(self::LAST_NAME);
-        $addressMock->method('getTelephone')->willReturn(self::PHONE_NUMBER);
-        $addressMock->method('getPostcode')->willReturn(self::POSTCODE);
-        $addressMock->method('getCountryId')->willReturn(self::COUNTRY);
-        $addressMock->method('getCity')->willReturn(self::CITY);
-        $addressMock->method('getStreet')->willReturn([self::STREET_1, self::STREET_2]);
-        $addressMock->method('getRegionCode')->willReturn(self::STATE);
-        $addressMock->method('getStreetLine')->willReturn(self::STREET_1);
-        $addressMock->method('getEmail')->willReturn(self::EMAIL);
-
-        return $addressMock;
     }
 }

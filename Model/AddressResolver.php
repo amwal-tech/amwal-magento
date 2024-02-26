@@ -26,6 +26,9 @@ use Psr\Log\LoggerInterface;
 use Magento\Framework\Locale\Resolver as LocaleResolver;
 use RuntimeException;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class AddressResolver
 {
     /**
@@ -46,6 +49,21 @@ class AddressResolver
     private LocaleResolver $localeResolver;
     private AmwalAddressId $amwalAddressId;
 
+    /**
+     * @param CustomerRepositoryInterface $customerRepository
+     * @param Session $customerSession
+     * @param AddressRepositoryInterface $addressRepository
+     * @param AddressInterfaceFactory $addressDataFactory
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param RegionCollectionFactory $regionCollectionFactory
+     * @param RegionInterfaceFactory $regionFactory
+     * @param Config $config
+     * @param ResourceConnection $resourceConnection
+     * @param LoggerInterface $logger
+     * @param LocaleResolver $localeResolver
+     * @param AmwalAddressId $amwalAddressId
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
         Session $customerSession,
@@ -80,6 +98,7 @@ class AddressResolver
      * @return AddressInterface
      * @throws LocalizedException
      * @throws RuntimeException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function execute(DataObject $amwalOrderData, bool $isGuest): AddressInterface
     {
@@ -136,14 +155,6 @@ class AddressResolver
         }
 
         return $address;
-    }
-
-    /**
-     * @return bool
-     */
-    private function isGuestOrder(): bool
-    {
-        return !$this->customerSession->isLoggedIn();
     }
 
     /**
@@ -409,7 +420,7 @@ class AddressResolver
             }
         }
 
-        if ($this->config->getPhoneNumberTrimWhitespace()) {
+        if ($this->config->isPhoneNumberTrimWhitespace()) {
             $formattedNumber = str_replace(' ', '', $formattedNumber);
         }
 

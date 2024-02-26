@@ -24,10 +24,12 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
      * @var Config
      */
     private Config $config;
+
     /**
      * @var StoreManagerInterface
      */
     private StoreManagerInterface $storeManager;
+
     /**
      * @var ProductRepositoryInterface
      */
@@ -40,6 +42,20 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
 
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
 
+    /**
+     * @param Context $context
+     * @param PostHelper $postDataHelper
+     * @param Resolver $layerResolver
+     * @param ProductRepositoryInterface $productRepositoryInterface
+     * @param CategoryRepositoryInterface $categoryRepository
+     * @param Config $config
+     * @param Random $random
+     * @param StoreManagerInterface $storeManager
+     * @param Data $urlHelper
+     * @param array $data
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     */
     public function __construct(
         Context                     $context,
         PostHelper                  $postDataHelper,
@@ -49,9 +65,9 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         Config                      $config,
         Random                      $random,
         StoreManagerInterface       $storeManager,
-        Data                        $urlHelper, array $data = []
-    )
-    {
+        Data                        $urlHelper,
+        array                       $data = []
+    ) {
         $this->productRepositoryInterface = $productRepositoryInterface;
         $this->random = $random;
         $this->config = $config;

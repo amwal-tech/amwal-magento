@@ -31,6 +31,7 @@ class GetQuoteTest extends WebapiAbstract
 
     /**
      * Test getQuote
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function testGetQuote()
     {

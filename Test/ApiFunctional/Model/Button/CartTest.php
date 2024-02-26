@@ -58,6 +58,7 @@ class CartTest extends WebapiAbstract
     /**
      * Test getCartButtonConfig
      * @magentoApiDataFixture Amwal_Payments::Test/ApiFunctional/_files/cart.php
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function testGetCartButtonConfig()
     {

@@ -24,31 +24,22 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
-use ReflectionMethod;
 use Magento\Customer\Model\Data\Address;
 use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Magento\Customer\Model\SessionFactory;
 use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory as AmwalAddressFactory;
 use Magento\Customer\Model\Customer;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class GetConfigTest extends TestCase
 {
     private $getConfig;
-    private $customerSessionFactory;
     private $customerSession;
     private $amwalAddress;
     private $amwalAddressFactoryMock;
     private $buttonConfigMock;
-    private $customerSessionMock;
-    private $storeManagerMock;
-    private $checkoutSessionFactoryMock;
-    private $cityHelperMock;
-    private $refIdManagementMock;
-    private $cartRepositoryMock;
-    private $productRepositoryMock;
-    private $jsonSerializerMock;
-    private $regionCollectionFactoryMock;
-    private $quoteIdMaskFactoryMock;
 
     private const FIRST_NAME = 'Tester';
     private const LAST_NAME = 'Amwal';
@@ -156,12 +147,11 @@ class GetConfigTest extends TestCase
             $mockQuoteIdMaskFactory
         );
         $this->buttonConfigMock = $this->createMock(AmwalButtonConfigInterface::class);
-        $this->customerSessionMock = $this->createMock(Session::class);
         $this->amwalAddressFactoryMock = $this->createMock(AmwalAddressFactory::class);
-        $this->customerSessionFactory = $this->createMock(CustomerSessionFactory::class);
+        $customerSessionFactory = $this->createMock(CustomerSessionFactory::class);
 
         $this->customerSession = $this->createMock(Session::class);
-        $this->customerSessionFactory->method('create')->willReturn($this->customerSession);
+        $customerSessionFactory->method('create')->willReturn($this->customerSession);
 
         $this->customerSession->method('getCustomer')->willReturn($this->createMock(Customer::class));
         $this->customerSession->method('isLoggedIn')->willReturn(true);
@@ -283,7 +273,7 @@ class GetConfigTest extends TestCase
     /**
      * Test adding generic button configuration
      */
-    private function setButtonConfigData(bool $useTmp = false): void
+    private function setButtonConfigData(): void
     {
         foreach (self::MOCK_BUTTON_CONFIG_DATA as $key => $value) {
             if (in_array($key, ['allowedAddressCities', 'allowedAddressStates', 'initialAddress'], true)) {

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Data;
 
-use Amwal\Payments\Model\Checkout\AmwalCheckoutAction;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
+use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -22,7 +22,11 @@ use Amwal\Payments\Model\Checkout\InvoiceOrder;
 use Psr\Log\LoggerInterface;
 use Amwal\Payments\Model\AmwalClientFactory;
 use Magento\Framework\DataObject;
+use RuntimeException;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class OrderUpdate
 {
     private OrderRepositoryInterface $orderRepository;
@@ -38,12 +42,28 @@ class OrderUpdate
     private AmwalClientFactory $amwalClientFactory;
     private SentryExceptionReport $sentryExceptionReport;
 
-    const FIELD_MAPPINGS = [
+    private const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
         'ref_id' => 'ref_id',
     ];
-    const DEFAULT_CURRENCY_CODE = 'SAR';
 
+    private const DEFAULT_CURRENCY_CODE = 'SAR';
+
+    /**
+     * @param OrderRepositoryInterface $orderRepository
+     * @param StoreManagerInterface $storeManager
+     * @param GetAmwalOrderData $getAmwalOrderData
+     * @param Config $config
+     * @param OrderNotifier $orderNotifier
+     * @param TransportInterfaceFactory $transportFactory
+     * @param MessageInterface $message
+     * @param ScopeConfigInterface $scopeConfig
+     * @param InvoiceOrder $invoiceAmwalOrder
+     * @param LoggerInterface $logger
+     * @param AmwalClientFactory $amwalClientFactory
+     * @param SentryExceptionReport $sentryExceptionReport
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     */
     public function __construct(
         OrderRepositoryInterface  $orderRepository,
         StoreManagerInterface     $storeManager,
@@ -57,8 +77,7 @@ class OrderUpdate
         LoggerInterface           $logger,
         AmwalClientFactory        $amwalClientFactory,
         SentryExceptionReport     $sentryExceptionReport
-    )
-    {
+    ) {
         $this->orderRepository = $orderRepository;
         $this->storeManager = $storeManager;
         $this->getAmwalOrderData = $getAmwalOrderData;
@@ -79,21 +98,24 @@ class OrderUpdate
      * @param Order $order Order to be updated.
      * @param string $trigger Type of trigger initiating the update.
      * @param bool $sendAdminEmail Indicates if an admin email should be sent.
-     * @return mixed Returns Amwal order data on success, or exception on failure.
+     * @return DataObject|false Returns Amwal order data on success, or false on failure.
+     * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    public function update($order, $trigger, $sendAdminEmail = true)
+    public function update(Order $order, string $trigger, bool $sendAdminEmail = true)
     {
         try {
             $amwalOrderId = $order->getAmwalOrderId();
             if (!$amwalOrderId) {
-                throw new \Exception(sprintf('Order %s does not have an Amwal Order ID', $order->getIncrementId()));
+                throw new RuntimeException(sprintf('Order %s does not have an Amwal Order ID', $order->getIncrementId()));
             }
             if (strpos($amwalOrderId, '-canceled') !== false) {
-                throw new \Exception(sprintf('Skipping Order %s as it was canceled because the payment was retried.', $amwalOrderId));
+                throw new RuntimeException(sprintf('Skipping Order %s as it was canceled because the payment was retried.', $amwalOrderId));
             }
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
             if (!$amwalOrderData) {
-                throw new \Exception(sprintf('Skipping Order %s as it does not exist in Amwal', $amwalOrderId));
+                throw new RuntimeException(sprintf('Skipping Order %s as it does not exist in Amwal', $amwalOrderId));
             }
             if (!$this->dataValidation($order, $amwalOrderData)) {
                 return false;
@@ -103,11 +125,11 @@ class OrderUpdate
             }
 
             $status = $amwalOrderData->getStatus();
-            if($trigger == 'PendingOrdersUpdate') {
+            if($trigger === 'PendingOrdersUpdate') {
                 $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderId);
-            } elseif($trigger == 'AmwalOrderDetails') {
+            } elseif($trigger === 'AmwalOrderDetails') {
                 $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
-            } elseif($trigger == 'PayOrder') {
+            } elseif($trigger === 'PayOrder') {
                 $historyComment = __('Successfully completed Amwal payment with transaction ID: %1', $amwalOrderId);
             } else {
                 $historyComment = __('Order status updated to (%1) by Amwal Payments', $status);
@@ -140,7 +162,8 @@ class OrderUpdate
             if (!$order->hasInvoices() && $status == 'success') {
                 $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
             }
-            return $status == 'success'? $amwalOrderData : false;
+
+            return $status == 'success' ? $amwalOrderData : false;
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             $this->sentryExceptionReport->report($e);
@@ -162,7 +185,7 @@ class OrderUpdate
         }
         $validStates = ['pending_payment', 'canceled'];
         if (!in_array($orderState, $validStates)) {
-            throw new \Exception(sprintf('Order (%s) is not in a valid state to be updated (%s)', $order->getIncrementId(), $orderState));
+            throw new RuntimeException(sprintf('Order (%s) is not in a valid state to be updated (%s)', $order->getIncrementId(), $orderState));
         }
         return true;
     }
@@ -179,14 +202,13 @@ class OrderUpdate
     /**
      * @param OrderInterface $order
      * @param string $subject
-     * @param string $message
+     * @param string|null $message
      */
-    private function sendAdminEmail($order, $subject = 'Order Status Changed by Amwal Payment', $message = null)
+    private function sendAdminEmail(OrderInterface $order, string $subject = 'Order Status Changed by Amwal Payment', ?string $message = null)
     {
         if ($this->config->isOrderStatusChangedAdminEmailEnabled()) {
             // Get store email
             $senderEmail = $this->scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
-            $senderName = $this->scopeConfig->getValue('trans_email/ident_general/name', ScopeInterface::SCOPE_STORE);
             $mailContent =  $message ?? __('Order (%1) status has been changed to (%2) by Amwal Payment', $order->getIncrementId(), $order->getStatus());
             // Set email content and type
             $this->message->setBody((string) $mailContent);
@@ -205,13 +227,13 @@ class OrderUpdate
      * @param OrderInterface $order
      * @param string $amwalOrderId
      */
-    private function setOrderUrl(OrderInterface $order, $amwalOrderId)
+    private function setOrderUrl(OrderInterface $order, string $amwalOrderId)
     {
         $amwalClient = $this->amwalClientFactory->create();
         $orderDetails = [];
         $orderDetails['order_url'] = $this->getOrderUrl($order);
         try {
-            $response = $amwalClient->post(
+            $amwalClient->post(
                 'transactions/' . $amwalOrderId . '/set_order_details',
                 [
                     RequestOptions::JSON => $orderDetails
@@ -223,7 +245,7 @@ class OrderUpdate
                 $amwalOrderId,
                 $e->getMessage()
             );
-            throw new \Exception($message);
+            throw new RuntimeException($message);
         }
     }
 
@@ -241,30 +263,30 @@ class OrderUpdate
      *
      * @param Order $order
      * @param DataObject $amwalOrderData
-     * @return bool|string True if validation passes, otherwise returns error message.
+     * @return bool
      */
     public function dataValidation(Order $order, DataObject $amwalOrderData)
     {
         if ($order->getOrderCurrencyCode() != self::DEFAULT_CURRENCY_CODE) {
             $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
-            throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
+            throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
         }
         if ((float)$order->getGrandTotal() != (float)$amwalOrderData->getTotalAmount()) {
             $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
-            throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
+            throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
         }
         foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
             $orderValue = $order->getData($orderMethod);
             $amwalValue = $amwalOrderData->getData($amwalMethod);
             if ($orderValue != $amwalValue) {
                 $this->sendAdminEmail($order, __('Order (%1) needs Attention', $order->getIncrementId()), $this->dataValidationMessage($order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
-                throw new \Exception(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
+                throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), $orderMethod, $amwalMethod, $orderValue, $amwalValue));
             }
         }
         return true;
     }
 
-    /*
+    /**
      * @param string $orderId
      * @param string $orderMethod
      * @param string $amwalMethod
@@ -272,7 +294,7 @@ class OrderUpdate
      * @param string $amwalValue
      * return string
      */
-    private function dataValidationMessage($orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue)
+    private function dataValidationMessage(string $orderId, string $orderMethod, string $amwalMethod, string $orderValue, string $amwalValue)
     {
         return __('Order (%1) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%2) %3 does not match Amwal Order %4 (%5 != %6)', $orderId, $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue);
     }

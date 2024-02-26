@@ -19,13 +19,6 @@ use Magento\Quote\Model\QuoteIdMask;
 class GetCartButtonConfigTest extends TestCase
 {
     private $buttonConfigMock;
-    private $buttonConfigFactoryMock;
-    private $quoteIdMaskFactoryMock;
-    private $checkoutSessionFactoryMock;
-    private $quoteIdMaskMock;
-    private $quoteMock;
-    private $cartRepositoryMock;
-    private $quoteRepositoryMock;
     private $checkoutSessionMock;
     private $getCartButtonConfig;
 
@@ -43,7 +36,6 @@ class GetCartButtonConfigTest extends TestCase
     private const ALLOWED_ADDRESS_CITIES = ['SA' => ['1110' => ['Riyadh'], '1111' => ['Dammam']]];
     private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
     private const CART_ID = 'vyO7NEqZbs1Rv6Z7NLewdlLpC0qufkmJ';
-    private const QUOTE_ID = 1;
     private const ID = 'amwal-checkout';
     private const AMOUNT = 100.00;
 
@@ -81,14 +73,14 @@ class GetCartButtonConfigTest extends TestCase
         $objectManager = new ObjectManager($this);
 
         $this->checkoutSessionMock = $this->createMock(CheckoutSession::class);
-        $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
+        $cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
         $this->buttonConfigMock = $this->createMock(AmwalButtonConfigInterface::class);
 
         $this->getCartButtonConfig = $objectManager->getObject(
             GetCartButtonConfig::class,
             [
                 'checkoutSession' => $this->checkoutSessionMock,
-                'cartRepository' => $this->cartRepositoryMock,
+                'cartRepository' => $cartRepositoryMock,
                 'buttonConfig' => $this->buttonConfigMock
             ]
         );
@@ -187,7 +179,7 @@ class GetCartButtonConfigTest extends TestCase
     /**
      * Test adding generic button configuration
      */
-    private function setButtonConfigData(bool $useTmp = false): void
+    private function setButtonConfigData(): void
     {
         foreach (self::MOCK_BUTTON_CONFIG_DATA as $key => $value) {
             if (in_array($key, ['allowedAddressCities', 'allowedAddressStates', 'initialAddress'], true)) {

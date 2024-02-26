@@ -27,11 +27,8 @@ class PayOrderTest extends WebapiAbstract
     /**
      * Test placeOrder
      */
-
     public function testPayOrder()
     {
-        $tempData = require __DIR__ . '../../../_files/GetCartData.php';
-
         $serviceInfoForPayOrder = [
             'rest' => [
                 'resourcePath' => self::RESOURCE_PATH,

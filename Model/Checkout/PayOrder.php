@@ -33,6 +33,9 @@ use Magento\Sales\Model\Order\CustomerManagement;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Webapi\Exception as WebapiException;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class PayOrder extends AmwalCheckoutAction
 {
     private CartRepositoryInterface $quoteRepository;
@@ -63,6 +66,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param OrderUpdate $orderUpdate
      * @param SentryExceptionReport $sentryExceptionReport
      * @param LoggerInterface $logger
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
@@ -171,16 +175,6 @@ class PayOrder extends AmwalCheckoutAction
         $order->setCustomerFirstname($amwalOrderData->getClientFirstName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
         $order->setCustomerLastname($amwalOrderData->getClientLastName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
         $this->orderRepository->save($order);
-    }
-
-    /**
-     * @param Phrase|string|null $message
-     * @return void
-     */
-    private function addError($message = null): void
-    {
-        $genericMessage = __('Something went wrong while placing your order. Please contact us to complete the order.');
-        $this->messageManager->addErrorMessage($message ?? $genericMessage);
     }
 
     /**

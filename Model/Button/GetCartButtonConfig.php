@@ -84,7 +84,7 @@ class GetCartButtonConfig extends GetConfig
      */
     public function getAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
-        if ($buttonConfig->getShowDiscountRibbon()) {
+        if ($buttonConfig->isShowDiscountRibbon()) {
             if ($productId) {
                 $product = $this->productRepository->getById($productId);
                 return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
@@ -111,7 +111,7 @@ class GetCartButtonConfig extends GetConfig
     public function getDiscountAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
         $discountAmount = 0;
-        if ($buttonConfig->getShowDiscountRibbon()) {
+        if ($buttonConfig->isShowDiscountRibbon()) {
             if ($productId) {
                 $product = $this->productRepository->getById($productId);
                 $priceInfo = $product->getPriceInfo();

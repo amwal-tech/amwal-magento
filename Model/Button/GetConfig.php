@@ -28,6 +28,9 @@ use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class GetConfig
 {
     protected AmwalButtonConfigFactory $buttonConfigFactory;
@@ -60,7 +63,8 @@ class GetConfig
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
      * @param RegionCollectionFactory $regionCollectionFactory
-     *
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
