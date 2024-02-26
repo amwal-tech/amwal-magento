@@ -98,12 +98,7 @@ class GetCartButtonConfig extends GetConfig
                 return (float)$regularPrice;
             }
         }
-        $extraFee = 0;
-        $totals = $quote->getTotals();
-        if (isset($totals['amasty_extrafee'])) {
-            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
-        }
-        return ((float)$quote->getGrandTotal() - getTaxAmount($quote, $buttonConfig, $productId) - getFeesAmount($quote, $buttonConfig, $productId);
+        return ((float)$quote->getGrandTotal() - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId);
     }
 
 
