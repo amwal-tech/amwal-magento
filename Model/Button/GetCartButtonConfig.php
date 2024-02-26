@@ -98,7 +98,7 @@ class GetCartButtonConfig extends GetConfig
                 return (float)$regularPrice;
             }
         }
-        return ((float)$quote->getGrandTotal() - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId);
+        return ((float)$quote->getGrandTotal() - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId));
     }
 
 
