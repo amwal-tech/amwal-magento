@@ -26,7 +26,7 @@ jobs:
       MODULE_NAME: ${{ secrets.MODULE_NAME }}
       COMPOSER_NAME: ${{ secrets.COMPOSER_NAME }}
       ELASTICSEARCH: 1
-      MAGENTO_POST_INSTALL_SCRIPT: '.github/workflows/config/post-install-config.sh'
+      MAGENTO_POST_INSTALL_SCRIPT: 'Test/Integration/config/post-install-config.sh'
       PHPUNIT_FILE: 'Test/Integration/phpunit_rest.xml.dist'
     steps:
       - uses: actions/checkout@v4
