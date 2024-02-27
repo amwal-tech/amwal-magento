@@ -43,7 +43,7 @@
         <!-- Semicolon-separated 'glob' patterns, that match global XML configuration files -->
         <const name="TESTS_GLOBAL_CONFIG_DIR" value="../../../../../app/etc"/>
         <!-- Whether to cleanup the application before running tests or not -->
-        <const name="TESTS_CLEANUP" value="enabled"/>
+        <const name="TESTS_CLEANUP" value="disabled"/>
         <!--Defines if Magento should be installed before tests execution-->
         <const name="TESTS_MAGENTO_INSTALLATION" value="disabled"/>
         <!-- Magento mode for tests execution. Possible values are "default", "developer" and "production". -->
