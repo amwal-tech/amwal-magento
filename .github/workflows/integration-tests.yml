@@ -26,6 +26,7 @@ jobs:
       MODULE_NAME: ${{ secrets.MODULE_NAME }}
       COMPOSER_NAME: ${{ secrets.COMPOSER_NAME }}
       ELASTICSEARCH: 1
+      MAGENTO_POST_INSTALL_SCRIPT: 'config/post-install-config.sh'
     steps:
       - uses: actions/checkout@v4
 #      - uses: extdn/github-actions-m2/magento-integration-tests/7.4@master
@@ -36,7 +37,6 @@ jobs:
         env:
           MAGENTO_VERSION: '2.4.4-p7'
           COMPOSER_VERSION: '2'
-          MAGENTO_POST_INSTALL_SCRIPT: 'config/post-install-config.sh'
 #      - uses: extdn/github-actions-m2/magento-integration-tests/8.2@master
 #        env:
 #          MAGENTO_VERSION: '2.4.6-p4'
