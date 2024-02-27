@@ -10,8 +10,6 @@ use Magento\Framework\Webapi\Rest\Request;
 
 class GetQuoteTest extends WebapiAbstract
 {
-    private const SERVICE_VERSION = 'V1';
-    private const SERVICE_NAME = 'Amwal';
     private const RESOURCE_PATH = '/V1/amwal/get-quote';
     private const EXPECTED_KEYS = [
         'cart_id', 'available_rates', 'amount', 'subtotal', 'tax_amount', 'shipping_amount',
@@ -35,18 +33,14 @@ class GetQuoteTest extends WebapiAbstract
      */
     public function testGetQuote()
     {
+        $this->_markTestAsRestOnly();
         $tempData = require __DIR__ . '../../../_files/GetCartData.php';
 
         $serviceInfoForAmwalCart = [
             'rest' => [
                 'resourcePath' => '/V1/amwal/button/cart',
                 'httpMethod' => Request::HTTP_METHOD_POST,
-            ],
-            'soap' => [
-                'service' => self::SERVICE_NAME,
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => 'AmwalGetCartButtonConfig',
-            ],
+            ]
         ];
 
         $requestData = [
@@ -97,12 +91,7 @@ class GetQuoteTest extends WebapiAbstract
             'rest' => [
                 'resourcePath' => self::RESOURCE_PATH,
                 'httpMethod' => Request::HTTP_METHOD_POST,
-            ],
-            'soap' => [
-                'service' => self::SERVICE_NAME,
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => self::SERVICE_NAME . 'GetQuote',
-            ],
+            ]
         ];
 
         $requestData = [

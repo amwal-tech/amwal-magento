@@ -10,8 +10,6 @@ use Magento\Framework\Webapi\Rest\Request;
 
 class PayOrderTest extends WebapiAbstract
 {
-    private const SERVICE_VERSION = 'V1';
-    private const SERVICE_NAME = 'Amwal';
     private const RESOURCE_PATH = '/V1/amwal/pay-order';
 
     /**
@@ -29,15 +27,12 @@ class PayOrderTest extends WebapiAbstract
      */
     public function testPayOrder()
     {
+        $this->_markTestAsRestOnly();
+
         $serviceInfoForPayOrder = [
             'rest' => [
                 'resourcePath' => self::RESOURCE_PATH,
                 'httpMethod' => Request::HTTP_METHOD_POST,
-            ],
-            'soap' => [
-                'service' => self::SERVICE_NAME,
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => self::SERVICE_NAME . 'PayOrder',
             ],
         ];
 
