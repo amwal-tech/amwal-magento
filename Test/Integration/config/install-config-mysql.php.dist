@@ -23,4 +23,5 @@ return [
     'search-engine'                => 'elasticsearch7',
     'elasticsearch-host'           => 'es',
     'elasticsearch-port'           => 9200,
+    'cleanup-database'             => false,
 ];
