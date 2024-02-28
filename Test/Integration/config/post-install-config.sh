@@ -10,9 +10,9 @@ php bin/magento module:enable Amwal_Payments
 echo "Setting config values for Amwal Payments plugin"
 
 # Set required config values
+php bin/magento config:set currency/options/allow SAR
 php bin/magento config:set currency/options/base SAR
 php bin/magento config:set currency/options/default SAR
-php bin/magento config:set currency/options/allow SAR
 php bin/magento config:set admin/security/admin_account_sharing 1
 php bin/magento config:set admin/security/use_form_key 0
 php bin/magento config:set cms/wysiwyg/enabled disabled
