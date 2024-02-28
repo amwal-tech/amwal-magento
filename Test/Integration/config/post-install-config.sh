@@ -28,4 +28,7 @@ php bin/magento config:set payment/amwal_payments/use_system_country_settings 1
 php bin/magento config:set payment/amwal_payments/merchant_id "sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47"
 php bin/magento cache:flush
 
+# (Re-)Compile DI
+php bin/magento setup:di:compile
+
 echo "Finished Amwal plugin configuration"
