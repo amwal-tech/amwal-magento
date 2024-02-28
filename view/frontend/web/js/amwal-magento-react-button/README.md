@@ -64,3 +64,4 @@ const ReactPage= () => {
 | redirectURL               | string \| undefined                                      | URL to redirect to after checkout is completed. Only effective if `performSuccessRedirection` is not set|
 | performSuccessRedirection | (orderId: string)  =>  void \| undefined | A function that performs redirect on success, orderId has the magento order id |
 | buttonId                  | string                                                   | The id of the button that will be rendered. This is useful when you want to have multiple buttons on the same page. |
+| debug                     | boolean \| undefined                                     | Add debug option to button in console |
