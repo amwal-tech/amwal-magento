@@ -2,7 +2,12 @@
 
 cd $MAGENTO_ROOT
 
-echo "Configure environment and Amwal plugin"
+echo "Enable Amwal Payments plugin"
+
+# Enable Amwal plugin
+php bin/magento module:enable Amwal_Payments
+
+echo "Setting config values for Amwal Payments plugin"
 
 # Set required config values
 php bin/magento config:set currency/options/base SAR
@@ -31,7 +36,8 @@ php bin/magento config:set payment/amwal_payments/use_system_country_settings 1
 php bin/magento config:set payment/amwal_payments/merchant_id sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47
 php bin/magento config:sensitive:set payment/amwal_payments/ref_id_secret 1234567890
 
-# Flush cache
-php bin/magento cache:flush
+# (Re-)Compile DI and Upgrade schema
+php bin/magento setup:di:compile
+php bin/magento setup:upgrage
 
-echo "Finished configuration for environment and Amwal plugin"
+echo "Amwal plugin enabled and configured"
