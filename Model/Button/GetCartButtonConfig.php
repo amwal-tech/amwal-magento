@@ -61,7 +61,7 @@ class GetCartButtonConfig extends GetConfig
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
 
-        $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId, $triggerContext));
         $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setTax($this->getTaxAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setFees($this->getFeesAmount($quote, $buttonConfig, $productId));
@@ -80,11 +80,12 @@ class GetCartButtonConfig extends GetConfig
      * @param int|null $quoteId
      * @param AmwalButtonConfigInterface $buttonConfig
      * @param string|null $productId
+     * @param string|null $triggerContext
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    public function getAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null, $triggerContext = null): float
     {
         if ($buttonConfig->getShowDiscountRibbon()) {
             if ($productId) {
@@ -93,9 +94,14 @@ class GetCartButtonConfig extends GetConfig
             } else {
                 $regularPrice = 0;
                 foreach ($quote->getAllVisibleItems() as $item) {
-                    $regularPrice += $item->getProduct()->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue() * $item->getQty();
+                    $priceInfo = $item->getProduct()->getPriceInfo();
+                    if($triggerContext ===  ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT){
+                        $regularPrice += $priceInfo->getPrice('final_price')->getAmount()->getValue() * $item->getQty();
+                    } else {
+                        $regularPrice += $priceInfo->getPrice('regular_price')->getAmount()->getValue() * $item->getQty();
+                    }
                 }
-                return (float)$regularPrice;
+                return ((float)$regularPrice - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId));
             }
         }
         return ((float)$quote->getGrandTotal() - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId));
