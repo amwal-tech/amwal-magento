@@ -18,7 +18,6 @@ php bin/magento config:set payment/amwal_payments/country_code SA
 php bin/magento config:set payment/amwal_payments/dark_mode 0
 php bin/magento config:set payment/amwal_payments/order_confirmed_status processing
 php bin/magento config:set payment/amwal_payments/allowspecific 0
-php bin/magento config:set payment/amwal_payments/specificcountry ""
 php bin/magento config:set payment/amwal_payments/debug_mode 0
 php bin/magento config:set payment/amwal_payments/express_checkout_title Buy now with Amwal
 php bin/magento config:set payment/amwal_payments/merchant_mode live
