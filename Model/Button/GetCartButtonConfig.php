@@ -95,11 +95,7 @@ class GetCartButtonConfig extends GetConfig
                 $regularPrice = 0;
                 foreach ($quote->getAllVisibleItems() as $item) {
                     $priceInfo = $item->getProduct()->getPriceInfo();
-                    if($triggerContext ===  ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT){
-                        $regularPrice += $priceInfo->getPrice('final_price')->getAmount()->getValue() * $item->getQty();
-                    } else {
-                        $regularPrice += $priceInfo->getPrice('regular_price')->getAmount()->getValue() * $item->getQty();
-                    }
+                    $regularPrice += $priceInfo->getPrice('regular_price')->getAmount()->getValue() * $item->getQty();
                 }
                 return ((float)$regularPrice - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId));
             }

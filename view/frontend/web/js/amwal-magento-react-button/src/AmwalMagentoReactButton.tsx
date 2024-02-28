@@ -311,6 +311,8 @@ const AmwalMagentoReactButton = ({
       .then(data => {
         setAmount(data.amount)
         setDiscount(data.discount ?? 0)
+        setTaxes(data.tax ?? 0)
+        setFees(data.fees ?? 0)
         setTriggerPreCheckoutAck(true)
         if (data.cart_id) setCartId(data.cart_id)
       })
