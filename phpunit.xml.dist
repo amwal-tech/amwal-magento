@@ -17,6 +17,13 @@
         </exclude>
     </coverage>
 
+    <!-- Test suites definition -->
+    <testsuites>
+        <testsuite name="Amwal Payments">
+            <directory>../../../vendor/amwal/payments/Test</directory>
+        </testsuite>
+    </testsuites>
+
     <php>
         <ini name="memory_limit" value="-1"/>
         <ini name="date.timezone" value="Asia/Riyadh"/>
