@@ -26,8 +26,8 @@ php bin/magento config:set payment/amwal_payments/use_base_currency 0 --quiet
 php bin/magento config:set payment/amwal_payments/use_system_country_settings 1 --quiet
 php bin/magento config:set payment/amwal_payments/merchant_id "sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47" --quiet
 
-echo "Flushing Magento cache"
-php bin/magento cache:flush
+#echo "Flushing Magento cache"
+#php bin/magento cache:flush --quiet
 
 echo "Running DI Compilation command"
 php bin/magento setup:di:compile --quiet
