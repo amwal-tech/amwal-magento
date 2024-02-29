@@ -19,8 +19,8 @@
 
     <!-- Test suites definition -->
     <testsuites>
-        <testsuite name="Amwal Payments">
-            <directory>../../../vendor/amwal/payments/Test</directory>
+        <testsuite name="Amwal Payments Unit Tests">
+            <directory suffix="Test.php">../../../vendor/amwal/payments/Test/Unit</directory>
         </testsuite>
     </testsuites>
 
