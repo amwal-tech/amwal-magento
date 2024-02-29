@@ -2,15 +2,8 @@
 
 cd $MAGENTO_ROOT
 
-# tmp debug
-echo "Env data:"
-cat app/etc/env.php
-exit 1
-
-
 echo "Setting config values for Amwal Payments plugin"
 
-# Set required config values
 php bin/magento config:set currency/options/allow SAR,USD --quiet
 php bin/magento config:set currency/options/base SAR --quiet
 php bin/magento config:set currency/options/default SAR --quiet
@@ -36,7 +29,6 @@ php bin/magento config:set payment/amwal_payments/merchant_id "sandbox-amwal-e09
 echo "Flushing Magento cache"
 php bin/magento cache:flush
 
-# (Re-)Compile DI
 echo "Running DI Compilation command"
 php bin/magento setup:di:compile --quiet
 
