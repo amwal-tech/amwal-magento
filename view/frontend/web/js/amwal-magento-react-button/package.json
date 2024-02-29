@@ -39,7 +39,7 @@
     "react-dom": "*"
   },
   "dependencies": {
-    "amwal-checkout-button": "^0.0.53-alpha-6",
-    "amwal-checkout-button-react": "^0.0.53-alpha-6"
+    "amwal-checkout-button": "^0.0.53-alpha-7",
+    "amwal-checkout-button-react": "^0.0.53-alpha-7"
   }
 }
