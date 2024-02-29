@@ -3,7 +3,7 @@ on: [push,pull_request]
 
 jobs:
   mage246:
-    name: Integration Tests (Magento v2.4.6)
+    name: Integration Tests (Magento 2.4.6)
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -34,7 +34,7 @@ jobs:
           magento_post_install_script: 'Test/Integration/config/post-install-config.sh'
 
 #  mage245:
-#    name: Integration Tests (Magento v2.4.5)
+#    name: Integration Tests (Magento 2.4.5)
 #    runs-on: ubuntu-latest
 #    services:
 #      mysql:
@@ -65,7 +65,7 @@ jobs:
 #          magento_post_install_script: 'Test/Integration/config/post-install-config.sh'
 
 #    mage244:
-#      name: Integration Tests (Magento v2.4.4)
+#      name: Integration Tests (Magento 2.4.4)
 #      runs-on: ubuntu-latest
 #      services:
 #        mysql:
