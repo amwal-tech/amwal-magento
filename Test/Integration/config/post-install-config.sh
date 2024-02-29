@@ -29,6 +29,8 @@ php bin/magento config:set payment/amwal_payments/merchant_id "sandbox-amwal-e09
 php bin/magento cache:flush
 
 # (Re-)Compile DI
-php bin/magento setup:di:compile
+echo "Running DI Compilation command"
+php bin/magento setup:di:compile --quiet
+echo "Finished DI Compilation"
 
 echo "Finished Amwal plugin configuration"
