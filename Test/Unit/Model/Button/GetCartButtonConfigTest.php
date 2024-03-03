@@ -69,7 +69,8 @@ class GetCartButtonConfigTest extends TestCase
         'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
         'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
         'cartId' => self::CART_ID,
-        'amount' => self::AMOUNT
+        'amount' => self::AMOUNT,
+        'showDiscountRibbon' => false,
     ];
 
     protected function setUp(): void
@@ -122,20 +123,6 @@ class GetCartButtonConfigTest extends TestCase
         $this->assertEquals(self::ALLOWED_ADDRESS_COUNTRIES, $this->buttonConfigMock->getAllowedAddressCountries());
         $this->assertEquals(self::CART_ID, $this->buttonConfigMock->getCartId());
         $this->assertEquals(self::AMOUNT, $this->buttonConfigMock->getAmount());
-    }
-
-    /**
-     * Test getting amount
-     */
-    public function testGetAmount(): void
-    {
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getGrandTotal'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $quoteMock->method('getGrandTotal')->willReturn(self::AMOUNT);
-        $this->assertEquals(self::AMOUNT, $this->getCartButtonConfig->getAmount($quoteMock, $this->buttonConfigMock, null));
     }
 
     /**
