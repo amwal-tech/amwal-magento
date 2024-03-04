@@ -184,7 +184,7 @@ class GetQuote extends AmwalCheckoutAction
                     'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
                 $amwalOrderData->setAddressDetails($amwalAddress);
-                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (bool) $quote->getCustomerIsGuest());
+                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, $quote->getCustomerId());
             }
 
             $quote->setData(self::IS_AMWAL_API_CALL, true);
@@ -236,16 +236,16 @@ class GetQuote extends AmwalCheckoutAction
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function getCustomer(): ?CustomerInterface
+    private function getSessionCustomer(): ?CustomerInterface
     {
-        $customerId = $this->getCustomerId();
+        $customerId = $this->getSessionCustomerId();
         return $customerId ? $this->customerRepository->getById($customerId) : null;
     }
 
     /**
      * @return int|null
      */
-    private function getCustomerId(): ?int
+    private function getSessionCustomerId(): ?int
     {
         return (int) $this->customerSession->getCustomerId() ?: null;
     }
@@ -288,7 +288,7 @@ class GetQuote extends AmwalCheckoutAction
         $quote->setStore($this->storeManager->getStore());
         $quote->setCurrency();
 
-        if ($customer = $this->getCustomer()) {
+        if ($customer = $this->getSessionCustomer()) {
             $quote->assignCustomer($customer);
         } else {
             $quote->setCustomerIsGuest(true)
@@ -320,12 +320,12 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param DataObject $amwalOrderData
      * @param string $refId
-     * @param bool $isGuestQuote
+     * @param null|int $customerId
      * @return AddressInterface
      * @throws JsonException
      * @throws LocalizedException
      */
-    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, bool $isGuestQuote): AddressInterface
+    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, ?int $customerId): AddressInterface
     {
         $customerAddress = null;
         try {
@@ -333,7 +333,7 @@ class GetQuote extends AmwalCheckoutAction
                 'Resolving customer address using Amwal order data: %s',
                 $amwalOrderData->toJson()
             ));
-            $customerAddress = $this->addressResolver->execute($amwalOrderData, $isGuestQuote);
+            $customerAddress = $this->addressResolver->execute($amwalOrderData, $customerId);
             $this->logDebug(sprintf(
                 'Resolved customer address with data: %s',
                 json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
