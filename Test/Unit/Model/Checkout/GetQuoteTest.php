@@ -83,6 +83,7 @@ class GetQuoteTest extends TestCase
     private const AMWAL_ADDRESS_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
     private const TRIGGER_CONTEXT = 'cart';
     private const ORDER_ITEMS = [];
+    private const CUSTOMER_ID = null;
 
     protected function setUp(): void
     {
@@ -293,7 +294,7 @@ class GetQuoteTest extends TestCase
             ->willReturn($customerAddressMock);
 
         // Assertions based on the expected result
-        $result = $this->getQuote->getCustomerAddress($amwalOrderDataMock, self::REF_ID, self::IS_GUEST_QUOTE);
+        $result = $this->getQuote->getCustomerAddress($amwalOrderDataMock, self::REF_ID, self::CUSTOMER_ID);
         $this->assertInstanceOf(AddressInterface::class, $result);
     }
 
