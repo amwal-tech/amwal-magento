@@ -1,3 +1,47 @@
+# [1.0.33] (2024-03-4)
+### Features
+- [#240](https://github.com/amwal-tech/amwal-magento/pull/240) - Add Github Actions for CI/CD
+- [#241](https://github.com/amwal-tech/amwal-magento/pull/241) - Add Pay Order & OrderUpdate return exception and report to sentry
+- [#242](https://github.com/amwal-tech/amwal-magento/pull/242) - Add php unit
+- [#243](https://github.com/amwal-tech/amwal-magento/pull/243) - Add order-details by orderId end-point
+- [#248](https://github.com/amwal-tech/amwal-magento/pull/248) - Add SA as default country code
+- [#249](https://github.com/amwal-tech/amwal-magento/pull/249) - Add Auto-Deploy to Store Server
+- [#251](https://github.com/amwal-tech/amwal-magento/pull/249) - Add codecov integration
+- [#258](https://github.com/amwal-tech/amwal-magento/pull/258) - Add Quote override settings
+- [#259](https://github.com/amwal-tech/amwal-magento/pull/259) - Add the ScopeCode and check the AMWAL_CURRENCY
+- [#260](https://github.com/amwal-tech/amwal-magento/pull/260) - Add Get cart button config unit testing
+- [#261](https://github.com/amwal-tech/amwal-magento/pull/261) - Add Unit test Amwal button config interface
+- [#263](https://github.com/amwal-tech/amwal-magento/pull/263) - Add PlaceOrderTest
+- [#264](https://github.com/amwal-tech/amwal-magento/pull/264) - Add GetQuoteTest
+- [#265](https://github.com/amwal-tech/amwal-magento/pull/265) - Add discount ribbon
+- [#270](https://github.com/amwal-tech/amwal-magento/pull/270) - Add isCartEmpty check and keep the button rendered
+- [#271](https://github.com/amwal-tech/amwal-magento/pull/271) - Add OrderUpdateTest
+- [#272](https://github.com/amwal-tech/amwal-magento/pull/272) - Add Use placeOrder instead of quote submit method
+- [#274](https://github.com/amwal-tech/amwal-magento/pull/274) - Add enable pre checkout trigger settings
+- [#277](https://github.com/amwal-tech/amwal-magento/pull/277) - Add PayOrderTest
+- [#279](https://github.com/amwal-tech/amwal-magento/pull/279) - Add Checkout button upgrade to 0.0.53-alpha-5
+- [#280](https://github.com/amwal-tech/amwal-magento/pull/280) - Add extra check for the phone_number
+- [#283](https://github.com/amwal-tech/amwal-magento/pull/283) - Add tax and fees Cart endpoint 
+- [#284](https://github.com/amwal-tech/amwal-magento/pull/284) - Add Remove the button enabled settings
+- [#285](https://github.com/amwal-tech/amwal-magento/pull/285) - Add Amwal checkout button id refactor.
+- [#288](https://github.com/amwal-tech/amwal-magento/pull/288) - Add return preCheckoutCartId in preCheckoutTask
+- [#289](https://github.com/amwal-tech/amwal-magento/pull/289) - Add debug option to react button
+- [#293](https://github.com/amwal-tech/amwal-magento/pull/293) - Add upgrade version 0.0.53-alpha-7
+
+### Bug Fixes
+- [#245](https://github.com/amwal-tech/amwal-magento/pull/245) - Fix the Undefined "HTTP_HOST" in the cli runtime
+- [#250](https://github.com/amwal-tech/amwal-magento/pull/250) - Fix the deployment script
+- [#268](https://github.com/amwal-tech/amwal-magento/pull/268) - Fix OrderUpdate email subject and totals check.
+- [#269](https://github.com/amwal-tech/amwal-magento/pull/269) - Fix permissive shipping methods
+- [#273](https://github.com/amwal-tech/amwal-magento/pull/273) - Fix the isCartEmpty check
+- [#275](https://github.com/amwal-tech/amwal-magento/pull/275) - Fix Change getAllItems to getAllVisibleItems
+- [#276](https://github.com/amwal-tech/amwal-magento/pull/276) - Fix Add check for the method availability
+- [#281](https://github.com/amwal-tech/amwal-magento/pull/281) - Fix discount rebion amount calculation
+- [#287](https://github.com/amwal-tech/amwal-magento/pull/287) - Fix minor discount and tax change.
+- [#290](https://github.com/amwal-tech/amwal-magento/pull/290) - Fix Deduct taxes and extraFees from the GrandTotal
+- [#291](https://github.com/amwal-tech/amwal-magento/pull/291) - Fix cart get amount
+- [#294](https://github.com/amwal-tech/amwal-magento/pull/294) - Fix Amount and discount refactor
+
 # [1.0.32] (2023-12-4)
 ### Bug Fixes
 - [#237](https://github.com/amwal-tech/amwal-magento/pull/237) - Downgrade sentry/sdk to 3.0.0 as minimum version
