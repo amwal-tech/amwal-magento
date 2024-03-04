@@ -79,7 +79,7 @@ class GetQuoteTest extends TestCase
     private const TOTAL_TAX = 10.0;
     private const QUOTE_ID = 123;
     private const REF_ID = '1f80146ddd68d71f9064af90d1afc83ccdc99e13595afcfce60dea15be8b7ec4';
-    private const IS_GUEST_QUOTE = false;
+    private const CUSTOMER_ID = null;
     private const AMWAL_ADDRESS_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
     private const TRIGGER_CONTEXT = 'cart';
     private const ORDER_ITEMS = [];
@@ -293,7 +293,7 @@ class GetQuoteTest extends TestCase
             ->willReturn($customerAddressMock);
 
         // Assertions based on the expected result
-        $result = $this->getQuote->getCustomerAddress($amwalOrderDataMock, self::REF_ID, null);
+        $result = $this->getQuote->getCustomerAddress($amwalOrderDataMock, self::REF_ID, self::CUSTOMER_ID);
         $this->assertInstanceOf(AddressInterface::class, $result);
     }
 
