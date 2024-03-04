@@ -290,7 +290,7 @@ class GetQuote extends AmwalCheckoutAction
 
         if ($customer = $this->getSessionCustomer()) {
             $quote->assignCustomer($customer);
-        } else {
+        } else if (!$quote->getCustomerId()) {
             $quote->setCustomerIsGuest(true)
                 ->setCustomerGroupId(CustomerGroup::NOT_LOGGED_IN_ID);
         }
