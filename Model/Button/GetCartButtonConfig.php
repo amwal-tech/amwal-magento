@@ -91,16 +91,14 @@ class GetCartButtonConfig extends GetConfig
             if ($productId) {
                 $product = $this->productRepository->getById($productId);
                 return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
-            } else {
-                $regularPrice = 0;
-                foreach ($quote->getAllVisibleItems() as $item) {
-                    $priceInfo = $item->getProduct()->getPriceInfo();
-                    $regularPrice += $priceInfo->getPrice('regular_price')->getAmount()->getValue() * $item->getQty();
-                }
-                return ((float)$regularPrice - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId));
             }
         }
-        return ((float)$quote->getGrandTotal() - $this->getTaxAmount($quote, $buttonConfig, $productId) - $this->getFeesAmount($quote, $buttonConfig, $productId));
+        return ((float)
+            $quote->getGrandTotal() +
+            $this->getDiscountAmount($quote, $buttonConfig, $productId) -
+            $this->getTaxAmount($quote, $buttonConfig, $productId) -
+            $this->getFeesAmount($quote, $buttonConfig, $productId)
+        );
     }
 
 
@@ -122,9 +120,10 @@ class GetCartButtonConfig extends GetConfig
                 $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
             } else {
                 foreach ($quote->getAllVisibleItems() as $item) {
-                    $priceInfo = $item->getProduct()->getPriceInfo();
+                    $product = $this->productRepository->get($item->getSku());
+                    $priceInfo = $product->getPriceInfo();
                     $price = $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
-                    $discountAmount += abs($price * $item->getQty());
+                    $discountAmount += $price * $item->getQty();
                 }
             }
             $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
