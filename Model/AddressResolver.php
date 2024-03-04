@@ -84,7 +84,7 @@ class AddressResolver
     public function execute(DataObject $amwalOrderData, ?string $customerId = null): AddressInterface
     {
         $address = null;
-        if($customerId){
+        if ($customerId) {
             /** @var AmwalAddressInterface $amwalAddress */
             $amwalAddress = $amwalOrderData->getAddressDetails();
 
