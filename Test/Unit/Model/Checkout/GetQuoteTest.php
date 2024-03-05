@@ -289,7 +289,7 @@ class GetQuoteTest extends TestCase
         // Set expectations for the mock objects
         $this->addressResolver->expects($this->once())
             ->method('execute')
-            ->with($amwalOrderDataMock, self::IS_GUEST_QUOTE)
+            ->with($amwalOrderDataMock, self::CUSTOMER_ID)
             ->willReturn($customerAddressMock);
 
         // Assertions based on the expected result
