@@ -41,6 +41,7 @@
 - [#290](https://github.com/amwal-tech/amwal-magento/pull/290) - Fix Deduct taxes and extraFees from the GrandTotal
 - [#291](https://github.com/amwal-tech/amwal-magento/pull/291) - Fix cart get amount
 - [#294](https://github.com/amwal-tech/amwal-magento/pull/294) - Fix Amount and discount refactor
+- [#296](https://github.com/amwal-tech/amwal-magento/pull/296) - Fix Address resolver customer id refactor
 
 # [1.0.32] (2023-12-4)
 ### Bug Fixes
