@@ -53,6 +53,15 @@ const AmwalMagentoReactButton = ({
   const [refIdData, setRefIdData] = React.useState<IRefIdData | undefined>(undefined)
   const [triggerPreCheckoutAck, setTriggerPreCheckoutAck] = React.useState(false)
 
+  const applyButtonConfig = (data: IAmwalButtonConfig): void => {
+    setConfig(data)
+    setAmount(data.amount)
+    setDiscount(data.discount ?? 0)
+    setTaxes(data.tax ?? 0)
+    setFees(data.fees ?? 0)
+    if (data.cart_id) setCartId(data.cart_id)
+  }
+
   React.useEffect(() => {
     const initalRefIdData: IRefIdData = {
       identifier: '100',
@@ -80,14 +89,7 @@ const AmwalMagentoReactButton = ({
         if (!response.ok) throw new Error(data)
         return data
       })
-      .then(data => {
-        setConfig(data)
-        setAmount(data.amount)
-        setDiscount(data.discount ?? 0)
-        setTaxes(data.tax ?? 0)
-        setFees(data.fees ?? 0)
-        setCartId(data.cart_id)
-      })
+      .then(data => { applyButtonConfig(data) })
       .catch(err => { console.error(err) })
   }, [])
 
@@ -313,12 +315,8 @@ const AmwalMagentoReactButton = ({
         return data
       })
       .then(data => {
-        setAmount(data.amount)
-        setDiscount(data.discount ?? 0)
-        setTaxes(data.tax ?? 0)
-        setFees(data.fees ?? 0)
+        applyButtonConfig(data)
         setTriggerPreCheckoutAck(true)
-        if (data.cart_id) setCartId(data.cart_id)
       })
       .catch(err => {
         console.error(err)
