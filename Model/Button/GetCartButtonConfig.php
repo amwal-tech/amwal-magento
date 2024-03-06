@@ -54,13 +54,12 @@ class GetCartButtonConfig extends GetConfig
             if (!$cartId && $quote->getId()) {
                 $cartId = $this->quoteIdMaskFactory->create()->setQuoteId($quote->getId())->save()->getMaskedId();
             }
-            $buttonConfig->setCartId($cartId);
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
         if ($triggerContext ===  ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
-
+        $buttonConfig->setCartId($cartId);
         $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId, $triggerContext));
         $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setTax($this->getTaxAmount($quote, $buttonConfig, $productId));

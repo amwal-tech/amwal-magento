@@ -8,6 +8,9 @@ import {
 export interface IAmwalButtonConfig {
   merchant_id: string
   amount: number
+  discount?: number
+  fees?: number
+  tax?: number
   country_code: CountryCode
   dark_mode: 'on' | 'off' | 'auto'
   email_required: boolean
