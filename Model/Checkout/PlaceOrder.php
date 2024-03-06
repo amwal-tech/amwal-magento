@@ -158,7 +158,7 @@ class PlaceOrder extends AmwalCheckoutAction
         if ($hasAmwalAddress) {
             try {
                 $this->logDebug('Resolving customer address');
-                $customerAddress = $this->addressResolver->execute($amwalOrderData, (bool) $quote->getCustomerIsGuest());
+                $customerAddress = $this->addressResolver->execute($amwalOrderData, $quote->getCustomerId());
                 try {
                     $this->logDebug(sprintf(
                         'Found/Created customer address with data: %s',
