@@ -1,4 +1,4 @@
-# [1.0.33] (2024-03-4)
+# [1.0.33] (2024-03-6)
 ### Features
 - [#240](https://github.com/amwal-tech/amwal-magento/pull/240) - Add Github Actions for CI/CD
 - [#241](https://github.com/amwal-tech/amwal-magento/pull/241) - Add Pay Order & OrderUpdate return exception and report to sentry
