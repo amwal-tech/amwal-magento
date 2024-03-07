@@ -258,6 +258,6 @@ class GetCartButtonConfig extends GetConfig
      */
     public function getQuote()
     {
-        return $this->quote;
+        return $this->amwalQuote;
     }
 }
