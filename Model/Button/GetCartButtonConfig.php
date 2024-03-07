@@ -21,6 +21,7 @@ class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
+    protected amwalQuote;
 
     /**
      * @param RefIdDataInterface $refIdData
@@ -65,6 +66,7 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setTax($this->getTaxAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setFees($this->getFeesAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setId($this->getButtonId($cartId));
+        $this->amwalQuote = $quote;
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -249,5 +251,13 @@ class GetCartButtonConfig extends GetConfig
         }
 
         return $limitedRegionCodes;
+    }
+
+    /**
+     * @return CartInterface
+     */
+    public function getQuote()
+    {
+        return $this->quote;
     }
 }
