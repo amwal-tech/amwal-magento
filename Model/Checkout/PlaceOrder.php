@@ -148,10 +148,8 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->throwException(__('We were unable to verify your payment.'));
         }
         // Check if the cartId is a masked or a numeric, for logged in users the cartId is a numeric value.
-        if (!is_numeric($cartId)) {
-            $cartId = $this->maskedQuoteIdToQuoteId->execute($cartId);
-        }
-        $quote = $this->quoteRepository->get($cartId);
+        $quoteId = is_numeric($cartId) ? $cartId : $this->maskedQuoteIdToQuoteId->execute($cartId);
+        $quote = $this->quoteRepository->get($quoteId);
 
         $quote->setData(self::IS_AMWAL_API_CALL, true);
         $quote->setPaymentMethod(ConfigProvider::CODE);
@@ -182,7 +180,7 @@ class PlaceOrder extends AmwalCheckoutAction
             } catch (LocalizedException|RuntimeException $e) {
                 $message = sprintf(
                     "Unable to resolve address while creating order.\nQuote ID: %s\nAmwal Order Data: %s\nAmwal Order id: %s",
-                    $cartId,
+                    $quoteId,
                     $amwalOrderData->toJson(),
                     $amwalOrderId
                 );
