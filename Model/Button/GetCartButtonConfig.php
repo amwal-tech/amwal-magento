@@ -21,7 +21,7 @@ class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
-    protected amwalQuote;
+    protected $amwalQuote;
 
     /**
      * @param RefIdDataInterface $refIdData
