@@ -1,7 +1,7 @@
 {
   "name": "amwal-magento-react-button",
   "sideEffects": false,
-  "version": "0.0.30",
+  "version": "0.0.38",
   "description": "Amwal React Button with Magento Backend",
   "repository": {
     "type": "git",
@@ -39,7 +39,7 @@
     "react-dom": "*"
   },
   "dependencies": {
-    "amwal-checkout-button": "^0.0.53-alpha",
-    "amwal-checkout-button-react": "^0.0.53-alpha-1"
+    "amwal-checkout-button": "^0.0.53-alpha-7",
+    "amwal-checkout-button-react": "^0.0.53-alpha-7"
   }
 }

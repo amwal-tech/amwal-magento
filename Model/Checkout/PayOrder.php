@@ -9,6 +9,7 @@ use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use JsonException;
@@ -44,6 +45,7 @@ class PayOrder extends AmwalCheckoutAction
     private CustomerSession $customerSession;
     private CustomerManagement $customerManagement;
     private OrderUpdate $orderUpdate;
+    private SentryExceptionReport $sentryExceptionReport;
 
 
     /**
@@ -59,6 +61,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param OrderUpdate $orderUpdate
+     * @param SentryExceptionReport $sentryExceptionReport
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -74,7 +77,8 @@ class PayOrder extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger,
-        OrderUpdate $orderUpdate
+        OrderUpdate $orderUpdate,
+        SentryExceptionReport $sentryExceptionReport
 
     ) {
         parent::__construct($errorReporter, $config, $logger);
@@ -88,6 +92,7 @@ class PayOrder extends AmwalCheckoutAction
         $this->customerSession = $customerSession;
         $this->customerManagement = $customerManagement;
         $this->orderUpdate = $orderUpdate;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -106,21 +111,13 @@ class PayOrder extends AmwalCheckoutAction
                 $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
                 $this->logger->error($message);
                 $this->reportError($amwalOrderId, $message);
-                $this->addError(__('We were unable to retrieve your transaction data.'));
+                $this->sentryExceptionReport->report($message);
             }
             return false;
         }
 
-        try {
-            $quote = $this->quoteRepository->get($order->getQuoteId());
-            $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
-        } catch (NoSuchEntityException $e) {
-            $message = sprintf('Unable to load Quote for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
-            $this->reportError($amwalOrderId, $message);
-            $this->logger->error($message);
-            $this->addError(__('We were unable to retrieve your order data.'));
-            return false;
-        }
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $quote->setData(AmwalCheckoutAction::IS_AMWAL_API_CALL, true);
 
         $this->updateCustomerName($order, $amwalOrderData);
         $this->updateAddressData($quote, $amwalOrderData);
@@ -169,7 +166,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param DataObject $amwalOrderData
      * @return void
      */
-    private function updateCustomerName(OrderInterface $order, DataObject $amwalOrderData): void
+    public function updateCustomerName(OrderInterface $order, DataObject $amwalOrderData): void
     {
         $order->setCustomerFirstname($amwalOrderData->getClientFirstName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
         $order->setCustomerLastname($amwalOrderData->getClientLastName() ?? AddressResolver::TEMPORARY_DATA_VALUE);
@@ -180,7 +177,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param Phrase|string|null $message
      * @return void
      */
-    private function addError($message = null): void
+    public function addError($message = null): void
     {
         $genericMessage = __('Something went wrong while placing your order. Please contact us to complete the order.');
         $this->messageManager->addErrorMessage($message ?? $genericMessage);
@@ -275,7 +272,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param string $email
      * @return bool
      */
-    private function customerWithEmailExists(string $email): bool
+    public function customerWithEmailExists(string $email): bool
     {
         try {
             $this->customerRepository->get($email);
@@ -291,7 +288,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param DataObject $amwalOrderData
      * @return bool
      */
-    private function shouldCreateCustomer(OrderInterface $order, DataObject $amwalOrderData): bool
+    public function shouldCreateCustomer(OrderInterface $order, DataObject $amwalOrderData): bool
     {
         if (!$email = $amwalOrderData->getClientEmail() ?? $order->getCustomerEmail()) {
             return false;

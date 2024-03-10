@@ -40,32 +40,6 @@
                         <config_path>payment/amwal_payments/installment_callback</config_path>
                         <comment><![CDATA[<strong class="colorRed">Note</strong>: Make sure the URL starts with the "http" or "https" protocol.]]></comment>
                     </field>
-                    <field id="express_checkout_active" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Enable Express checkout</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/express_checkout_active</config_path>
-                        <tooltip>Indicates if the Express Checkout functionality should be enabled</tooltip>
-                    </field>
-                    <field id="hide_proceed_to_checkout" translate="label tooltip" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Hide "Proceed to Checkout" button</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/hide_proceed_to_checkout</config_path>
-                        <tooltip>If set to yes the default "Proceed to Checkout" button in the minicart will be hidden</tooltip>
-                        <depends>
-                            <field id="express_checkout_active">1</field>
-                        </depends>
-                    </field>
-                    <field id="regular_checkout_active" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Enable Regular checkout</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/regular_checkout_active</config_path>
-                        <tooltip>Indicates if the Regular Checkout functionality should be enabled</tooltip>
-                    </field>
-                    <field id="country_code" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Merchant Country</label>
-                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-                        <config_path>payment/amwal_payments/country_code</config_path>
-                    </field>
                 </group>
 
                 <!-- Visual Settings -->
@@ -77,11 +51,6 @@
                         <config_path>payment/amwal_payments/title</config_path>
                         <tooltip>The title of the Amwal payment method in the checkout</tooltip>
                     </field>
-                    <field id="express_checkout_title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Express Checkout Title</label>
-                        <config_path>payment/amwal_payments/express_checkout_title</config_path>
-                        <tooltip>The title of the Amwal payment method used for the express checkout</tooltip>
-                    </field>
                     <field id="dark_mode" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Dark Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -92,6 +61,13 @@
                         <label>Style CSS</label>
                         <config_path>payment/amwal_payments/style_css</config_path>
                         <tooltip>Custom style CSS to be applied to the Amwal checkout button</tooltip>
+                    </field>
+
+                    <field id="show_discount_ribbon" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Show Discount Ribbon</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/show_discount_ribbon</config_path>
+                        <tooltip>Toggle to enable discount ribbon</tooltip>
                     </field>
                 </group>
 
@@ -226,6 +202,18 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/sentry_report</config_path>
                         <tooltip>Enable reporting of errors to Amwal Sentry</tooltip>
+                    </field>
+                    <field id="quote_override" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Quote override</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/quote_override</config_path>
+                        <tooltip>If enabled, will override certain quote data. Use only if you are having issues related to quote amounts or currencies</tooltip>
+                    </field>
+                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Enable Pre Checkout Trigger</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/enable_pre_checkout_trigger</config_path>
+                        <tooltip>Enable Pre Checkout Trigger</tooltip>
                     </field>
                 </group>
             </group>

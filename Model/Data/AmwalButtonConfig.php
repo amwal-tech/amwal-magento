@@ -220,22 +220,6 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getId(): string
-    {
-        return $this->getData(self::ID);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setId(string $id): AmwalButtonConfigInterface
-    {
-        return $this->setData(self::ID, $id);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getTestEnvironment(): ?string
     {
         return $this->getData(self::TEST_ENVIRONMENT);
@@ -442,5 +426,69 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     public function setInitialLastName(?string $initialLastName): AmwalButtonConfigInterface
     {
         return $this->setData(self::INITIAL_LAST_NAME, $initialLastName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getShowDiscountRibbon(): bool
+    {
+        return $this->getData(self::SHOW_DISCOUNT_RIBBON);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setShowDiscountRibbon(bool $showDiscountRibbon): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::SHOW_DISCOUNT_RIBBON, $showDiscountRibbon);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDiscount(): float
+    {
+        return $this->getData(self::DISCOUNT);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDiscount(float $discount): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::DISCOUNT, $discount);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTax(): float
+    {
+        return $this->getData(self::TAX);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setTax(float $tax): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::TAX, $tax);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFees(): float
+    {
+        return $this->getData(self::FEES);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setFees(float $fees): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::FEES, $fees);
     }
 }

@@ -1,0 +1,30 @@
+{
+    "require": {
+        "ergebnis/composer-normalize": "^2.35",
+        "kubawerlos/composer-smaller-lock": "^1.0.1",
+        "magento/magento2ce": "^2.4",
+        "php-cs-fixer/shim": "^3.23",
+        "phpstan/phpstan": "^1.10.30",
+        "vimeo/psalm": "^5.15.0",
+        "giggsey/libphonenumber-for-php": "^8.13.7",
+        "sentry/sdk": "^3.0",
+        "phpunit/phpunit": "^9.5.10",
+        "phpstan/extension-installer": "^1.3",
+        "phpstan/phpstan-phpunit": "^1.1.1"
+    },
+    "repositories": [
+        {
+            "type": "github",
+            "url": "https://github.com/magento/magento2.git"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true,
+            "kubawerlos/composer-smaller-lock": true,
+            "magento/composer-dependency-version-audit-plugin": false,
+            "magento/magento-composer-installer": false,
+            "phpstan/extension-installer": true
+        }
+    }
+}

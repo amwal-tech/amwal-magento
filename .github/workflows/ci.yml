@@ -1,0 +1,47 @@
+name: Continuous integration
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+
+jobs:
+  check:
+    name: PHP ${{ matrix.php-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php-version: '7.4'
+          - php-version: '8.0'
+          - php-version: '8.1'
+          - php-version: '8.2'
+          - php-version: '8.3'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: none, curl, json, mbstring
+          coverage: none
+
+      - id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - run: mkdir dev-tools
+
+      - working-directory: dev-tools
+        run: composer require php-parallel-lint/php-parallel-lint
+
+      - working-directory: dev-tools
+        run: ./vendor/bin/parallel-lint ..

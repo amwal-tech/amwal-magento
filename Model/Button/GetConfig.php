@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Button;
 
+use Amwal\Payments\Api\Data\AmwalAddressInterface;
 use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
@@ -23,7 +24,6 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 
@@ -31,7 +31,6 @@ class GetConfig
 {
     protected AmwalButtonConfigFactory $buttonConfigFactory;
     protected Config $config;
-    protected ExpressCheckoutButton $viewModel;
     protected StoreManagerInterface $storeManager;
     protected CustomerSessionFactory $customerSessionFactory;
     protected CheckoutSessionFactory $checkoutSessionFactory;
@@ -48,7 +47,6 @@ class GetConfig
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
      * @param Config $config
-     * @param ExpressCheckoutButton $viewModel
      * @param StoreManagerInterface $storeManager
      * @param CustomerSessionFactory $customerSessionFactory
      * @param CheckoutSessionFactory $checkoutSessionFactory
@@ -64,7 +62,6 @@ class GetConfig
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
         Config $config,
-        ExpressCheckoutButton $viewModel,
         StoreManagerInterface $storeManager,
         CustomerSessionFactory $customerSessionFactory,
         CheckoutSessionFactory $checkoutSessionFactory,
@@ -79,7 +76,6 @@ class GetConfig
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
-        $this->viewModel = $viewModel;
         $this->storeManager = $storeManager;
         $this->customerSessionFactory = $customerSessionFactory;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
@@ -96,20 +92,20 @@ class GetConfig
     /**
      * @param AmwalButtonConfig $buttonConfig
      * @param RefIdDataInterface $refIdData
+     * @param Quote $quote
+     * @param Session $customerSession
+     * @param AmwalAddressInterface $initialAddress
      * @return void
      */
-    protected function addGenericButtonConfig(AmwalButtonConfig $buttonConfig, RefIdDataInterface $refIdData, Quote $quote): void
+    public function addGenericButtonConfig(AmwalButtonConfig $buttonConfig, RefIdDataInterface $refIdData, Quote $quote, Session $customerSession, AmwalAddressInterface $initialAddress): void
     {
-        $customerSession = $this->customerSessionFactory->create();
-
         $buttonConfig->setLabel('quick-buy');
         $buttonConfig->setAddressHandshake(true);
         $buttonConfig->setAddressRequired(true);
         $buttonConfig->setShowPaymentBrands(true);
         $buttonConfig->setDisabled(true);
         $buttonConfig->setAllowedAddressCountries($this->config->getAllowedAddressCountries());
-
-
+        $buttonConfig->setShowDiscountRibbon($this->config->isDiscountRibbonEnabled());
         $buttonConfig->setCountryCode($this->config->getCountryCode());
         $buttonConfig->setDarkMode($this->config->isDarkModeEnabled() ? 'on' : 'off');
         $buttonConfig->setEmailRequired(!$customerSession->isLoggedIn());
@@ -122,7 +118,7 @@ class GetConfig
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
         $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());
 
-        $initialAddressData = $this->getInitialAddressData($customerSession, $quote);
+        $initialAddressData = $this->getInitialAddressData($customerSession, $quote, $initialAddress);
         if ($initialAddressData) {
             $buttonConfig->setInitialAddress($initialAddressData['address']);
             $buttonConfig->setInitialPhone($initialAddressData['phone']);
@@ -133,15 +129,16 @@ class GetConfig
             $buttonConfig->setInitialFirstName($initialAddressData['firstname']);
             $buttonConfig->setInitialLastName($initialAddressData['lastname']);
         }
-
     }
 
 
     /**
      * @param Session $customerSession
+     * @param Quote $quote
+     * @param AmwalAddressInterface $initialAddress
      * @return array
      */
-    protected function getInitialAddressData(Session $customerSession, Quote $quote)
+    public function getInitialAddressData(Session $customerSession, Quote $quote, AmwalAddressInterface $initialAddress): array
     {
         $customer = $customerSession->getCustomer();
 
@@ -159,7 +156,7 @@ class GetConfig
                 return [];
             }
         }
-        $initialAddress = $this->amwalAddressFactory->create();
+
         $initialAddress->setCity($addressData->getCity() ?? $billingAddressData->getCity());
         $initialAddress->setState($addressData->getRegionCode() ?? $billingAddressData->getRegionCode() ?? 'N/A');
         $initialAddress->setPostcode($addressData->getPostcode() ?? $billingAddressData->getPostcode());
@@ -169,7 +166,17 @@ class GetConfig
         $initialAddress->setEmail($customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail());
 
         $attributes = [];
-        $attributes['address']   = $initialAddress->toJson();
+        $attributes['address']   = $this->jsonSerializer->serialize(
+            [
+                'city'      => $initialAddress->getCity(),
+                'state'     => $initialAddress->getState(),
+                'postcode'  => $initialAddress->getPostcode(),
+                'country'   => $initialAddress->getCountry(),
+                'street1'   => $initialAddress->getStreet1(),
+                'street2'   => $initialAddress->getStreet2(),
+                'email'     => $initialAddress->getEmail(),
+            ]
+        );
         $attributes['email']     = $customer->getEmail() ??  $addressData->getEmail() ?? $billingAddressData->getEmail();
         $attributes['phone']     = $addressData->getTelephone() ?? $billingAddressData->getTelephone();
         $attributes['country']   = $addressData->getCountryId() ?? $billingAddressData->getCountryId();
@@ -183,7 +190,7 @@ class GetConfig
      * @param string|null $cartId
      * @return string
      */
-    protected function getButtonId(?string $cartId): string
+    public function getButtonId(?string $cartId): string
     {
         $id = AmwalButtonConfigInterface::ID_PREFIX;
         if ($cartId) {
@@ -193,9 +200,14 @@ class GetConfig
     }
 
 
-    protected function phoneFormat($phone_number, $country)
+    /**
+     * @param string $phone_number
+     * @param string $country
+     * @return string
+     */
+    public function phoneFormat($phone_number, $country)
     {
-        if (strpos($phone_number, '+') === 0) {
+        if (!empty($phone_number) && strpos($phone_number, '+') === 0) {
             return $phone_number;
         }
         if (class_exists('libphonenumber\PhoneNumberUtil')) {

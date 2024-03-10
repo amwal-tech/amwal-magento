@@ -16,7 +16,7 @@ $buttonId = $block->getUniqueId();
 $product = $block->getProduct();
 $productId = $product->getId();
 $titleWidget = $block->getTitle();
-
+$checkoutButtonId = $block->getCheckoutButtonId();
 $triggerContext = $block->getTriggerContext();
 $productsList = ObjectManager::getInstance()->get(ProductsList::class);
 $postParams = $productsList->getAddToCartPostParams($product);
@@ -98,6 +98,8 @@ $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VI
                      data-locale="<?= $escaper->escapeHtmlAttr($block->getLocale()) ?>"
                      data-scope-code="<?= $escaper->escapeHtmlAttr($block->getStoreCode()) ?>"
                      data-form-selector="form#form-<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                     data-product-id="<?= $escaper->escapeHtmlAttr($productId) ?>"
+                     data-button-id="<?= $escaper->escapeHtmlAttr($checkoutButtonId) ?>"
                      id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
                 >
                 </div>

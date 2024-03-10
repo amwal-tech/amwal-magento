@@ -9,7 +9,6 @@ use Magento\Config\Model\Config\Backend\Admin\Custom as AdminConfig;
 use Magento\Directory\Model\Currency;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Composer\ComposerInformation;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
@@ -48,13 +47,17 @@ class Config
     public const XML_CONFIG_PATH_CRONJOB_ENABLE = 'payment/amwal_payments/cronjob_enable';
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_CUSTOMER_EMAIL = 'payment/amwal_payments/order_status_changed_customer_email';
     public const XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL = 'payment/amwal_payments/order_status_changed_admin_email';
+    public const XML_CONFIG_PATH_QUOTE_OVERRIDE = 'payment/amwal_payments/quote_override';
+    public const XML_CONFIG_PATH_DISCOUNT_RIBBON = 'payment/amwal_payments/show_discount_ribbon';
+    public const XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER = 'payment/amwal_payments/enable_pre_checkout_trigger';
 
+  /**
+     * @var string
+     */
+    const MODULE_VERSION = '1.0.33';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
-
-    /** @var ComposerInformation */
-    private ComposerInformation $composerInformation;
 
     /** @var RegionCollectionFactory */
     private RegionCollectionFactory $regionCollectionFactory;
@@ -64,19 +67,16 @@ class Config
 
     /**
      * @param ScopeConfigInterface $scopeConfig
-     * @param ComposerInformation $composerInformation
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param DirectoryHelper $directoryHelper
      */
     public function __construct(
         ScopeConfigInterface    $scopeConfig,
-        ComposerInformation     $composerInformation,
         RegionCollectionFactory $regionCollectionFactory,
         DirectoryHelper         $directoryHelper
     )
     {
         $this->scopeConfig = $scopeConfig;
-        $this->composerInformation = $composerInformation;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
     }
@@ -121,9 +121,9 @@ class Config
     public function shouldHideProceedToCheckout(): bool
     {
         return $this->isExpressCheckoutActive() && $this->scopeConfig->isSetFlag(
-                self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
-                ScopeInterface::SCOPE_WEBSITE
-            );
+            self::XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT,
+            ScopeInterface::SCOPE_WEBSITE
+        );
     }
 
     /**
@@ -147,6 +147,9 @@ class Config
      */
     public function getCountryCode(): string
     {
+        // TODO: Currently, it returns a static value ('SA'), which might not reflect the actual system or user settings.
+        return 'SA';
+        /*
         if ($this->shouldUseSystemCountrySettings()) {
             return $this->scopeConfig->getValue(
                 'general/country/default',
@@ -154,6 +157,7 @@ class Config
             );
         }
         return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_COUNTRY_CODE, ScopeInterface::SCOPE_WEBSITE);
+        */
     }
 
     /**
@@ -357,8 +361,7 @@ class Config
      */
     public function getVersion(): string
     {
-        $packages = $this->composerInformation->getInstalledMagentoPackages();
-        return $packages['amwal/payments']['version'] ?? 'unknown';
+        return self::MODULE_VERSION;
     }
 
     /**
@@ -440,4 +443,29 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ORDER_STATUS_CHANGED_ADMIN_EMAIL, ScopeInterface::SCOPE_WEBSITE);
     }
+
+    /**
+     * @return bool
+     */
+    public function isQuoteOverrideEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_QUOTE_OVERRIDE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDiscountRibbonEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_DISCOUNT_RIBBON, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPreCheckoutTriggerEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER, ScopeInterface::SCOPE_WEBSITE);
+    }
+
 }

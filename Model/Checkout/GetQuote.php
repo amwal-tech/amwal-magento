@@ -58,7 +58,7 @@ class GetQuote extends AmwalCheckoutAction
     private RefIdManagementInterface $refIdManagement;
     private MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
     private CheckoutSession $checkoutSession;
-    private SentryExceptionReport $sentryExceptionHandler;
+    private SentryExceptionReport $sentryExceptionReport;
     private QuoteIdMaskFactory $quoteIdMaskFactory;
 
     /**
@@ -146,6 +146,9 @@ class GetQuote extends AmwalCheckoutAction
         bool $isPreCheckout,
         $cartId = null
     ): array {
+        $quoteData = [];
+        $customerAddress = null;
+
         try {
             $this->logDebug('Start GetQuote call');
             if (!$this->refIdManagement->verifyRefId($refId, $refIdData)) {
@@ -173,7 +176,6 @@ class GetQuote extends AmwalCheckoutAction
             }
 
             $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
-
             if (!$isPreCheckout) {
                 $amwalOrderData = $this->objectFactory->create([
                     'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
@@ -182,7 +184,7 @@ class GetQuote extends AmwalCheckoutAction
                     'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
                 $amwalOrderData->setAddressDetails($amwalAddress);
-                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (bool) $quote->getCustomerIsGuest());
+                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, $quote->getCustomerId());
             }
 
             $quote->setData(self::IS_AMWAL_API_CALL, true);
@@ -234,16 +236,16 @@ class GetQuote extends AmwalCheckoutAction
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function getCustomer(): ?CustomerInterface
+    private function getSessionCustomer(): ?CustomerInterface
     {
-        $customerId = $this->getCustomerId();
+        $customerId = $this->getSessionCustomerId();
         return $customerId ? $this->customerRepository->getById($customerId) : null;
     }
 
     /**
      * @return int|null
      */
-    private function getCustomerId(): ?int
+    private function getSessionCustomerId(): ?int
     {
         return (int) $this->customerSession->getCustomerId() ?: null;
     }
@@ -286,9 +288,9 @@ class GetQuote extends AmwalCheckoutAction
         $quote->setStore($this->storeManager->getStore());
         $quote->setCurrency();
 
-        if ($customer = $this->getCustomer()) {
+        if ($customer = $this->getSessionCustomer()) {
             $quote->assignCustomer($customer);
-        } else {
+        } else if (!$quote->getCustomerId()) {
             $quote->setCustomerIsGuest(true)
                 ->setCustomerGroupId(CustomerGroup::NOT_LOGGED_IN_ID);
         }
@@ -318,19 +320,20 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param DataObject $amwalOrderData
      * @param string $refId
-     * @param bool $isGuestQuote
+     * @param null|string $customerId
      * @return AddressInterface
      * @throws JsonException
      * @throws LocalizedException
      */
-    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, bool $isGuestQuote): AddressInterface
+    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, ?string $customerId): AddressInterface
     {
+        $customerAddress = null;
         try {
             $this->logDebug(sprintf(
                 'Resolving customer address using Amwal order data: %s',
                 $amwalOrderData->toJson()
             ));
-            $customerAddress = $this->addressResolver->execute($amwalOrderData, $isGuestQuote);
+            $customerAddress = $this->addressResolver->execute($amwalOrderData, $customerId);
             $this->logDebug(sprintf(
                 'Resolved customer address with data: %s',
                 json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
@@ -374,7 +377,9 @@ class GetQuote extends AmwalCheckoutAction
             $this->logDebug(sprintf('Quote ID %s provided. Loading quote', $quoteId));
             $quote = $this->quoteRepository->get($quoteId);
         }
-
+        if ($this->config->isQuoteOverrideEnabled()) {
+            $quote->setStoreId($this->storeManager->getStore()->getId());
+        }
         return $quote;
     }
 
@@ -415,13 +420,20 @@ class GetQuote extends AmwalCheckoutAction
         foreach ($rates as $rate) {
             $id = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
             if (empty($rate->getMethodTitle())) {
-                $this->logger->error('Shipping method title is empty for ID: ' . $id);
-                continue;
+                $this->logger->warning('Shipping method title is empty. Falling back to ID as title: ' . $id);
             }
-            $availableRates[$id] = [
-                'carrier_title' => $rate->getMethodTitle(),
-                'price' => number_format((float)$rate->getPriceInclTax(), 2)
-            ];
+            if ($rate->getAvailable()) {
+                $availableRates[$id] = [
+                    'carrier_title' => $rate->getMethodTitle() ?? $id,
+                    'price' => number_format((float)$rate->getPriceInclTax(), 2)
+                ];
+            }else{
+                $this->logger->warning(sprintf(
+                    'Shipping method: %s has an error: %s',
+                    $id,
+                    $rate->getErrorMessage()
+                ));
+            }
         }
         try {
             $this->logDebug(sprintf(
@@ -514,7 +526,6 @@ class GetQuote extends AmwalCheckoutAction
         if (!$grandTotal) {
             $this->throwException(__('Unable to calculate order total'));
         }
-
         return $grandTotal;
     }
 

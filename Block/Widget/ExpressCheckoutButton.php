@@ -8,7 +8,6 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Block\Product\Context;
 use Magento\Catalog\Block\Product\ListProduct;
 use Magento\Catalog\Model\Layer\Resolver;
-use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\Data\Helper\PostHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -25,25 +24,29 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
      * @var Config
      */
     private Config $config;
-
-
     /**
      * @var StoreManagerInterface
      */
     private StoreManagerInterface $storeManager;
+    /**
+     * @var ProductRepositoryInterface
+     */
+    private ProductRepositoryInterface $productRepositoryInterface;
 
-    protected $_productFactory;
-
-    protected $random;
+    /**
+     * @var Random
+     */
+    protected Random $random;
 
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
+    public const AMWAL_CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout';
+
 
     public function __construct(
         Context                     $context,
         PostHelper                  $postDataHelper,
         Resolver                    $layerResolver,
-        ProductRepositoryInterface $productRepository,
-        ProductFactory              $productFactory,
+        ProductRepositoryInterface  $productRepositoryInterface,
         CategoryRepositoryInterface $categoryRepository,
         Config                      $config,
         Random                      $random,
@@ -51,8 +54,7 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
         Data                        $urlHelper, array $data = []
     )
     {
-        $this->_productFactory = $productFactory;
-        $this->productRepository = $productRepository;
+        $this->productRepositoryInterface = $productRepositoryInterface;
         $this->random = $random;
         $this->config = $config;
         $this->storeManager = $storeManager;
@@ -62,11 +64,11 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
 
     public function getProduct()
     {
-        $productId = $this->getProduct_id();
+        $productId = $this->getData('product_id');
         if ($productId) {
             $productId = str_replace('product/', '', $productId);
         }
-        $product = $this->productRepository->getById($productId);
+        $product = $this->productRepositoryInterface->getById($productId);
         return $product;
     }
 
@@ -106,6 +108,16 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
     public function getUniqueId(int $length = 8): string
     {
         return self::CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString($length);
+    }
+
+    /**
+     * @param int $length
+     * @return string
+     * @throws LocalizedException
+     */
+    public function getCheckoutButtonId(int $length = 8): string
+    {
+        return self::AMWAL_CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString($length);
     }
 
     /**

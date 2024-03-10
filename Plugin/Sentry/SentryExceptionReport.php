@@ -35,28 +35,15 @@ class SentryExceptionReport
         if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
             return;
         }
-
-        Sentry\configureScope(function (Scope $scope) use ($exception) {
+        Sentry\configureScope(function (Scope $scope) {
             // Add extra context data to the exception
-            $scope->setExtra('domain', $_SERVER['HTTP_HOST']);
+            $scope->setExtra('domain', $_SERVER['HTTP_HOST'] ?? 'runtime cli');
             $scope->setExtra('plugin_type', 'magento2');
-            $scope->setExtra('plugin_version', $this->getPluginVersion());
+            $scope->setExtra('plugin_version', Config::MODULE_VERSION);
+            $scope->setExtra('php_version', phpversion());
         });
 
         // Send exception to Sentry with the hint
         Sentry\captureException($exception);
-    }
-
-    /**
-     * @return string
-     */
-    private function getPluginVersion()
-    {
-        $composerJsonPath = BP . '/vendor/amwal/payments/composer.json';
-        if (!file_exists($composerJsonPath)) {
-            $composerJsonPath = BP . '/app/code/Amwal/Payments/composer.json';
-        }
-        $composerJson = json_decode(file_get_contents($composerJsonPath), true);
-        return $composerJson['version'];
     }
 }

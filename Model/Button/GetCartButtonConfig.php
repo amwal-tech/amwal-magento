@@ -14,10 +14,15 @@ use Magento\Framework\App\ObjectManager;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Quote\Api\Data\CartInterface;
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
+    protected $amwalQuote;
+
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
@@ -28,10 +33,16 @@ class GetCartButtonConfig extends GetConfig
     public function execute(
             RefIdDataInterface $refIdData,
             string $triggerContext = null,
-            ?string $cartId = null): AmwalButtonConfigInterface
+            ?string $cartId = null,
+            ?string $productId = null
+    ): AmwalButtonConfigInterface
     {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
+        $customerSession = $this->customerSessionFactory->create();
+        $initialAddress = $this->amwalAddressFactory->create();
+        $quote = null;
+
         if ($cartId) {
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             if ($quoteIdMask) {
@@ -44,12 +55,18 @@ class GetCartButtonConfig extends GetConfig
             if (!$cartId && $quote->getId()) {
                 $cartId = $this->quoteIdMaskFactory->create()->setQuoteId($quote->getId())->save()->getMaskedId();
             }
-            $buttonConfig->setCartId($cartId);
         }
-        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote);
-
-        $buttonConfig->setAmount($this->getAmount($quote));
+        $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
+        if ($triggerContext ===  ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
+            $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
+        }
+        $buttonConfig->setCartId($cartId);
+        $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId, $triggerContext));
+        $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setTax($this->getTaxAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setFees($this->getFeesAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setId($this->getButtonId($cartId));
+        $this->amwalQuote = $quote;
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -57,22 +74,93 @@ class GetCartButtonConfig extends GetConfig
         if ($limitedRegions = $this->getLimitedRegionCodesJson()) {
             $buttonConfig->setAllowedAddressStates($limitedRegions);
         }
-
-        if ($triggerContext === 'regular-checkout') {
-            $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
-        }
         return $buttonConfig;
     }
 
     /**
      * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
+     * @param string|null $triggerContext
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function getAmount($quote): float
+    public function getAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null, $triggerContext = null): float
     {
-        return (float)$quote->getGrandTotal();
+        if ($buttonConfig->getShowDiscountRibbon()) {
+            if ($productId) {
+                $product = $this->productRepository->getById($productId);
+                return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            }
+        }
+        return ((float)
+            $quote->getGrandTotal() +
+            $this->getDiscountAmount($quote, $buttonConfig, $productId) -
+            $this->getTaxAmount($quote, $buttonConfig, $productId) -
+            $this->getFeesAmount($quote, $buttonConfig, $productId)
+        );
+    }
+
+
+    /**
+     * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getDiscountAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    {
+        $discountAmount = 0;
+        if ($buttonConfig->getShowDiscountRibbon()) {
+            if ($productId) {
+                $product = $this->productRepository->getById($productId);
+                $priceInfo = $product->getPriceInfo();
+                $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+            } else {
+                foreach ($quote->getAllVisibleItems() as $item) {
+                    $product = $this->productRepository->get($item->getSku());
+                    $priceInfo = $product->getPriceInfo();
+                    $price = $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
+                    $discountAmount += $price * $item->getQty();
+                }
+            }
+            $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
+        }
+        return $discountAmount;
+    }
+
+    /**
+     * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getTaxAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    {
+        return (float)$quote->getShippingAddress()->getTaxAmount();
+    }
+
+    /**
+     * @param int|null $quoteId
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string|null $productId
+     * @return float
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getFeesAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    {
+        $extraFee = 0;
+        $totals = $quote->getTotals();
+        if (isset($totals['amasty_extrafee'])) {
+            $extraFee = $totals['amasty_extrafee']->getValueInclTax();
+        }
+        return $extraFee;
     }
 
     /**
@@ -89,16 +177,25 @@ class GetCartButtonConfig extends GetConfig
 
         $street = $shippingAddress->getStreet()[0] ?? '';
         $street2 = $shippingAddress->getStreet()[1] ?? '';
-        $formatedAddress = json_encode(['street1' => $street, 'street2' => $street2, 'city' => $shippingAddress->getCity(), 'state' => $shippingAddress->getRegion() ?? $shippingAddress->getCity(), 'country' => $shippingAddress->getCountryId(), 'postcode' => $shippingAddress->getPostcode()]);
+        $addressComponents = [
+            'street1' => $street,
+            'street2' => $street2,
+            'city' => $shippingAddress->getCity(),
+            'state' => $shippingAddress->getRegion() ?? $shippingAddress->getCity(),
+            'country' => $shippingAddress->getCountryId(),
+            'postcode' => $shippingAddress->getPostcode()
+        ];
+        $formattedAddress = json_encode($addressComponents);
 
-        $buttonConfig->setAddressRequired(false);
-        $buttonConfig->setInitialAddress($formatedAddress ?? null);
+        $buttonConfig->setInitialAddress($formattedAddress);
         $buttonConfig->setInitialEmail($shippingAddress->getEmail() ?? $billingAddress->getEmail() ?? $customer->getEmail() ?? null);
         $buttonConfig->setInitialPhone($shippingAddress->getTelephone() ?? $billingAddress->getTelephone() ?? null);
         $buttonConfig->setInitialFirstName($shippingAddress->getFirstname() ?? $billingAddress->getFirstname() ?? $customer->getFirstname() ?? null);
         $buttonConfig->setInitialLastName($shippingAddress->getLastname() ?? $billingAddress->getLastname() ?? $customer->getLastname() ?? null);
+        $buttonConfig->setAddressRequired(false);
         $buttonConfig->setEnablePrePayTrigger(true);
-        $buttonConfig->setEnablePreCheckoutTrigger(false);
+        $buttonConfig->setEnablePreCheckoutTrigger($this->config->isPreCheckoutTriggerEnabled());
+        $buttonConfig->setShowDiscountRibbon(false);
     }
 
 
@@ -154,5 +251,13 @@ class GetCartButtonConfig extends GetConfig
         }
 
         return $limitedRegionCodes;
+    }
+
+    /**
+     * @return CartInterface
+     */
+    public function getQuote()
+    {
+        return $this->amwalQuote;
     }
 }

@@ -19,7 +19,6 @@ interface AmwalButtonConfigInterface
     public const SHOW_PAYMENT_BRANDS = 'show_payment_brands';
     public const ENABLE_PRE_CHECKOUT_TRIGGER = 'enable_pre_checkout_trigger';
     public const ENABLE_PRE_PAY_TRIGGER = 'enable_pre_pay_trigger';
-    public const ID = 'id';
     public const TEST_ENVIRONMENT = 'test_environment';
     public const ALLOWED_ADDRESS_COUNTRIES = 'allowed_address_countries';
     public const POSTCODE_OPTIONAL_COUNTRIES = 'postcode_optional_countries';
@@ -31,10 +30,12 @@ interface AmwalButtonConfigInterface
     public const INITIAL_PHONE = 'initial_phone';
     public const PLUGIN_VERSION = 'plugin_version';
     public const CART_ID = 'cart_id';
-
     public const INITIAL_FIRST_NAME = 'initial_first_name';
-
     public const INITIAL_LAST_NAME = 'initial_last_name';
+    public const SHOW_DISCOUNT_RIBBON = 'show_discount_ribbon';
+    public const DISCOUNT = 'discount';
+    public const TAX = 'tax';
+    public const FEES = 'fees';
 
     /**
      * @return string
@@ -180,17 +181,6 @@ interface AmwalButtonConfigInterface
     public function setEnablePrePayTrigger(bool $enablePrePayTrigger): AmwalButtonConfigInterface;
 
     /**
-     * @return string
-     */
-    public function getId(): string;
-
-    /**
-     * @param string $id
-     * @return AmwalButtonConfigInterface
-     */
-    public function setId(string $id): AmwalButtonConfigInterface;
-
-    /**
      * @return string|null
      */
     public function getTestEnvironment(): ?string;
@@ -207,29 +197,29 @@ interface AmwalButtonConfigInterface
     public function getAllowedAddressCountries(): ?array;
 
     /**
-     * @param array|null $allowedAddressCities
+     * @param array|null $allowedAddressCountries
      * @return AmwalButtonConfigInterface
      */
     public function setAllowedAddressCountries(?array $allowedAddressCountries): AmwalButtonConfigInterface;
 
     /**
-     * @return array|null
+     * @return string|null
      */
     public function getAllowedAddressStates(): ?string;
 
     /**
-     * @param array|null $allowedAddressStates
+     * @param string|null $allowedAddressStates
      * @return AmwalButtonConfigInterface
      */
     public function setAllowedAddressStates(?string $allowedAddressStates): AmwalButtonConfigInterface;
 
     /**
-     * @return array|null
+     * @return string|null
      */
     public function getAllowedAddressCities(): ?string;
 
     /**
-     * @param array|null $allowedAddressCities
+     * @param string|null $allowedAddressCities
      * @return AmwalButtonConfigInterface
      */
     public function setAllowedAddressCities(?string $allowedAddressCities): AmwalButtonConfigInterface;
@@ -273,7 +263,7 @@ interface AmwalButtonConfigInterface
     public function getPluginVersion(): ?string;
 
     /**
-     * @param string|null $initialPhone
+     * @param string|null $pluginVersion
      * @return AmwalButtonConfigInterface
      */
     public function setPluginVersion(?string $pluginVersion): AmwalButtonConfigInterface;
@@ -335,4 +325,48 @@ interface AmwalButtonConfigInterface
      */
     public function setCartId(?string $cartId): AmwalButtonConfigInterface;
 
+    /**
+     * @return bool
+     */
+    public function getShowDiscountRibbon(): bool;
+
+    /**
+     * @param bool $showDiscountRibbon
+     * @return AmwalButtonConfigInterface
+     */
+    public function setShowDiscountRibbon(bool $showDiscountRibbon): AmwalButtonConfigInterface;
+
+    /**
+     * @return float
+     */
+    public function getDiscount(): float;
+
+
+    /**
+     * @param float $discount
+     * @return AmwalButtonConfigInterface
+     */
+    public function setDiscount(float $discount): AmwalButtonConfigInterface;
+
+    /**
+     * @return float
+     */
+    public function getTax(): float;
+
+    /**
+     * @param float $tax
+     * @return AmwalButtonConfigInterface
+     */
+    public function setTax(float $tax): AmwalButtonConfigInterface;
+
+    /**
+     * @return float
+     */
+    public function getFees(): float;
+
+    /**
+     * @param float $fees
+     * @return AmwalButtonConfigInterface
+     */
+    public function setFees(float $fees): AmwalButtonConfigInterface;
 }

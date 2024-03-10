@@ -28,6 +28,12 @@ function ($, Component, $t) {
             self.getLocale = function () {
                 return document.documentElement.lang;
             }
+            self.getScopeCode = function () {
+                return window.checkoutConfig.storeCode;
+            }
+            self.getButtonId = function () {
+                return "amwal-checkout-" + Math.random().toString(36).substring(8);
+            }
             const applePayObserver = new MutationObserver((mutations) => {
                 applePayObserver.disconnect();
                 mutations.forEach((mutation) => {
@@ -80,6 +86,8 @@ function ($, Component, $t) {
 
             self.amwalButtonContainer = document.getElementById(self.amwalButtonId);
             self.amwalButtonContainer.setAttribute('data-locale', self.getLocale());
+            self.amwalButtonContainer.setAttribute('data-scope-code', self.getScopeCode());
+            self.amwalButtonContainer.setAttribute('data-button-id', self.getButtonId());
             if (window.renderReactElement) {
                 window.renderReactElement(self.amwalButtonContainer);
             }
