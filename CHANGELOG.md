@@ -1,4 +1,4 @@
-# [1.0.33] (2024-03-6)
+# [1.0.33] (2024-03-10)
 ### Features
 - [#240](https://github.com/amwal-tech/amwal-magento/pull/240) - Add Github Actions for CI/CD
 - [#241](https://github.com/amwal-tech/amwal-magento/pull/241) - Add Pay Order & OrderUpdate return exception and report to sentry
@@ -27,6 +27,7 @@
 - [#288](https://github.com/amwal-tech/amwal-magento/pull/288) - Add return preCheckoutCartId in preCheckoutTask
 - [#289](https://github.com/amwal-tech/amwal-magento/pull/289) - Add debug option to react button
 - [#293](https://github.com/amwal-tech/amwal-magento/pull/293) - Add upgrade version 0.0.53-alpha-7
+- [#298](https://github.com/amwal-tech/amwal-magento/pull/298) - Add shared quote for the cart endpoint
 
 ### Bug Fixes
 - [#245](https://github.com/amwal-tech/amwal-magento/pull/245) - Fix the Undefined "HTTP_HOST" in the cli runtime
