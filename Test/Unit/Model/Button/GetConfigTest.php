@@ -11,7 +11,6 @@ use Magento\Quote\Model\Quote;
 use Magento\Customer\Model\Session;
 use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Amwal\Payments\Model\Config;
-use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
@@ -123,7 +122,6 @@ class GetConfigTest extends TestCase
     {
         $mockButtonConfigFactory = $this->createMock(AmwalButtonConfigFactory::class);
         $mockConfig = $this->createMock(Config::class);
-        $mockViewModel = $this->createMock(ExpressCheckoutButton::class);
         $mockStoreManager = $this->createMock(StoreManagerInterface::class);
         $mockCustomerSessionFactory = $this->createMock(CustomerSessionFactory::class);
         $mockCheckoutSessionFactory = $this->createMock(CheckoutSessionFactory::class);
@@ -140,7 +138,6 @@ class GetConfigTest extends TestCase
         $this->getConfig = new GetConfig(
             $mockButtonConfigFactory,
             $mockConfig,
-            $mockViewModel,
             $mockStoreManager,
             $mockCustomerSessionFactory,
             $mockCheckoutSessionFactory,
