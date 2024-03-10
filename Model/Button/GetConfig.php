@@ -24,7 +24,6 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 
@@ -32,7 +31,6 @@ class GetConfig
 {
     protected AmwalButtonConfigFactory $buttonConfigFactory;
     protected Config $config;
-    protected ExpressCheckoutButton $viewModel;
     protected StoreManagerInterface $storeManager;
     protected CustomerSessionFactory $customerSessionFactory;
     protected CheckoutSessionFactory $checkoutSessionFactory;
@@ -49,7 +47,6 @@ class GetConfig
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
      * @param Config $config
-     * @param ExpressCheckoutButton $viewModel
      * @param StoreManagerInterface $storeManager
      * @param CustomerSessionFactory $customerSessionFactory
      * @param CheckoutSessionFactory $checkoutSessionFactory
@@ -65,7 +62,6 @@ class GetConfig
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
         Config $config,
-        ExpressCheckoutButton $viewModel,
         StoreManagerInterface $storeManager,
         CustomerSessionFactory $customerSessionFactory,
         CheckoutSessionFactory $checkoutSessionFactory,
@@ -80,7 +76,6 @@ class GetConfig
     ) {
         $this->buttonConfigFactory = $buttonConfigFactory;
         $this->config = $config;
-        $this->viewModel = $viewModel;
         $this->storeManager = $storeManager;
         $this->customerSessionFactory = $customerSessionFactory;
         $this->checkoutSessionFactory = $checkoutSessionFactory;
