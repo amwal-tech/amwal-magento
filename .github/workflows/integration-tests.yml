@@ -31,7 +31,8 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           ce_version: 2.4.6
           composer_version: 2
-          magento_post_install_script: 'Test/Integration/config/post-install-config.sh'
+          phpunit_file: '.github/workflows/config/phpunit_rest.xml'
+#          magento_post_install_script: 'Test/Integration/config/post-install-config.sh'
 
 #  mage245:
 #    name: Integration Tests (Magento 2.4.5)

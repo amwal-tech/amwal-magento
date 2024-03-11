@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Amwal\Payments\Test\ApiFunctional\Model\Button;
+namespace Amwal\Payments\Test\Api\Model\Button;
 
 use Magento\TestFramework\TestCase\WebapiAbstract;
 use Magento\TestFramework\Helper\Bootstrap;

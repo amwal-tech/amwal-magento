@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Amwal\Payments\Test\ApiFunctional\Model\Checkout;
+namespace Amwal\Payments\Test\Api\Model\Checkout;
 
 use Magento\Quote\Model\Quote;
 use Magento\TestFramework\TestCase\WebapiAbstract;
