@@ -31,7 +31,7 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           ce_version: 2.4.5
           composer_version: 2
-          phpunit_file: '.github/workflows/config/phpunit_rest.xml'
+#          phpunit_file: '.github/workflows/config/phpunit_rest.xml'
           magento_post_install_script: '.github/workflows/config/post-install-config.sh'
 
 #  mage245:

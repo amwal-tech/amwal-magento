@@ -4,15 +4,23 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Test\Api\Model\Button;
 
-use Magento\TestFramework\TestCase\WebapiAbstract;
+use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
+use Amwal\Payments\Api\Data\RefIdDataInterface;
+use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
+use Amwal\Payments\Model\Button\GetCartButtonConfig;
+use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Quote\Api\Data\CartItemInterfaceFactory;
+use Magento\Quote\Api\GuestCartItemRepositoryInterface;
+use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\TestCase;
 
-class CartTest extends WebapiAbstract
+class CartTest extends TestCase
 {
     private const SERVICE_VERSION = 'V1';
     private const SERVICE_NAME = 'Amwal';
@@ -44,15 +52,40 @@ class CartTest extends WebapiAbstract
     protected $objectManager;
 
     /**
-     * @var ProductResource|mixed
+     * @var ProductResource|null
      */
-    private mixed $productResource;
+    private ?ProductResource $productResource = null;
+
+    /**
+     * @var GuestCartManagementInterface|null
+     */
+    private ?GuestCartManagementInterface $guestCartManagement = null;
+
+    /**
+     * @var CartItemInterfaceFactory|null
+     */
+    private ?CartItemInterfaceFactory $cartItemFactory = null;
+
+    /**
+     * @var GuestCartItemRepositoryInterface|null
+     */
+    private ?GuestCartItemRepositoryInterface $guestCartItemRepository = null;
+
+    /**
+     * @var GetCartButtonConfig|null
+     */
+    private ?GetCartButtonConfig $getCartButtonConfig = null;
 
 
     protected function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $this->productResource = $this->objectManager->get(ProductResource::class);
+        $this->guestCartManagement = $this->objectManager->get(GuestCartManagementInterface::class);
+        $this->cartItemFactory = $this->objectManager->get(CartItemInterfaceFactory::class);
+        $this->guestCartItemRepository = $this->objectManager->get(GuestCartItemRepositoryInterface::class);
+        $this->getCartButtonConfig = $this->objectManager->get(GetCartButtonConfig::class);
+        $this->refIdDataFactory = $this->objectManager->get(RefIdDataInterfaceFactory::class);
     }
 
     /**
@@ -62,8 +95,6 @@ class CartTest extends WebapiAbstract
      */
     public function testGetCartButtonConfig()
     {
-        $this->_markTestAsRestOnly();
-
         $productId = $this->productResource->getIdBySku('simple_with_custom_options');
         $product = $this->objectManager->create(Product::class)->load($productId);
         $customOptionCollection = $this->objectManager->get(Option::class)
@@ -78,48 +109,26 @@ class CartTest extends WebapiAbstract
             ];
         }
 
-        // Creating empty cart
-        $serviceInfoForCreatingEmptyCart = [
-            'rest' => [
-                'resourcePath' => '/V1/guest-carts/',
-                'httpMethod' => Request::HTTP_METHOD_POST,
-            ],
-            'soap' => [
-                'service' => 'quoteGuestCartManagementV1',
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => 'quoteGuestCartManagementV1CreateEmptyCart',
-            ],
-        ];
-        $cartId = $this->_webApiCall($serviceInfoForCreatingEmptyCart);
+        /** /V1/guest-cart */
+        $cartId = $this->guestCartManagement->createEmptyCart();
         $this->assertNotEmpty($cartId);
 
-        // Adding item to the cart
-        $serviceInfoForAddingProduct = [
-            'rest' => [
-                'resourcePath' => '/V1/guest-carts/' . $cartId . '/items',
-                'httpMethod' => Request::HTTP_METHOD_POST,
-            ],
-            'soap' => [
-                'service' => 'quoteGuestCartItemRepositoryV1',
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => 'quoteGuestCartItemRepositoryV1Save',
-            ],
-        ];
+        /** @var CartItemInterface $cartItem */
+        $cartItem = $this->cartItemFactory->create();
+        $cartItem->addData([
+            CartItemInterface::KEY_QUOTE_ID => $cartId,
+            CartItemInterface::KEY_SKU => 'amwal_simple',
+            CartItemInterface::KEY_QTY => 1
+        ]);
 
-        $requestData = [
-            'cartItem' => [
-                'quote_id' => $cartId,
-                'sku' => 'amwal_simple',
-                'qty' => 1
-            ]
-        ];
-        $item = $this->_webApiCall($serviceInfoForAddingProduct, $requestData);
+        /** /V1/guest-carts/:cartId/items */
+        $item = $this->guestCartItemRepository->save($cartItem);
         $this->assertNotEmpty($item);
 
 
         /** @var Quote $quote */
         $quote = $this->objectManager->create(Quote::class);
-        $quote->load($item['quote_id']);
+        $quote->load($cartId);
 
         $this->assertNotEmpty($quote->getId());
 
@@ -134,19 +143,25 @@ class CartTest extends WebapiAbstract
                 'operation' => self::SERVICE_NAME . 'GetCartButtonConfig',
             ],
         ];
-        $requestData = [
-            'refIdData' => [
-                'identifier' => '100',
-                'customer_id' => '0',
-                'timestamp' => '1707916143'
-            ],
-            'triggerContext' => 'product-detail-page',
-            'locale' => 'en',
-            'cart_id' => $cartId,
-        ];
 
-        $response = $this->_webApiCall($serviceInfoForGetCartButtonConfig, $requestData);
-        $this->assertIsArray($response);
+        /** @var RefIdDataInterface $refIdData */
+        $refIdData = $this->refIdDataFactory->create();
+        $refIdData->setData([
+            RefIdDataInterface::IDENTIFIER => '100',
+            RefIdDataInterface::CUSTOMER_ID => '0',
+            RefIdDataInterface::TIMESTAMP => '1707916143'
+        ]);
+
+        /** /V1/amwal/button/cart */
+        $response = $this->getCartButtonConfig->execute(
+            $refIdData,
+            'product-detail-page',
+            $cartId
+        );
+
+        $this->assertTrue(is_a($response, AmwalButtonConfigInterface::class));
+
+        $response = $response->toArray();
 
         // Perform assertions
         foreach (self::EXPECTED_KEYS as $key) {
@@ -154,8 +169,8 @@ class CartTest extends WebapiAbstract
         }
 
         // Validate specific values if needed
-        $this->assertTrue(is_string($response['merchant_id']));
-        $this->assertTrue(is_numeric($response['amount']));
+        $this->assertIsString($response['merchant_id']);
+        $this->assertIsNumeric($response['amount']);
         $this->assertGreaterThan(0, $response['amount']);
 
         $tempData = [
