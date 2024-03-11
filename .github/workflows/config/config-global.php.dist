@@ -21,4 +21,5 @@ return [
     'payment/amwal_payments/use_base_currency' => 0,
     'payment/amwal_payments/use_system_country_settings' => 1,
     'payment/amwal_payments/merchant_id' => 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47',
+    'payment/amwal_payments/merchant_mode' => 'test',
 ];

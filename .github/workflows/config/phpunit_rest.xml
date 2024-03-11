@@ -11,7 +11,8 @@
     <!-- Test suites definition -->
     <testsuites>
         <testsuite name="Amwal REST web API functional tests real suite">
-            <directory>../../../vendor/amwal/payments/Test/Api</directory>
+            <!-- <directory>../../../vendor/amwal/payments/Test/Api</directory> -->
+            <file>../../../vendor/magento/magento2-base/dev/tests/api-functional/testsuite/Magento/Quote/Api/GuestCartRepositoryTest.php</file>
         </testsuite>
     </testsuites>
 
