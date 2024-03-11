@@ -2,6 +2,6 @@
 
 cd $MAGENTO_ROOT
 
-echo "Copy global configuration"
-
-cp vendor/amwal/payments/.github/workflows/config/config-global.php.dist
+echo "Running DI compilation"
+php bin/magento setup:di:compile --quite
+echo "Finished DI compilation"
