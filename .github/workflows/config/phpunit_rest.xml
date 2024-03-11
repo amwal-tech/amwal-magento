@@ -6,14 +6,14 @@
          beStrictAboutTestsThatDoNotTestAnything="false"
          bootstrap="/tmp/m2/dev/tests/api-functional/framework/bootstrap.php"
          testSuiteLoaderClass="Magento\TestFramework\ApiSuiteLoader"
-         testSuiteLoaderFile="framework/Magento/TestFramework/ApiSuiteLoader.php"
+         testSuiteLoaderFile="/tmp/m2/dev/tests/api-functional/framework/Magento/TestFramework/ApiSuiteLoader.php"
 >
     <!-- Test suites definition -->
     <testsuites>
         <testsuite name="Magento REST web API functional tests">
             <file>/tmp/m2/dev/tests/api-functional/testsuite/Magento/WebApiTest.php</file>
         </testsuite>
-        <testsuite name="Magento REST web API functional tests real suite">
+        <testsuite name="Amwal REST web API functional tests real suite">
             <directory>/tmp/m2/vendor/amwal/payments/Test/Api</directory>
         </testsuite>
     </testsuites>
@@ -21,10 +21,10 @@
     <!-- PHP INI settings and constants definition -->
     <php>
         <includePath>/tmp/m2/dev/tests/api-functional/testsuite</includePath>
-        <const name="TESTS_INSTALL_CONFIG_FILE" value="/tmp/m2/vendor/amwal/payments/.github/workflows/config/install-config-mysql.php"/>
+        <const name="TESTS_INSTALL_CONFIG_FILE" value="./install-config-mysql.php"/>
         <!-- Local XML post installation configuration file ('.dist' extension will be added, if the specified file doesn't exist) -->
-        <const name="TESTS_POST_INSTALL_SETUP_COMMAND_CONFIG_FILE" value="/tmp/m2/vendor/amwal/payments/.github/workflows/config/post-install-setup-command-config.php"/>
-        <const name="TESTS_GLOBAL_CONFIG_FILE" value="/tmp/m2/vendor/amwal/payments/.github/workflows/config/config-global.php"/>
+        <const name="TESTS_POST_INSTALL_SETUP_COMMAND_CONFIG_FILE" value="./post-install-setup-command-config.php"/>
+        <const name="TESTS_GLOBAL_CONFIG_FILE" value="./config-global.php"/>
         <!-- WebSerivice Type -->
         <const name="TESTS_WEB_API_ADAPTER" value="rest"/>
         <!-- Webserver URL -->
