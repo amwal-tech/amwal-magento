@@ -14,13 +14,10 @@ php bin/magento config:set catalog/search/elasticsearch7_server_hostname es
 php bin/magento config:set catalog/search/elasticsearch7_server_port 9200
 php bin/magento config:set catalog/search/elasticsearch7_server_timeout 60
 php bin/magento config:set payment/amwal_payments/active 1
-php bin/magento config:set payment/amwal_payments/country_code SA
 php bin/magento config:set payment/amwal_payments/dark_mode 0
 php bin/magento config:set payment/amwal_payments/order_confirmed_status "processing"
 php bin/magento config:set payment/amwal_payments/allowspecific 0
 php bin/magento config:set payment/amwal_payments/debug_mode 0
-php bin/magento config:set payment/amwal_payments/express_checkout_title "Buy now with Amwal"
-php bin/magento config:set payment/amwal_payments/hide_proceed_to_checkout 1
 php bin/magento config:set payment/amwal_payments/merchant_id_valid 1
 php bin/magento config:set payment/amwal_payments/create_user_on_order 1
 php bin/magento config:set payment/amwal_payments/use_base_currency 0
