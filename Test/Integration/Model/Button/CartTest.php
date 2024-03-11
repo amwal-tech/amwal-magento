@@ -76,7 +76,14 @@ class CartTest extends TestCase
      */
     private ?GetCartButtonConfig $getCartButtonConfig = null;
 
+    /**
+     * @var RefIdDataInterfaceFactory|null
+     */
+    private ?RefIdDataInterfaceFactory $refIdDataFactory = null;
 
+    /**
+     * @return void
+     */
     protected function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
