@@ -41,6 +41,8 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
     protected Random $random;
 
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
+    public const AMWAL_CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout';
+
 
     /**
      * @param Context $context
@@ -122,6 +124,16 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
     public function getUniqueId(int $length = 8): string
     {
         return self::CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString($length);
+    }
+
+    /**
+     * @param int $length
+     * @return string
+     * @throws LocalizedException
+     */
+    public function getCheckoutButtonId(int $length = 8): string
+    {
+        return self::AMWAL_CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString($length);
     }
 
     /**

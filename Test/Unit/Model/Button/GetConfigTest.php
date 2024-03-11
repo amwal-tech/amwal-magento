@@ -11,7 +11,6 @@ use Magento\Quote\Model\Quote;
 use Magento\Customer\Model\Session;
 use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Amwal\Payments\Model\Config;
-use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
 use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
@@ -61,7 +60,6 @@ class GetConfigTest extends TestCase
     private const REF_ID = 'ad271ffbaf46814a3cd671ac1e26b855a0bf049ee6513d744fe98a45a8dde77b';
     private const SHOW_PAYMENT_BRANDS = true;
     private const DISABLED = false;
-    private const ID = 'amwal-checkout';
     private const ALLOWED_ADDRESS_COUNTRIES = ['SA'];
     private const ALLOWED_ADDRESS_CITIES = ['SA' => ['1110' => ['Riyadh'], '1111' => ['Dammam']]];
     private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
@@ -93,7 +91,6 @@ class GetConfigTest extends TestCase
         'refId' => self::REF_ID,
         'showPaymentBrands' => self::SHOW_PAYMENT_BRANDS,
         'disabled' => self::DISABLED,
-        'id' => self::ID,
         'allowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
         'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
         'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
@@ -116,7 +113,6 @@ class GetConfigTest extends TestCase
     {
         $mockButtonConfigFactory = $this->createMock(AmwalButtonConfigFactory::class);
         $mockConfig = $this->createMock(Config::class);
-        $mockViewModel = $this->createMock(ExpressCheckoutButton::class);
         $mockStoreManager = $this->createMock(StoreManagerInterface::class);
         $mockCustomerSessionFactory = $this->createMock(CustomerSessionFactory::class);
         $mockCheckoutSessionFactory = $this->createMock(CheckoutSessionFactory::class);
@@ -133,7 +129,6 @@ class GetConfigTest extends TestCase
         $this->getConfig = new GetConfig(
             $mockButtonConfigFactory,
             $mockConfig,
-            $mockViewModel,
             $mockStoreManager,
             $mockCustomerSessionFactory,
             $mockCheckoutSessionFactory,
@@ -181,7 +176,6 @@ class GetConfigTest extends TestCase
         $this->assertEquals(self::REF_ID, $this->buttonConfigMock->getRefId());
         $this->assertTrue($this->buttonConfigMock->getShowPaymentBrands());
         $this->assertFalse($this->buttonConfigMock->getDisabled());
-        $this->assertEquals(self::ID, $this->buttonConfigMock->getId());
         $this->assertEquals(self::ALLOWED_ADDRESS_COUNTRIES, $this->buttonConfigMock->getAllowedAddressCountries());
         $this->assertTrue($this->buttonConfigMock->getEnablePreCheckoutTrigger());
         $this->assertEquals('off', $this->buttonConfigMock->getDarkMode());

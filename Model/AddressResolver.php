@@ -94,60 +94,57 @@ class AddressResolver
 
     /**
      * @param DataObject $amwalOrderData
-     * @param bool $isGuest
+     * @param null|string $customerId
      * @return AddressInterface
      * @throws LocalizedException
      * @throws RuntimeException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function execute(DataObject $amwalOrderData, bool $isGuest): AddressInterface
+    public function execute(DataObject $amwalOrderData, ?string $customerId = null): AddressInterface
     {
         $address = null;
+        if ($customerId) {
+            /** @var AmwalAddressInterface $amwalAddress */
+            $amwalAddress = $amwalOrderData->getAddressDetails();
 
-        if ($isGuest) {
-            return $this->createAddress($amwalOrderData, $isGuest);
-        }
-
-        /** @var AmwalAddressInterface $amwalAddress */
-        $amwalAddress = $amwalOrderData->getAddressDetails();
-
-        if ($amwalAddressId = $amwalAddress->getId()) {
-            $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-                $this->amwalAddressId->getAttributeCode(),
-                $amwalAddressId
-            )->addFilter(
-                'parent_id',
-                $this->getCustomerId()
-            )->create();
-            $matchedAddresses = $this->addressRepository->getList($searchCriteria)->getItems();
-            if ($matchedAddresses) {
-                $address = reset($matchedAddresses);
-                $this->updateTmpAddressData($address, $amwalOrderData);
+            if ($amwalAddressId = $amwalAddress->getId()) {
+                $searchCriteria = $this->searchCriteriaBuilder->addFilter(
+                    $this->amwalAddressId->getAttributeCode(),
+                    $amwalAddressId
+                )->addFilter(
+                    'parent_id',
+                    $customerId
+                )->create();
+                $matchedAddresses = $this->addressRepository->getList($searchCriteria)->getItems();
+                if ($matchedAddresses) {
+                    $address = reset($matchedAddresses);
+                    $this->updateTmpAddressData($address, $amwalOrderData);
+                }
             }
-        }
 
-        if (!$address) {
-            $searchCriteria = $this->searchCriteriaBuilder->addFilter(
-                'parent_id',
-                $this->getCustomerId()
-            )->create();
-            $customerAddresses = $this->addressRepository->getList($searchCriteria)->getItems();
-            foreach ($customerAddresses as $customerAddress) {
-                if ($this->isAddressMatched($customerAddress, $amwalAddress)) {
-                    if ($amwalAddressId = $amwalAddress->getId()) {
-                        $this->assignAmwalAddressIdToCustomerAddress($customerAddress, $amwalAddressId);
+            if (!$address) {
+                $searchCriteria = $this->searchCriteriaBuilder->addFilter(
+                    'parent_id',
+                    $customerId
+                )->create();
+                $customerAddresses = $this->addressRepository->getList($searchCriteria)->getItems();
+                foreach ($customerAddresses as $customerAddress) {
+                    if ($this->isAddressMatched($customerAddress, $amwalAddress)) {
+                        if ($amwalAddressId = $amwalAddress->getId()) {
+                            $this->assignAmwalAddressIdToCustomerAddress($customerAddress, $amwalAddressId);
+                        }
+                        if ($amwalOrderData->getClientPhoneNumber() !== self::TEMPORARY_DATA_VALUE) {
+                            $this->updateTmpAddressData($customerAddress, $amwalOrderData);
+                        }
+                        $address = $customerAddress;
+                        break;
                     }
-                    if ($amwalOrderData->getClientPhoneNumber() !== self::TEMPORARY_DATA_VALUE) {
-                        $this->updateTmpAddressData($customerAddress, $amwalOrderData);
-                    }
-                    $address = $customerAddress;
-                    break;
                 }
             }
         }
 
         if (!$address) {
-            $address = $this->createAddress($amwalOrderData, $isGuest);
+            $address = $this->createAddress($amwalOrderData, $customerId);
         }
 
         if (!$address) {
@@ -158,32 +155,13 @@ class AddressResolver
     }
 
     /**
-     * @return CustomerInterface|null
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    private function getCustomer(): ?CustomerInterface
-    {
-        $customerId = $this->getCustomerId();
-        return $customerId ? $this->customerRepository->getById($customerId) : null;
-    }
-
-    /**
-     * @return int|null
-     */
-    private function getCustomerId(): ?int
-    {
-        return (int) $this->customerSession->getCustomerId() ?: null;
-    }
-
-    /**
      * @param DataObject $amwalOrderData
-     * @param bool $isGuest
+     * @param null|string $customerId
      * @return AddressInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function createAddress(DataObject $amwalOrderData, bool $isGuest): AddressInterface
+    public function createAddress(DataObject $amwalOrderData, ?string $customerId): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
@@ -210,9 +188,8 @@ class AddressResolver
             $customerAddress->setCustomAttribute('city_id', $cityId);
         }
 
-        $customer = $this->getCustomer();
-        if (!$isGuest && $customer) {
-            $customerAddress->setCustomerId($customer->getId());
+        if ($customerId) {
+            $customerAddress->setCustomerId($customerId);
         }
 
         $customerAddress->setCustomAttribute(
@@ -220,7 +197,7 @@ class AddressResolver
             $amwalAddress->getId() ?? self::TEMPORARY_DATA_VALUE
         );
 
-        if (!$isGuest) {
+        if ($customerId) {
             $customerAddress = $this->addressRepository->save($customerAddress);
         }
 

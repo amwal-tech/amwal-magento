@@ -22,6 +22,7 @@ class ExpressCheckoutButton implements ArgumentInterface
     public const TRIGGER_CONTEXT_REGULAR_CHECKOUT = 'regular-checkout';
     public const AMWAL_CURRENCY = 'SAR';
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
+    public const AMWAL_CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout';
 
     /**
      * @var AmwalConfig
@@ -100,6 +101,14 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function getUniqueId(): string
     {
         return self::CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString(8);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCheckoutButtonId(): string
+    {
+        return self::AMWAL_CHECKOUT_BUTTON_ID_PREFIX . '-' . $this->random->getRandomString(8);
     }
 
     /**

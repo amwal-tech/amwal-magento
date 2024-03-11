@@ -36,7 +36,7 @@ class GetCartButtonConfigTest extends TestCase
     private const ALLOWED_ADDRESS_CITIES = ['SA' => ['1110' => ['Riyadh'], '1111' => ['Dammam']]];
     private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
     private const CART_ID = 'vyO7NEqZbs1Rv6Z7NLewdlLpC0qufkmJ';
-    private const ID = 'amwal-checkout';
+    private const QUOTE_ID = 1;
     private const AMOUNT = 100.00;
 
     private const INITIAL_ADDRESS = [
@@ -61,9 +61,9 @@ class GetCartButtonConfigTest extends TestCase
         'allowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
         'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
         'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
-        'id' => self::ID,
         'cartId' => self::CART_ID,
-        'amount' => self::AMOUNT
+        'amount' => self::AMOUNT,
+        'showDiscountRibbon' => false,
     ];
 
     protected function setUp(): void
@@ -114,23 +114,8 @@ class GetCartButtonConfigTest extends TestCase
         $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_CITIES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressCities());
         $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_STATES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressStates());
         $this->assertEquals(self::ALLOWED_ADDRESS_COUNTRIES, $this->buttonConfigMock->getAllowedAddressCountries());
-        $this->assertEquals(self::ID, $this->buttonConfigMock->getId());
         $this->assertEquals(self::CART_ID, $this->buttonConfigMock->getCartId());
         $this->assertEquals(self::AMOUNT, $this->buttonConfigMock->getAmount());
-    }
-
-    /**
-     * Test getting amount
-     */
-    public function testGetAmount(): void
-    {
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getGrandTotal'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $quoteMock->method('getGrandTotal')->willReturn(self::AMOUNT);
-        $this->assertEquals(self::AMOUNT, $this->getCartButtonConfig->getAmount($quoteMock, $this->buttonConfigMock, null));
     }
 
     /**

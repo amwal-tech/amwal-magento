@@ -29,6 +29,7 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
     protected $_template = 'Amwal_Payments::product/widget/content/grid.phtml';
 
     public const CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout-button-';
+    public const AMWAL_CHECKOUT_BUTTON_ID_PREFIX = 'amwal-checkout';
 
     /**
      * @var Config
@@ -87,6 +88,15 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
     {
         $randomInstance = ObjectManager::getInstance()->get(Random::class);
         return self::CHECKOUT_BUTTON_ID_PREFIX . '-' . $randomInstance->getRandomString($length);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCheckoutButtonId($length = 8): string
+    {
+        $randomInstance = ObjectManager::getInstance()->get(Random::class);
+        return self::AMWAL_CHECKOUT_BUTTON_ID_PREFIX . '-' . $randomInstance->getRandomString($length);
     }
 
     /**

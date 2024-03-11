@@ -7,9 +7,10 @@ export const renderReactElement = (container: Element): void => {
   const locale = container.getAttribute('data-locale')
   const scopeCode = container.getAttribute('data-scope-code')
   const productId = container.getAttribute('data-product-id')
+  const buttonId = container.getAttribute('data-button-id')
   const formSelector = container.getAttribute('data-form-selector')
   if (triggerContext) {
-    const submitAddToCart = async (): Promise<void> => {
+    const submitAddToCart = async (): Promise<string | undefined> => {
       if (!formSelector) return
       const cartForm = document.querySelector(formSelector)
       if (cartForm == null) throw new Error('Product form not found')
@@ -33,6 +34,7 @@ export const renderReactElement = (container: Element): void => {
             locale={locale ?? undefined}
             scopeCode={scopeCode ?? undefined}
             productId={productId ?? undefined}
+            buttonId={buttonId ?? undefined}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />)
   }

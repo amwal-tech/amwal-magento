@@ -19,7 +19,6 @@ interface AmwalButtonConfigInterface
     public const SHOW_PAYMENT_BRANDS = 'show_payment_brands';
     public const ENABLE_PRE_CHECKOUT_TRIGGER = 'enable_pre_checkout_trigger';
     public const ENABLE_PRE_PAY_TRIGGER = 'enable_pre_pay_trigger';
-    public const ID = 'id';
     public const TEST_ENVIRONMENT = 'test_environment';
     public const ALLOWED_ADDRESS_COUNTRIES = 'allowed_address_countries';
     public const POSTCODE_OPTIONAL_COUNTRIES = 'postcode_optional_countries';
@@ -35,6 +34,8 @@ interface AmwalButtonConfigInterface
     public const INITIAL_LAST_NAME = 'initial_last_name';
     public const SHOW_DISCOUNT_RIBBON = 'show_discount_ribbon';
     public const DISCOUNT = 'discount';
+    public const TAX = 'tax';
+    public const FEES = 'fees';
 
     /**
      * @return string
@@ -178,17 +179,6 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setEnablePrePayTrigger(bool $enablePrePayTrigger): AmwalButtonConfigInterface;
-
-    /**
-     * @return string
-     */
-    public function getId(): string;
-
-    /**
-     * @param string $id
-     * @return AmwalButtonConfigInterface
-     */
-    public function setId(string $id): AmwalButtonConfigInterface;
 
     /**
      * @return string|null
@@ -357,4 +347,26 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setDiscount(float $discount): AmwalButtonConfigInterface;
+
+    /**
+     * @return float
+     */
+    public function getTax(): float;
+
+    /**
+     * @param float $tax
+     * @return AmwalButtonConfigInterface
+     */
+    public function setTax(float $tax): AmwalButtonConfigInterface;
+
+    /**
+     * @return float
+     */
+    public function getFees(): float;
+
+    /**
+     * @param float $fees
+     * @return AmwalButtonConfigInterface
+     */
+    public function setFees(float $fees): AmwalButtonConfigInterface;
 }
