@@ -8,14 +8,12 @@ use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Model\Button\GetCartButtonConfig;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Api\Data\CartItemInterfaceFactory;
 use Magento\Quote\Api\GuestCartItemRepositoryInterface;
 use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\Framework\Webapi\Rest\Request;
-use Magento\Catalog\Model\Product;
-use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Quote\Model\Quote;
 use Magento\TestFramework\ObjectManager;
@@ -33,16 +31,6 @@ class CartTest extends TestCase
     ];
 
     public const TEST_PRODUCT_SKU = 'amwal_simple';
-
-    /**
-     * @var ObjectManager
-     */
-    protected $objectManager;
-
-    /**
-     * @var ProductResource|null
-     */
-    private ?ProductResource $productResource = null;
 
     /**
      * @var GuestCartManagementInterface|null
@@ -74,13 +62,14 @@ class CartTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->objectManager = Bootstrap::getObjectManager();
-        $this->productResource = $this->objectManager->get(ProductResource::class);
-        $this->guestCartManagement = $this->objectManager->get(GuestCartManagementInterface::class);
-        $this->cartItemFactory = $this->objectManager->get(CartItemInterfaceFactory::class);
-        $this->guestCartItemRepository = $this->objectManager->get(GuestCartItemRepositoryInterface::class);
-        $this->getCartButtonConfig = $this->objectManager->get(GetCartButtonConfig::class);
-        $this->refIdDataFactory = $this->objectManager->get(RefIdDataInterfaceFactory::class);
+        $objectManager = Bootstrap::getObjectManager();
+        $this->productResource = $objectManager->get(ProductResource::class);
+        $this->guestCartManagement = $objectManager->get(GuestCartManagementInterface::class);
+        $this->cartItemFactory = $objectManager->get(CartItemInterfaceFactory::class);
+        $this->cartRepository = $objectManager->get(CartRepositoryInterface::class);
+        $this->guestCartItemRepository = $objectManager->get(GuestCartItemRepositoryInterface::class);
+        $this->getCartButtonConfig = $objectManager->get(GetCartButtonConfig::class);
+        $this->refIdDataFactory = $objectManager->get(RefIdDataInterfaceFactory::class);
     }
 
     /**
@@ -108,10 +97,7 @@ class CartTest extends TestCase
 
 
         /** @var Quote $quote */
-        $quote = $this->objectManager->create(Quote::class);
-        $quote->load($cartId);
-
-        $this->assertNotEmpty($quote->getId());
+        $quote = $this->cartRepository->get($cartId);
 
         /** @var RefIdDataInterface $refIdData */
         $refIdData = $this->refIdDataFactory->create();
