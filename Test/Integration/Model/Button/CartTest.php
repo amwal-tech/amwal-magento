@@ -13,6 +13,7 @@ use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Api\Data\CartItemInterfaceFactory;
 use Magento\Quote\Api\GuestCartItemRepositoryInterface;
 use Magento\Quote\Api\GuestCartManagementInterface;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\TestCase;
@@ -39,6 +40,11 @@ class CartTest extends TestCase
      * @var CartItemInterfaceFactory|null
      */
     private ?CartItemInterfaceFactory $cartItemFactory = null;
+
+    /**
+     * @var MaskedQuoteIdToQuoteIdInterface|null
+     */
+    private ?MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId = null;
 
     /**
      * @var CartRepositoryInterface|null
@@ -68,6 +74,7 @@ class CartTest extends TestCase
         $objectManager = Bootstrap::getObjectManager();
         $this->guestCartManagement = $objectManager->get(GuestCartManagementInterface::class);
         $this->cartItemFactory = $objectManager->get(CartItemInterfaceFactory::class);
+        $this->maskedQuoteIdToQuoteId = $objectManager->get(MaskedQuoteIdToQuoteIdInterface::class);
         $this->cartRepository = $objectManager->get(CartRepositoryInterface::class);
         $this->guestCartItemRepository = $objectManager->get(GuestCartItemRepositoryInterface::class);
         $this->getCartButtonConfig = $objectManager->get(GetCartButtonConfig::class);
@@ -97,9 +104,9 @@ class CartTest extends TestCase
         $item = $this->guestCartItemRepository->save($cartItem);
         $this->assertNotEmpty($item);
 
-
-        /** @var Quote $quote */
-        $quote = $this->cartRepository->get($cartId);
+        $quote = $this->cartRepository->get(
+            $this->maskedQuoteIdToQuoteId->execute($cartId)
+        );
 
         /** @var RefIdDataInterface $refIdData */
         $refIdData = $this->refIdDataFactory->create();
