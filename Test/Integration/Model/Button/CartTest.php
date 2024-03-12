@@ -41,6 +41,11 @@ class CartTest extends TestCase
     private ?CartItemInterfaceFactory $cartItemFactory = null;
 
     /**
+     * @var CartRepositoryInterface|null
+     */
+    private ?CartRepositoryInterface $cartRepository = null;
+
+    /**
      * @var GuestCartItemRepositoryInterface|null
      */
     private ?GuestCartItemRepositoryInterface $guestCartItemRepository = null;
