@@ -18,25 +18,11 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Quote\Model\Quote;
+use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
 
 class CartTest extends TestCase
 {
-    private const SERVICE_VERSION = 'V1';
-    private const SERVICE_NAME = 'Amwal';
-    private const RESOURCE_PATH = '/V1/amwal/button/cart';
-    private const ADDRESS_DATA = [
-        'id' => '6e369835-451c-4071-8d86-496bd4a19eb6',
-        'street1' => '192 Nasr El Din, Haram, Giza, 12511',
-        'country' => 'SA',
-        'city' => 'Giza',
-        'state' => 'EG',
-        'postcode' => '12511',
-        'client_phone_number' => '+201033233462',
-        'client_email' => 'mardi@amwal.tech',
-        'client_first_name' => 'Ahmed',
-        'client_last_name' => 'Mardi',
-    ];
     private const EXPECTED_KEYS = [
         'merchant_id', 'amount', 'country_code', 'dark_mode', 'email_required',
         'address_required', 'address_handshake', 'ref_id', 'label', 'disabled',
@@ -46,8 +32,10 @@ class CartTest extends TestCase
         'show_discount_ribbon', 'discount'
     ];
 
+    public const TEST_PRODUCT_SKU = 'amwal_simple';
+
     /**
-     * @var \Magento\TestFramework\ObjectManager
+     * @var ObjectManager
      */
     protected $objectManager;
 
@@ -97,25 +85,11 @@ class CartTest extends TestCase
 
     /**
      * Test getCartButtonConfig
-     * @magentoApiDataFixture Amwal_Payments::Test/Api/_files/cart.php
+     * @magentoDataFixture Amwal_Payments::Test/Integration/_files/cart.php
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function testGetCartButtonConfig()
     {
-        $productId = $this->productResource->getIdBySku('simple_with_custom_options');
-        $product = $this->objectManager->create(Product::class)->load($productId);
-        $customOptionCollection = $this->objectManager->get(Option::class)
-            ->getProductOptionCollection($product);
-        $customOptions = [];
-        foreach ($customOptionCollection as $option) {
-            $customOptions [] = [
-                'option_id' => $option->getId(),
-                'option_value' => $option->getType() !== 'field'
-                    ? current($option->getValues())->getOptionTypeId()
-                    : 'test'
-            ];
-        }
-
         /** /V1/guest-cart */
         $cartId = $this->guestCartManagement->createEmptyCart();
         $this->assertNotEmpty($cartId);
@@ -124,7 +98,7 @@ class CartTest extends TestCase
         $cartItem = $this->cartItemFactory->create();
         $cartItem->addData([
             CartItemInterface::KEY_QUOTE_ID => $cartId,
-            CartItemInterface::KEY_SKU => 'amwal_simple',
+            CartItemInterface::KEY_SKU => self::TEST_PRODUCT_SKU,
             CartItemInterface::KEY_QTY => 1
         ]);
 
@@ -138,18 +112,6 @@ class CartTest extends TestCase
         $quote->load($cartId);
 
         $this->assertNotEmpty($quote->getId());
-
-        $serviceInfoForGetCartButtonConfig = [
-            'rest' => [
-                'resourcePath' => self::RESOURCE_PATH,
-                'httpMethod' => Request::HTTP_METHOD_POST,
-            ],
-            'soap' => [
-                'service' => self::SERVICE_NAME,
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => self::SERVICE_NAME . 'GetCartButtonConfig',
-            ],
-        ];
 
         /** @var RefIdDataInterface $refIdData */
         $refIdData = $this->refIdDataFactory->create();
@@ -185,6 +147,7 @@ class CartTest extends TestCase
             'refId' => $response['ref_id'],
             'orderId' => $quote->getEntityId(),
         ];
+
         file_put_contents(__DIR__ . '../../../_files/GetCartData.php', "<?php\n\nreturn " . var_export($tempData, true) . ";\n");
     }
 }

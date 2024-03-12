@@ -1,20 +1,27 @@
 <?php
 declare(strict_types=1);
 
-/** @var $product \Magento\Catalog\Model\Product */
-$product = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(\Magento\Catalog\Model\Product::class);
+/** @var $product Product */
+
+use Amwal\Payments\Test\Api\Model\Button\CartTest;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magento\Catalog\Model\Product\Visibility;
+use Magento\TestFramework\Helper\Bootstrap;
+
+$product = Bootstrap::getObjectManager()->create(Product::class);
 $product->setTypeId('simple')
     ->setId(1)
     ->setAttributeSetId(4)
     ->setWebsiteIds([1])
     ->setName('Amwal simple product')
-    ->setSku('amwal_simple')
+    ->setSku(CartTest::TEST_PRODUCT_SKU)
     ->setPrice(10)
     ->setMetaTitle('amwal simple product')
     ->setMetaKeyword('amwal simple product')
     ->setMetaDescription('amwal simple product')
-    ->setVisibility(\Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH)
-    ->setStatus(\Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED)
+    ->setVisibility(Visibility::VISIBILITY_BOTH)
+    ->setStatus(Status::STATUS_ENABLED)
     ->setQty(100)
     ->setStockData(
         [
