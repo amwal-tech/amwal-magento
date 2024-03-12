@@ -15,7 +15,6 @@ use Magento\Quote\Api\GuestCartItemRepositoryInterface;
 use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\TestCase;
 
 class CartTest extends TestCase
@@ -25,7 +24,7 @@ class CartTest extends TestCase
         'address_required', 'address_handshake', 'ref_id', 'label', 'disabled',
         'show_payment_brands', 'enable_pre_checkout_trigger', 'enable_pre_pay_trigger',
         'id', 'test_environment', 'allowed_address_countries', 'allowed_address_states',
-        'plugin_version', 'post_code_optional_countries', 'installment_options_url',
+        'plugin_version', 'postcode_optional_countries', 'installment_options_url',
         'show_discount_ribbon', 'discount'
     ];
 
