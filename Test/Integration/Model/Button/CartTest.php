@@ -14,9 +14,7 @@ use Magento\Quote\Api\Data\CartItemInterfaceFactory;
 use Magento\Quote\Api\GuestCartItemRepositoryInterface;
 use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Quote\Model\Quote;
-use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
 
 class CartTest extends TestCase
@@ -63,7 +61,6 @@ class CartTest extends TestCase
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
-        $this->productResource = $objectManager->get(ProductResource::class);
         $this->guestCartManagement = $objectManager->get(GuestCartManagementInterface::class);
         $this->cartItemFactory = $objectManager->get(CartItemInterfaceFactory::class);
         $this->cartRepository = $objectManager->get(CartRepositoryInterface::class);
