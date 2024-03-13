@@ -71,36 +71,6 @@ class IntegrationTestBase extends TestCase
     private ?RefIdDataInterfaceFactory $refIdDataFactory = null;
 
     /**
-     * @var string|null
-     */
-    private ?string $guestCartMaskedId = null;
-
-    /**
-     * @var int|null
-     */
-    private ?int $guestCartId = null;
-
-    /**
-     * @var AmwalButtonConfigInterface|null
-     */
-    private ?AmwalButtonConfigInterface $cartButtonConfig = null;
-
-    /**
-     * @var array|null
-     */
-    private ?array $quoteResponse = null;
-
-    /**
-     * @var array|null
-     */
-    private ?array $amwalTransactionData = null;
-
-    /**
-     * @var OrderInterface|null
-     */
-    private ?OrderInterface $orderResponse = null;
-
-    /**
      * @return void
      */
     protected function setUp(): void
@@ -115,54 +85,13 @@ class IntegrationTestBase extends TestCase
     }
 
     /**
-     * @return CartInterface
-     * @throws NoSuchEntityException
-     * @throws CouldNotSaveException
-     */
-    protected function getGuestQuote(): CartInterface
-    {
-        return $this->cartRepository->get(
-            $this->getGuestCartId()
-        );
-    }
-
-    /**
      * @return string
      * @throws CouldNotSaveException
      */
     protected function createGuestCart(): string
     {
         /** POST /V1/guest-cart */
-        $this->guestCartMaskedId = $this->guestCartManagement->createEmptyCart();
-        return $this->guestCartMaskedId;
-    }
-
-    /**
-     * @return string
-     * @throws CouldNotSaveException
-     */
-    protected function getMaskedGuestCartId(): string
-    {
-        if (!$this->guestCartMaskedId) {
-            return $this->createGuestCart();
-        }
-
-        return $this->guestCartMaskedId;
-    }
-
-    /**
-     * @return int
-     * @throws CouldNotSaveException
-     * @throws NoSuchEntityException
-     */
-    protected function getGuestCartId(): int
-    {
-        if (!$this->guestCartId) {
-            $maskedId = $this->getMaskedGuestCartId();
-            $this->guestCartId = $this->maskedQuoteIdToQuoteId->execute($maskedId);
-        }
-
-        return $this->guestCartId;
+        return $this->guestCartManagement->createEmptyCart();
     }
 
     /**
@@ -221,77 +150,5 @@ class IntegrationTestBase extends TestCase
         $result = curl_exec($ch);
         curl_close($ch);
         return json_decode($result, true);
-    }
-
-    /**
-     * @return AmwalButtonConfigInterface|null
-     */
-    protected function getCartButtonConfigResponse(): ?AmwalButtonConfigInterface
-    {
-        return $this->cartButtonConfig;
-    }
-
-    /**
-     * @param AmwalButtonConfigInterface $cartButtonConfig
-     *
-     * @return void
-     */
-    protected function setCartButtonConfigResponse(AmwalButtonConfigInterface $cartButtonConfig): void
-    {
-        $this->cartButtonConfig = $cartButtonConfig;
-    }
-
-    /**
-     * @return array|null
-     */
-    protected function getQuoteResponse(): ?array
-    {
-        return $this->quoteResponse;
-    }
-
-    /**
-     * @param array $quoteResponse
-     *
-     * @return void
-     */
-    protected function setQuoteResponse(array $quoteResponse): void
-    {
-        $this->quoteResponse = $quoteResponse;
-    }
-
-    /**
-     * @return array|null
-     */
-    protected function getAmwalTransactionData(): ?array
-    {
-        return $this->amwalTransactionData;
-    }
-
-    /**
-     * @param array $amwalTransactionData
-     *
-     * @return void
-     */
-    protected function setAmwalTransactionData(array $amwalTransactionData): void
-    {
-        $this->amwalTransactionData = $amwalTransactionData;
-    }
-
-    /**
-     * @return OrderInterface|null
-     */
-    protected function getOrderResponse(): ?array
-    {
-        return $this->orderResponse;
-    }
-
-    /**
-     * @param OrderInterface $orderResponse
-     *
-     * @return void
-     */
-    protected function setOrderResponse(OrderInterface $orderResponse): void
-    {
-        $this->orderResponse = $orderResponse;
     }
 }
