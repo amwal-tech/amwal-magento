@@ -6,12 +6,14 @@ namespace Amwal\Payments\Test\Integration;
 
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
+use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Quote\Api\Data\CartItemInterfaceFactory;
 use Magento\Quote\Api\GuestCartItemRepositoryInterface;
 use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
@@ -20,6 +22,9 @@ use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class IntegrationTestBase extends TestCase
 {
     public const MOCK_PRODUCT_SKU = 'amwal_simple';
