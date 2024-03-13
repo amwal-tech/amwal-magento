@@ -42,6 +42,8 @@ class CheckoutFlowTest extends IntegrationTestBase
         'discount_amount', 'additional_fee_amount', 'additional_fee_description'
     ];
 
+    private const MOCK_TRANSACTION_ID = '9d49e3df-1e92-4e35-84d8-eee9603211f5';
+
     /**
      * @var GetCartButtonConfig|null
      */
@@ -78,13 +80,13 @@ class CheckoutFlowTest extends IntegrationTestBase
      * @magentoDataFixture Amwal_Payments::Test/Integration/_files/simple_product.php
      * @covers GetCartButtonConfig::execute
      *
-     * @return AmwalButtonConfigInterface
+     * @return array
      * @throws CouldNotSaveException
      * @throws InputException
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function testGetCartButtonConfig(): AmwalButtonConfigInterface
+    public function testGetCartButtonConfig(): array
     {
         /** /V1/guest-cart */
         $cartId = $this->createGuestCart();
@@ -115,49 +117,24 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertIsNumeric($response['amount']);
         $this->assertGreaterThan(0, $response['amount']);
 
-        return $buttonConfig;
+        return [$buttonConfig, $cartId];
     }
 
     /**
-     * @coversNothing
+     * @covers  GetQuote::execute
      * @depends testGetCartButtonConfig
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      *
-     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param array $dependencies
      *
      * @return array
+     * @throws CouldNotSaveException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function testCreateAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
+    public function testGetQuote(array $dependencies): array
     {
-        $requestData = [
-            'merchantId' => $buttonConfig->getMerchantId(),
-            'amount' => $buttonConfig->getAmount(),
-            'taxes' => 0,
-            'discount' => $buttonConfig->getDiscount(),
-            'fees' => 0,
-            'client_email' => 'integration.test@amwal.tech',
-            'client_first_name' => 'Integration',
-            'client_last_name' => 'Tester',
-            'client_phone_number' => '+201234567890',
-            'order_details' => [
-                'order_position' => 'product-detail-page',
-                'plugin_version' => 'integration-test'
-            ],
-            'address_details' => [
-                'city' => 'Cairo',
-                'state' => 'Cairo',
-                'postcode' => '4472001',
-                'country' => 'EG',
-                'street1' => 'El-Thawra Street Sheraton Al Matar',
-                'street2' => '',
-                'email' => 'integration.test@amwal.tech'
-            ],
-            'refId' => $buttonConfig->getRefId(),
-            'uniqueRef' => false
-        ];
-
-        $transactionData = $this->executeCurl('https://qa-backend.sa.amwal.tech/transactions/', $requestData);
-        $this->assertNotEmpty($transactionData);
+        [$buttonConfig, $cartId] = $dependencies;
 
         $addressData = [
             'id' => 'integration-test-address-id',
@@ -170,27 +147,8 @@ class CheckoutFlowTest extends IntegrationTestBase
             'client_email' => 'integration.test@amwal.tech',
             'client_first_name' => 'Integration',
             'client_last_name' => 'Tester',
-            'orderId' => $transactionData['id'],
+            'orderId' => self::MOCK_TRANSACTION_ID,
         ];
-
-        return [$buttonConfig, $addressData, $transactionData];
-    }
-
-    /**
-     * @covers  GetQuote::execute
-     * @depends testCreateAmwalTransaction
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     *
-     * @param array $dependencies
-     *
-     * @return array
-     * @throws CouldNotSaveException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    public function testGetQuote(array $dependencies): array
-    {
-        [$buttonConfig, $addressData, $transactionData] = $dependencies;
 
         /** /V1/amwal/get-quote */
         $quoteResponse = $this->getQuote->execute(
@@ -199,7 +157,7 @@ class CheckoutFlowTest extends IntegrationTestBase
             $this->getMockRefIdData(),
             $addressData,
             false,
-            $this->getMaskedGuestCartId()
+            $cartId
         );
 
         $this->assertIsArray($quoteResponse);
@@ -216,7 +174,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertIsNumeric($quoteResponse['subtotal']);
         $this->assertGreaterThan(0, $quoteResponse['subtotal']);
 
-        return [$buttonConfig, $quoteResponse, $transactionData];
+        return [$buttonConfig, $quoteResponse, $cartId];
     }
 
     /**
@@ -225,7 +183,7 @@ class CheckoutFlowTest extends IntegrationTestBase
      */
     public function testPlaceOrder(array $dependencies): OrderInterface
     {
-        [$buttonConfig, $quoteResponse, $transactionData] = $dependencies;
+        [$buttonConfig, $quoteResponse, $cartId] = $dependencies;
 
         $requestData = [
             'shipping' => $quoteResponse['shipping_amount'],
@@ -241,7 +199,7 @@ class CheckoutFlowTest extends IntegrationTestBase
             'merchantId' => $buttonConfig['merchantId'],
         ];
         $transactionShipping = $this->executeCurl(
-            'https://qa-backend.sa.amwal.tech/transactions/' . $transactionData['id'] . '/shipping',
+            'https://qa-backend.sa.amwal.tech/transactions/' . self::MOCK_TRANSACTION_ID . '/shipping',
             $requestData
         );
 
@@ -249,10 +207,10 @@ class CheckoutFlowTest extends IntegrationTestBase
 
         /** /V1/amwal/place-order */
         $order = $this->placeOrder->execute(
-            $this->getGuestCartId(),
+            $cartId,
             $buttonConfig->getRefId(),
             $this->getMockRefIdData(),
-            $transactionData['id'],
+            self::MOCK_TRANSACTION_ID,
             'test-case',
             true
         );
