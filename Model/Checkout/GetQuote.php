@@ -453,7 +453,9 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param CartInterface $quote
      * @param array $availableRates
+     *
      * @return mixed[]
+     * @throws LocalizedException
      */
     public function getResponseData(CartInterface $quote, array $availableRates): array
     {
