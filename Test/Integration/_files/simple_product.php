@@ -39,6 +39,8 @@ try {
                 'is_in_stock'               => 1,
             ]
         );
+
+    $productRepository->save($product);
 }
 
 
