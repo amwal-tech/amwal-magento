@@ -10,9 +10,10 @@
         <testsuite name="IntegrationTests">
             <!-- Use <file> to ensure correct order for integration tests -->
             <file>../../../vendor/%COMPOSER_NAME%/Test/Integration/Model/Button/GetCartButtonConfigTest.php</file>
-            <file>../../../vendor/%COMPOSER_NAME%/Test/Integration/Model/Button/GetQuoteTest.php</file>
-            <file>../../../vendor/%COMPOSER_NAME%/Test/Integration/Model/Button/PlaceOrderTest.php</file>
-            <file>../../../vendor/%COMPOSER_NAME%/Test/Integration/Model/Button/PayOrderTest.php</file>
+            <file>../../../vendor/%COMPOSER_NAME%/Test/Integration/Checkout/GetQuoteTest.php</file>
+            <file>../../../vendor/%COMPOSER_NAME%/Test/Integration/Checkout/PlaceOrderTest.php</file>
+            <file>../../../vendor/%COMPOSER_NAME%/Test/Integration/Checkout/PayOrderTest.php</file>
+            <!-- Include remaining tests -->
             <directory suffix="Test.php">../../../vendor/%COMPOSER_NAME%/Test/Integration</directory>
         </testsuite>
     </testsuites>
