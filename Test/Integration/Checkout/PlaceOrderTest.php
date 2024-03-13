@@ -24,7 +24,6 @@ class PlaceOrderTest extends IntegrationTestBase
     }
 
     /**
-     * @Depends GetQuoteTest::testGetQuote
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function testPlaceOrder(): void

@@ -36,7 +36,6 @@ class GetQuoteTest extends IntegrationTestBase
     }
 
     /**
-     * @Depends GetCartButtonConfig::testGetCartButtonConfig
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function testGetQuote(): void

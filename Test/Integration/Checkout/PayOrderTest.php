@@ -6,6 +6,7 @@ namespace Amwal\Payments\Test\Integration\Model\Checkout;
 
 use Amwal\Payments\Model\Checkout\PayOrder;
 use Amwal\Payments\Test\Integration\IntegrationTestBase;
+use Magento\Framework\Exception\LocalizedException;
 
 class PayOrderTest extends IntegrationTestBase
 {
@@ -20,7 +21,8 @@ class PayOrderTest extends IntegrationTestBase
     }
 
     /**
-     * @Depends PlaceOrderTest::testPlaceOrder
+     * @return void
+     * @throws LocalizedException
      */
     public function testPayOrder(): void
     {
