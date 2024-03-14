@@ -46,7 +46,7 @@ class CleanQuote extends AmwalCheckoutAction
      * @return void
      */
     public function execute(
-        ?string $cartId = null,
+        ?string $cartId = null
     ) : void
     {
         try {
