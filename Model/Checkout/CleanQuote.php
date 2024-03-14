@@ -35,7 +35,6 @@ class CleanQuote extends AmwalCheckoutAction
         LoggerInterface $logger
     ) {
         parent::__construct($errorReporter, $config, $logger);
-        $this->checkoutSession = $checkoutSession;
         $this->cartRepository = $cartRepository;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->quoteRepository = $quoteRepository;
