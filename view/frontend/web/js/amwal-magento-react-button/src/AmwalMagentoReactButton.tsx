@@ -200,18 +200,27 @@ const AmwalMagentoReactButton = ({
           console.error(err)
         })
     } else if (emptyCartOnCancellation) {
-      buttonRef.current?.setAttribute('disabled', 'true')
-      fetch(`${baseUrl}/amwal/clean-quote`, {
-        method: 'POST',
-        headers: {
-          ...extraHeaders,
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      }).finally(() => {
+        cleanQuote()
+    }
+  }
+
+  const cleanQuote = (): void => {
+   buttonRef.current?.setAttribute('disabled', 'true')
+    fetch(`${baseUrl}/amwal/clean-quote`, {
+      method: 'POST',
+      headers: {
+        ...extraHeaders,
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        cartId: overrideCartId ?? cartId
+      })
+    })
+      .finally(() => {
         buttonRef.current?.removeAttribute('disabled')
         window.dispatchEvent(new CustomEvent('cartUpdateNeeded'))
       })
-    }
   }
 
   const handleUpdateOrderOnPaymentsuccess = (event: AmwalCheckoutButtonCustomEvent<AmwalCheckoutStatus>): void => {
@@ -226,6 +235,7 @@ const AmwalMagentoReactButton = ({
     if (finishedUpdatingOrder && receivedSuccess) {
       if (placedOrderId) {
         buttonRef.current?.dismissModal().finally(() => {
+          cleanQuote()
           performSuccessRedirection(placedOrderId)
         })
       } else {
