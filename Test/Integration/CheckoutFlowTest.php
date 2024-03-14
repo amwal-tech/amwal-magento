@@ -13,11 +13,16 @@ use Amwal\Payments\Model\Button\GetCartButtonConfig;
 use Amwal\Payments\Model\Checkout\GetQuote;
 use Amwal\Payments\Model\Checkout\PayOrder;
 use Amwal\Payments\Model\Checkout\PlaceOrder;
+use Exception;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use TddWizard\Fixtures\Catalog\ProductBuilder;
+use TddWizard\Fixtures\Catalog\ProductFixture;
+use TddWizard\Fixtures\Checkout\CartBuilder;
 
 /**
  * Tests the full checkout flow consisting of
@@ -50,6 +55,11 @@ class CheckoutFlowTest extends IntegrationTestBase
     private ?GetCartButtonConfig $getCartButtonConfig = null;
 
     /**
+     * @var QuoteIdToMaskedQuoteIdInterface |null
+     */
+    private ?QuoteIdToMaskedQuoteIdInterface $maskQuoteId = null;
+
+    /**
      * @var GetQuote|null
      */
     private ?GetQuote $getQuote = null;
@@ -65,19 +75,34 @@ class CheckoutFlowTest extends IntegrationTestBase
     private ?PayOrder $payOrder = null;
 
     /**
+     * @var ProductFixture|null
+     */
+    private ?ProductFixture $productFixture = null;
+
+    /**
      * @return void
+     * @throws Exception
      */
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setupFixtures();
         $this->getCartButtonConfig = $this->objectManager->get(GetCartButtonConfig::class);
+        $this->maskQuoteId = $this->objectManager->get(QuoteIdToMaskedQuoteIdInterface::class);
         $this->getQuote = $this->objectManager->get(GetQuote::class);
         $this->placeOrder = $this->objectManager->get(PlaceOrder::class);
         $this->payOrder = $this->objectManager->get(PayOrder::class);
     }
 
     /**
-     * @magentoDataFixture Amwal_Payments::Test/Integration/_files/simple_product.php
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        $this->productFixture->rollback();
+    }
+
+    /**
      * @covers GetCartButtonConfig::execute
      *
      * @return array
@@ -88,13 +113,13 @@ class CheckoutFlowTest extends IntegrationTestBase
      */
     public function testGetCartButtonConfig(): array
     {
-        /** /V1/guest-cart */
-        $cartId = $this->createGuestCart();
-        $this->assertNotEmpty($cartId);
+        $cart = CartBuilder::forCurrentSession()
+            ->withSimpleProduct(
+                $this->productFixture->getSku()
+            )
+            ->build();
 
-        /** /V1/guest-carts/:cartId/items */
-        $item = $this->addSampleProductToCart($cartId);
-        $this->assertNotEmpty($item);
+        $cartId = $this->maskQuoteId->execute((int) $cart->getQuote()->getId());
 
         $refIdData = $this->getMockRefIdData();
 
@@ -232,10 +257,8 @@ class CheckoutFlowTest extends IntegrationTestBase
      * @return void
      * @throws LocalizedException
      */
-    public function testPayOrder(): void
+    public function testPayOrder(OrderInterface $order): void
     {
-        $order = $this->getOrderResponse();
-
         /** @var /V1/amwal/pay-order $response */
         $response = $this->payOrder->execute(
             $order->getEntityId(),
@@ -244,5 +267,18 @@ class CheckoutFlowTest extends IntegrationTestBase
 
         $this->assertIsBool($response);
         $this->assertTrue($response);
+    }
+
+    /**
+     * @return void
+     * @throws Exception
+     */
+    private function setupFixtures(): void
+    {
+        $this->productFixture = new ProductFixture(
+            ProductBuilder::aSimpleProduct()
+                ->withPrice(10)
+                ->build()
+        );
     }
 }

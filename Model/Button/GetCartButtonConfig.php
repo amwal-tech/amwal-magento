@@ -47,7 +47,7 @@ class GetCartButtonConfig extends GetConfig
                 $quoteId = (int) $quoteIdMask->getQuoteId();
                 $quote = $this->cartRepository->get($quoteId);
             }
-        }else{
+        } else {
             $quote = $this->checkoutSessionFactory->create()->getQuote();
             $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
             if (!$cartId && $quote->getId()) {
