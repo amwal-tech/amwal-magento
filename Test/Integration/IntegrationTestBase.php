@@ -95,17 +95,19 @@ class IntegrationTestBase extends TestCase
     }
 
     /**
+     * @param string $cartId
+     *
      * @return CartItemInterface
      * @throws CouldNotSaveException
-     * @throws NoSuchEntityException
      * @throws InputException
+     * @throws NoSuchEntityException
      */
-    protected function addSampleProductToCart(): CartItemInterface
+    protected function addSampleProductToCart(string $cartId): CartItemInterface
     {
         /** @var CartItemInterface $cartItem */
         $cartItem = $this->cartItemFactory->create();
         $cartItem->addData([
-            CartItemInterface::KEY_QUOTE_ID => $this->getMaskedGuestCartId(),
+            CartItemInterface::KEY_QUOTE_ID => $cartId,
             CartItemInterface::KEY_SKU => self::MOCK_PRODUCT_SKU,
             CartItemInterface::KEY_QTY => 1
         ]);

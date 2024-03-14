@@ -93,7 +93,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertNotEmpty($cartId);
 
         /** /V1/guest-carts/:cartId/items */
-        $item = $this->addSampleProductToCart();
+        $item = $this->addSampleProductToCart($cartId);
         $this->assertNotEmpty($item);
 
         $refIdData = $this->getMockRefIdData();
