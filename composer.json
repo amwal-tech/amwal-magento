@@ -55,5 +55,8 @@
             ".gitignore",
             ".github"
         ]
+    },
+    "require-dev": {
+        "tddwizard/magento2-fixtures": "^1.1"
     }
 }
