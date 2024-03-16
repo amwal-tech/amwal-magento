@@ -18,7 +18,8 @@ use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
+use Magento\Quote\Model\QuoteIdMask;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use TddWizard\Fixtures\Catalog\ProductBuilder;
 use TddWizard\Fixtures\Catalog\ProductFixture;
@@ -55,9 +56,9 @@ class CheckoutFlowTest extends IntegrationTestBase
     private ?GetCartButtonConfig $getCartButtonConfig = null;
 
     /**
-     * @var QuoteIdToMaskedQuoteIdInterface |null
+     * @var QuoteIdMaskFactory |null
      */
-    private ?QuoteIdToMaskedQuoteIdInterface $maskQuoteId = null;
+    private ?QuoteIdMaskFactory $quoteIdMaskFactory = null;
 
     /**
      * @var GetQuote|null
@@ -88,7 +89,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         parent::setUp();
         $this->setupFixtures();
         $this->getCartButtonConfig = $this->objectManager->get(GetCartButtonConfig::class);
-        $this->maskQuoteId = $this->objectManager->get(QuoteIdToMaskedQuoteIdInterface::class);
+        $this->quoteIdMaskFactory = $this->objectManager->get(QuoteIdMaskFactory::class);
         $this->getQuote = $this->objectManager->get(GetQuote::class);
         $this->placeOrder = $this->objectManager->get(PlaceOrder::class);
         $this->payOrder = $this->objectManager->get(PayOrder::class);
@@ -119,7 +120,10 @@ class CheckoutFlowTest extends IntegrationTestBase
             )
             ->build();
 
-        $cartId = $this->maskQuoteId->execute((int) $cart->getQuote()->getId());
+        /** @var QuoteIdMask $quoteIdMask */
+        $quoteIdMask = $this->quoteIdMaskFactory->create();
+        $quoteIdMask->setQuoteId((int) $cart->getQuote()->getId())->save();
+        $cartId = $quoteIdMask->getMaskedId();
 
         $refIdData = $this->getMockRefIdData();
 
