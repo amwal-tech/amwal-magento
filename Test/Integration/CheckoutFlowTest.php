@@ -190,21 +190,23 @@ class CheckoutFlowTest extends IntegrationTestBase
         );
 
         $this->assertIsArray($quoteResponse);
-        $this->assertIsArray($quoteResponse['data']);
+        $this->assertArrayHasKey('data', $quoteResponse);
+
+        $quoteResponse = $quoteResponse['data'];
 
         // Perform assertions
-        foreach (self::GET_QUOTE_EXPECTED_KEYS as $key) {
-            $this->assertArrayHasKey($key, $quoteResponse['data']);
+            foreach (self::GET_QUOTE_EXPECTED_KEYS as $key) {
+            $this->assertArrayHasKey($key, $quoteResponse);
         }
 
         // Validate specific values if needed
-        $this->assertIsNumeric($quoteResponse['data']['amount']);
-        $this->assertGreaterThan(0, $quoteResponse['data']['amount']);
+        $this->assertIsNumeric($quoteResponse['amount']);
+        $this->assertGreaterThan(0, $quoteResponse['amount']);
 
-        $this->assertIsNumeric($quoteResponse['data']['subtotal']);
-        $this->assertGreaterThan(0, $quoteResponse['data']['subtotal']);
+        $this->assertIsNumeric($quoteResponse['subtotal']);
+        $this->assertGreaterThan(0, $quoteResponse['subtotal']);
 
-        return [$buttonConfig, $quoteResponse['data'], $cartId];
+        return [$buttonConfig, $quoteResponse, $cartId];
     }
 
     /**
@@ -218,9 +220,9 @@ class CheckoutFlowTest extends IntegrationTestBase
         $requestData = [
             'shipping' => $quoteResponse['shipping_amount'],
             'shipping_details' => [
-                'id' => 'freeshipping_freeshipping',
-                'label' => $quoteResponse['available_rates']['freeshipping_freeshipping']['carrier_title'],
-                'price' => $quoteResponse['available_rates']['freeshipping_freeshipping']['price']
+                'id' => 'flatrate_flatrate',
+                'label' => $quoteResponse['available_rates']['flatrate_flatrate']['carrier_title'],
+                'price' => $quoteResponse['available_rates']['flatrate_flatrate']['price']
             ],
             'taxes' => $quoteResponse['tax_amount'],
             'discount' => $quoteResponse['discount_amount'],

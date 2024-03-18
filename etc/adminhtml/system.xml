@@ -31,6 +31,10 @@
                         <label/>
                         <config_path>payment/amwal_payments/merchant_id_valid</config_path>
                     </field>
+                    <field id="merchant_mode" type="hidden" sortOrder="35" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label/>
+                        <config_path>payment/amwal_payments/merchant_mode</config_path>
+                    </field>
                     <field id="secret_key" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Secret Key</label>
                         <config_path>payment/amwal_payments/secret_key</config_path>
