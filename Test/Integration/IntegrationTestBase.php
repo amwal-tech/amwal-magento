@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Test\Integration;
 
-use _PHPStan_c862bb974\Symfony\Component\Console\Exception\RuntimeException;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
-use Amwal\Payments\Model\AmwalClientFactory;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use JsonException;
 use Magento\Quote\Api\Data\CartItemInterfaceFactory;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -40,18 +36,12 @@ class IntegrationTestBase extends TestCase
     private ?RefIdDataInterfaceFactory $refIdDataFactory = null;
 
     /**
-     * @var AmwalClientFactory|null
-     */
-    private ?AmwalClientFactory $amwalClientFactory = null;
-
-    /**
      * @return void
      */
     protected function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $this->refIdDataFactory = $this->objectManager->get(RefIdDataInterfaceFactory::class);
-        $this->amwalClientFactory = $this->objectManager->get(AmwalClientFactory::class);
     }
 
     /**
@@ -67,28 +57,30 @@ class IntegrationTestBase extends TestCase
     }
 
     /**
-     * @param string $uri
+     * @param string $url
      * @param array $data
      * @param string $method
      *
      * @return mixed
      * @throws JsonException
      */
-    protected function executeAmwalCall(string $uri, array $data, string $method = 'POST')
+    protected function executeAmwalCall(string $url, array $data, string $method = 'POST')
     {
-        $amwalClient = $this->amwalClientFactory->create();
-        try {
-            $response = $amwalClient->request(
-                $method,
-                $uri,
-                [
-                    RequestOptions::JSON => $data
-                ]
-            );
-        } catch (GuzzleException $e) {
-            throw new RuntimeException($e->getResponse()->getBody()->getContents());
-        }
-
-        return json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'content-type: application/json',
+            'accept: */*',
+            'authority: qa-backend.sa.amwal.tech',
+            'amwal: ' . $data['merchantID'],
+            'origin: https://store.amwal.tech',
+            'referer: https://store.amwal.tech',
+        ]);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return json_decode($result, true, 512, JSON_THROW_ON_ERROR);
     }
 }
