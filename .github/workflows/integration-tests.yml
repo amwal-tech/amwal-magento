@@ -31,7 +31,8 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           ce_version: 2.4.5
           composer_version: 2
-          magento_post_install_script: '.github/workflows/config/post-install-config.sh'
+          magento_pre_install_script: '.github/workflows/config/pre-install-config.sh'
+#          magento_post_install_script: '.github/workflows/config/post-install-config.sh'
 
 #  mage245:
 #    name: Integration Tests (Magento 2.4.5)
