@@ -320,12 +320,12 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param DataObject $amwalOrderData
      * @param string $refId
-     * @param null $customerId
+     * @param int|string|null $customerId
      * @return AddressInterface
      * @throws JsonException
      * @throws LocalizedException
      */
-    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, $customerId = null): AddressInterface
+    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, int|string|null $customerId): AddressInterface
     {
         $customerAddress = null;
         try {
