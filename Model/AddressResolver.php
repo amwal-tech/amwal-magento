@@ -76,12 +76,12 @@ class AddressResolver
 
     /**
      * @param DataObject $amwalOrderData
-     * @param null|string $customerId
+     * @param null $customerId
      * @return AddressInterface
      * @throws LocalizedException
      * @throws RuntimeException
      */
-    public function execute(DataObject $amwalOrderData, ?string $customerId = null): AddressInterface
+    public function execute(DataObject $amwalOrderData, $customerId = null): AddressInterface
     {
         $address = null;
         if ($customerId) {
@@ -137,12 +137,12 @@ class AddressResolver
 
     /**
      * @param DataObject $amwalOrderData
-     * @param null|string $customerId
+     * @param null $customerId
      * @return AddressInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function createAddress(DataObject $amwalOrderData, ?string $customerId): AddressInterface
+    public function createAddress(DataObject $amwalOrderData, $customerId = null): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
