@@ -3,6 +3,11 @@
 cd $MAGENTO_ROOT
 
 echo "Setting config values"
+
+# Static config in config.xml file
+sed -i 's/<merchant_mode>live<\/merchant_mode>/<merchant_mode>test<\/merchant_mode>/g' vendor/amwal/payments/etc/config.xml
+
+# Config available through Admin UI
 php bin/magento config:set currency/options/allow SAR,USD --quiet
 php bin/magento config:set currency/options/base SAR --quiet
 php bin/magento config:set currency/options/default SAR --quiet
@@ -23,7 +28,6 @@ php bin/magento config:set payment/amwal_payments/create_user_on_order 1 --quiet
 php bin/magento config:set payment/amwal_payments/use_base_currency 0 --quiet
 php bin/magento config:set payment/amwal_payments/use_system_country_settings 1 --quiet
 php bin/magento config:set payment/amwal_payments/merchant_id "sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47" --quiet
-php bin/magento config:set payment/amwal_payments/merchant_mode "test" --quiet
 echo "Config values set"
 
 echo "Flushing cache"

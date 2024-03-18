@@ -44,7 +44,6 @@ class GetAmwalOrderData
         try {
             $response = $amwalClient->get('transactions/' . $amwalOrderId);
         } catch (GuzzleException $e) {
-            print_r($e->getMessage());
             $this->logger->error(sprintf(
                 'Unable to retrieve Order data from Amwal. Exception: %s',
                 $e->getMessage()

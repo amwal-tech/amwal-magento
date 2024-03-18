@@ -334,7 +334,7 @@ class Config
      * @param int|null $storeId
      * @return mixed
      */
-    public function getPaymentConfig(string $field, ?int $storeId = null): mixed
+    public function getPaymentConfig(string $field, ?int $storeId = null)
     {
         $path = sprintf(GatewayConfig::DEFAULT_PATH_PATTERN, ConfigProvider::CODE, $field);
         return $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORE, $storeId);

@@ -14,6 +14,7 @@ use Amwal\Payments\Model\Checkout\GetQuote;
 use Amwal\Payments\Model\Checkout\PayOrder;
 use Amwal\Payments\Model\Checkout\PlaceOrder;
 use Exception;
+use JsonException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
@@ -47,8 +48,6 @@ class CheckoutFlowTest extends IntegrationTestBase
         'cart_id', 'available_rates', 'amount', 'subtotal', 'tax_amount', 'shipping_amount',
         'discount_amount', 'additional_fee_amount', 'additional_fee_description'
     ];
-
-    private const MOCK_TRANSACTION_ID = '9d49e3df-1e92-4e35-84d8-eee9603211f5';
 
     /**
      * @var GetCartButtonConfig|null
@@ -159,11 +158,14 @@ class CheckoutFlowTest extends IntegrationTestBase
      * @return array
      * @throws CouldNotSaveException
      * @throws LocalizedException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|JsonException
      */
     public function testGetQuote(array $dependencies): array
     {
+        /** @var AmwalButtonConfigInterface $buttonConfig */
         [$buttonConfig, $cartId] = $dependencies;
+
+        $amwalTransactionData = $this->getAmwalTransaction($buttonConfig);
 
         $addressData = [
             'id' => 'integration-test-address-id',
@@ -176,7 +178,7 @@ class CheckoutFlowTest extends IntegrationTestBase
             'client_email' => 'integration.test@amwal.tech',
             'client_first_name' => 'Integration',
             'client_last_name' => 'Tester',
-            'orderId' => self::MOCK_TRANSACTION_ID,
+            'orderId' => $amwalTransactionData['id'],
         ];
 
         /** /V1/amwal/get-quote */
@@ -195,7 +197,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         $quoteResponse = $quoteResponse['data'];
 
         // Perform assertions
-            foreach (self::GET_QUOTE_EXPECTED_KEYS as $key) {
+        foreach (self::GET_QUOTE_EXPECTED_KEYS as $key) {
             $this->assertArrayHasKey($key, $quoteResponse);
         }
 
@@ -206,7 +208,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertIsNumeric($quoteResponse['subtotal']);
         $this->assertGreaterThan(0, $quoteResponse['subtotal']);
 
-        return [$buttonConfig, $quoteResponse, $cartId];
+        return [$buttonConfig, $quoteResponse, $cartId, $amwalTransactionData];
     }
 
     /**
@@ -215,7 +217,8 @@ class CheckoutFlowTest extends IntegrationTestBase
      */
     public function testPlaceOrder(array $dependencies): OrderInterface
     {
-        [$buttonConfig, $quoteResponse, $cartId] = $dependencies;
+        /** @var AmwalButtonConfigInterface $buttonConfig */
+        [$buttonConfig, $quoteResponse, $cartId, $amwalTransactionData] = $dependencies;
 
         $requestData = [
             'shipping' => $quoteResponse['shipping_amount'],
@@ -228,10 +231,10 @@ class CheckoutFlowTest extends IntegrationTestBase
             'discount' => $quoteResponse['discount_amount'],
             'fees' => $quoteResponse['additional_fee_amount'],
             'amount' => $quoteResponse['amount'],
-            'merchantId' => $buttonConfig['merchantId'],
+            'merchantId' => $buttonConfig->getMerchantId(),
         ];
-        $transactionShipping = $this->executeCurl(
-            'https://qa-backend.sa.amwal.tech/transactions/' . self::MOCK_TRANSACTION_ID . '/shipping',
+        $transactionShipping = $this->executeAmwalCall(
+            'transactions/' . $amwalTransactionData['id'] . '/shipping/',
             $requestData
         );
 
@@ -242,7 +245,7 @@ class CheckoutFlowTest extends IntegrationTestBase
             $cartId,
             $buttonConfig->getRefId(),
             $this->getMockRefIdData(),
-            self::MOCK_TRANSACTION_ID,
+            $amwalTransactionData['id'],
             'test-case',
             true
         );
@@ -261,12 +264,14 @@ class CheckoutFlowTest extends IntegrationTestBase
      * @covers PayOrder::execute
      * @depends testPlaceOrder
      *
+     * @param OrderInterface $order
+     *
      * @return void
      * @throws LocalizedException
      */
     public function testPayOrder(OrderInterface $order): void
     {
-        /** @var /V1/amwal/pay-order $response */
+        /** /V1/amwal/pay-order */
         $response = $this->payOrder->execute(
             $order->getEntityId(),
             $order->getAmwalOrderId()
@@ -287,5 +292,31 @@ class CheckoutFlowTest extends IntegrationTestBase
                 ->withPrice(10)
                 ->build()
         );
+    }
+
+    /**
+     * @param AmwalButtonConfigInterface $buttonConfig
+     *
+     * @return array
+     * @throws JsonException
+     */
+    private function getAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
+    {
+        $requestData = [
+            'merchantID' => $buttonConfig->getMerchantId(),
+            'amount' => $buttonConfig->getAmount(),
+            'taxes' => 0,
+            'discount' => $buttonConfig->getDiscount(),
+            'fees' => 0,
+            'installmentOptionsUrl' => $buttonConfig->getInstallmentOptionsUrl(),
+            'order_details' => [
+                'order_position' => 'PHP Unit',
+                'plugin_version' => 'Integration Test Run'
+            ],
+            'refId' => $buttonConfig->getRefId(),
+            'uniqueRef' => false
+        ];
+
+        return $this->executeAmwalCall('transactions/', $requestData);
     }
 }
