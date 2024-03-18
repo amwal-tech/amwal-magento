@@ -190,6 +190,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         );
 
         $this->assertIsArray($quoteResponse);
+        print_r($quoteResponse);
 
         // Perform assertions
         foreach (self::GET_QUOTE_EXPECTED_KEYS as $key) {
