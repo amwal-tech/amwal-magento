@@ -190,20 +190,21 @@ class CheckoutFlowTest extends IntegrationTestBase
         );
 
         $this->assertIsArray($quoteResponse);
+        $this->assertIsArray($quoteResponse['data']);
 
         // Perform assertions
         foreach (self::GET_QUOTE_EXPECTED_KEYS as $key) {
-            $this->assertArrayHasKey($key, $quoteResponse);
+            $this->assertArrayHasKey($key, $quoteResponse['data']);
         }
 
         // Validate specific values if needed
-        $this->assertIsNumeric($quoteResponse['amount']);
-        $this->assertGreaterThan(0, $quoteResponse['amount']);
+        $this->assertIsNumeric($quoteResponse['data']['amount']);
+        $this->assertGreaterThan(0, $quoteResponse['data']['amount']);
 
-        $this->assertIsNumeric($quoteResponse['subtotal']);
-        $this->assertGreaterThan(0, $quoteResponse['subtotal']);
+        $this->assertIsNumeric($quoteResponse['data']['subtotal']);
+        $this->assertGreaterThan(0, $quoteResponse['data']['subtotal']);
 
-        return [$buttonConfig, $quoteResponse, $cartId];
+        return [$buttonConfig, $quoteResponse['data'], $cartId];
     }
 
     /**
