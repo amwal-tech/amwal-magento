@@ -81,7 +81,7 @@ class AddressResolver
      * @throws LocalizedException
      * @throws RuntimeException
      */
-    public function execute(DataObject $amwalOrderData, int|string|null $customerId = null): AddressInterface
+    public function execute(DataObject $amwalOrderData, mixed $customerId = null): AddressInterface
     {
         $address = null;
         if ($customerId) {
@@ -142,7 +142,7 @@ class AddressResolver
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function createAddress(DataObject $amwalOrderData, int|string|null $customerId = null): AddressInterface
+    public function createAddress(DataObject $amwalOrderData, mixed $customerId = null): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
