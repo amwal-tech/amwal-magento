@@ -166,9 +166,6 @@ class CheckoutFlowTest extends IntegrationTestBase
         [$buttonConfig, $cartId] = $dependencies;
 
         $amwalTransactionData = $this->getAmwalTransaction($buttonConfig);
-        print_r($buttonConfig);
-        print_r($amwalTransactionData);
-
         $addressData = [
             'id' => 'integration-test-address-id',
             'street1' => '192 Nasr El Din, Haram, Giza, 12511',
@@ -235,7 +232,6 @@ class CheckoutFlowTest extends IntegrationTestBase
             'amount' => $quoteResponse['amount'],
             'merchantID' => $buttonConfig->getMerchantId(),
         ];
-        print_r($requestData);
         $transactionShipping = $this->executeAmwalCall(
             'https://qa-backend.sa.amwal.tech/transactions/' . $amwalTransactionData['id'] . '/shipping/',
             $requestData
