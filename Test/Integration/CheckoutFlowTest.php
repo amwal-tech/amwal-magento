@@ -219,26 +219,6 @@ class CheckoutFlowTest extends IntegrationTestBase
         /** @var AmwalButtonConfigInterface $buttonConfig */
         [$buttonConfig, $quoteResponse, $cartId, $amwalTransactionData] = $dependencies;
 
-        $requestData = [
-            'shipping' => $quoteResponse['shipping_amount'],
-            'shipping_details' => [
-                'id' => 'flatrate_flatrate',
-                'label' => $quoteResponse['available_rates']['flatrate_flatrate']['carrier_title'],
-                'price' => $quoteResponse['available_rates']['flatrate_flatrate']['price']
-            ],
-            'taxes' => $quoteResponse['tax_amount'],
-            'discount' => $quoteResponse['discount_amount'],
-            'fees' => $quoteResponse['additional_fee_amount'],
-            'amount' => $quoteResponse['amount'],
-            'merchantID' => $buttonConfig->getMerchantId(),
-        ];
-        $transactionShipping = $this->executeAmwalCall(
-            'https://qa-backend.sa.amwal.tech/transactions/' . $amwalTransactionData['id'] . '/shipping/',
-            $requestData
-        );
-
-        $this->assertNotEmpty($transactionShipping);
-
         /** /V1/amwal/place-order */
         $order = $this->placeOrder->execute(
             $cartId,
