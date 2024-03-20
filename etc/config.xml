@@ -28,6 +28,7 @@
                 <order_status_changed_admin_email>1</order_status_changed_admin_email>
                 <show_discount_ribbon>1</show_discount_ribbon>
                 <enable_pre_checkout_trigger>0</enable_pre_checkout_trigger>
+                <merchant_id>sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47</merchant_id>
             </amwal_payments>
         </payment>
         <dev>
