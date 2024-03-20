@@ -235,6 +235,7 @@ class CheckoutFlowTest extends IntegrationTestBase
             'amount' => $quoteResponse['amount'],
             'merchantID' => $buttonConfig->getMerchantId(),
         ];
+        print_r($requestData);
         $transactionShipping = $this->executeAmwalCall(
             'https://qa-backend.sa.amwal.tech/transactions/' . $amwalTransactionData['id'] . '/shipping/',
             $requestData
