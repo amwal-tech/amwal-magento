@@ -166,6 +166,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         [$buttonConfig, $cartId] = $dependencies;
 
         $amwalTransactionData = $this->getAmwalTransaction($buttonConfig);
+        echo "merchantId: " . $buttonConfig->getMerchantId() . "\n";
         print_r($amwalTransactionData);
 
         $addressData = [
