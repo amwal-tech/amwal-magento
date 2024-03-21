@@ -49,6 +49,9 @@ class CheckoutFlowTest extends IntegrationTestBase
         'discount_amount', 'additional_fee_amount', 'additional_fee_description'
     ];
 
+    private const MOCK_PHONE_NUMBER = '+31615682082';
+    private const MOCK_EMAIL = 'integration_test_runner@amwal.tech';
+
     /**
      * @var GetCartButtonConfig|null
      */
@@ -166,19 +169,32 @@ class CheckoutFlowTest extends IntegrationTestBase
         [$buttonConfig, $cartId] = $dependencies;
 
         $amwalTransactionData = $this->getAmwalTransaction($buttonConfig);
+        $this->assertIsArray($amwalTransactionData);
+        $this->assertArrayHasKey('id', $amwalTransactionData, 'Amwal Transaction did not return a transaction ID');
+
+        $transactionPhone = $this->setAmwalTransactionPhone($buttonConfig, $amwalTransactionData['id']);
+        $this->assertIsArray($transactionPhone);
+        $this->assertArrayHasKey('client_phone_number', $transactionPhone);
+        $this->assertEquals(self::MOCK_PHONE_NUMBER, $transactionPhone['client_phone_number']);
+
+        $transactionAddress = $this->setAmwalTransactionAddress($buttonConfig, $amwalTransactionData['id']);
+        $this->assertIsArray($transactionAddress);
+        $this->assertArrayHasKey('address_details', $transactionAddress);
+        $this->assertIsArray($transactionAddress['address_details']);
+
         $addressData = [
-            'id' => 'integration-test-address-id',
-            'street1' => '192 Nasr El Din, Haram, Giza, 12511',
-            'country' => 'SA',
-            'city' => 'Giza',
-            'state' => 'EG',
-            'postcode' => '12511',
-            'client_phone_number' => '+201234567890',
-            'client_email' => 'integration.test@amwal.tech',
-            'client_first_name' => 'Integration',
-            'client_last_name' => 'Tester',
+            'street1' => $transactionAddress['address_details']['street1'],
+            'country' => $transactionAddress['address_details']['country'],
+            'city' => $transactionAddress['address_details']['city'],
+            'state' => $transactionAddress['address_details']['state'],
+            'postcode' => $transactionAddress['address_details']['postcode'],
+            'client_phone_number' => $transactionAddress['client_phone_number'],
+            'client_email' => $transactionAddress['client_email'],
+            'client_first_name' => $transactionAddress['client_first_name'],
+            'client_last_name' => $transactionAddress['client_last_name'],
             'orderId' => $amwalTransactionData['id'],
         ];
+
 
         /** /V1/amwal/get-quote */
         $quoteResponse = $this->getQuote->execute(
@@ -219,24 +235,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         /** @var AmwalButtonConfigInterface $buttonConfig */
         [$buttonConfig, $quoteResponse, $cartId, $amwalTransactionData] = $dependencies;
 
-        $requestData = [
-            'shipping' => $quoteResponse['shipping_amount'],
-            'shipping_details' => [
-                'id' => 'flatrate_flatrate',
-                'label' => $quoteResponse['available_rates']['flatrate_flatrate']['carrier_title'],
-                'price' => $quoteResponse['available_rates']['flatrate_flatrate']['price']
-            ],
-            'taxes' => $quoteResponse['tax_amount'],
-            'discount' => $quoteResponse['discount_amount'],
-            'fees' => $quoteResponse['additional_fee_amount'],
-            'amount' => $quoteResponse['amount'],
-            'merchantID' => $buttonConfig->getMerchantId(),
-        ];
-        $transactionShipping = $this->executeAmwalCall(
-            'https://qa-backend.sa.amwal.tech/transactions/' . $amwalTransactionData['id'] . '/shipping/',
-            $requestData
-        );
-
+        $transactionShipping = $this->setAmwalTransactionShipping($quoteResponse, $buttonConfig, $amwalTransactionData['id']);
         $this->assertNotEmpty($transactionShipping);
 
         /** /V1/amwal/place-order */
@@ -252,6 +251,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertTrue(is_a($order, OrderInterface::class));
 
         // Perform assertions
+        $this->assertEquals(self::MOCK_EMAIL, $order->getCustomerEmail());
         $this->assertEquals('pending_payment', $order->getState());
         $this->assertNotEmpty($order->getEntityId());
         $this->assertNotEmpty($order->getAmwalOrderId());
@@ -294,6 +294,8 @@ class CheckoutFlowTest extends IntegrationTestBase
     }
 
     /**
+     * Amwal pop-up - Generate a transaction on button press
+     *
      * @param AmwalButtonConfigInterface $buttonConfig
      *
      * @return array
@@ -316,6 +318,94 @@ class CheckoutFlowTest extends IntegrationTestBase
             'uniqueRef' => false
         ];
 
-        return $this->executeAmwalCall('https://qa-backend.sa.amwal.tech/transactions/', $requestData);
+        return $this->executeAmwalCall(
+            'https://qa-backend.sa.amwal.tech/transactions/',
+            $requestData,
+            $buttonConfig->getMerchantId()
+        );
+    }
+
+    /**
+     * Amwal pop-up - Submitting phone number
+     *
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string $transactionId
+     *
+     * @return mixed
+     * @throws JsonException
+     */
+    private function setAmwalTransactionPhone(AmwalButtonConfigInterface $buttonConfig, string $transactionId)
+    {
+        $requestData = [
+            'phone_number' => self::MOCK_PHONE_NUMBER,
+        ];
+
+        return $this->executeAmwalCall(
+            'https://qa-backend.sa.amwal.tech/transactions/' . $transactionId . '/phone',
+            $requestData,
+            $buttonConfig->getMerchantId()
+        );
+    }
+
+    /**
+     * Amwal pop-up - Submitting address information
+     *
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string $transactionId
+     *
+     * @return mixed
+     * @throws JsonException
+     */
+    private function setAmwalTransactionAddress(AmwalButtonConfigInterface $buttonConfig, string $transactionId)
+    {
+        $requestData = [
+            'email' => self::MOCK_EMAIL,
+            'first_name' => 'PHP Unit',
+            'last_name' => 'Test Runner',
+            'street1' => '32 Honey Bluff Road',
+            'state' => 'Alaska',
+            'city' => 'Arkansas',
+            'country' => 'US',
+            'postcode' => '29720',
+            'state_code' => '2'
+        ];
+
+        return $this->executeAmwalCall(
+            'https://qa-backend.sa.amwal.tech/transactions/' . $transactionId . '/address',
+            $requestData,
+            $buttonConfig->getMerchantId()
+        );
+    }
+
+    /**
+     * Amwal pop-up - Submitting shipping information
+     *
+     * @param array $quoteResponse
+     * @param AmwalButtonConfigInterface $buttonConfig
+     * @param string $transactionId
+     *
+     * @return mixed
+     * @throws JsonException
+     */
+    private function setAmwalTransactionShipping(array $quoteResponse, AmwalButtonConfigInterface $buttonConfig, string $transactionId)
+    {
+        $requestData = [
+            'shipping' => $quoteResponse['shipping_amount'],
+            'shipping_details' => [
+                'id' => 'flatrate_flatrate',
+                'label' => $quoteResponse['available_rates']['flatrate_flatrate']['carrier_title'],
+                'price' => $quoteResponse['available_rates']['flatrate_flatrate']['price']
+            ],
+            'taxes' => $quoteResponse['tax_amount'],
+            'discount' => $quoteResponse['discount_amount'],
+            'fees' => $quoteResponse['additional_fee_amount'],
+            'amount' => $quoteResponse['amount']
+        ];
+
+        return $this->executeAmwalCall(
+            'https://qa-backend.sa.amwal.tech/transactions/' . $transactionId . '/shipping',
+            $requestData,
+            $buttonConfig->getMerchantId()
+        );
     }
 }

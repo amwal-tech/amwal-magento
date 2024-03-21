@@ -59,32 +59,39 @@ class IntegrationTestBase extends TestCase
     /**
      * @param string $url
      * @param array $data
+     * @param string $merchantId
      * @param string $method
      *
      * @return mixed
      * @throws JsonException
      */
-    protected function executeAmwalCall(string $url, array $data, string $method = 'POST')
+    protected function executeAmwalCall(string $url, array $data, string $merchantId, string $method = 'POST')
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'content-type: application/json',
-            'accept: */*',
-            'authority: qa-backend.sa.amwal.tech',
-            'amwal: ' . $data['merchantID'],
-            'origin: https://store.amwal.tech',
-            'referer: https://store.amwal.tech',
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => [
+                'authority: qa-backend.sa.amwal.tech',
+                'accept: */*',
+                'amwal: ' . $merchantId,
+                'content-type: application/json',
+                'origin: https://store.amwal.tech',
+                'referer: https://store.amwal.tech/'
+            ],
         ]);
-        $result = curl_exec($ch);
-        curl_close($ch);
-        try {
-            return json_decode($result, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            return $e->getMessage();
-        }
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
     }
 }
