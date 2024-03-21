@@ -144,6 +144,7 @@ class OrderUpdate
                 $order->addCommentToStatusHistory($historyComment);
                 $order->setTotalPaid($order->getGrandTotal());
                 $this->setOrderUrl($order, $order->getAmwalOrderId());
+
                 // Send customer email
                 $this->sendCustomerEmail($order);
 
@@ -192,9 +193,15 @@ class OrderUpdate
         return true;
     }
 
-    private function sendCustomerEmail($order)
+    /**
+     * @param $order
+     *
+     * @return void
+     * @throws MailException
+     */
+    private function sendCustomerEmail($order): void
     {
-        if ($this->config->isOrderStatusChangedCustomerEmailEnabled()) {
+        if ($this->config->isOrderStatusChangedCustomerEmailEnabled() && !$this->config->isIntegrationTestRun()) {
             $order->setSendEmail(true);
             $this->orderNotifier->notify($order);
             $order->setIsCustomerNotified(true);
@@ -208,9 +215,9 @@ class OrderUpdate
      *
      * @throws MailException
      */
-    private function sendAdminEmail(OrderInterface $order, string $subject = 'Order Status Changed by Amwal Payment', ?string $message = null)
+    private function sendAdminEmail(OrderInterface $order, string $subject = 'Order Status Changed by Amwal Payment', ?string $message = null): void
     {
-        if ($this->config->isOrderStatusChangedAdminEmailEnabled()) {
+        if ($this->config->isOrderStatusChangedAdminEmailEnabled() && !$this->config->isIntegrationTestRun()) {
             // Get store email
             $senderEmail = $this->scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
             $mailContent =  $message ?? __('Order (%1) status has been changed to (%2) by Amwal Payment', $order->getIncrementId(), $order->getStatus());
@@ -230,8 +237,10 @@ class OrderUpdate
     /**
      * @param OrderInterface $order
      * @param string $amwalOrderId
+     *
+     * @throws NoSuchEntityException
      */
-    private function setOrderUrl(OrderInterface $order, string $amwalOrderId)
+    private function setOrderUrl(OrderInterface $order, string $amwalOrderId): void
     {
         $amwalClient = $this->amwalClientFactory->create();
         $orderDetails = [];
