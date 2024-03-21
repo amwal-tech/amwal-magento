@@ -49,7 +49,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         'discount_amount', 'additional_fee_amount', 'additional_fee_description'
     ];
 
-    private const MOCK_PHONE_NUMBER = '+31615682082';
+    private const MOCK_PHONE_NUMBER = '+201234567890';
     private const MOCK_EMAIL = 'integration_test_runner@amwal.tech';
 
     /**
