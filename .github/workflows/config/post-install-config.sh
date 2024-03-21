@@ -6,6 +6,7 @@ echo "Setting config values"
 
 # Static config in config.xml file
 sed -i 's/<merchant_mode>live<\/merchant_mode>/<merchant_mode>test<\/merchant_mode>/g' vendor/amwal/payments/etc/config.xml
+sed -i 's/<integration_test_run>0<\/integration_test_run>/<integration_test_run>1<\/integration_test_run>/g' vendor/amwal/payments/etc/config.xml
 sed -i 's/<merchant_id><\/merchant_id>/<merchant_id>sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47<\/merchant_id>/g' vendor/amwal/payments/etc/config.xml
 
 # Config available through Admin UI

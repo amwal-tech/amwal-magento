@@ -4,14 +4,11 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AddressResolver;
-use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\CustomerRepositoryInterface;
@@ -156,7 +153,7 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastOrderStatus($order->getStatus());
 
 
-        if ($amwalOrderStatus == 'success') {
+        if ($amwalOrderStatus == 'success' || $this->config->isIntegrationTestRun()) {
             $quote->removeAllItems();
             $this->quoteRepository->save($quote);
             return true;

@@ -188,12 +188,13 @@ class GetQuote extends AmwalCheckoutAction
                     'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
                 $amwalOrderData->setAddressDetails($amwalAddress);
-                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, $quote->getCustomerId());
+                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (string) $quote->getCustomerId());
             }
 
             $quote->setData(self::IS_AMWAL_API_CALL, true);
             $quote->getPayment()->setQuote($quote);
             $quote->setPaymentMethod(ConfigProvider::CODE);
+            $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
             $availableRates = [];
             if (!$isPreCheckout) {

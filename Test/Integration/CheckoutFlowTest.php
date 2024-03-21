@@ -78,31 +78,17 @@ class CheckoutFlowTest extends IntegrationTestBase
     private ?PayOrder $payOrder = null;
 
     /**
-     * @var ProductFixture|null
-     */
-    private ?ProductFixture $productFixture = null;
-
-    /**
      * @return void
      * @throws Exception
      */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupFixtures();
         $this->getCartButtonConfig = $this->objectManager->get(GetCartButtonConfig::class);
         $this->quoteIdMaskFactory = $this->objectManager->get(QuoteIdMaskFactory::class);
         $this->getQuote = $this->objectManager->get(GetQuote::class);
         $this->placeOrder = $this->objectManager->get(PlaceOrder::class);
         $this->payOrder = $this->objectManager->get(PayOrder::class);
-    }
-
-    /**
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->productFixture->rollback();
     }
 
     /**
@@ -118,7 +104,7 @@ class CheckoutFlowTest extends IntegrationTestBase
     {
         $cart = CartBuilder::forCurrentSession()
             ->withSimpleProduct(
-                $this->productFixture->getSku()
+                self::MOCK_PRODUCT_SKU
             )
             ->build();
 
@@ -272,25 +258,12 @@ class CheckoutFlowTest extends IntegrationTestBase
     {
         /** /V1/amwal/pay-order */
         $response = $this->payOrder->execute(
-            $order->getEntityId(),
+            (int) $order->getEntityId(),
             $order->getAmwalOrderId()
         );
 
         $this->assertIsBool($response);
         $this->assertTrue($response);
-    }
-
-    /**
-     * @return void
-     * @throws Exception
-     */
-    private function setupFixtures(): void
-    {
-        $this->productFixture = new ProductFixture(
-            ProductBuilder::aSimpleProduct()
-                ->withPrice(10)
-                ->build()
-        );
     }
 
     /**
