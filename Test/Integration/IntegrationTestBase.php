@@ -25,7 +25,7 @@ use TddWizard\Fixtures\Catalog\ProductFixture;
 class IntegrationTestBase extends TestCase
 {
     private const INTEGRATION_TEST_CONFIG = [
-        'currency/options/allow' => 'SAR,USD',
+        'currency/options/allow' => 'SAR',
         'currency/options/base' => 'SAR',
         'currency/options/default' => 'SAR',
         'payment/amwal_payments/merchant_mode' => 'test',
@@ -155,6 +155,7 @@ class IntegrationTestBase extends TestCase
         foreach (self::INTEGRATION_TEST_CONFIG as $path => $value) {
             $scopeConfig->setValue($path, $value);
             $scopeConfig->setValue($path, $value, ScopeInterface::SCOPE_WEBSITE);
+            $scopeConfig->setValue($path, $value, ScopeInterface::SCOPE_STORE);
         }
     }
 }
