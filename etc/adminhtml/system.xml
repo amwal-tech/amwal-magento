@@ -186,34 +186,40 @@
                 </group>
 
                 <!-- Developer Settings -->
-                <group id="amwal_payments_developer" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="70">
+                <group id="amwal_payments_developer" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="70">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>PWA Mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/pwa_mode</config_path>
+                        <comment>Set to Yes if your storefront is managed as a PWA.</comment>
+                    </field>
                     <label>Developer Settings</label>
-                    <field id="debug_mode" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <field id="debug_mode" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Debug mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/debug_mode</config_path>
                         <tooltip>Enable additional debug logging</tooltip>
                     </field>
-                    <field id="use_base_currency" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="use_base_currency" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Use base currency</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/use_base_currency</config_path>
                         <comment><![CDATA[<strong class="colorRed">Warning</strong>: Do not set to "Yes" unless you experience problems with the total amounts in orders due to third party modules.]]></comment>
                     </field>
-                    <field id="sentry_report" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <field id="sentry_report" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Report errors to Sentry</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/sentry_report</config_path>
                         <tooltip>Enable reporting of errors to Amwal Sentry</tooltip>
                     </field>
-                    <field id="quote_override" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <field id="quote_override" translate="label tooltip" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Quote override</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/quote_override</config_path>
                         <tooltip>If enabled, will override certain quote data. Use only if you are having issues related to quote amounts or currencies</tooltip>
                     </field>
-                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Enable Pre Checkout Trigger</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/enable_pre_checkout_trigger</config_path>

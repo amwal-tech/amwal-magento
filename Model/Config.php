@@ -53,6 +53,7 @@ class Config
     public const XML_CONFIG_PATH_QUOTE_OVERRIDE = 'payment/amwal_payments/quote_override';
     public const XML_CONFIG_PATH_DISCOUNT_RIBBON = 'payment/amwal_payments/show_discount_ribbon';
     public const XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER = 'payment/amwal_payments/enable_pre_checkout_trigger';
+    public const XML_CONFIG_PATH_IS_PWA_MODE = 'payment/amwal_payments/pwa_mode';
     public const XML_CONFIG_PATH_IS_INTEGRATION_TEST_RUN = 'payment/amwal_payments/integration_test_run';
 
   /**
@@ -471,6 +472,13 @@ class Config
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER, ScopeInterface::SCOPE_WEBSITE);
     }
 
+    /**
+     * @return bool
+     */
+    public function isPwaMode(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_IS_PWA_MODE);
+    }
     /**
      * @return bool
      */

@@ -155,6 +155,9 @@ class PayOrder extends AmwalCheckoutAction
 
         if ($amwalOrderStatus == 'success' || $this->config->isIntegrationTestRun()) {
             $quote->removeAllItems();
+            if (!$this->config->isPwaMode()) {
+                $quote->setIsActive(false);
+            }
             $this->quoteRepository->save($quote);
             return true;
         }
