@@ -1,4 +1,5 @@
 .DS_Store
+.idea
 
 # dependencies
 view/frontend/web/js/amwal-magento-react-button/node_modules

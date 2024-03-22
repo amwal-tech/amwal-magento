@@ -11,6 +11,8 @@ class RestApiCors
     /**
      * @param Rest $subject
      * @param RequestInterface $request
+     * @phpcs:disable Magento2.Functions.DiscouragedFunction.Discouraged
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function beforeDispatch(Rest $subject, RequestInterface $request)
     {

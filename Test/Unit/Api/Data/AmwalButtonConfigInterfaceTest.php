@@ -87,7 +87,7 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     public function testGetEnablePreCheckoutTrigger()
     {
         $this->amwalButtonConfigInterface->method('getEnablePreCheckoutTrigger')->willReturn(self::ENABLE_PRE_CHECKOUT_TRIGGER);
-        $this->assertEquals(self::ENABLE_PRE_CHECKOUT_TRIGGER, $this->amwalButtonConfigInterface->getEnablePreCheckoutTrigger());
+        $this->assertEquals(self::ENABLE_PRE_CHECKOUT_TRIGGER, $this->amwalButtonConfigInterface->isEnablePreCheckoutTrigger());
     }
 
     /**
@@ -96,7 +96,7 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     public function testGetEnablePrePayTrigger()
     {
         $this->amwalButtonConfigInterface->method('getEnablePrePayTrigger')->willReturn(self::ENABLE_PRE_PAY_TRIGGER);
-        $this->assertEquals(self::ENABLE_PRE_PAY_TRIGGER, $this->amwalButtonConfigInterface->getEnablePrePayTrigger());
+        $this->assertEquals(self::ENABLE_PRE_PAY_TRIGGER, $this->amwalButtonConfigInterface->isEnablePrePayTrigger());
     }
 
     /**
@@ -105,7 +105,7 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     public function testGetShowPaymentBrands()
     {
         $this->amwalButtonConfigInterface->method('getShowPaymentBrands')->willReturn(self::SHOW_PAYMENT_BRANDS);
-        $this->assertEquals(self::SHOW_PAYMENT_BRANDS, $this->amwalButtonConfigInterface->getShowPaymentBrands());
+        $this->assertEquals(self::SHOW_PAYMENT_BRANDS, $this->amwalButtonConfigInterface->isShowPaymentBrands());
     }
 
     /**
@@ -114,7 +114,7 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     public function testGetDisabled()
     {
         $this->amwalButtonConfigInterface->method('getDisabled')->willReturn(self::DISABLED);
-        $this->assertEquals(self::DISABLED, $this->amwalButtonConfigInterface->getDisabled());
+        $this->assertEquals(self::DISABLED, $this->amwalButtonConfigInterface->isDisabled());
     }
 
     /**
@@ -141,7 +141,7 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     public function testGetAddressHandshake()
     {
         $this->amwalButtonConfigInterface->method('getAddressHandshake')->willReturn(self::ADDRESS_HANDSHAKE);
-        $this->assertEquals(self::ADDRESS_HANDSHAKE, $this->amwalButtonConfigInterface->getAddressHandshake());
+        $this->assertEquals(self::ADDRESS_HANDSHAKE, $this->amwalButtonConfigInterface->hasAddressHandshake());
     }
 
     /**
@@ -150,7 +150,7 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     public function testGetAddressRequired()
     {
         $this->amwalButtonConfigInterface->method('getAddressRequired')->willReturn(self::ADDRESS_REQUIRED);
-        $this->assertEquals(self::ADDRESS_REQUIRED, $this->amwalButtonConfigInterface->getAddressRequired());
+        $this->assertEquals(self::ADDRESS_REQUIRED, $this->amwalButtonConfigInterface->isAddressRequired());
     }
 
     /**
@@ -159,7 +159,7 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     public function testGetEmailRequired()
     {
         $this->amwalButtonConfigInterface->method('getEmailRequired')->willReturn(self::EMAIL_REQUIRED);
-        $this->assertEquals(self::EMAIL_REQUIRED, $this->amwalButtonConfigInterface->getEmailRequired());
+        $this->assertEquals(self::EMAIL_REQUIRED, $this->amwalButtonConfigInterface->isEmailRequired());
     }
 
     /**

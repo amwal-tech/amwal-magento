@@ -49,6 +49,7 @@ class PhoneNumberFormat implements OptionSourceInterface
 
     /**
      * @return string[]
+     * @phpcs:disable Magento2.Functions.StaticFunction.StaticFunction
      */
     public static function getValidValues(): array
     {

@@ -14,6 +14,7 @@ class AllowQuoteChangeForHeadless
      * @param bool $result
      * @param CartInterface $quote
      * @return bool
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function afterIsAllowed(ChangeQuoteControl $subject, bool $result, CartInterface $quote): bool
     {

@@ -22,18 +22,17 @@ use Magento\Framework\Api\SearchCriteriaInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class PlaceOrderTest extends TestCase
 {
     private $placeOrder;
-    private $objectManager;
     private $quoteRepositoryMock;
     private $quoteManagementMock;
     private $quoteAddressFactoryMock;
     private $orderRepositoryMock;
-    private $loggerMock;
     private $quoteMock;
-    private $orderMock;
-    private $addressMock;
     private $searchCriteriaBuilderMock;
 
     private const FIRST_NAME = 'Tester';
@@ -53,7 +52,7 @@ class PlaceOrderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->objectManager = new ObjectManager($this);
+        $objectManager = new ObjectManager($this);
 
         // Mocking the Quote class with proper initialization
         $this->quoteMock = $this->getMockBuilder(Quote::class)
@@ -77,18 +76,18 @@ class PlaceOrderTest extends TestCase
         $this->quoteManagementMock = $this->createMock(QuoteManagement::class);
         $this->quoteAddressFactoryMock = $this->createMock(AddressFactory::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
-        $this->loggerMock = $this->createMock(LoggerInterface::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
         $this->searchCriteriaBuilderMock = $this->createMock(SearchCriteriaBuilder::class);
 
 
-        $this->placeOrder = $this->objectManager->getObject(
+        $this->placeOrder = $objectManager->getObject(
             PlaceOrder::class,
             [
                 'quoteRepository' => $this->quoteRepositoryMock,
                 'quoteManagement' => $this->quoteManagementMock,
                 'quoteAddressFactory' => $this->quoteAddressFactoryMock,
                 'orderRepository' => $this->orderRepositoryMock,
-                'logger' => $this->loggerMock,
+                'logger' => $loggerMock,
                 'searchCriteriaBuilder' => $this->searchCriteriaBuilderMock
             ]
         );

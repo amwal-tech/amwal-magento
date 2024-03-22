@@ -41,6 +41,11 @@ use RuntimeException;
 use Throwable;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ */
 class GetQuote extends AmwalCheckoutAction
 {
     private CustomerRepositoryInterface $customerRepository;
@@ -82,6 +87,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param Config $config
      * @param LoggerInterface $logger
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -130,7 +136,6 @@ class GetQuote extends AmwalCheckoutAction
      * @param string $refId
      * @param RefIdDataInterface $refIdData
      * @param string[] $addressData
-     * @param string $triggerContext
      * @param bool $isPreCheckout
      * @param string|null $cartId
      * @return mixed[]
@@ -142,9 +147,8 @@ class GetQuote extends AmwalCheckoutAction
         string $refId,
         RefIdDataInterface $refIdData,
         array $addressData,
-        string $triggerContext,
         bool $isPreCheckout,
-        $cartId = null
+        ?string $cartId = null
     ): array {
         $quoteData = [];
         $customerAddress = null;
@@ -165,7 +169,7 @@ class GetQuote extends AmwalCheckoutAction
                 $cartId = $this->quoteIdMaskFactory->create()->load($this->checkoutSession->getQuote()->getId(), 'quote_id')->getMaskedId();
             }
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
-            $quote = $this->getQuote($quoteId, $orderItems, $triggerContext);
+            $quote = $this->getQuote($quoteId, $orderItems);
             if (!$quote->getItems()) {
                 $this->throwException(__('One or more selected products are currently not available.'));
             }
@@ -184,7 +188,7 @@ class GetQuote extends AmwalCheckoutAction
                     'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
                 ]);
                 $amwalOrderData->setAddressDetails($amwalAddress);
-                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, $quote->getCustomerId());
+                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (string) $quote->getCustomerId());
             }
 
             $quote->setData(self::IS_AMWAL_API_CALL, true);
@@ -354,12 +358,11 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param $quoteId
      * @param array $orderItems
-     * @param string $triggerContext
      * @return CartInterface|Quote
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getQuote($quoteId, array $orderItems, string $triggerContext)
+    public function getQuote($quoteId, array $orderItems)
     {
         if (!$quoteId) {
             $quote = $this->checkoutSession->getQuote();
@@ -450,7 +453,9 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param CartInterface $quote
      * @param array $availableRates
+     *
      * @return mixed[]
+     * @throws LocalizedException
      */
     public function getResponseData(CartInterface $quote, array $availableRates): array
     {

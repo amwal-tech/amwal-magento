@@ -48,6 +48,7 @@ class EnrichAddToCartResponse
      * @param Add $subject
      * @param ResponseInterface|ResultInterface $result
      * @return ResponseInterface|ResultInterface
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function afterExecute(Add $subject, $result)
     {

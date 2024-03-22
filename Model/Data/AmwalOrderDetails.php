@@ -8,10 +8,12 @@ use Amwal\Payments\Api\Data\AmwalOrderInterface;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Framework\Webapi\Rest\Request;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Store\Model\StoreManagerInterface;
 use Amwal\Payments\Model\Data\OrderUpdate;
+use RuntimeException;
 
 class AmwalOrderDetails implements AmwalOrderInterface
 {
@@ -24,7 +26,6 @@ class AmwalOrderDetails implements AmwalOrderInterface
     private OrderUpdate $orderUpdate;
 
     /**
-     * AmwalOrderDetails constructor.
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Request $restRequest
@@ -107,8 +108,8 @@ class AmwalOrderDetails implements AmwalOrderInterface
      * @param string $amwalOrderId
      * @param int|null $orderId
      * @param string|null $refId
-     * @return \Magento\Sales\Api\Data\OrderInterface
-     * @throws \Exception
+     * @return OrderInterface
+     * @throws RuntimeException
      */
     private function getOrderByAmwalOrderId($amwalOrderId, $orderId = null, $refId = null)
     {
@@ -127,7 +128,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $order = $this->orderRepository->getList($searchCriteria)->getFirstItem();
 
         if (!$order->getId()) {
-            throw new \Exception('Order not found, please check the provided Amwal order ID.');
+            throw new RuntimeException('Order not found, please check the provided Amwal order ID.');
         }
         return $order;
     }
@@ -135,8 +136,8 @@ class AmwalOrderDetails implements AmwalOrderInterface
 
     /**
      * @param string $orderId
-     * @return \Magento\Sales\Api\Data\OrderInterface
-     * @throws \Exception
+     * @return OrderInterface
+     * @throws RuntimeException
      */
     private function getOrderById(string $orderId)
     {
@@ -148,7 +149,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         $order = $this->orderRepository->getList($searchCriteria)->getFirstItem();
 
         if (!$order->getId()) {
-            throw new \Exception('Order not found, please check the provided Order ID.');
+            throw new RuntimeException('Order not found, please check the provided Order ID.');
         }
         return $order;
     }

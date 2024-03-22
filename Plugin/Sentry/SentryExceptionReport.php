@@ -3,28 +3,42 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Plugin\Sentry;
 
+use Amwal\Payments\Model\Config;
+use Magento\Config\Model\Config\Backend\Admin\Custom;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\State;
 use Sentry;
 use Sentry\State\Scope;
-use Amwal\Payments\Model\Config;
+
 
 class SentryExceptionReport
 {
     /**
      * @var Config
      */
-    protected Config $config;
+    private Config $config;
+
+    /**
+     * @var ScopeConfigInterface
+     */
+    private ScopeConfigInterface $scopeConfig;
+
+    /**
+     * @var State
+     */
+    private State $state;
 
     /**
      * SentryExceptionReport constructor.
      */
-    public function __construct(Config $config)
-    {
+    public function __construct(
+        Config $config,
+        ScopeConfigInterface $scopeConfig,
+        State $state
+    ) {
         $this->config = $config;
-        // Initialize Sentry SDK
-        if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
-            return;
-        }
-        Sentry\init(['dsn' => 'https://1fe7bb63698145909bb12240e03fa59e@sentry.amwal.dev/5']);
+        $this->scopeConfig = $scopeConfig;
+        $this->state = $state;
     }
     /**
      * @param \Throwable $exception
@@ -32,12 +46,10 @@ class SentryExceptionReport
      */
     public function report(\Throwable $exception): void
     {
-        if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
-            return;
-        }
+        $this->initializeSentrySdk();
         Sentry\configureScope(function (Scope $scope) {
             // Add extra context data to the exception
-            $scope->setExtra('domain', $_SERVER['HTTP_HOST'] ?? 'runtime cli');
+            $scope->setExtra('domain', $this->scopeConfig->getValue(Custom::XML_PATH_SECURE_BASE_URL) ?? 'runtime cli');
             $scope->setExtra('plugin_type', 'magento2');
             $scope->setExtra('plugin_version', Config::MODULE_VERSION);
             $scope->setExtra('php_version', phpversion());
@@ -45,5 +57,19 @@ class SentryExceptionReport
 
         // Send exception to Sentry with the hint
         Sentry\captureException($exception);
+    }
+
+    /**
+     * @return bool
+     */
+    private function initializeSentrySDK(): bool
+    {
+        if (!class_exists(Sentry\ClientBuilder::class) || !$this->config->isSentryReportEnabled()) {
+            return false;
+        }
+
+        Sentry\init(['dsn' => 'https://1fe7bb63698145909bb12240e03fa59e@sentry.amwal.dev/5']);
+
+        return true;
     }
 }
