@@ -138,7 +138,7 @@ class OrderUpdate
             }
 
             // Update order status
-            if ($status == 'success' || $this->config->isIntegrationTestRun()) {
+            if ($this->verifyStatus($status)) {
                 $order->setState($this->config->getOrderConfirmedStatus());
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addCommentToStatusHistory($historyComment);
@@ -152,7 +152,7 @@ class OrderUpdate
                     // Send admin email
                     $this->sendAdminEmail($order);
                 }
-            } elseif ($status == 'fail' && $order->getState() !== Order::STATE_CANCELED) {
+            } elseif ($status === 'fail' && $order->getState() !== Order::STATE_CANCELED) {
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
                 $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
@@ -162,11 +162,11 @@ class OrderUpdate
             // Save the updated order
             $this->orderRepository->save($order);
 
-            if (!$order->hasInvoices() && $status == 'success') {
+            if (!$order->hasInvoices() && $this->verifyStatus($status)) {
                 $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
             }
 
-            return $status == 'success' ? $amwalOrderData : false;
+            return $this->verifyStatus($status) ? $amwalOrderData : false;
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             $this->sentryExceptionReport->report($e);
@@ -336,5 +336,15 @@ class OrderUpdate
     private function dataValidationMessage(string $orderId, string $orderMethod, string $amwalMethod, string $orderValue, string $amwalValue): string
     {
         return (string) __('Order (%1) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%2) %3 does not match Amwal Order %4 (%5 != %6)', $orderId, $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue);
+    }
+
+    /**
+     * @param string|null $status
+     *
+     * @return bool
+     */
+    private function verifyStatus(?string $status): bool
+    {
+        return $status === 'success' || $this->config->isIntegrationTestRun();
     }
 }

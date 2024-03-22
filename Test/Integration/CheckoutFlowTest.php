@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Youwe. All rights reserved.
- * https://www.youweagency.com
- */
 
 declare(strict_types=1);
 
@@ -22,8 +18,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Sales\Api\Data\OrderInterface;
-use TddWizard\Fixtures\Catalog\ProductBuilder;
-use TddWizard\Fixtures\Catalog\ProductFixture;
 use TddWizard\Fixtures\Checkout\CartBuilder;
 
 /**
@@ -180,7 +174,6 @@ class CheckoutFlowTest extends IntegrationTestBase
             'client_last_name' => $transactionAddress['client_last_name'],
             'orderId' => $amwalTransactionData['id'],
         ];
-
 
         /** /V1/amwal/get-quote */
         $quoteResponse = $this->getQuote->execute(
@@ -363,7 +356,7 @@ class CheckoutFlowTest extends IntegrationTestBase
     private function setAmwalTransactionShipping(array $quoteResponse, AmwalButtonConfigInterface $buttonConfig, string $transactionId)
     {
         $requestData = [
-            'shipping' => $quoteResponse['shipping_amount'],
+            'shipping' => $quoteResponse['available_rates']['flatrate_flatrate']['price'],
             'shipping_details' => [
                 'id' => 'flatrate_flatrate',
                 'label' => $quoteResponse['available_rates']['flatrate_flatrate']['carrier_title'],

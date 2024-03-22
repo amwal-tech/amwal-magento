@@ -5,7 +5,7 @@
             <amwal_payments>
                 <title>Amwal</title>
                 <active>1</active>
-                <order_status>processing</order_status>
+                <order_confirmed_status>processing</order_confirmed_status>
                 <merchant_mode>live</merchant_mode>
                 <merchant_id></merchant_id>
                 <model>AmwalPaymentMethodFacade</model>
