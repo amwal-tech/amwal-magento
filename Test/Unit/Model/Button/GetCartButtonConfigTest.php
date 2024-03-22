@@ -36,7 +36,6 @@ class GetCartButtonConfigTest extends TestCase
     private const ALLOWED_ADDRESS_CITIES = ['SA' => ['1110' => ['Riyadh'], '1111' => ['Dammam']]];
     private const ALLOWED_ADDRESS_STATES = ['SA' => ['1111' => ['Dammam'], '1110' => ['Riyadh']]];
     private const CART_ID = 'vyO7NEqZbs1Rv6Z7NLewdlLpC0qufkmJ';
-    private const QUOTE_ID = 1;
     private const AMOUNT = 100.00;
 
     private const INITIAL_ADDRESS = [
@@ -50,20 +49,20 @@ class GetCartButtonConfigTest extends TestCase
     ];
 
     private const MOCK_BUTTON_CONFIG_DATA = [
-        'addressRequired' => false,
-        'enablePrePayTrigger' => true,
-        'enablePreCheckoutTrigger' => false,
-        'initialAddress' => self::INITIAL_ADDRESS,
-        'initialEmail' => self::EMAIL,
-        'initialPhone' => self::PHONE_NUMBER,
-        'initialFirstName' => self::FIRST_NAME,
-        'initialLastName' => self::LAST_NAME,
-        'allowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
-        'allowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
-        'allowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
-        'cartId' => self::CART_ID,
-        'amount' => self::AMOUNT,
-        'showDiscountRibbon' => false,
+        'isAddressRequired' => false,
+        'isEnablePrePayTrigger' => true,
+        'isEnablePreCheckoutTrigger' => false,
+        'getInitialAddress' => self::INITIAL_ADDRESS,
+        'getInitialEmail' => self::EMAIL,
+        'getInitialPhone' => self::PHONE_NUMBER,
+        'getInitialFirstName' => self::FIRST_NAME,
+        'getInitialLastName' => self::LAST_NAME,
+        'getAllowedAddressCountries' => self::ALLOWED_ADDRESS_COUNTRIES,
+        'getAllowedAddressCities' => self::ALLOWED_ADDRESS_CITIES,
+        'getAllowedAddressStates' => self::ALLOWED_ADDRESS_STATES,
+        'getCartId' => self::CART_ID,
+        'getAmount' => self::AMOUNT,
+        'isShowDiscountRibbon' => false,
     ];
 
     protected function setUp(): void
@@ -108,9 +107,9 @@ class GetCartButtonConfigTest extends TestCase
         $this->assertEquals(self::PHONE_NUMBER, $this->buttonConfigMock->getInitialPhone());
         $this->assertEquals(self::FIRST_NAME, $this->buttonConfigMock->getInitialFirstName());
         $this->assertEquals(self::LAST_NAME, $this->buttonConfigMock->getInitialLastName());
-        $this->assertEquals(false, $this->buttonConfigMock->getAddressRequired());
-        $this->assertEquals(true, $this->buttonConfigMock->getEnablePrePayTrigger());
-        $this->assertEquals(false, $this->buttonConfigMock->getEnablePreCheckoutTrigger());
+        $this->assertEquals(false, $this->buttonConfigMock->isAddressRequired());
+        $this->assertEquals(true, $this->buttonConfigMock->isEnablePrePayTrigger());
+        $this->assertEquals(false, $this->buttonConfigMock->isEnablePreCheckoutTrigger());
         $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_CITIES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressCities());
         $this->assertEquals(json_encode(self::ALLOWED_ADDRESS_STATES, JSON_FORCE_OBJECT), $this->buttonConfigMock->getAllowedAddressStates());
         $this->assertEquals(self::ALLOWED_ADDRESS_COUNTRIES, $this->buttonConfigMock->getAllowedAddressCountries());
@@ -167,10 +166,10 @@ class GetCartButtonConfigTest extends TestCase
     private function setButtonConfigData(): void
     {
         foreach (self::MOCK_BUTTON_CONFIG_DATA as $key => $value) {
-            if (in_array($key, ['allowedAddressCities', 'allowedAddressStates', 'initialAddress'], true)) {
+            if (in_array($key, ['getAllowedAddressCities', 'getAllowedAddressStates', 'getInitialAddress'], true)) {
                 $value = json_encode($value, JSON_FORCE_OBJECT);
             }
-            $this->buttonConfigMock->method('get' . ucfirst($key))->willReturn($value);
+            $this->buttonConfigMock->method($key)->willReturn($value);
         }
     }
 }

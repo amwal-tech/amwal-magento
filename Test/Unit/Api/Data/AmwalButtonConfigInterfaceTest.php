@@ -84,36 +84,36 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     /**
      * Test getter method for Enable Pre Checkout Trigger.
      */
-    public function testGetEnablePreCheckoutTrigger()
+    public function testIsEnablePreCheckoutTrigger()
     {
-        $this->amwalButtonConfigInterface->method('getEnablePreCheckoutTrigger')->willReturn(self::ENABLE_PRE_CHECKOUT_TRIGGER);
+        $this->amwalButtonConfigInterface->method('isEnablePreCheckoutTrigger')->willReturn(self::ENABLE_PRE_CHECKOUT_TRIGGER);
         $this->assertEquals(self::ENABLE_PRE_CHECKOUT_TRIGGER, $this->amwalButtonConfigInterface->isEnablePreCheckoutTrigger());
     }
 
     /**
      * Test getter method for Enable Pre Pay Trigger.
      */
-    public function testGetEnablePrePayTrigger()
+    public function testIsEnablePrePayTrigger()
     {
-        $this->amwalButtonConfigInterface->method('getEnablePrePayTrigger')->willReturn(self::ENABLE_PRE_PAY_TRIGGER);
+        $this->amwalButtonConfigInterface->method('isEnablePrePayTrigger')->willReturn(self::ENABLE_PRE_PAY_TRIGGER);
         $this->assertEquals(self::ENABLE_PRE_PAY_TRIGGER, $this->amwalButtonConfigInterface->isEnablePrePayTrigger());
     }
 
     /**
      * Test getter method for Show Payment Brands.
      */
-    public function testGetShowPaymentBrands()
+    public function testIsShowPaymentBrands()
     {
-        $this->amwalButtonConfigInterface->method('getShowPaymentBrands')->willReturn(self::SHOW_PAYMENT_BRANDS);
+        $this->amwalButtonConfigInterface->method('isShowPaymentBrands')->willReturn(self::SHOW_PAYMENT_BRANDS);
         $this->assertEquals(self::SHOW_PAYMENT_BRANDS, $this->amwalButtonConfigInterface->isShowPaymentBrands());
     }
 
     /**
      * Test getter method for Disabled.
      */
-    public function testGetDisabled()
+    public function testIsDisabled()
     {
-        $this->amwalButtonConfigInterface->method('getDisabled')->willReturn(self::DISABLED);
+        $this->amwalButtonConfigInterface->method('isDisabled')->willReturn(self::DISABLED);
         $this->assertEquals(self::DISABLED, $this->amwalButtonConfigInterface->isDisabled());
     }
 
@@ -138,27 +138,27 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     /**
      * Test getter method for Address Handshake.
      */
-    public function testGetAddressHandshake()
+    public function testHasAddressHandshake()
     {
-        $this->amwalButtonConfigInterface->method('getAddressHandshake')->willReturn(self::ADDRESS_HANDSHAKE);
+        $this->amwalButtonConfigInterface->method('hasAddressHandshake')->willReturn(self::ADDRESS_HANDSHAKE);
         $this->assertEquals(self::ADDRESS_HANDSHAKE, $this->amwalButtonConfigInterface->hasAddressHandshake());
     }
 
     /**
      * Test getter method for Address Required.
      */
-    public function testGetAddressRequired()
+    public function testIsAddressRequired()
     {
-        $this->amwalButtonConfigInterface->method('getAddressRequired')->willReturn(self::ADDRESS_REQUIRED);
+        $this->amwalButtonConfigInterface->method('isAddressRequired')->willReturn(self::ADDRESS_REQUIRED);
         $this->assertEquals(self::ADDRESS_REQUIRED, $this->amwalButtonConfigInterface->isAddressRequired());
     }
 
     /**
      * Test getter method for Email Required.
      */
-    public function testGetEmailRequired()
+    public function testIsEmailRequired()
     {
-        $this->amwalButtonConfigInterface->method('getEmailRequired')->willReturn(self::EMAIL_REQUIRED);
+        $this->amwalButtonConfigInterface->method('isEmailRequired')->willReturn(self::EMAIL_REQUIRED);
         $this->assertEquals(self::EMAIL_REQUIRED, $this->amwalButtonConfigInterface->isEmailRequired());
     }
 
