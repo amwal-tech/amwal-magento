@@ -121,6 +121,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         );
 
         $this->assertTrue(is_a($buttonConfig, AmwalButtonConfigInterface::class));
+        $this->assertNotEmpty($buttonConfig->getMerchantId());
 
         $response = $buttonConfig->toArray();
 

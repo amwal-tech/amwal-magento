@@ -9,8 +9,10 @@ use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Exception;
 use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Framework\App\Config\MutableScopeConfigInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartItemInterfaceFactory;
+use Magento\Store\Model\ScopeInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +24,16 @@ use TddWizard\Fixtures\Catalog\ProductFixture;
  */
 class IntegrationTestBase extends TestCase
 {
+    private const INTEGRATION_TEST_CONFIG = [
+        'currency/options/allow' => 'SAR,USD',
+        'currency/options/base' => 'SAR',
+        'currency/options/default' => 'SAR',
+        'payment/amwal_payments/merchant_mode' => 'test',
+        'payment/amwal_payments/merchant_id_valid' => 1,
+        'payment/amwal_payments/merchant_id' => 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47',
+        'payment/amwal_payments/integration_test_run' => 1
+    ];
+
     protected const MOCK_PRODUCT_SKU = 'amwal_simple';
 
     protected const MOCK_REF_ID_DATA = [
@@ -52,12 +64,14 @@ class IntegrationTestBase extends TestCase
 
     /**
      * @return void
+     * @throws Exception
      */
     protected function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $this->refIdDataFactory = $this->objectManager->get(RefIdDataInterfaceFactory::class);
         $this->productRepository = $this->objectManager->get(ProductRepositoryInterface::class);
+        $this->setupScopeConfig();
         $this->setupFixtures();
     }
 
@@ -130,5 +144,17 @@ class IntegrationTestBase extends TestCase
         curl_close($curl);
 
         return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @return void
+     */
+    private function setupScopeConfig(): void
+    {
+        $scopeConfig = $this->objectManager->get(MutableScopeConfigInterface::class);
+        foreach (self::INTEGRATION_TEST_CONFIG as $path => $value) {
+            $scopeConfig->setValue($path, $value);
+            $scopeConfig->setValue($path, $value, ScopeInterface::SCOPE_WEBSITE);
+        }
     }
 }
