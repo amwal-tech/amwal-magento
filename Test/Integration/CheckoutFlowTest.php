@@ -23,9 +23,13 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
 /**
  * Tests the full checkout flow consisting of
  *    - Retrieving button configuration
- *    - Retrieving quote
+ *    - Create Amwal transaction
+ *    - Set Amwal transaction data (Phone number, Address, Shipping)
+ *    - Retrieving Quote
  *    - Placing Order
  *    - Paying Order
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class CheckoutFlowTest extends IntegrationTestBase
 {

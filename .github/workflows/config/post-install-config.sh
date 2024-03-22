@@ -13,6 +13,7 @@ sed -i 's/<merchant_id><\/merchant_id>/<merchant_id>sandbox-amwal-e09ee380-d8c7-
 php bin/magento config:set currency/options/allow SAR,USD --quiet
 php bin/magento config:set currency/options/base SAR --quiet
 php bin/magento config:set currency/options/default SAR --quiet
+php bin/magento config:set currency/options/allow SAR --quiet
 php bin/magento config:set admin/security/admin_account_sharing 1 --quiet
 php bin/magento config:set admin/security/use_form_key 0 --quiet
 php bin/magento config:set cms/wysiwyg/enabled disabled --quiet
