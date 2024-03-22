@@ -4,8 +4,10 @@
         <payment>
             <amwal_payments>
                 <title>Amwal</title>
-                <order_status>processing</order_status>
+                <active>1</active>
+                <order_confirmed_status>processing</order_confirmed_status>
                 <merchant_mode>live</merchant_mode>
+                <merchant_id></merchant_id>
                 <model>AmwalPaymentMethodFacade</model>
                 <group>amwal_payments_group</group>
                 <prod_api_base_url><![CDATA[https://backend.sa.amwal.tech]]></prod_api_base_url>

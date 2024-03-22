@@ -84,7 +84,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getEmailRequired(): bool;
+    public function isEmailRequired(): bool;
 
     /**
      * @param bool $emailRequired
@@ -95,7 +95,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getAddressRequired(): bool;
+    public function isAddressRequired(): bool;
 
     /**
      * @param bool $addressRequired
@@ -106,7 +106,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getAddressHandshake(): bool;
+    public function hasAddressHandshake(): bool;
 
     /**
      * @param bool $addressHandshake
@@ -139,7 +139,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getDisabled(): bool;
+    public function isDisabled(): bool;
 
     /**
      * @param bool $disabled
@@ -150,7 +150,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getShowPaymentBrands(): bool;
+    public function isShowPaymentBrands(): bool;
 
     /**
      * @param bool $showPaymentBrands
@@ -161,7 +161,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getEnablePreCheckoutTrigger(): bool;
+    public function isEnablePreCheckoutTrigger(): bool;
 
     /**
      * @param bool $enablePreCheckoutTrigger
@@ -172,7 +172,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getEnablePrePayTrigger(): bool;
+    public function isEnablePrePayTrigger(): bool;
 
     /**
      * @param bool $enablePrePayTrigger
@@ -328,7 +328,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getShowDiscountRibbon(): bool;
+    public function isShowDiscountRibbon(): bool;
 
     /**
      * @param bool $showDiscountRibbon

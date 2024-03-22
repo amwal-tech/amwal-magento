@@ -13,6 +13,9 @@ use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 
+/**
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ */
 class Config
 {
     public const XML_CONFIG_PATH_ACTIVE = 'payment/amwal_payments/active';
@@ -75,8 +78,7 @@ class Config
         ScopeConfigInterface    $scopeConfig,
         RegionCollectionFactory $regionCollectionFactory,
         DirectoryHelper         $directoryHelper
-    )
-    {
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
@@ -220,7 +222,7 @@ class Config
     /**
      * @return bool
      */
-    public function getPhoneNumberTrimWhitespace(): bool
+    public function isPhoneNumberTrimWhitespace(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_PHONE_NUMBER_TRIM_WHITESPACE, ScopeInterface::SCOPE_STORE);
     }
@@ -333,7 +335,7 @@ class Config
      * @param int|null $storeId
      * @return mixed
      */
-    public function getPaymentConfig(string $field, ?int $storeId = null): mixed
+    public function getPaymentConfig(string $field, ?int $storeId = null)
     {
         $path = sprintf(GatewayConfig::DEFAULT_PATH_PATTERN, ConfigProvider::CODE, $field);
         return $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORE, $storeId);
