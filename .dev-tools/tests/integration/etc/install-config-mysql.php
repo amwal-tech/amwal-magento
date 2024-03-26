@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 return [
     'db-host' => 'db',
     'db-user' => 'db',
