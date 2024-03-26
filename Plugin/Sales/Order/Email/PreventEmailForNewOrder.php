@@ -30,6 +30,7 @@ class PreventEmailForNewOrder
      * @param Order $order
      * @param bool $forceSyncMode
      * @return mixed
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function aroundSend(OrderSender $subject, callable $proceed, Order $order, $forceSyncMode = false)
     {

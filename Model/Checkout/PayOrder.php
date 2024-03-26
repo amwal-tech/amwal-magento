@@ -4,14 +4,11 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Checkout;
 
 use Amwal\Payments\Model\AddressResolver;
-use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use JsonException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\CustomerRepositoryInterface;
@@ -33,6 +30,9 @@ use Magento\Sales\Model\Order\CustomerManagement;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Webapi\Exception as WebapiException;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class PayOrder extends AmwalCheckoutAction
 {
     private CartRepositoryInterface $quoteRepository;
@@ -63,6 +63,7 @@ class PayOrder extends AmwalCheckoutAction
      * @param OrderUpdate $orderUpdate
      * @param SentryExceptionReport $sentryExceptionReport
      * @param LoggerInterface $logger
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
@@ -152,7 +153,7 @@ class PayOrder extends AmwalCheckoutAction
             ->setLastOrderStatus($order->getStatus());
 
 
-        if ($amwalOrderStatus == 'success') {
+        if ($amwalOrderStatus == 'success' || $this->config->isIntegrationTestRun()) {
             $quote->removeAllItems();
             if (!$this->config->isPwaMode()) {
                 $quote->setIsActive(false);

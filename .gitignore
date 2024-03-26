@@ -1,4 +1,5 @@
 .DS_Store
+.idea
 
 # dependencies
 view/frontend/web/js/amwal-magento-react-button/node_modules
@@ -14,7 +15,9 @@ view/frontend/web/js/react-src//coverage
 view/frontend/web/js/react-src//build
 
 # misc
-
 view/frontend/web/js/react-src/npm-debug.log*
 view/frontend/web/js/react-src/yarn-debug.log*
 view/frontend/web/js/react-src/yarn-error.log*
+
+# PHP Unit test results
+.phpunit.result.cache
