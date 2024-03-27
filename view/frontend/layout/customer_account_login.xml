@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="customer.login.container">
+            <block class="Amwal\Payments\Block\ExpressCheckoutCartButton" name="customer.account.login.amwal.payments" template="Amwal_Payments::express/checkout-button.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">
+                        Amwal\Payments\ViewModel\ExpressCheckoutButton
+                    </argument>
+                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_LOGIN</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>
