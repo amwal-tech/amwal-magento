@@ -190,8 +190,9 @@ class GetQuote extends AmwalCheckoutAction
             $quote->setData(self::IS_AMWAL_API_CALL, true);
             $quote->getPayment()->setQuote($quote);
             $quote->setPaymentMethod(ConfigProvider::CODE);
-            $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
-
+            if ($this->config->isPwaMode()) {
+                $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+            }
             $availableRates = [];
             if (!$isPreCheckout) {
                 $quoteAddress = $this->getQuoteAddress($customerAddress, $amwalAddress);
