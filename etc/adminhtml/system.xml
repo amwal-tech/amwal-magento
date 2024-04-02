@@ -75,6 +75,7 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/enable_bank_installments</config_path>
                         <tooltip>Enable Bank Installments</tooltip>
+                        <comment><![CDATA[<strong class="colorRed">Note</strong>: This feature is only available for orders with a minimum amount of 1000 SAR.]]></comment>
                     </field>
                     <field id="installment_callback" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Custom Installments Redirect URL</label>
