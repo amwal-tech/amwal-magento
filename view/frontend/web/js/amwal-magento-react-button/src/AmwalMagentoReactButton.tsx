@@ -385,6 +385,7 @@ const AmwalMagentoReactButton = ({
         installmentOptionsUrl={config.installment_options_url}
         locale={locale}
         debug={debug}
+        enableBankInstallments={config.enable_bank_installments}
     />
     : <></>
 }

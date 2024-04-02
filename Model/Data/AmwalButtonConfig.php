@@ -507,4 +507,20 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     {
         return $this->setData(self::ORDER_CONTENT, $orderContent);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEnableBankInstallments(): bool
+    {
+        return $this->getData(self::ENABLE_BANK_INSTALLMENTS);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setEnableBankInstallments(bool $enableBankInstallments): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::ENABLE_BANK_INSTALLMENTS, $enableBankInstallments);
+    }
 }

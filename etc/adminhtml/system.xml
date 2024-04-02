@@ -35,11 +35,6 @@
                         <label>Secret Key</label>
                         <config_path>payment/amwal_payments/secret_key</config_path>
                     </field>
-                    <field id="installment_callback" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Installment Callback URL</label>
-                        <config_path>payment/amwal_payments/installment_callback</config_path>
-                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Make sure the URL starts with the "http" or "https" protocol.]]></comment>
-                    </field>
                 </group>
 
                 <!-- Visual Settings -->
@@ -68,6 +63,23 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/show_discount_ribbon</config_path>
                         <tooltip>Toggle to enable discount ribbon</tooltip>
+                    </field>
+                </group>
+
+                <!-- Installments Settings -->
+                <group id="amwal_payments_installments" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="25">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>Installments Settings</label>
+                    <field id="enable_bank_installments" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Bank Installments</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/enable_bank_installments</config_path>
+                        <tooltip>Enable Bank Installments</tooltip>
+                    </field>
+                    <field id="installment_callback" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Custom Installments Redirect URL</label>
+                        <config_path>payment/amwal_payments/installment_callback</config_path>
+                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Make sure the URL starts with the "http" or "https" protocol.]]></comment>
                     </field>
                 </group>
 
