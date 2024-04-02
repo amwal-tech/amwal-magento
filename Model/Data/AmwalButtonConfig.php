@@ -491,4 +491,20 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     {
         return $this->setData(self::FEES, $fees);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOrderContent(): ?string
+    {
+        return $this->getData(self::ORDER_CONTENT);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setOrderContent(?string $orderContent): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::ORDER_CONTENT, $orderContent);
+    }
 }

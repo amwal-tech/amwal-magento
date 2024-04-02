@@ -333,6 +333,7 @@ const AmwalMagentoReactButton = ({
       buttonRef.current?.dispatchEvent(
         new CustomEvent('amwalPreCheckoutTriggerAck', {
           detail: {
+            order_content: config?.order_content,
             order_position: triggerContext,
             plugin_version: 'Magento ' + (config?.plugin_version ?? '')
           }

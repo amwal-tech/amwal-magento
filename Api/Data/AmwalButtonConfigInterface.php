@@ -36,6 +36,7 @@ interface AmwalButtonConfigInterface
     public const DISCOUNT = 'discount';
     public const TAX = 'tax';
     public const FEES = 'fees';
+    public const ORDER_CONTENT = 'order_content';
 
     /**
      * @return string
@@ -369,4 +370,15 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setFees(float $fees): AmwalButtonConfigInterface;
+
+    /**
+     * @return array
+     */
+    public function getOrderContent(): ?string;
+
+    /**
+     * @param array $orderContent
+     * @return AmwalButtonConfigInterface
+     */
+    public function setOrderContent(?string $orderContent): AmwalButtonConfigInterface;
 }

@@ -37,6 +37,7 @@ export interface IAmwalButtonConfig {
   installment_options_url: string
   cart_id: string
   show_discount_ribbon: boolean
+  order_content: string[]
 }
 
 export interface IRefIdData {
