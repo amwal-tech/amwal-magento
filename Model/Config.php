@@ -54,6 +54,7 @@ class Config
     public const XML_CONFIG_PATH_DISCOUNT_RIBBON = 'payment/amwal_payments/show_discount_ribbon';
     public const XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER = 'payment/amwal_payments/enable_pre_checkout_trigger';
     public const XML_CONFIG_PATH_IS_PWA_MODE = 'payment/amwal_payments/pwa_mode';
+    public const XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS = 'payment/amwal_payments/enable_bank_installments';
 
   /**
      * @var string
@@ -477,5 +478,13 @@ class Config
     public function isPwaMode(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_IS_PWA_MODE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isBankInstallmentsEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS);
     }
 }

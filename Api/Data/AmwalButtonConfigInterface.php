@@ -36,6 +36,8 @@ interface AmwalButtonConfigInterface
     public const DISCOUNT = 'discount';
     public const TAX = 'tax';
     public const FEES = 'fees';
+    public const ORDER_CONTENT = 'order_content';
+    public const ENABLE_BANK_INSTALLMENTS = 'enable_bank_installments';
 
     /**
      * @return string
@@ -369,4 +371,26 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setFees(float $fees): AmwalButtonConfigInterface;
+
+    /**
+     * @return array
+     */
+    public function getOrderContent(): ?string;
+
+    /**
+     * @param array $orderContent
+     * @return AmwalButtonConfigInterface
+     */
+    public function setOrderContent(?string $orderContent): AmwalButtonConfigInterface;
+
+    /**
+     * @return bool
+     */
+    public function getEnableBankInstallments(): bool;
+
+    /**
+     * @param bool $enableBankInstallments
+     * @return AmwalButtonConfigInterface
+     */
+    public function setEnableBankInstallments(bool $enableBankInstallments): AmwalButtonConfigInterface;
 }

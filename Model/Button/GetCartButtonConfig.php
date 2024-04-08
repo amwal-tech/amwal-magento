@@ -10,13 +10,16 @@ use Amwal\Payments\Model\ThirdParty\CityHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+use Magento\Store\Model\StoreManagerInterface;
 
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
+    protected StoreManagerInterface $storeManager;
     protected $amwalQuote;
 
     /**
@@ -65,6 +68,8 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setFees($this->getFeesAmount($quote));
         $buttonConfig->setId($this->getButtonId($cartId));
         $this->amwalQuote = $quote;
+
+        $buttonConfig->setOrderContent($this->jsonSerializer->serialize($this->getOrderContent($quote)));
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -250,5 +255,28 @@ class GetCartButtonConfig extends GetConfig
     public function getQuote()
     {
         return $this->amwalQuote;
+    }
+
+    /**
+     * @param $quote
+     * @return array
+     */
+    private function getOrderContent($quote): array
+    {
+        $orderContent = [];
+        foreach ($quote->getAllItems() as $item) {
+            if ($item->getParentItemId()) {
+                continue;
+            }
+            $orderContent[] = [
+                'id' => $item->getProductId(),
+                'name' => $item->getName(),
+                'quantity' => $item->getQty(),
+                'total' => (float)$item->getRowTotalInclTax(),
+                'url' => $item->getProduct()->getProductUrl(),
+                'image' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $item->getProduct()->getImage(),
+            ];
+        }
+        return $orderContent;
     }
 }

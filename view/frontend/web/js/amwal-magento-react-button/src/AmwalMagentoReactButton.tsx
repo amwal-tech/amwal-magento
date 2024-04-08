@@ -17,7 +17,7 @@ interface AmwalMagentoReactButtonProps {
   extraHeaders?: Record<string, string>
   overrideCartId?: string
   redirectURL?: string
-  performSuccessRedirection?: (orderId: string) => void
+  performSuccessRedirection?: (orderId: string, IncrementId: string) => void
   debug?: boolean
 }
 
@@ -52,6 +52,7 @@ const AmwalMagentoReactButton = ({
   const [receivedSuccess, setReceivedSuccess] = React.useState(false)
   const [refIdData, setRefIdData] = React.useState<IRefIdData | undefined>(undefined)
   const [triggerPreCheckoutAck, setTriggerPreCheckoutAck] = React.useState(false)
+  const [IncrementId, setIncrementId] = React.useState<string | undefined>(undefined)
 
   const applyButtonConfig = (data: IAmwalButtonConfig): void => {
     setConfig(data)
@@ -224,9 +225,9 @@ const AmwalMagentoReactButton = ({
 
   React.useEffect(() => {
     if (finishedUpdatingOrder && receivedSuccess) {
-      if (placedOrderId) {
+      if (placedOrderId && IncrementId) {
         buttonRef.current?.dismissModal().finally(() => {
-          performSuccessRedirection(placedOrderId)
+          performSuccessRedirection(placedOrderId, IncrementId)
         })
       } else {
         console.error('Unexpected state. placedOrderId is undefined after finished updating order and receiving success')
@@ -255,6 +256,7 @@ const AmwalMagentoReactButton = ({
     const data = await response.json()
     if (response.ok) {
       setPlacedOrderId(data.entity_id)
+      setIncrementId(data.increment_id)
       buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerAck', {
         detail: {
           order_id: data.entity_id,
@@ -333,6 +335,7 @@ const AmwalMagentoReactButton = ({
       buttonRef.current?.dispatchEvent(
         new CustomEvent('amwalPreCheckoutTriggerAck', {
           detail: {
+            order_content: config?.order_content,
             order_position: triggerContext,
             plugin_version: 'Magento ' + (config?.plugin_version ?? '')
           }
@@ -384,6 +387,7 @@ const AmwalMagentoReactButton = ({
         installmentOptionsUrl={config.installment_options_url}
         locale={locale}
         debug={debug}
+        enableBankInstallments={config.enable_bank_installments}
     />
     : <></>
 }
