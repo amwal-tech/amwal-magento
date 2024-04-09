@@ -514,7 +514,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getEnableBankInstallments(): bool
+    public function isEnableBankInstallments(): bool
     {
         return $this->getData(self::ENABLE_BANK_INSTALLMENTS);
     }

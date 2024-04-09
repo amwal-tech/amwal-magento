@@ -50,7 +50,6 @@ class IntegrationTestBase extends TestCase
         RefIdDataInterface::TIMESTAMP => '1712005591802'
     ];
 
-    protected const MOCK_ENCRYPTION_KEY = '6d57b4962c4fb813cc311353788fed5a';
     protected const MOCK_REF_ID = '0f802285a3806372235aa6b374a698fb17f4429e8946ccdc578e4d0c85d0f908';
     protected const MOCK_TRANSACTION_ID = 'b6d03171-ff9b-49dc-93cc-07b35ff65e6c';
 

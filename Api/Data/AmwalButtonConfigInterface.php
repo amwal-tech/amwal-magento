@@ -373,12 +373,13 @@ interface AmwalButtonConfigInterface
     public function setFees(float $fees): AmwalButtonConfigInterface;
 
     /**
-     * @return array
+     * @return string|null
      */
     public function getOrderContent(): ?string;
 
     /**
-     * @param array $orderContent
+     * @param string|null $orderContent
+     *
      * @return AmwalButtonConfigInterface
      */
     public function setOrderContent(?string $orderContent): AmwalButtonConfigInterface;
@@ -386,7 +387,7 @@ interface AmwalButtonConfigInterface
     /**
      * @return bool
      */
-    public function getEnableBankInstallments(): bool;
+    public function isEnableBankInstallments(): bool;
 
     /**
      * @param bool $enableBankInstallments
