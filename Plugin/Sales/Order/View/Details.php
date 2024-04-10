@@ -11,6 +11,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Framework\App\RequestInterface;
 use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
+use Psr\Log\LoggerInterface;
 
 class Details
 {
@@ -20,6 +21,7 @@ class Details
     protected RequestInterface $request;
     protected AmwalClientFactory $amwalClientFactory;
     private Config $config;
+    private LoggerInterface $logger;
 
     public function __construct(
         Session            $authSession,
@@ -27,7 +29,8 @@ class Details
         OrderInterface     $order,
         RequestInterface   $request,
         AmwalClientFactory $amwalClientFactory,
-        Config             $config
+        Config             $config,
+        LoggerInterface    $logger
     ) {
         $this->authSession = $authSession;
         $this->urlBuilder = $urlBuilder;
@@ -35,12 +38,14 @@ class Details
         $this->request = $request;
         $this->amwalClientFactory = $amwalClientFactory;
         $this->config = $config;
+        $this->logger = $logger;
     }
 
     public function beforeSetLayout(View $subject)
     {
+        $amwalOrderId = $subject->getOrder()->getAmwalOrderId();
+
         try {
-            $amwalOrderId = $subject->getOrder()->getAmwalOrderId();
             if(!$amwalOrderId){
                 return;
             }
@@ -54,13 +59,12 @@ class Details
 
             if ($response->getStatusCode() === 200) {
                 $responseBody = $response->getBody()->getContents();
-                $amwalOrderStatus = json_decode($responseBody)->status;
 
                 $subject->addButton(
                     'amwal_order_details',
                     [
                         'label' => __('Amwal Order Details'),
-                        'class' => $this->isPayValid($subject->getOrder()->getState(), $amwalOrderStatus) ? '' : 'hidden',
+                        'class' => $this->isPayValid($subject->getOrder()->getState()) ? '' : 'hidden',
                         'data_attribute' => [
                             'mage-init' => [
                                 'Amwal_Payments/js/order-details' => [
@@ -75,16 +79,16 @@ class Details
                 );
             }
         } catch (GuzzleException $e) {
-            $message = sprintf(
+            $this->logger->warning(sprintf(
                 'Unable to set Order details in Amwal for order with ID "%s". Exception: %s',
                 $amwalOrderId,
                 $e->getMessage()
-            );
+            ));
             return;
         }
     }
 
-    private function isPayValid($orderState, $amwalOrderStatus)
+    private function isPayValid($orderState)
     {
         $defaultOrderStatus = $this->config->getOrderConfirmedStatus();
 

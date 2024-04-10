@@ -5,9 +5,11 @@
 </p>
 
 # Amwal dev tools
+
 This repository contains the dev tools used by Amwal team.
 
-### Plugins used:
+## Plugins used:
+
 - https://github.com/vimeo/psalm
 - https://github.com/phpstan/phpstan
 - https://github.com/php-cs-fixer/shim
@@ -15,8 +17,10 @@ This repository contains the dev tools used by Amwal team.
 - https://github.com/kubawerlos/composer-smaller-lock
 - https://github.com/nektos/act
 
-### Act for Phpstorm
-#### Setting Up External Tools:
+## Act for Phpstorm
+
+### Setting Up External Tools:
+
 1. Go to Settings > Tools > External Tools.
 2. Click + to add a new tool.
 3. Name it (`GitHub Actions (act)`).
@@ -26,11 +30,14 @@ This repository contains the dev tools used by Amwal team.
 7. Now, you can run act from Tools > External Tools > GitHub Actions (act).
 
 
-### Act for VSCode
-#### Setting Up Task Configuration:
+## Act for VSCode
+
+### Setting Up Task Configuration:
+
 1. Go to the` .vscode` directory in your project and create a `tasks.json` file if it doesn't exist.
 2. Define a task for `act`. Here’s:
-```
+
+```json
 {
     "version": "2.0.0",
     "tasks": [
@@ -49,3 +56,42 @@ This repository contains the dev tools used by Amwal team.
   }
 ```
 3. Run this task through Terminal > Run Task > Run GitHub Actions.
+
+
+## Running unit test locally (through DDEV)
+
+### Prerequisites
+1. A local Magento setup running in DDEV
+2. The Amwal payments plugin installed through composer
+
+### Running the Unit test
+To run the test navigate to the root of your project and run the following command:
+```shell
+ddev exec "vendor/bin/phpunit -c vendor/amwal/payments/.dev-tools/tests/unit/phpunit.xml"
+```
+
+## Running integration test locally (through DDEV)
+
+### Prerequisites
+1. A local Magento setup running in DDEV
+2. The Amwal payments plugin installed through composer
+
+### Copy required files
+To ensure the right tests are executed and the configuration is set correctly please copy the following files:
+
+```shell
+cp vendor/amwal/payments/.dev-tools/tests/integration/phpunit.xml dev/tests/integration/
+```
+
+```shell
+cp vendor/amwal/payments/.dev-tools/tests/integration/etc/install-config-mysql.php dev/tests/integration/etc/
+```
+
+### Running the Unit test
+To run the test navigate to the root of your project and run the following command:
+```shell
+ddev exec "cd dev/tests/integration && ../../../vendor/bin/phpunit -c phpunit.xml"
+```
+
+#### Note
+Running the integration test will drop your database and re-install Magento. If you would like to preserve your existing data create a separate database for testing and adjust the credentials in [install-config-mysql.php](tests%2Fintegration%2Fetc%2Finstall-config-mysql.php) before copying it to the dev/tests/integration/etc folder.

@@ -22,6 +22,9 @@ use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class InvoiceOrder extends AmwalCheckoutAction
 {
     private InvoiceRepositoryInterface $invoiceRepository;
@@ -43,6 +46,7 @@ class InvoiceOrder extends AmwalCheckoutAction
      * @param ErrorReporter $errorReporter
      * @param Config $config
      * @param LoggerInterface $logger
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         InvoiceRepositoryInterface $invoiceRepository,

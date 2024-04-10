@@ -6,6 +6,9 @@ namespace Amwal\Payments\Model\Data;
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Magento\Framework\DataObject;
 
+/**
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ */
 class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
 {
 
@@ -76,7 +79,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getEmailRequired(): bool
+    public function isEmailRequired(): bool
     {
         return $this->getData(self::EMAIL_REQUIRED);
     }
@@ -92,7 +95,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getAddressRequired(): bool
+    public function isAddressRequired(): bool
     {
         return $this->getData(self::ADDRESS_REQUIRED);
     }
@@ -108,7 +111,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getAddressHandshake(): bool
+    public function hasAddressHandshake(): bool
     {
         return $this->getData(self::ADDRESS_HANDSHAKE);
     }
@@ -156,7 +159,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getDisabled(): bool
+    public function isDisabled(): bool
     {
         return $this->getData(self::DISABLED);
     }
@@ -172,7 +175,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getShowPaymentBrands(): bool
+    public function isShowPaymentBrands(): bool
     {
         return $this->getData(self::SHOW_PAYMENT_BRANDS);
     }
@@ -188,7 +191,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getEnablePreCheckoutTrigger(): bool
+    public function isEnablePreCheckoutTrigger(): bool
     {
         return $this->getData(self::ENABLE_PRE_CHECKOUT_TRIGGER);
     }
@@ -204,7 +207,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getEnablePrePayTrigger(): bool
+    public function isEnablePrePayTrigger(): bool
     {
         return $this->getData(self::ENABLE_PRE_PAY_TRIGGER);
     }
@@ -431,7 +434,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getShowDiscountRibbon(): bool
+    public function isShowDiscountRibbon(): bool
     {
         return $this->getData(self::SHOW_DISCOUNT_RIBBON);
     }
@@ -511,7 +514,7 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getEnableBankInstallments(): bool
+    public function isEnableBankInstallments(): bool
     {
         return $this->getData(self::ENABLE_BANK_INSTALLMENTS);
     }

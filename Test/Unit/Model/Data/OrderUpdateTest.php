@@ -22,6 +22,9 @@ use Magento\Framework\Mail\Transport;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class OrderUpdateTest extends TestCase
 {
     private $orderRepository;
@@ -30,12 +33,6 @@ class OrderUpdateTest extends TestCase
     private $config;
     private $orderNotifier;
     private $transportFactory;
-    private $message;
-    private $scopeConfig;
-    private $invoiceAmwalOrder;
-    private $logger;
-    private $amwalClientFactory;
-    private $sentryExceptionReport;
     private $orderUpdate;
     private const AMWAL_ORDER_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
     private const ORDER_ID = '000000001';
@@ -48,7 +45,7 @@ class OrderUpdateTest extends TestCase
         // Mock necessary dependencies
         $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
         $this->transportFactory = $this->createMock(TransportInterfaceFactory::class);
-        $this->sentryExceptionReport = $this->createMock(SentryExceptionReport::class);
+        $sentryExceptionReport = $this->createMock(SentryExceptionReport::class);
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
 
         // Initialize other dependencies
@@ -57,11 +54,11 @@ class OrderUpdateTest extends TestCase
 
         // Pass the mock objects to OrderUpdate
         $this->orderNotifier = $this->createMock(OrderNotifier::class);
-        $this->message = $this->createMock(MessageInterface::class);
-        $this->scopeConfig = $this->createMock(ScopeConfigInterface::class);
-        $this->invoiceAmwalOrder = $this->createMock(InvoiceOrder::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->amwalClientFactory = $this->createMock(AmwalClientFactory::class);
+        $message = $this->createMock(MessageInterface::class);
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
+        $invoiceAmwalOrder = $this->createMock(InvoiceOrder::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $amwalClientFactory = $this->createMock(AmwalClientFactory::class);
 
         $orderUpdate = new OrderUpdate(
             $this->orderRepository,
@@ -70,12 +67,12 @@ class OrderUpdateTest extends TestCase
             $this->config,
             $this->orderNotifier,
             $this->transportFactory,
-            $this->message,
-            $this->scopeConfig,
-            $this->invoiceAmwalOrder,
-            $this->logger,
-            $this->amwalClientFactory,
-            $this->sentryExceptionReport
+            $message,
+            $scopeConfig,
+            $invoiceAmwalOrder,
+            $logger,
+            $amwalClientFactory,
+            $sentryExceptionReport
         );
         $this->orderUpdate = $orderUpdate;
     }
@@ -157,9 +154,6 @@ class OrderUpdateTest extends TestCase
         $config = $this->createMock(Config::class);
         $config->method('getOrderConfirmedStatus')->willReturn(Order::STATE_PROCESSING);
         $this->config->expects($this->any())->method('getOrderConfirmedStatus')->willReturn(Order::STATE_PROCESSING);
-
-        // Mock the logger
-        $logger = $this->createMock(LoggerInterface::class);
 
         $order->expects($this->any())
             ->method('getIncrementId')
