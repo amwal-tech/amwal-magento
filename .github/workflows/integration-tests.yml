@@ -2,37 +2,6 @@ name: Integration Tests
 on: push
 
 jobs:
-  mage246:
-    name: Magento 2.4.6 Integration Tests
-    runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-        ports:
-          - 3306:3306
-        options: --tmpfs /tmp:rw --tmpfs /var/lib/mysql:rw --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      es:
-        image: docker.io/wardenenv/elasticsearch:7.6
-        ports:
-          - 9200:9200
-        env:
-          'discovery.type': single-node
-          'xpack.security.enabled': false
-          ES_JAVA_OPTS: "-Xms64m -Xmx512m"
-        options: --health-cmd="curl localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s" --health-interval=10s --health-timeout=5s --health-retries=3
-    steps:
-      - uses: actions/checkout@v4
-      - name: M2 Integration Tests
-        uses: Skullsneeze/github-actions-m2/magento-integration-tests/8.2@master
-        with:
-          module_name: ${{ secrets.MODULE_NAME }}
-          composer_name: ${{ secrets.COMPOSER_NAME }}
-          ce_version: 2.4.6
-          composer_version: 2
-          magento_encryption_key: 6d57b4962c4fb813cc311353788fed5a
-
   mage245:
     name: Magento 2.4.5 Integration Tests
     runs-on: ubuntu-latest
@@ -56,10 +25,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: M2 Integration Tests
-        uses: Skullsneeze/github-actions-m2/magento-integration-tests/8.1@master
+        uses: extdn/github-actions-m2/magento-integration-tests/8.1@master
         with:
           module_name: ${{ secrets.MODULE_NAME }}
           composer_name: ${{ secrets.COMPOSER_NAME }}
           ce_version: 2.4.5
           composer_version: 2
-          magento_encryption_key: 6d57b4962c4fb813cc311353788fed5a
+
+  mage246:
+    name: Magento 2.4.6 Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --tmpfs /tmp:rw --tmpfs /var/lib/mysql:rw --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      es:
+        image: docker.io/wardenenv/elasticsearch:7.6
+        ports:
+          - 9200:9200
+        env:
+          'discovery.type': single-node
+          'xpack.security.enabled': false
+          ES_JAVA_OPTS: "-Xms64m -Xmx512m"
+        options: --health-cmd="curl localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+      - name: M2 Integration Tests
+        uses: extdn/github-actions-m2/magento-integration-tests/8.2@master
+        with:
+          module_name: ${{ secrets.MODULE_NAME }}
+          composer_name: ${{ secrets.COMPOSER_NAME }}
+          ce_version: 2.4.6
+          composer_version: 2
