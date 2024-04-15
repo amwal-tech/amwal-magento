@@ -2,7 +2,8 @@
     "sales_order": {
         "column": {
             "amwal_order_id": true,
-            "ref_id": true
+            "ref_id": true,
+            "amwal_trigger_context": true
         }
     }
 }

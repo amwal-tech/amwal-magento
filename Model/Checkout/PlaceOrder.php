@@ -228,7 +228,7 @@ class PlaceOrder extends AmwalCheckoutAction
 
         $this->quoteRepository->save($quote);
 
-        $order = $this->createOrder($quote, $amwalOrderId, $refId);
+        $order = $this->createOrder($quote, $amwalOrderId, $refId, $triggerContext);
 
         $this->orderRepository->save($order);
 
@@ -243,10 +243,11 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param Quote $quote
      * @param string $amwalOrderId
      * @param string $refId
+     * @param string $triggerContext
      * @return OrderInterface
      * @throws LocalizedException
      */
-    public function createOrder(Quote $quote, string $amwalOrderId, string $refId): OrderInterface
+    public function createOrder(Quote $quote, string $amwalOrderId, string $refId, string $triggerContext): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
@@ -296,6 +297,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
         $order->setAmwalOrderId($amwalOrderId);
+        $order->setAmwalTriggerContext($triggerContext);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
 

@@ -48,6 +48,7 @@ class PlaceOrderTest extends TestCase
     private const REF_ID = '1f80146ddd68d71f9064af90d1afc83ccdc99e13595afcfce60dea15be8b7ec4';
     private const AMWAL_ORDER_ID = '6e369835-451c-4071-8d86-496bd4a19eb6';
     private const AMWAL_ORDER_ID_CANCELED = '6e369835-451c-4071-8d86-496bd4a19eb6-canceled';
+    private const TRIGGER_CONTEXT = 'cart';
 
 
     protected function setUp(): void
@@ -102,10 +103,11 @@ class PlaceOrderTest extends TestCase
         $this->quoteMock->method('getId')->willReturn(1);
 
         // Mock Order
-        $orderMock = $this->createPartialMock(Order::class, ['getState', 'getEntityId', 'cancel', 'setAmwalOrderId', 'getAmwalOrderId', 'setRefId', 'getRefId', 'addCommentToStatusHistory']);
+        $orderMock = $this->createPartialMock(Order::class, ['getState', 'getEntityId', 'cancel', 'setAmwalOrderId','setAmwalTriggerContext', 'getAmwalOrderId', 'setRefId', 'getRefId', 'addCommentToStatusHistory']);
         $orderMock->method('getState')->willReturn(Order::STATE_PENDING_PAYMENT);
         $orderMock->method('getEntityId')->willReturn(2);
         $orderMock->method('getAmwalOrderId')->willReturn(self::AMWAL_ORDER_ID);
+        $orderMock->method('setAmwalTriggerContext')->willReturn(self::TRIGGER_CONTEXT);
         $orderMock->method('getRefId')->willReturn(self::REF_ID);
         $orderMock->method('setRefId')->with(self::REF_ID)->willReturnSelf();
         $statusHistoryMessage = 'Amwal Transaction ID: ' . self::AMWAL_ORDER_ID;
@@ -138,7 +140,7 @@ class PlaceOrderTest extends TestCase
             ->willReturn($this->createMock(SearchCriteriaInterface::class));
 
         // Call the method to be tested
-        $resultOrder = $this->placeOrder->createOrder($this->quoteMock, self::AMWAL_ORDER_ID, self::REF_ID);
+        $resultOrder = $this->placeOrder->createOrder($this->quoteMock, self::AMWAL_ORDER_ID, self::REF_ID, self::TRIGGER_CONTEXT);
 
         // Assertions
         $this->assertSame($orderMock, $resultOrder);

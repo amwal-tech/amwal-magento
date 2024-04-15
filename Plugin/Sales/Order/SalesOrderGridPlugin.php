@@ -16,7 +16,7 @@ class SalesOrderGridPlugin
             $subject->getSelect()->joinLeft(
                 ['sales_order' => $subject->getTable('sales_order')],
                 'main_table.entity_id = sales_order.entity_id',
-                ['amwal_order_id']
+                ['amwal_order_id', 'amwal_trigger_context']
             );
         }
         return null;
