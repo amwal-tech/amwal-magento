@@ -35,13 +35,14 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                     self.initializeProductDetail('product_addtocart_form');
                 }
                 if (self.triggerContext === 'amwal-widget' || self.triggerContext === 'product-list-widget') {
-
                     self.initializeProductDetail('form-' + self.buttonId);
                 }
                 if (self.triggerContext === 'minicart') {
                     self.initializeMiniCart();
                 }
-
+                if (self.triggerContext === 'login') {
+                    self.initializeLogin();
+                }
                 window.addEventListener('cartUpdateNeeded', function(e) {
                     var sections = ['cart'];
                     customerData.invalidate(sections);
@@ -157,6 +158,26 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 attributes: false,
                 characterData: false
             });
+        },
+        /**
+         * Initialize login specific actions
+         */
+        initializeLogin: function () {
+            let self = this;
+            /**
+             * Check if the cart is empty
+             * @return Boolean
+             */
+            const isCartEmpty = () => {
+                const cart = customerData.get('cart');
+                return !cart().summary_count;
+            }
+            const loginButton = document.querySelector('.amwal-express-checkout-button.login');
+            const or = document.querySelector('.amwal-express-checkout-or');
+            if (!isCartEmpty()) {
+                or.classList.remove('hidden');
+                loginButton.classList.remove('hidden');
+            }
         }
     });
 });

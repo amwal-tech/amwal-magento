@@ -15,11 +15,18 @@ $triggerContext = $block->getTriggerContext();
 $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->getProduct());
 $checkoutButtonId = $viewModel->getCheckoutButtonId();
 ?>
-<style>
-    <?= $viewModel->getStyleCss() ?>
-</style>
-<?php if ($viewModel->shouldRender()): ?>
-    <div class="amwal-express-checkout-button<?= $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART ? ' hidden' : '' ?> <?= $escaper->escapeHtmlAttr($triggerContext) ?>"
+<?php if ($viewModel->shouldRender($triggerContext)): ?>
+    <?php if ($triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_LOGIN): ?>
+        <div class="block block-customer-login amwal-express-checkout-or hidden" style="margin-bottom: 25px;">
+            <svg height="5" width="215">
+                <line x1="0" y1="0" x2="210" y2="0" style="stroke:#969393;stroke-width:3" >
+            </svg> OR
+            <svg height="5" width="210">
+                <line x1="0" y1="0" x2="210" y2="0" style="stroke:#969393;stroke-width:3" >
+            </svg>
+        </div>
+    <?php endif; ?>
+    <div class="amwal-express-checkout-button <?= $escaper->escapeHtmlAttr($triggerContext) ?><?= in_array($triggerContext, [ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART, ExpressCheckoutButton::TRIGGER_CONTEXT_LOGIN]) ? ' hidden' : '' ?>"
          data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          data-locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
          data-scope-code="<?= $escaper->escapeHtmlAttr($viewModel->getStoreCode()) ?>"
@@ -41,3 +48,6 @@ $checkoutButtonId = $viewModel->getCheckoutButtonId();
         }
     </script>
 <?php endif; ?>
+<style>
+    <?= $viewModel->getStyleCss() ?>
+</style>
