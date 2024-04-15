@@ -4,5 +4,6 @@
     <table name="sales_order">
         <column xsi:type="varchar" name="amwal_order_id" nullable="true" length="255" comment="Order ID of the order in Amwal"/>
         <column xsi:type="varchar" name="ref_id" nullable="true" length="255" comment="Reference ID of the order in Amwal"/>
+        <column xsi:type="varchar" name="amwal_trigger_context" nullable="true" length="255" comment="Trigger context of the order in Amwal"/>
     </table>
 </schema>
