@@ -26,6 +26,9 @@ use Psr\Log\LoggerInterface;
 use Magento\Framework\Locale\Resolver as LocaleResolver;
 use RuntimeException;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class AddressResolver
 {
     /**
@@ -46,6 +49,21 @@ class AddressResolver
     private LocaleResolver $localeResolver;
     private AmwalAddressId $amwalAddressId;
 
+    /**
+     * @param CustomerRepositoryInterface $customerRepository
+     * @param Session $customerSession
+     * @param AddressRepositoryInterface $addressRepository
+     * @param AddressInterfaceFactory $addressDataFactory
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param RegionCollectionFactory $regionCollectionFactory
+     * @param RegionInterfaceFactory $regionFactory
+     * @param Config $config
+     * @param ResourceConnection $resourceConnection
+     * @param LoggerInterface $logger
+     * @param LocaleResolver $localeResolver
+     * @param AmwalAddressId $amwalAddressId
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
         Session $customerSession,
@@ -76,12 +94,13 @@ class AddressResolver
 
     /**
      * @param DataObject $amwalOrderData
-     * @param null|string $customerId
+     * @param int|string|null $customerId
      * @return AddressInterface
      * @throws LocalizedException
      * @throws RuntimeException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function execute(DataObject $amwalOrderData, ?string $customerId = null): AddressInterface
+    public function execute(DataObject $amwalOrderData, mixed $customerId = null): AddressInterface
     {
         $address = null;
         if ($customerId) {
@@ -137,12 +156,12 @@ class AddressResolver
 
     /**
      * @param DataObject $amwalOrderData
-     * @param null|string $customerId
+     * @param int|string|null $customerId
      * @return AddressInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function createAddress(DataObject $amwalOrderData, ?string $customerId): AddressInterface
+    public function createAddress(DataObject $amwalOrderData, mixed $customerId = null): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();
@@ -378,7 +397,7 @@ class AddressResolver
             }
         }
 
-        if ($this->config->getPhoneNumberTrimWhitespace()) {
+        if ($this->config->isPhoneNumberTrimWhitespace()) {
             $formattedNumber = str_replace(' ', '', $formattedNumber);
         }
 

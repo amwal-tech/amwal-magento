@@ -9,34 +9,35 @@ use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Checkout\Model\Session;
-use Magento\Framework\App\ObjectManager;
-use libphonenumber\PhoneNumberUtil;
-use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+use Magento\Store\Model\StoreManagerInterface;
 
 class GetCartButtonConfig extends GetConfig
 {
     protected Json $jsonSerializer;
     protected CityHelper $cityHelper;
+    protected StoreManagerInterface $storeManager;
     protected $amwalQuote;
 
     /**
      * @param RefIdDataInterface $refIdData
      * @param string|null $triggerContext
+     * @param string|null $cartId
+     * @param string|null $productId
+     *
      * @return AmwalButtonConfigInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function execute(
-            RefIdDataInterface $refIdData,
-            string $triggerContext = null,
-            ?string $cartId = null,
-            ?string $productId = null
-    ): AmwalButtonConfigInterface
-    {
+        RefIdDataInterface $refIdData,
+        string $triggerContext = null,
+        ?string $cartId = null,
+        ?string $productId = null
+    ): AmwalButtonConfigInterface   {
         /** @var AmwalButtonConfig $buttonConfig */
         $buttonConfig = $this->buttonConfigFactory->create();
         $customerSession = $this->customerSessionFactory->create();
@@ -49,7 +50,7 @@ class GetCartButtonConfig extends GetConfig
                 $quoteId = (int) $quoteIdMask->getQuoteId();
                 $quote = $this->cartRepository->get($quoteId);
             }
-        }else{
+        } else {
             $quote = $this->checkoutSessionFactory->create()->getQuote();
             $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
             if (!$cartId && $quote->getId()) {
@@ -57,16 +58,18 @@ class GetCartButtonConfig extends GetConfig
             }
         }
         $this->addGenericButtonConfig($buttonConfig, $refIdData, $quote, $customerSession, $initialAddress);
-        if ($triggerContext ===  ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
+        if ($triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
         $buttonConfig->setCartId($cartId);
-        $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId, $triggerContext));
+        $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
-        $buttonConfig->setTax($this->getTaxAmount($quote, $buttonConfig, $productId));
-        $buttonConfig->setFees($this->getFeesAmount($quote, $buttonConfig, $productId));
+        $buttonConfig->setTax($this->getTaxAmount($quote));
+        $buttonConfig->setFees($this->getFeesAmount($quote));
         $buttonConfig->setId($this->getButtonId($cartId));
         $this->amwalQuote = $quote;
+
+        $buttonConfig->setOrderContent($this->jsonSerializer->serialize($this->getOrderContent($quote)));
 
         if ($limitedCities = $this->getCityCodesJson()) {
             $buttonConfig->setAllowedAddressCities($limitedCities);
@@ -78,43 +81,42 @@ class GetCartButtonConfig extends GetConfig
     }
 
     /**
-     * @param int|null $quoteId
+     * @param CartInterface $quote
      * @param AmwalButtonConfigInterface $buttonConfig
      * @param string|null $productId
-     * @param string|null $triggerContext
+     *
      * @return float
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null, $triggerContext = null): float
+    public function getAmount(CartInterface $quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
-        if ($buttonConfig->getShowDiscountRibbon()) {
-            if ($productId) {
-                $product = $this->productRepository->getById($productId);
-                return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
-            }
+        if ($productId && $buttonConfig->isShowDiscountRibbon()) {
+            $product = $this->productRepository->getById($productId);
+            return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
         }
+
         return ((float)
             $quote->getGrandTotal() +
             $this->getDiscountAmount($quote, $buttonConfig, $productId) -
-            $this->getTaxAmount($quote, $buttonConfig, $productId) -
-            $this->getFeesAmount($quote, $buttonConfig, $productId)
+            $this->getTaxAmount($quote) -
+            $this->getFeesAmount($quote)
         );
     }
 
 
     /**
-     * @param int|null $quoteId
+     * @param CartInterface $quote
      * @param AmwalButtonConfigInterface $buttonConfig
      * @param string|null $productId
+     *
      * @return float
-     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getDiscountAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    public function getDiscountAmount(CartInterface $quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
     {
         $discountAmount = 0;
-        if ($buttonConfig->getShowDiscountRibbon()) {
+        if ($buttonConfig->isShowDiscountRibbon()) {
             if ($productId) {
                 $product = $this->productRepository->getById($productId);
                 $priceInfo = $product->getPriceInfo();
@@ -133,27 +135,21 @@ class GetCartButtonConfig extends GetConfig
     }
 
     /**
-     * @param int|null $quoteId
-     * @param AmwalButtonConfigInterface $buttonConfig
-     * @param string|null $productId
+     * @param CartInterface $quote
+     *
      * @return float
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
-    public function getTaxAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    public function getTaxAmount(CartInterface $quote): float
     {
         return (float)$quote->getShippingAddress()->getTaxAmount();
     }
 
     /**
-     * @param int|null $quoteId
-     * @param AmwalButtonConfigInterface $buttonConfig
-     * @param string|null $productId
+     * @param CartInterface $quote
+     *
      * @return float
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
-    public function getFeesAmount($quote, AmwalButtonConfigInterface $buttonConfig, $productId = null): float
+    public function getFeesAmount(CartInterface $quote): float
     {
         $extraFee = 0;
         $totals = $quote->getTotals();
@@ -165,11 +161,11 @@ class GetCartButtonConfig extends GetConfig
 
     /**
      * @param AmwalButtonConfigInterface $buttonConfig
+     * @param CartInterface $quote
+     *
      * @return void
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
-    public function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, $quote): void
+    public function addRegularCheckoutButtonConfig(AmwalButtonConfigInterface $buttonConfig, CartInterface $quote): void
     {
         $shippingAddress = $quote->getShippingAddress();
         $billingAddress = $quote->getBillingAddress();
@@ -259,5 +255,28 @@ class GetCartButtonConfig extends GetConfig
     public function getQuote()
     {
         return $this->amwalQuote;
+    }
+
+    /**
+     * @param $quote
+     * @return array
+     */
+    private function getOrderContent($quote): array
+    {
+        $orderContent = [];
+        foreach ($quote->getAllItems() as $item) {
+            if ($item->getParentItemId()) {
+                continue;
+            }
+            $orderContent[] = [
+                'id' => $item->getProductId(),
+                'name' => $item->getName(),
+                'quantity' => $item->getQty(),
+                'total' => (float)$item->getRowTotalInclTax(),
+                'url' => $item->getProduct()->getProductUrl(),
+                'image' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $item->getProduct()->getImage(),
+            ];
+        }
+        return $orderContent;
     }
 }

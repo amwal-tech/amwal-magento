@@ -11,6 +11,11 @@ define([
 ],
 function ($, Component, $t) {
     'use strict';
+    window.addEventListener('cartUpdateNeeded', function(e) {
+        const customerData = require('Magento_Customer/js/customer-data')
+        customerData.invalidate(['cart']);
+        customerData.reload(['cart'], true);
+    });
     return Component.extend({
         defaults: {
             template: 'Amwal_Payments/payment/amwal-payment/form',

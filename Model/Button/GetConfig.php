@@ -27,6 +27,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use libphonenumber\PhoneNumberUtil;
 use Magento\Framework\Locale\ResolverInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class GetConfig
 {
     protected AmwalButtonConfigFactory $buttonConfigFactory;
@@ -57,7 +60,8 @@ class GetConfig
      * @param ProductRepositoryInterface $productRepository
      * @param Json $jsonSerializer
      * @param RegionCollectionFactory $regionCollectionFactory
-     *
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
@@ -117,7 +121,7 @@ class GetConfig
         $buttonConfig->setPluginVersion($this->config->getVersion());
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
         $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());
-
+        $buttonConfig->setEnableBankInstallments($this->config->isBankInstallmentsEnabled());
         $initialAddressData = $this->getInitialAddressData($customerSession, $quote, $initialAddress);
         if ($initialAddressData) {
             $buttonConfig->setInitialAddress($initialAddressData['address']);

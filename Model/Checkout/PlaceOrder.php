@@ -32,6 +32,9 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Throwable;
 use Magento\Store\Model\StoreManagerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class PlaceOrder extends AmwalCheckoutAction
 {
     private QuoteManagement $quoteManagement;
@@ -67,6 +70,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param Config $config
      * @param LoggerInterface $logger
      * @param StoreManagerInterface $storeManager
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         QuoteManagement $quoteManagement,
@@ -114,6 +118,9 @@ class PlaceOrder extends AmwalCheckoutAction
      * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function execute(
         $cartId,
@@ -135,7 +142,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $amwalOrderData->toJson()
         ));
 
-        if ($refId !== $amwalOrderData->getRefId() || !$this->refIdManagement->verifyRefId($refId, $refIdData)) {
+        if ($refId !== $amwalOrderData->getRefId() || !$this->verifyRefId($refId, $refIdData)) {
             $message = sprintf(
                 "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s" ,
                 $amwalOrderData->getRefId(),
@@ -153,7 +160,6 @@ class PlaceOrder extends AmwalCheckoutAction
 
         $quote->setData(self::IS_AMWAL_API_CALL, true);
         $quote->setPaymentMethod(ConfigProvider::CODE);
-        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
         $customerAddress = null;
         if ($hasAmwalAddress) {
@@ -246,7 +252,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
 
         if ($order) {
-            if( $order->getState() !== Order::STATE_PENDING_PAYMENT) {
+            if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
                 throw new RuntimeException('Found an existing order with same transacation Id with non pending payment state');
             }
             $this->logDebug(
@@ -382,5 +388,16 @@ class PlaceOrder extends AmwalCheckoutAction
         // Search for order with the provided custom attribute value and get the order data
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
         return $orders ? reset($orders) : null;
+    }
+
+    /**
+     * @param string $refId
+     * @param RefIdDataInterface $refIdData
+     *
+     * @return bool
+     */
+    public function verifyRefId(string $refId, RefIdDataInterface $refIdData): bool
+    {
+        return $this->refIdManagement->verifyRefId($refId, $refIdData);
     }
 }
