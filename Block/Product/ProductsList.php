@@ -21,6 +21,9 @@ use Magento\Rule\Model\Condition\Sql\Builder as SqlBuilder;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Widget\Helper\Conditions;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
 {
     protected $_template = 'Amwal_Payments::product/widget/content/grid.phtml';
@@ -38,7 +41,6 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
      */
     private StoreManagerInterface $storeManager;
 
-
     /**
      * @param Context $context
      * @param CollectionFactory $productCollectionFactory
@@ -54,6 +56,7 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
      * @param EncoderInterface|null $urlEncoder
      * @param CategoryRepositoryInterface|null $categoryRepository
      * @param StoreManagerInterface $storeManager
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         Context                     $context,

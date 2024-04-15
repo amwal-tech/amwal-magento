@@ -72,13 +72,11 @@ class ExpressCheckoutButton implements ArgumentInterface
     }
 
     /**
-     * @param string $triggerContext
      * @return bool
      */
-    public function shouldRender(string $triggerContext): bool
+    public function shouldRender(): bool
     {
-        $shouldRender = $this->isExpressCheckoutActive();
-        return $shouldRender;
+        return $this->isExpressCheckoutActive();
     }
 
     /**
@@ -125,7 +123,7 @@ class ExpressCheckoutButton implements ArgumentInterface
             return '';
         }
 
-        if (strpos($formSelector, '%product_id%') && $product) {
+        if ($product && strpos($formSelector, '%product_id%') !== false) {
             $formSelector = str_replace('%product_id%', (string) $product->getId(), $formSelector);
         }
 
