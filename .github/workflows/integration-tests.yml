@@ -24,6 +24,8 @@ jobs:
         options: --health-cmd="curl localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v4
+      - name: Install Composer Dependencies
+        run: composer install --dev
       - name: M2 Integration Tests
         uses: extdn/github-actions-m2/magento-integration-tests/8.1@master
         with:
@@ -54,6 +56,8 @@ jobs:
         options: --health-cmd="curl localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v4
+      - name: Install Composer Dependencies
+        run: composer install --dev
       - name: M2 Integration Tests
         uses: extdn/github-actions-m2/magento-integration-tests/8.2@master
         with:
