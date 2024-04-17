@@ -41,7 +41,10 @@
         "php": ">=7.4.0",
         "giggsey/libphonenumber-for-php": "^8.13.7",
         "sentry/sdk": "^3.0",
-        "tddwizard/magento2-fixtures": "^1.1",
+        "tddwizard/magento2-fixtures": "^1.1"
+
+    },
+    "require-dev": {
         "mockery/mockery": "^1.6.11"
     },
     "autoload": {
