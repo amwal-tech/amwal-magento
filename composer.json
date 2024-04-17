@@ -40,7 +40,9 @@
     "require": {
         "php": ">=7.4.0",
         "giggsey/libphonenumber-for-php": "^8.13.7",
-        "sentry/sdk": "^3.0",
+        "sentry/sdk": "^3.0"
+    },
+    "require-dev": {
         "tddwizard/magento2-fixtures": "^1.1",
         "mockery/mockery": "^1.6.11"
     },
