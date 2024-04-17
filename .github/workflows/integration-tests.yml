@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Composer Dependencies
-        run: composer install --dev
+        run: composer install --no-dev
       - name: M2 Integration Tests
         uses: extdn/github-actions-m2/magento-integration-tests/8.1@master
         with:
@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Composer Dependencies
-        run: composer install --dev
+        run: composer install --no-dev
       - name: M2 Integration Tests
         uses: extdn/github-actions-m2/magento-integration-tests/8.2@master
         with:
