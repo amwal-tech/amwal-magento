@@ -41,14 +41,16 @@ class CronStatus extends Field
         $item = $collection->getFirstItem();
 
         if ($item && $item->getId()) {
-            if($item->getScheduledAt()){
-                $nextRun = new \DateTime($item->getScheduledAt());
+            $scheduledAt = $item->getScheduledAt();
+            $executedAt = $item->getExecutedAt();
+            if($scheduledAt){
+                $nextRun = new \DateTime($scheduledAt);
                 $nextRunFormatted = $nextRun->modify('+1 Hour')->format('Y-m-d H:i:s T');
             }else{
                 $nextRunFormatted = 'Not Scheduled';
             }
-            if($item->getExecutedAt()){
-                $lastRun = new \DateTime($item->getExecutedAt());
+            if($executedAt){
+                $lastRun = new \DateTime($executedAt);
                 $lastRunFormatted = $lastRun->format('Y-m-d H:i:s T');
             }else{
                 $lastRunFormatted = 'Not Executed';
