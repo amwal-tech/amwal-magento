@@ -47,8 +47,12 @@ class CronStatus extends Field
             }else{
                 $nextRunFormatted = 'Not Scheduled';
             }
-            $lastRun = new \DateTime($item->getExecutedAt());
-            $lastRunFormatted = $lastRun->format('Y-m-d H:i:s T');
+            if($item->getExecutedAt()){
+                $lastRun = new \DateTime($item->getExecutedAt());
+                $lastRunFormatted = $lastRun->format('Y-m-d H:i:s T');
+            }else{
+                $lastRunFormatted = 'Not Executed';
+            }
             $status = __(
                 'Last Run: %1 - Next Run:  %2 - Status: %3',
                 $lastRunFormatted,
