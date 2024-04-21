@@ -74,6 +74,21 @@
                         <config_path>payment/amwal_payments/regular_checkout_active</config_path>
                         <tooltip>Indicates if the Regular Checkout functionality should be enabled</tooltip>
                     </field>
+                    <field id="express_checkout_active" translate="label" type="hidden" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Express checkout</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/express_checkout_active</config_path>
+                        <tooltip>Indicates if the Express Checkout functionality should be enabled</tooltip>
+                    </field>
+                    <field id="hide_proceed_to_checkout" translate="label" type="hidden" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Hide "Proceed to Checkout" button</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/hide_proceed_to_checkout</config_path>
+                        <tooltip>If set to yes the default "Proceed to Checkout" button in the minicart will be hidden</tooltip>
+                        <depends>
+                            <field id="express_checkout_active">1</field>
+                        </depends>
+                    </field>
                 </group>
 
                 <!-- Installments Settings -->
