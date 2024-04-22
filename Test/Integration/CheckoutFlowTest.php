@@ -241,7 +241,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertIsNumeric($quoteResponse['subtotal']);
         $this->assertGreaterThan(0, $quoteResponse['subtotal']);
 
-        return [$cartId, $amwalTransactionData];
+        return [$cartId, $amwalTransactionData, $addressData];
     }
 
     /**
@@ -251,10 +251,11 @@ class CheckoutFlowTest extends IntegrationTestBase
     public function testPlaceOrder(array $dependencies): OrderInterface
     {
         /** @var AmwalButtonConfigInterface $buttonConfig */
-        [$cartId, $amwalTransactionData] = $dependencies;
+        [$cartId, $amwalTransactionData, $addressData] = $dependencies;
 
         /** /V1/amwal/place-order */
         $order = $this->placeOrderMock->execute(
+            $addressData,
             $cartId,
             self::MOCK_REF_ID,
             $this->getMockRefIdData(),
