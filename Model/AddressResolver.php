@@ -100,7 +100,7 @@ class AddressResolver
      * @throws RuntimeException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function execute(DataObject $amwalOrderData, mixed $customerId = null): AddressInterface
+    public function execute(DataObject $amwalOrderData, $customerId = null): AddressInterface
     {
         $address = null;
         if ($customerId) {
@@ -161,7 +161,7 @@ class AddressResolver
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function createAddress(DataObject $amwalOrderData, mixed $customerId = null): AddressInterface
+    public function createAddress(DataObject $amwalOrderData, $customerId = null): AddressInterface
     {
         /** @var AmwalAddressInterface $amwalAddress */
         $amwalAddress = $amwalOrderData->getAddressDetails();

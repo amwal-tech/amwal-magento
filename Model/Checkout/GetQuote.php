@@ -329,7 +329,7 @@ class GetQuote extends AmwalCheckoutAction
      * @throws JsonException
      * @throws LocalizedException
      */
-    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, mixed $customerId): AddressInterface
+    public function getCustomerAddress(DataObject $amwalOrderData, string $refId, $customerId): AddressInterface
     {
         $customerAddress = null;
         try {
