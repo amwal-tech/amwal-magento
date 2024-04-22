@@ -109,6 +109,7 @@ class PlaceOrder extends AmwalCheckoutAction
     }
 
     /**
+     * @param mixed $addressData
      * @param string|int $cartId
      * @param string $refId
      * @param RefIdDataInterface $refIdData
@@ -123,6 +124,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function execute(
+        mixed $addressData,
         $cartId,
         string $refId,
         RefIdDataInterface $refIdData,
@@ -214,7 +216,7 @@ class PlaceOrder extends AmwalCheckoutAction
         }
 
         if (!$quote->getCustomerEmail()) {
-            $customerEmail = $quote->getShippingAddress()->getEmail();
+            $customerEmail = $quote->getShippingAddress()->getEmail() ?? $addressData['client_email'] ?? null;
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
