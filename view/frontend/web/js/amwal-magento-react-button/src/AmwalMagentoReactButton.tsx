@@ -235,6 +235,15 @@ const AmwalMagentoReactButton = ({
     }
   }, [finishedUpdatingOrder, receivedSuccess])
 
+  const extractClientData = (transactionDetails: any) => {
+    return {
+        client_email: transactionDetails.client_email,
+        client_first_name: transactionDetails.client_first_name,
+        client_last_name: transactionDetails.client_last_name,
+        client_phone_number: transactionDetails.client_phone_number,
+    }
+  }
+
   const asyncHandleAmwalPrePayTrigger = async (event: AmwalCheckoutButtonCustomEvent<ITransactionDetails>): Promise<void> => {
     const response = await fetch(`${baseUrl}/amwal/place-order`, {
       method: 'POST',
@@ -246,6 +255,7 @@ const AmwalMagentoReactButton = ({
       body: JSON.stringify({
         ref_id: config?.ref_id,
         address_data: event.detail,
+        client_data: extractClientData(event.detail),
         cartId: overrideCartId ?? cartId,
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
