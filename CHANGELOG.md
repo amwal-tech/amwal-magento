@@ -1,3 +1,25 @@
+# [1.0.34] (2024-05-0)
+### Features
+- [#307](https://github.com/amwal-tech/amwal-magento/pull/307) - Add Github Actions (Integration test, unit test, PHP MD, Static code analysis)
+- [#309](https://github.com/amwal-tech/amwal-magento/pull/309) - Add Amwal checkout to the customer account login.
+- [#311](https://github.com/amwal-tech/amwal-magento/pull/311) - Add Payment method meta data in pwa mode.
+- [#312](https://github.com/amwal-tech/amwal-magento/pull/312) - Add order content to amwalPreCheckoutTriggerAck event.
+- [#313](https://github.com/amwal-tech/amwal-magento/pull/313) - Add Bank Installments.
+- [#314](https://github.com/amwal-tech/amwal-magento/pull/314) - Add IncrementId to the performSuccessRedirection function.
+- [#315](https://github.com/amwal-tech/amwal-magento/pull/315) - Add Order Position to the saless order grid.
+- [#317](https://github.com/amwal-tech/amwal-magento/pull/317) - Add installments instruction to order success page.
+- [#321](https://github.com/amwal-tech/amwal-magento/pull/321) - UI enhancement Show the checkout-button before the login form.
+
+### Bug Fixes
+- [#306](https://github.com/amwal-tech/amwal-magento/pull/306) - Add cartUpdateNeeded event to fix the cart session.
+- [#303](https://github.com/amwal-tech/amwal-magento/pull/303) - set quote to inactive to empty mini-cart for PWA Mode.
+- [#305](https://github.com/amwal-tech/amwal-magento/pull/305) - Fix customer id data type.
+- [#318](https://github.com/amwal-tech/amwal-magento/pull/318) - Add regular checkout active hidden setting.
+- [#319](https://github.com/amwal-tech/amwal-magento/pull/319) - Update dev requirements for Github Actions.
+- [#320](https://github.com/amwal-tech/amwal-magento/pull/320) - Fix cron status get executed at date time null.
+- [#322](https://github.com/amwal-tech/amwal-magento/pull/322) - Fix Hide "Proceed to Checkout" button, Enable Express checkout setting.
+- [#325](https://github.com/amwal-tech/amwal-magento/pull/322) - PlaceOrder Fix Failed email address validation.
+
 # [1.0.33] (2024-03-10)
 ### Features
 - [#240](https://github.com/amwal-tech/amwal-magento/pull/240) - Add Github Actions for CI/CD
