@@ -16,16 +16,6 @@ $formSelector = $viewModel->getFormSelector($this->getFormSelector(), $block->ge
 $checkoutButtonId = $viewModel->getCheckoutButtonId();
 ?>
 <?php if ($viewModel->shouldRender($triggerContext)): ?>
-    <?php if ($triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_LOGIN): ?>
-        <div class="block block-customer-login amwal-express-checkout-or hidden" style="margin-bottom: 25px;">
-            <svg height="5" width="215">
-                <line x1="0" y1="0" x2="210" y2="0" style="stroke:#969393;stroke-width:3" >
-            </svg> OR
-            <svg height="5" width="210">
-                <line x1="0" y1="0" x2="210" y2="0" style="stroke:#969393;stroke-width:3" >
-            </svg>
-        </div>
-    <?php endif; ?>
     <div class="amwal-express-checkout-button <?= $escaper->escapeHtmlAttr($triggerContext) ?><?= in_array($triggerContext, [ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART, ExpressCheckoutButton::TRIGGER_CONTEXT_LOGIN]) ? ' hidden' : '' ?>"
          data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
          data-locale="<?= $escaper->escapeHtmlAttr($viewModel->getLocale()) ?>"
@@ -36,6 +26,16 @@ $checkoutButtonId = $viewModel->getCheckoutButtonId();
          id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
     >
     </div>
+    <?php if ($triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_LOGIN): ?>
+        <div class="block block-customer-login amwal-express-checkout-or hidden" style="margin-top: 25px;">
+            <svg height="5" width="215">
+                <line x1="0" y1="0" x2="210" y2="0" style="stroke:#969393;stroke-width:3" >
+            </svg> OR
+            <svg height="5" width="210">
+                <line x1="0" y1="0" x2="210" y2="0" style="stroke:#969393;stroke-width:3" >
+            </svg>
+        </div>
+    <?php endif; ?>
     <script type="text/x-magento-init">
         {
             "#<?= $buttonId ?>": {

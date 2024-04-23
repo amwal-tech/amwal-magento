@@ -125,7 +125,6 @@ class PlaceOrder extends AmwalCheckoutAction
      */
     public function execute(
         $clientData,
-        $cartId,
         string $refId,
         RefIdDataInterface $refIdData,
         string $amwalOrderId,
