@@ -85,7 +85,7 @@ class OrderUpdateTest extends TestCase
         // Mock Order object
         $order = $this->getMockBuilder(Order::class)
             ->addMethods(['getAmwalOrderId'])
-            ->onlyMethods(['getState', 'getGrandTotal', 'getBaseGrandTotal', 'getOrderCurrencyCode', 'getIncrementId', 'hasInvoices', 'addStatusHistoryComment'])
+            ->onlyMethods(['getState', 'getGrandTotal', 'getBaseGrandTotal', 'getOrderCurrencyCode', 'getIncrementId', 'hasInvoices', 'addCommentToStatusHistory'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -131,7 +131,7 @@ class OrderUpdateTest extends TestCase
         } else {
             $historyComment = __('Order status updated to (%1) by Amwal Payments', $status);
         }
-        $order->expects($this->once())->method('addStatusHistoryComment')->with($historyComment);
+        $order->expects($this->once())->method('addCommentToStatusHistory')->with($historyComment);
 
         // Expectations
         $this->orderRepository->expects($this->once())->method('save')->with($order);
