@@ -266,7 +266,7 @@ const AmwalMagentoReactButton = ({
     } else {
       buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
         detail: {
-          description: data.message ?? data
+            description: `${data.message ?? data}${data.parameters ? ` ${data.parameters.join(', ')}` : ''}`
         }
       }))
     }
