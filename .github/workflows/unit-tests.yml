@@ -1,0 +1,129 @@
+name: Unit Tests
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: docker://mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: magento
+          MYSQL_DATABASE: magento
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5 -e MYSQL_ROOT_PASSWORD=magento -e MYSQL_USER=magento -e MYSQL_PASSWORD=magento -e MYSQL_DATABASE=magento --entrypoint sh mysql:8.0 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
+      rabbitmq:
+        image: docker://rabbitmq:3.9-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: "magento"
+          RABBITMQ_DEFAULT_PASS: "magento"
+          RABBITMQ_DEFAULT_VHOST: "/"
+        ports:
+          - 5672:5672
+      opensearch:
+        image: ghcr.io/mad-i-t/magento-opensearch:2.5.0
+        ports:
+          - 9200:9200
+        options: -e="discovery.type=single-node" -e "plugins.security.disabled=true" --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=10
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.2]
+        magento: [2.4.6]
+
+    name: PHP ${{ matrix.php }} -  Magento ${{ matrix.magento }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          path: Amwal_Payments
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: xdebug, bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, simplexml, soap, sockets, tokenizer, xsl, zip, simplexml, xml, xmlwriter, xmlreader,pcntl, posix
+          coverage: xdebug
+
+      - name: Install Fresh Magento Repo
+        if: ${{true}}
+        uses: MAD-I-T/magento-actions@master
+        env:
+          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+        with:
+          process: 'create-project'
+          magento_version: ${{ matrix.magento }}
+          no_push: 1
+
+      - name: Extract Branch Name
+        id: extract_branch
+        run: |
+          BRANCH_NAME=$(echo "$GITHUB_REF" | sed 's/refs\/heads\///')
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Get The Branch Name
+        run: echo "The branch name is ${{ env.BRANCH_NAME }}"
+
+      - name: Authentication
+        run: cd magento && sudo composer config http-basic.repo.magento.com ${{secrets.MAGENTO_USERNAME}} ${{secrets.MAGENTO_PASSWORD}}
+
+      - name: Install Dependencies
+        run: cd magento && ls -la && sudo composer require amwal/payments:dev-${{ env.BRANCH_NAME }}
+
+      - name: List
+        run: cd magento &&  ls -la
+
+      - name: Set File Permissions
+        run: sudo chmod -R 777 magento
+
+      - name: Run Amwal Payments Tests Suite
+        if: ${{true}}
+        run: cd magento && sudo php vendor/bin/phpunit -c vendor/amwal/payments/phpunit.xml.dist --colors=always --coverage-text --coverage-clover build/logs/clover.xml  --coverage-cobertura build/coverage/cobertura.xml --coverage-crap4j build/coverage/crap4j.xml --coverage-xml build/coverage/coverage-xml --log-junit build/junit.xml --coverage-html build/coverage/html --testsuite Amwal_Payments vendor/amwal/payments/Test/Unit
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: html-coverage-report
+          path: magento/build/coverage/html
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: clover-coverage-report
+          path: magento/build/logs/clover.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: cobertura-coverage-report
+          path: magento/build/coverage/cobertura.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: crap4j-coverage-report
+          path: magento/build/coverage/crap4j.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-xml-coverage-report
+          path: magento/build/coverage/coverage-xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: junit-coverage-report
+          path: magento/build/junit.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
+          flags: phpunit
+          files: magento/build/coverage/cobertura.xml
