@@ -68,7 +68,7 @@
                         <config_path>payment/amwal_payments/show_discount_ribbon</config_path>
                         <tooltip>Toggle to enable discount ribbon</tooltip>
                     </field>
-                    <field id="regular_checkout_active" translate="label" type="hidden" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="regular_checkout_active" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Enable Regular checkout</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/regular_checkout_active</config_path>
