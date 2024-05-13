@@ -21,7 +21,8 @@ class TriggerContextOptions implements OptionSourceInterface
             ['value' => ExpressCheckoutButton::TRIGGER_CONTEXT_MINICART, 'label' => __('Mini Cart')],
             ['value' => ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_DETAIL, 'label' => __('Product Detail Page')],
             ['value' => ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_LIST, 'label' => __('Product Listing Page')],
-            ['value' => ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT, 'label' => __('Regular Checkout')]
+            ['value' => ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT, 'label' => __('Regular Checkout')],
+            ['value' => ExpressCheckoutButton::TRIGGER_CONTEXT_LOGIN, 'label' => __('Login')]
         ];
     }
 }

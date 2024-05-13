@@ -1,4 +1,4 @@
-# [1.0.34] (2024-05-0)
+# [1.0.34] (2024-05-13)
 ### Features
 - [#307](https://github.com/amwal-tech/amwal-magento/pull/307) - Add Github Actions (Integration test, unit test, PHP MD, Static code analysis)
 - [#309](https://github.com/amwal-tech/amwal-magento/pull/309) - Add Amwal checkout to the customer account login.
@@ -9,6 +9,10 @@
 - [#315](https://github.com/amwal-tech/amwal-magento/pull/315) - Add Order Position to the saless order grid.
 - [#317](https://github.com/amwal-tech/amwal-magento/pull/317) - Add installments instruction to order success page.
 - [#321](https://github.com/amwal-tech/amwal-magento/pull/321) - UI enhancement Show the checkout-button before the login form.
+- [#324](https://github.com/amwal-tech/amwal-magento/pull/324) - Add additional integration test version
+- [#326](https://github.com/amwal-tech/amwal-magento/pull/326) - Enable unit tests and fix order update test.
+- [#330](https://github.com/amwal-tech/amwal-magento/pull/330) - Show regular_checkout_active setting in the admin panel.
+- [#331](https://github.com/amwal-tech/amwal-magento/pull/331) - Add cron job information and pending payment orders count.
 
 ### Bug Fixes
 - [#306](https://github.com/amwal-tech/amwal-magento/pull/306) - Add cartUpdateNeeded event to fix the cart session.
@@ -19,6 +23,7 @@
 - [#320](https://github.com/amwal-tech/amwal-magento/pull/320) - Fix cron status get executed at date time null.
 - [#322](https://github.com/amwal-tech/amwal-magento/pull/322) - Fix Hide "Proceed to Checkout" button, Enable Express checkout setting.
 - [#325](https://github.com/amwal-tech/amwal-magento/pull/322) - PlaceOrder Fix Failed email address validation.
+- [#327](https://github.com/amwal-tech/amwal-magento/pull/327) - Fix error handling for Amwal pre-pay trigger event
 
 # [1.0.33] (2024-03-10)
 ### Features
