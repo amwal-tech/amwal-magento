@@ -1,5 +1,9 @@
 name: Static Code Analysis
-on: push
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
 
 jobs:
   static:
