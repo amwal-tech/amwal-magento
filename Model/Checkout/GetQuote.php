@@ -209,6 +209,9 @@ class GetQuote extends AmwalCheckoutAction
                 $quote->getShippingAddress()->collectShippingRates();
                 $this->quoteRepository->save($quote);
 
+                // Reload the quote to ensure shipping rates are correctly processed.
+                $quote = $this->getQuote($quote->getId(), $orderItems);
+
                 $availableRates = $this->getAvailableRates($quote);
             }
 
