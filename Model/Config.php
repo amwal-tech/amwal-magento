@@ -12,6 +12,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
+use Magento\Framework\App\ProductMetadataInterface;
 
 /**
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
@@ -70,19 +71,25 @@ class Config
     /** @var DirectoryHelper */
     private DirectoryHelper $directoryHelper;
 
+    /** @var ProductMetadataInterface  */
+    private ProductMetadataInterface $productMetadata;
+
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param DirectoryHelper $directoryHelper
+     * @param ProductMetadataInterface $productMetadata
      */
     public function __construct(
         ScopeConfigInterface    $scopeConfig,
         RegionCollectionFactory $regionCollectionFactory,
-        DirectoryHelper         $directoryHelper
+        DirectoryHelper         $directoryHelper,
+        ProductMetadataInterface $productMetadata
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
+        $this->productMetadata = $productMetadata;
     }
 
     /**
@@ -486,5 +493,21 @@ class Config
     public function isBankInstallmentsEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS);
+    }
+
+   /**
+    * @return string
+    */
+    public function getPhpVersion(): string
+    {
+        return phpversion();
+    }
+
+    /**
+     * @return string
+     */
+    public function getMagentoVersion(): string
+    {
+        return $this->productMetadata->getVersion();
     }
 }

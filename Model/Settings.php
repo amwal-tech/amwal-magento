@@ -79,7 +79,13 @@ class Settings
             'order_status_changed_admin_email' => $this->config->isOrderStatusChangedAdminEmailEnabled(),
             'cronjob_enable' => $this->config->isCronjobEnabled(),
             'debug' => $this->config->isDebugModeEnabled(),
-            'sentry' => $this->config->isSentryReportEnabled()
+            'sentry' => $this->config->isSentryReportEnabled(),
+            'discount_ribbon' => $this->config->isDiscountRibbonEnabled(),
+            'pwa' => $this->config->isPwaMode(),
+            'bank_installments' => $this->config->isBankInstallmentsEnabled(),
+            'magagento_version' => $this->config->getMagentoVersion(),
+            'php_version' => $this->config->getPhpVersion(),
+            'version' => $this->config->getVersion(),
         ];
 
         try {
