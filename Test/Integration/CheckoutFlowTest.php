@@ -17,6 +17,7 @@ use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
+use Amwal\Payments\Model\Settings;
 use Exception;
 use JsonException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -48,6 +49,7 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
  *    - Retrieving Quote
  *    - Placing Order
  *    - Paying Order
+ *    - Settings
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -293,6 +295,29 @@ class CheckoutFlowTest extends IntegrationTestBase
 
         $this->assertIsBool($response);
         $this->assertTrue($response);
+    }
+
+    /**
+     * @covers Settings::getSettings
+     *
+     * @return void
+     * @throws JsonException
+     */
+    public function testGetSettings(): void
+    {
+        /** @var Settings $settings */
+        $settings = $this->objectManager->get(Settings::class);
+
+        $response = $settings->getSettings();
+
+        $this->assertIsString($response);
+        $this->assertNotEmpty($response);
+
+        $settings = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertIsArray($settings);
+        $this->assertArrayHasKey('amwal_payment', $settings);
+        $this->assertIsBool($settings['amwal_payment']);
     }
 
     /**
