@@ -90,12 +90,6 @@
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
         </arguments>
     </type>
-    <type name="Amwal\Payments\Model\Config">
-        <arguments>
-            <argument name="scopeConfig" xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
-            <argument name="productMetadata" xsi:type="object">Magento\Framework\App\ProductMetadataInterface</argument>
-        </arguments>
-    </type>
 
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>
