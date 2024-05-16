@@ -8,6 +8,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Cron\Model\ResourceModel\Schedule\CollectionFactory as ScheduleCollectionFactory;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\Module\ModuleListInterface;
 
 class Settings
 {
@@ -37,6 +38,11 @@ class Settings
     private Json $json;
 
     /**
+     * @var ModuleListInterface
+     */
+    private ModuleListInterface $moduleList;
+
+    /**
      * Constructor
      *
      * @param Config $config
@@ -44,19 +50,22 @@ class Settings
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ScheduleCollectionFactory $scheduleCollectionFactory
      * @param Json $json
+     * @param ModuleListInterface $moduleList
      */
     public function __construct(
         Config $config,
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         ScheduleCollectionFactory $scheduleCollectionFactory,
-        Json $json
+        Json $json,
+        ModuleListInterface $moduleList
     ) {
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->scheduleCollectionFactory = $scheduleCollectionFactory;
         $this->json = $json;
+        $this->moduleList = $moduleList;
     }
 
     /**
@@ -79,7 +88,13 @@ class Settings
             'order_status_changed_admin_email' => $this->config->isOrderStatusChangedAdminEmailEnabled(),
             'cronjob_enable' => $this->config->isCronjobEnabled(),
             'debug' => $this->config->isDebugModeEnabled(),
-            'sentry' => $this->config->isSentryReportEnabled()
+            'sentry' => $this->config->isSentryReportEnabled(),
+            'discount_ribbon' => $this->config->isDiscountRibbonEnabled(),
+            'pwa' => $this->config->isPwaMode(),
+            'bank_installments' => $this->config->isBankInstallmentsEnabled(),
+            'magagento_version' => $this->config->getMagentoVersion(),
+            'php_version' => $this->config->getPhpVersion(),
+            'version' => $this->config->getVersion(),
         ];
 
         try {
@@ -104,6 +119,10 @@ class Settings
             $settings['cronjob_status'] = $schedule->getStatus();
             $settings['cronjob_status_message'] = $schedule->getMessages();
         }
+
+        // Retrieve installed modules
+        $installedModules = $this->moduleList->getNames();
+        $settings['installed_modules'] = $installedModules;
 
         return $this->json->serialize($settings);
     }
