@@ -274,9 +274,21 @@ class GetCartButtonConfig extends GetConfig
                 'quantity' => $item->getQty(),
                 'total' => (float)$item->getRowTotalInclTax(),
                 'url' => $item->getProduct()->getProductUrl(),
-                'image' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $item->getProduct()->getImage(),
+                'image' => $this->getProductImageUrl($item->getProduct())
             ];
         }
         return $orderContent;
+    }
+
+    /**
+     * @param $product
+     * @return string
+     */
+    private function getProductImageUrl($product)
+    {
+        if (!$product->getData('small_image')) {
+            return '';
+        }
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getData('small_image');
     }
 }
