@@ -152,6 +152,7 @@ class GetQuote extends AmwalCheckoutAction
     ): array {
         $quoteData = [];
         $customerAddress = null;
+        $availableRates = [];
 
         try {
             $this->logDebug('Start GetQuote call');
@@ -189,15 +190,7 @@ class GetQuote extends AmwalCheckoutAction
                 ]);
                 $amwalOrderData->setAddressDetails($amwalAddress);
                 $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (string) $quote->getCustomerId());
-            }
 
-            $quote->setData(self::IS_AMWAL_API_CALL, true);
-            $quote->getPayment()->setQuote($quote);
-            $quote->setPaymentMethod(ConfigProvider::CODE);
-            $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
-
-            $availableRates = [];
-            if (!$isPreCheckout) {
                 $quoteAddress = $this->getQuoteAddress($customerAddress, $amwalAddress);
 
                 $this->logDebug('Setting Billing and Shipping address');
@@ -211,6 +204,11 @@ class GetQuote extends AmwalCheckoutAction
 
                 $availableRates = $this->getAvailableRates($quote);
             }
+
+            $quote->setData(self::IS_AMWAL_API_CALL, true);
+            $quote->getPayment()->setQuote($quote);
+            $quote->setPaymentMethod(ConfigProvider::CODE);
+            $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
 
             $quote->setTotalsCollectedFlag(false);
             $quote->collectTotals();
