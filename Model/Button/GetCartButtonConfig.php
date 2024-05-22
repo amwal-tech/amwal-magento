@@ -288,7 +288,7 @@ class GetCartButtonConfig extends GetConfig
     private function getProductImageUrl(ProductInterface $product): string
     {
         $image = $product->getData('small_image') ?: $product->getData('thumbnail');
-        if(!$image) {
+        if (!$image) {
             return '';
         }
         return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $image;
