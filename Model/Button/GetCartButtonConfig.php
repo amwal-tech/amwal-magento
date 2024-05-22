@@ -398,7 +398,7 @@ class GetCartButtonConfig extends GetConfig
                 continue;
             }
 
-            $attributeValues[$attribute->getLabel()] = $attribute->getSource()->getOptionText($optionValue);
+            $attributeValues[] = $attribute->getSource()->getOptionText($optionValue);
         }
         return trim($name . ' ' . implode(' ', $attributeValues));
     }
