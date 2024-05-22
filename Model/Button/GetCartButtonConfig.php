@@ -30,6 +30,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Quote\Model\Quote\Item;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class GetCartButtonConfig extends GetConfig
 {
     private AttributeRepositoryInterface $attributeRepository;
@@ -50,6 +53,7 @@ class GetCartButtonConfig extends GetConfig
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param AttributeRepositoryInterface $attributeRepository
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         AmwalButtonConfigFactory $buttonConfigFactory,
