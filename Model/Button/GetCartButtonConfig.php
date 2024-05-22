@@ -14,6 +14,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
 
 class GetCartButtonConfig extends GetConfig
 {
@@ -274,9 +275,22 @@ class GetCartButtonConfig extends GetConfig
                 'quantity' => $item->getQty(),
                 'total' => (float)$item->getRowTotalInclTax(),
                 'url' => $item->getProduct()->getProductUrl(),
-                'image' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $item->getProduct()->getImage(),
+                'image' => $this->getProductImageUrl($item->getProduct())
             ];
         }
         return $orderContent;
+    }
+
+    /**
+     * @param ProductInterface $product
+     * @return string
+     */
+    private function getProductImageUrl(ProductInterface $product): string
+    {
+        $image = $product->getData('small_image') ?: $product->getData('thumbnail');
+        if (!$image) {
+            return '';
+        }
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $image;
     }
 }
