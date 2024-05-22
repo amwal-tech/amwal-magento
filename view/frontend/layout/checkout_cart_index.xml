@@ -11,6 +11,10 @@
                     </argument>
                     <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_CART</argument>
                 </arguments>
+                <action method="setData">
+                    <argument name="key" xsi:type="string">cache_lifetime</argument>
+                    <argument name="value" xsi:type="boolean">false</argument>
+                </action>
             </block>
         </referenceContainer>
     </body>
