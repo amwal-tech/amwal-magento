@@ -15,6 +15,7 @@ use Magento\Quote\Api\Data\CartInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Quote\Model\Quote\Item;
 
 class GetCartButtonConfig extends GetConfig
 {
@@ -266,19 +267,40 @@ class GetCartButtonConfig extends GetConfig
     {
         $orderContent = [];
         foreach ($quote->getAllItems() as $item) {
-            if ($item->getParentItemId()) {
-                continue;
+            if (!$item->getParentItemId()) {
+                $orderContent[] = $this->getProductData($item);
             }
-            $orderContent[] = [
-                'id' => $item->getProductId(),
-                'name' => $item->getName(),
-                'quantity' => $item->getQty(),
-                'total' => (float)$item->getRowTotalInclTax(),
-                'url' => $item->getProduct()->getProductUrl(),
-                'image' => $this->getProductImageUrl($item->getProduct())
-            ];
         }
         return $orderContent;
+    }
+
+    /**
+     * @param Item $item
+     * @return array
+     */
+    private function getProductData(Item $item): array
+    {
+        // Check if the item is part of a configurable product
+        if ($item->getProductType() === 'configurable') {
+            foreach ($item->getChildren() as $child) {
+                return [
+                    'id' => $child->getProductId(),
+                    'name' => $this->getProductName($child->getProduct(), ['size', 'color', 'material']),
+                    'quantity' => (float)$item->getQty(),
+                    'total' => (float)$child->getRowTotalInclTax() == 0 ? (float)$item->getRowTotalInclTax() : (float)$child->getRowTotalInclTax(),
+                    'url' => $child->getProductUrl(),
+                    'image' => $this->getProductImageUrl($child->getProduct())
+                ];
+            }
+        }
+        return [
+            'id' => $item->getProductId(),
+            'name' => $this->getProductName($item->getProduct(), ['size', 'color', 'material']),
+            'quantity' => (float)$item->getQty(),
+            'total' => (float)$item->getRowTotalInclTax(),
+            'url' => $item->getProductUrl(),
+            'image' => $this->getProductImageUrl($item->getProduct())
+        ];
     }
 
     /**
@@ -292,5 +314,24 @@ class GetCartButtonConfig extends GetConfig
             return '';
         }
         return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $image;
+    }
+
+    /**
+     * @param ProductInterface $product
+     * @param array $attributes
+     * @return string
+     */
+    private function getProductName(ProductInterface $product, array $attributes = []): string
+    {
+        $name = $product->getName();
+        $attributeValues = [];
+
+        foreach ($attributes as $attributeCode) {
+            $attribute = $product->getCustomAttribute($attributeCode);
+            if ($attribute) {
+                $attributeValues[] = $attribute->getValue();
+            }
+        }
+        return trim($name . ' ' . implode(' ', $attributeValues));
     }
 }
