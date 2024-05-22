@@ -295,7 +295,7 @@ class GetCartButtonConfig extends GetConfig
         }
         return [
             'id' => $item->getProductId(),
-            'name' => $this->getProductName($item->getProduct(), ['size', 'color', 'material']),
+            'name' => $item->getName(),
             'quantity' => (float)$item->getQty(),
             'total' => (float)$item->getRowTotalInclTax(),
             'url' => $item->getProductUrl(),
