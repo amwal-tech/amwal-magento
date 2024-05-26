@@ -44,7 +44,7 @@ class PluginVersion extends Field
     {
         return '
         <div id="' . $element->getHtmlId() . '" style="padding: 10px 0 0 10px; font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-            <span style="font-weight: bold;">Amwal Payments Plugin Version:</span> ' . htmlspecialchars($version, ENT_QUOTES, 'UTF-8') . '<br/>
+            <span style="font-weight: bold;">Version:</span> ' . htmlspecialchars($version, ENT_QUOTES, 'UTF-8') . '<br/>
             <span style="font-weight: bold;">Git Commit:</span>
             <a href="' . htmlspecialchars($commitLink, ENT_QUOTES, 'UTF-8') . '" target="_blank" style="color: #1e88e5; text-decoration: none;">' . htmlspecialchars($commitHash, ENT_QUOTES, 'UTF-8') . '</a>
         </div>';
