@@ -310,14 +310,14 @@ class CheckoutFlowTest extends IntegrationTestBase
 
         $response = $settings->getSettings();
 
-        $this->assertIsString($response);
-        $this->assertNotEmpty($response);
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('data', $response);
 
-        $settings = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        $settingsData = $response['data'];
 
-        $this->assertIsArray($settings);
-        $this->assertArrayHasKey('amwal_payment', $settings);
-        $this->assertIsBool($settings['amwal_payment']);
+        $this->assertIsArray($settingsData);
+        $this->assertArrayHasKey('amwal_payment', $settingsData);
+        $this->assertIsBool($settingsData['amwal_payment']);
     }
 
     /**
