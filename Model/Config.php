@@ -510,4 +510,15 @@ class Config
     {
         return $this->productMetadata->getVersion();
     }
+
+    /**
+     * Get the current Git commit hash.
+     *
+     * @return string The current Git commit hash.
+     */
+    public function getGitCommit(): string
+    {
+        $pluginPath = escapeshellarg(__DIR__);
+        return trim(shell_exec("cd $pluginPath && git rev-parse HEAD"));
+    }
 }
