@@ -530,5 +530,6 @@ class Config
         if ($result->getExitCode() === 0) {
             return trim($result->getOutput());
         }
+        return '';
     }
 }
