@@ -87,6 +87,7 @@ class Settings
             'magagento_version' => $this->config->getMagentoVersion(),
             'php_version' => $this->config->getPhpVersion(),
             'version' => $this->config->getVersion(),
+            'git_commit' => $this->config->getGitCommit(),
         ];
 
         try {
