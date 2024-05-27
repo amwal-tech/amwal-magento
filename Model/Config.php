@@ -13,6 +13,7 @@ use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Shell\Driver as ShellDriver;
 
 /**
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
@@ -74,22 +75,28 @@ class Config
     /** @var ProductMetadataInterface  */
     private ProductMetadataInterface $productMetadata;
 
+    /** @var ShellDriver */
+    private ShellDriver $shell;
+
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param DirectoryHelper $directoryHelper
      * @param ProductMetadataInterface $productMetadata
+     * @param ShellDriver $shell
      */
     public function __construct(
         ScopeConfigInterface    $scopeConfig,
         RegionCollectionFactory $regionCollectionFactory,
         DirectoryHelper         $directoryHelper,
-        ProductMetadataInterface $productMetadata
+        ProductMetadataInterface $productMetadata,
+        ShellDriver             $shell
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
         $this->productMetadata = $productMetadata;
+        $this->shell = $shell;
     }
 
     /**
@@ -518,7 +525,11 @@ class Config
      */
     public function getGitCommit(): string
     {
-        $pluginPath = escapeshellarg(__DIR__);
-        return trim(shell_exec("cd $pluginPath && git rev-parse HEAD"));
+        $pluginPath = __DIR__;
+        $result = $this->shell->execute('git -C ' . $pluginPath . ' rev-parse HEAD', []);
+        if ($result->getExitCode() === 0) {
+            return trim($result->getOutput());
+        }
+        return '';
     }
 }
