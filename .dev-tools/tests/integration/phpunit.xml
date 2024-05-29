@@ -20,8 +20,8 @@
             <directory suffix=".php">../../../vendor/amwal/payments/Test/Integration</directory>
         </include>
         <report>
-            <clover target="build/logs/clover.xml"/>
-            <cobertura target="build/logs/cobertura.xml"/>
+            <clover target="clover.xml"/>
+            <cobertura target="cobertura.xml"/>
         </report>
     </coverage>
     <filter>
