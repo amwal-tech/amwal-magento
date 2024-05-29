@@ -4,4 +4,4 @@ composer require tddwizard/magento2-fixtures:^1.1 --no-update
 composer require mockery/mockery:^1.6.11 --no-update
 
 echo "Running PHPUnit with coverage..."
-phpunit --coverage-cobertura cobertura.xml
+php vendor/bin/phpunit -c dev/tests/integration/phpunit.xml --coverage-clover=coverage.xml
