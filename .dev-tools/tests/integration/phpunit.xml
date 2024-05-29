@@ -11,18 +11,13 @@
             <directory suffix="Test.php">../../../vendor/amwal/payments/Test/Integration</directory>
         </testsuite>
     </testsuites>
-    <logging>
-        <log type="coverage-clover" target="build/logs/clover.xml"/>
-        <log type="coverage-cobertura" target="build/logs/cobertura.xml"/>
-    </logging>
     <coverage processUncoveredFiles="true">
         <include>
-            <directory suffix=".php">../../../vendor/amwal/payments/Test/Integration</directory>
+            <directory suffix=".php">../../../vendor/amwal/payments</directory>
         </include>
-        <report>
-            <clover target="clover.xml"/>
-            <cobertura target="cobertura.xml"/>
-        </report>
+        <exclude>
+            <directory>../../../vendor/amwal/payments/Test/Integration</directory>
+        </exclude>
     </coverage>
     <filter>
         <whitelist>
