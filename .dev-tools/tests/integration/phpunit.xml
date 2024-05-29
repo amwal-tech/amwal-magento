@@ -19,16 +19,6 @@
             <directory>../../../vendor/amwal/payments/Test/Integration</directory>
         </exclude>
     </coverage>
-    <filter>
-        <whitelist>
-            <exclude>
-                <directory>../../../lib/internal/*/*/Test</directory>
-                <directory>../../../lib/internal/*/*/*/Test</directory>
-                <directory>../../../setup/src/*/*/Test</directory>
-                <directory>../../../vendor/*/*/Test</directory>
-            </exclude>
-        </whitelist>
-    </filter>
     <php>
         <includePath>.</includePath>
         <includePath>testsuite</includePath>
