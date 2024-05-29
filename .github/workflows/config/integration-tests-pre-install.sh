@@ -6,3 +6,6 @@ composer require mockery/mockery:^1.6.11 --no-update
 echo "Running PHPUnit with coverage..."
 cd ../../../
 ls -la
+tail -n 1 entrypoint.sh
+
+
