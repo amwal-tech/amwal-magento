@@ -97,3 +97,9 @@ jobs:
           magento_version: 2.4.6
           composer_version: 2
           additional_options: --coverage-cobertura cobertura.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: cobertura-report
+          path: cobertura.xml
