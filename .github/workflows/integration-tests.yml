@@ -92,11 +92,12 @@ jobs:
         uses: extdn/github-actions-m2/magento-integration-tests/8.2@master
         with:
           magento_pre_install_script: .github/workflows/config/integration-tests-pre-install.sh
-          magento_post_install_script: .github/workflows/config/integration-tests-post-install.sh
           module_name: ${{ secrets.MODULE_NAME }}
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
+      - name: List files
+        run: ls -la
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
