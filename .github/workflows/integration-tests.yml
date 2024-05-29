@@ -32,6 +32,7 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.3-p3
           composer_version: 2
+          additional_options: --coverage-cobertura cobertura.xml
 
   mage245:
     name: Magento 2.4.5 Integration Tests
@@ -63,6 +64,7 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.5
           composer_version: 2
+          additional_options: --coverage-cobertura cobertura.xml
 
   mage246:
     name: Magento 2.4.6 Integration Tests
@@ -94,3 +96,4 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
+          additional_options: --coverage-cobertura cobertura.xml
