@@ -35,6 +35,8 @@ else
     echo "Xdebug configuration already exists"
 fi
 
+echo "export XDEBUG_MODE=coverage" >> ~/.bashrc
+
 echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting..."
 sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml|' ../../../entrypoint.sh
 cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/phpunit.xml ../../../docker-files/phpunit.xml
