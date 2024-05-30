@@ -4,8 +4,10 @@ composer require tddwizard/magento2-fixtures:^1.1 --no-update
 composer require mockery/mockery:^1.6.11 --no-update
 
 echo "Adding xdebug extension"
-docker-php-ext-install xdebug
-echo "zend_extension=xdebug.so" > /usr/local/etc/php/conf.d/xdebug.ini
+if ! php -m | grep -i xdebug > /dev/null; then
+    pecl install xdebug
+    docker-php-ext-enable xdebug
+fi
 
 echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting..."
 sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml|' ../../../entrypoint.sh
