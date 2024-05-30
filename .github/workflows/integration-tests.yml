@@ -32,7 +32,11 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.3-p3
           composer_version: 2
-
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: mage243-coverage
+          path: coverage
 
   mage245:
     name: Magento 2.4.5 Integration Tests
@@ -64,7 +68,11 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.5
           composer_version: 2
-
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: mage245-coverage
+          path: coverage
 
   mage246:
     name: Magento 2.4.6 Integration Tests
@@ -96,10 +104,8 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
-      - name: List files
-        run: ls -la ../../../../
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v2
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
         with:
-          name: cobertura-report
-          path: cobertura.xml
+          name: mage246-coverage
+          path: coverage
