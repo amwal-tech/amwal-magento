@@ -108,6 +108,8 @@ jobs:
         run: ls -la
       - name: List Files 2
         run: ls -la ../
+      - name: List Files 3
+        run: ls -la ../../
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
