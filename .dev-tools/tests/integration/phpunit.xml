@@ -34,11 +34,12 @@
         <exclude>
             <directory>../../../vendor/amwal/payments/Test/Integration</directory>
         </exclude>
+        <report>
+            <clover output="coverage.xml"/>
+            <html output="coverage-report"/>
+            <cobertura output="coverage-cobertura.xml"/>
+        </report>
     </coverage>
-    <logging>
-        <log type="coverage-html" target="coverage-report" lowUpperBound="50" highLowerBound="90"/>
-        <log type="coverage-clover" target="coverage.xml"/>
-    </logging>
     <listeners>
         <listener class="Magento\TestFramework\Event\PhpUnit"/>
         <listener class="Magento\TestFramework\ErrorLog\Listener"/>
