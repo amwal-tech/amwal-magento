@@ -8,6 +8,18 @@ if ! php -m | grep -i xdebug > /dev/null; then
     pecl install xdebug
     docker-php-ext-enable xdebug
 fi
+# Add xdebug configuration to php.ini
+echo "Configuring xdebug"
+echo "
+[xdebug]
+zend_extension=xdebug.so
+xdebug.mode=coverage
+xdebug.start_with_request=yes
+xdebug.discover_client_host=true
+xdebug.client_host=host.docker.internal
+xdebug.client_port=9003
+xdebug.idekey=PHPSTORM
+" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting..."
 sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml|' ../../../entrypoint.sh
