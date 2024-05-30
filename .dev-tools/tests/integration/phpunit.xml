@@ -27,6 +27,14 @@
         <const name="TESTS_MAGENTO_MODE" value="developer"/>
         <const name="TESTS_ERROR_LOG_LISTENER_LEVEL" value="-1"/>
     </php>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">../../../vendor/amwal/payments</directory>
+        </include>
+        <exclude>
+            <directory>../../../vendor/amwal/payments/Test/Integration</directory>
+        </exclude>
+    </coverage>
     <logging>
         <log type="coverage-html" target="coverage-report" lowUpperBound="50" highLowerBound="90"/>
         <log type="coverage-clover" target="coverage.xml"/>
