@@ -104,12 +104,12 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
-      - name: Find coverage/clover.xml
-        run: |
-          find . -name "clover.xml"
-      - name: Find coverage/cobertura.xml
-        run: |
-          find . -name "cobertura.xml"
+      - name: List Files
+        run: ls -la ../../../
+      - name: List Files
+        run: ls -la ../../../../
+      - name: List Files
+        run: ls -la ../../../../../
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
