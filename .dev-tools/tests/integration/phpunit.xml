@@ -11,14 +11,6 @@
             <directory suffix="Test.php">../../../vendor/amwal/payments/Test/Integration</directory>
         </testsuite>
     </testsuites>
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">../../../vendor/amwal/payments</directory>
-        </include>
-        <exclude>
-            <directory>../../../vendor/amwal/payments/Test/Integration</directory>
-        </exclude>
-    </coverage>
     <php>
         <includePath>.</includePath>
         <includePath>testsuite</includePath>
@@ -36,6 +28,19 @@
         <const name="TESTS_MAGENTO_MODE" value="developer"/>
         <const name="TESTS_ERROR_LOG_LISTENER_LEVEL" value="-1"/>
     </php>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">../../../vendor/amwal/payments</directory>
+        </include>
+        <exclude>
+            <directory>../../../vendor/amwal/payments/Test/Integration</directory>
+        </exclude>
+        <report>
+            <clover outputFile="/home/coverage/clover.xml"/>
+            <html outputDirectory="/home/coverage/html"/>
+            <cobertura outputFile="/home/coverage/cobertura.xml"/>
+        </report>
+    </coverage>
     <listeners>
         <listener class="Magento\TestFramework\Event\PhpUnit"/>
         <listener class="Magento\TestFramework\ErrorLog\Listener"/>
