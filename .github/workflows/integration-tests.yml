@@ -106,7 +106,7 @@ jobs:
           composer_version: 2
 
       - name: /home/runner/work/
-        run: ls -la /home/runner/work/amwal-magento/amwal-magento/coverage/
+        run: ls -la /home/runner/work/amwal-magento/amwal-magento/
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
