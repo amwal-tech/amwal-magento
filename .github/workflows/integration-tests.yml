@@ -104,8 +104,8 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
-      - name: List Files in ../../../../../tmp/m2
-        run: ls -l ../../../../../tmp/m2
+      - name: List Files
+        run: ls -la ../../amwal-magento
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
