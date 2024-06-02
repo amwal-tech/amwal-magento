@@ -106,7 +106,7 @@ jobs:
           composer_version: 2
 
       - name: Find cobertura.xml in all directories
-        run: find /home/runner/work -name cobertura.xml -type f -print
+        run: find /home/ -name cobertura.xml -type f -print
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
