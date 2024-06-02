@@ -106,9 +106,7 @@ jobs:
           composer_version: 2
 
       - name: /home/runner/work/
-        run: ls -la /home/runner/work/
-      - name: Find cobertura.xml in all directories
-        run: find /home/ -name cobertura.xml -type f -print
+        run: ls -la /home/runner/work/amwal-magento/amwal-magento/coverage/
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
