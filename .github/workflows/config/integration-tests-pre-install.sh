@@ -38,9 +38,8 @@ fi
 echo "export XDEBUG_MODE=coverage" >> ~/.bashrc
 
 echo "Create coverage directory"
-mkdir -p /home/runner/work/amwal-magento/amwal-magento/coverage
-chmod -R 777 /home/runner/work/amwal-magento/amwal-magento/coverage
-ls -la /home/runner/work/amwal-magento/amwal-magento/coverage
+mkdir -p /home/runner/work/coverage
+ls -la /home/runner/work/coverage
 
 echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting..."
 sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml|' ../../../entrypoint.sh
