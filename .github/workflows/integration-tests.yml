@@ -108,7 +108,7 @@ jobs:
         run: ls -la ../../amwal-magento/amwal-magento
 
       - name: Find codecov.yml in all directories and show the paths of the files
-        run: find . -name codecov.yml -type f -print
+        run: find / -name codecov.yml -type f -print
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
