@@ -109,4 +109,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mage246-coverage
-          path: coverage
+          path: /home/cobertura.xml
