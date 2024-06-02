@@ -105,6 +105,8 @@ jobs:
           magento_version: 2.4.6
           composer_version: 2
 
+      - name: /home/runner/work/
+        run: ls -la /home/runner/work/
       - name: Find cobertura.xml in all directories
         run: find /home/ -name cobertura.xml -type f -print
 
