@@ -106,6 +106,8 @@ jobs:
           composer_version: 2
       - name: List Files in /tmp/m2
         run: ls -l /tmp/m2
+      - name: List Files in ../../../../../tmp/m2
+        run: ls -l ../../../../../tmp/m2
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
