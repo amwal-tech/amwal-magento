@@ -35,9 +35,9 @@
             <directory>../../../vendor/amwal/payments/Test/Integration</directory>
         </exclude>
         <report>
-            <clover outputFile="/home/runner/work/coverage/clover.xml"/>
-            <html outputDirectory="/home/runner/work/coverage/html"/>
-            <cobertura outputFile="/home/runner/work/coverage/cobertura.xml"/>
+            <clover outputFile="/home/coverage/clover.xml"/>
+            <html outputDirectory="/home/coverage/html"/>
+            <cobertura outputFile="/home/coverage/cobertura.xml"/>
         </report>
     </coverage>
     <listeners>

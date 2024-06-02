@@ -105,11 +105,8 @@ jobs:
           magento_version: 2.4.6
           composer_version: 2
 
-      - name: /home/runner/work/
-        run: ls -la /home/runner/work/
-
-      - name: /home/runner/work/coverage
-        run: ls -la /home/runner/work/coverage
+      - name: /home/coverage
+        run: ls -la /home/coverage
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
