@@ -38,7 +38,8 @@ fi
 echo "export XDEBUG_MODE=coverage" >> ~/.bashrc
 
 echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting..."
-#sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& cp cobertura.xml /home/cobertura.xml \&\& ls /home|g' ../../../entrypoint.sh
-cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/entrypoint.sh ../../../docker-files/entrypoint.sh
-tail -n 1 ../../../entrypoint.sh
+#mkdir -p $GITHUB_WORKSPACE/coverage && cp -R $MAGENTO_ROOT/dev/tests/integration/coverage $GITHUB_WORKSPACE/coverage && ls $GITHUB_WORKSPACE/coverage
+sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& mkdir -p $GITHUB_WORKSPACE/coverage \&\& cp -R $MAGENTO_ROOT/dev/tests/integration/coverage $GITHUB_WORKSPACE/coverage \&\& ls $GITHUB_WORKSPACE/coverage|' ../../../docker-files/entrypoint.sh
+#cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/entrypoint.sh ../../../docker-files/entrypoint.sh
+tail -n 1 ../../../docker-files/entrypoint.sh
 cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/phpunit.xml ../../../docker-files/phpunit.xml
