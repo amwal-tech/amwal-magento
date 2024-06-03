@@ -48,7 +48,7 @@ echo "files"
 ls -la ../../../
 
 #sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& mkdir -p /home/coverage \&\& cp -r coverage /home/coverage|' ../../../entrypoint.sh
-sed -i '$s|$| \&\& mkdir -p /home/coverage \&\& cp -r coverage /home/coverage|' ../../../entrypoint.sh
+sed -i '$s|$| \&\& mkdir -p /home/coverage \&\& cp -r coverage /home/coverage|' /entrypoint.sh
 echo "coverage directory"
 ls -la /home/coverage
 
