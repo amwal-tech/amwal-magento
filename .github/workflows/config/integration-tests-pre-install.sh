@@ -41,11 +41,9 @@ echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting.
 ls -la ../../../docker-files
 echo "files"
 ls -la ../../../
-#mkdir -p $GITHUB_WORKSPACE/coverage && cp -R $MAGENTO_ROOT/dev/tests/integration/coverage $GITHUB_WORKSPACE/coverage && ls $GITHUB_WORKSPACE/coverage
-sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& mkdir -p homecoverage \&\& cp -R home/dev/tests/integration/coverage home/coverage \&\& ls home/coverage|' ../../../entrypoint.sh
-#cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/entrypoint.sh ../../../docker-files/entrypoint.sh
+sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& mkdir -p /home/coverage \&\& cp -r coverage /home/coverage|' ../../../entrypoint.sh
 tail -n 1 ../../../entrypoint.sh
 cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/phpunit.xml ../../../docker-files/phpunit.xml
 
 echo "coverage directory"
-ls -la home/coverage
+ls -la /home/coverage
