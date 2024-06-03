@@ -104,9 +104,10 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
-
+      - name: list files
+        run: ls -la /home/coverage
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
           name: mage246-coverage
-          path: /home/cobertura.xml
+          path: /home/coverage/cobertura.xml
