@@ -38,6 +38,7 @@ fi
 echo "export XDEBUG_MODE=coverage" >> ~/.bashrc
 
 echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting..."
-sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& cp cobertura.xml /home/cobertura.xml \&\& ls /home|g' ../../../entrypoint.sh
+#sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& cp cobertura.xml /home/cobertura.xml \&\& ls /home|g' ../../../entrypoint.sh
+cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/entrypoint.sh ../../../docker-files/entrypoint.sh
 tail -n 1 ../../../entrypoint.sh
 cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/phpunit.xml ../../../docker-files/phpunit.xml
