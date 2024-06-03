@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: M2 Integration Tests
-        uses: amwaltech/github-actions-m2/magento-integration-tests/7.4@master
+        uses: amwal-tech/github-actions-m2/magento-integration-tests/7.4@master
         with:
           magento_pre_install_script: .github/workflows/config/integration-tests-pre-install.sh
           module_name: ${{ secrets.MODULE_NAME }}
@@ -65,7 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: M2 Integration Tests
-        uses: amwaltech/github-actions-m2/magento-integration-tests/8.1@master
+        uses: amwal-tech/github-actions-m2/magento-integration-tests/8.1@master
         with:
           magento_pre_install_script: .github/workflows/config/integration-tests-pre-install.sh
           module_name: ${{ secrets.MODULE_NAME }}
