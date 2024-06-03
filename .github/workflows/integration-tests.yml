@@ -104,12 +104,18 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
-      - name: List files
-        run: ls -la $GITHUB_WORKSPACE
-      - name: list files
+      - name: Coverage report
         run: ls -la coverage
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
+          flags: phpunit
+          files: m$GITHUB_WORKSPACE/coverage/clover.xml
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
           name: mage246-coverage
-          path: dev/tests/integration/coverage/cobertura.xml
+          path: $GITHUB_WORKSPACE/coverage/clover.xml
