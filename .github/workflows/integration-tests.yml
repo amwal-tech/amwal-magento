@@ -40,7 +40,7 @@ jobs:
         with:
           fail_ci_if_error: true
           flags: phpunit
-          files: coverage/cobertura.xml
+          files: coverage/clover.xml
 
   mage245:
     name: Magento 2.4.5 Integration Tests
@@ -80,7 +80,7 @@ jobs:
         with:
           fail_ci_if_error: true
           flags: phpunit
-          files: coverage/cobertura.xml
+          files: coverage/clover.xml
 
   mage246:
     name: Magento 2.4.6 Integration Tests
@@ -120,4 +120,4 @@ jobs:
         with:
           fail_ci_if_error: true
           flags: phpunit
-          files: coverage/cobertura.xml
+          files: coverage/clover.xml
