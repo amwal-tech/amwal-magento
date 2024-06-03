@@ -113,9 +113,4 @@ jobs:
         with:
           fail_ci_if_error: true
           flags: phpunit
-          files: m$GITHUB_WORKSPACE/coverage/clover.xml
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: mage246-coverage
-          path: $GITHUB_WORKSPACE/coverage/clover.xml
+          files: m$GITHUB_WORKSPACE/coverage/cobertura.xml
