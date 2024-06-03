@@ -46,3 +46,6 @@ sed -i 's|-c phpunit.xml|-c phpunit.xml --coverage-cobertura=cobertura.xml \&\& 
 #cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/entrypoint.sh ../../../docker-files/entrypoint.sh
 tail -n 1 ../../../entrypoint.sh
 cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/phpunit.xml ../../../docker-files/phpunit.xml
+
+ehco "coverage directory"
+ls -la $GITHUB_WORKSPACE/coverage
