@@ -39,6 +39,6 @@ fi
 echo "export XDEBUG_MODE=coverage" >> ~/.bashrc
 
 echo "Updating entrypoint.sh and phpunit.xml to include code coverage reporting..."
-cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/phpunit.xml ../../../docker-files/phpunit.xml
+#cp local-source/__extdn_github-actions-m2/.dev-tools/tests/integration/phpunit.xml ../../../docker-files/phpunit.xml
 
 
