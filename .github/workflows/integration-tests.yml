@@ -32,11 +32,15 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.3-p3
           composer_version: 2
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v3
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          name: mage243-coverage
-          path: coverage
+          fail_ci_if_error: true
+          flags: phpunit
+          files: coverage/cobertura.xml
 
   mage245:
     name: Magento 2.4.5 Integration Tests
@@ -68,11 +72,15 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.5
           composer_version: 2
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v3
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          name: mage245-coverage
-          path: coverage
+          fail_ci_if_error: true
+          flags: phpunit
+          files: coverage/cobertura.xml
 
   mage246:
     name: Magento 2.4.6 Integration Tests
@@ -104,8 +112,7 @@ jobs:
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
-      - name: Coverage report
-        run: ls -la coverage
+          
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
