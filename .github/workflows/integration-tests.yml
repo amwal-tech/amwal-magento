@@ -25,13 +25,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: M2 Integration Tests
-        uses: extdn/github-actions-m2/magento-integration-tests/7.4@master
+        uses: amwal-tech/github-actions-m2/magento-integration-tests/7.4@master
         with:
           magento_pre_install_script: .github/workflows/config/integration-tests-pre-install.sh
           module_name: ${{ secrets.MODULE_NAME }}
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.3-p3
           composer_version: 2
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
+          flags: phpunit
+          files: coverage/clover.xml
 
   mage245:
     name: Magento 2.4.5 Integration Tests
@@ -56,13 +65,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: M2 Integration Tests
-        uses: extdn/github-actions-m2/magento-integration-tests/8.1@master
+        uses: amwal-tech/github-actions-m2/magento-integration-tests/8.1@master
         with:
           magento_pre_install_script: .github/workflows/config/integration-tests-pre-install.sh
           module_name: ${{ secrets.MODULE_NAME }}
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.5
           composer_version: 2
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
+          flags: phpunit
+          files: coverage/clover.xml
 
   mage246:
     name: Magento 2.4.6 Integration Tests
@@ -87,10 +105,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: M2 Integration Tests
-        uses: extdn/github-actions-m2/magento-integration-tests/8.2@master
+        uses: amwal-tech/github-actions-m2/magento-integration-tests/8.2@master
         with:
           magento_pre_install_script: .github/workflows/config/integration-tests-pre-install.sh
           module_name: ${{ secrets.MODULE_NAME }}
           composer_name: ${{ secrets.COMPOSER_NAME }}
           magento_version: 2.4.6
           composer_version: 2
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
+          flags: phpunit
+          files: coverage/clover.xml
