@@ -39,7 +39,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           fail_ci_if_error: true
-          flags: phpunit
+          flags: integration-test
           files: coverage/clover.xml
 
   mage245:
@@ -79,7 +79,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           fail_ci_if_error: true
-          flags: phpunit
+          flags: integration-test
           files: coverage/clover.xml
 
   mage246:
@@ -119,5 +119,5 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           fail_ci_if_error: true
-          flags: phpunit
+          flags: integration-test
           files: coverage/clover.xml
