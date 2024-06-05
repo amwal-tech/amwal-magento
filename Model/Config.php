@@ -12,6 +12,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Shell\Driver as ShellDriver;
 
 /**
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
@@ -59,7 +61,7 @@ class Config
   /**
      * @var string
      */
-    const MODULE_VERSION = '1.0.34';
+    const MODULE_VERSION = '1.0.35';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
@@ -70,19 +72,31 @@ class Config
     /** @var DirectoryHelper */
     private DirectoryHelper $directoryHelper;
 
+    /** @var ProductMetadataInterface  */
+    private ProductMetadataInterface $productMetadata;
+
+    /** @var ShellDriver */
+    private ShellDriver $shell;
+
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param DirectoryHelper $directoryHelper
+     * @param ProductMetadataInterface $productMetadata
+     * @param ShellDriver $shell
      */
     public function __construct(
         ScopeConfigInterface    $scopeConfig,
         RegionCollectionFactory $regionCollectionFactory,
-        DirectoryHelper         $directoryHelper
+        DirectoryHelper         $directoryHelper,
+        ProductMetadataInterface $productMetadata,
+        ShellDriver             $shell
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
+        $this->productMetadata = $productMetadata;
+        $this->shell = $shell;
     }
 
     /**
@@ -486,5 +500,36 @@ class Config
     public function isBankInstallmentsEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS);
+    }
+
+   /**
+    * @return string
+    */
+    public function getPhpVersion(): string
+    {
+        return phpversion();
+    }
+
+    /**
+     * @return string
+     */
+    public function getMagentoVersion(): string
+    {
+        return $this->productMetadata->getVersion();
+    }
+
+    /**
+     * Get the current Git commit hash.
+     *
+     * @return string The current Git commit hash.
+     */
+    public function getGitCommit(): string
+    {
+        $pluginPath = __DIR__;
+        $result = $this->shell->execute('git -C ' . $pluginPath . ' rev-parse HEAD', []);
+        if ($result->getExitCode() === 0) {
+            return trim($result->getOutput());
+        }
+        return '';
     }
 }

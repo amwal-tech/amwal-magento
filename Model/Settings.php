@@ -7,7 +7,7 @@ use Amwal\Payments\Model\Config;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Cron\Model\ResourceModel\Schedule\CollectionFactory as ScheduleCollectionFactory;
-use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\Module\ModuleListInterface;
 
 class Settings
 {
@@ -31,10 +31,11 @@ class Settings
      */
     private ScheduleCollectionFactory $scheduleCollectionFactory;
 
+
     /**
-     * @var Json
+     * @var ModuleListInterface
      */
-    private Json $json;
+    private ModuleListInterface $moduleList;
 
     /**
      * Constructor
@@ -43,28 +44,28 @@ class Settings
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ScheduleCollectionFactory $scheduleCollectionFactory
-     * @param Json $json
+     * @param ModuleListInterface $moduleList
      */
     public function __construct(
         Config $config,
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         ScheduleCollectionFactory $scheduleCollectionFactory,
-        Json $json
+        ModuleListInterface $moduleList
     ) {
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->scheduleCollectionFactory = $scheduleCollectionFactory;
-        $this->json = $json;
+        $this->moduleList = $moduleList;
     }
 
     /**
      * Retrieves settings.
      *
-     * @return string
+     * @return array
      */
-    public function getSettings(): string
+    public function getSettings(): array
     {
         $settings = [
             'amwal_payment' => $this->config->isActive(),
@@ -79,7 +80,14 @@ class Settings
             'order_status_changed_admin_email' => $this->config->isOrderStatusChangedAdminEmailEnabled(),
             'cronjob_enable' => $this->config->isCronjobEnabled(),
             'debug' => $this->config->isDebugModeEnabled(),
-            'sentry' => $this->config->isSentryReportEnabled()
+            'sentry' => $this->config->isSentryReportEnabled(),
+            'discount_ribbon' => $this->config->isDiscountRibbonEnabled(),
+            'pwa' => $this->config->isPwaMode(),
+            'bank_installments' => $this->config->isBankInstallmentsEnabled(),
+            'magagento_version' => $this->config->getMagentoVersion(),
+            'php_version' => $this->config->getPhpVersion(),
+            'version' => $this->config->getVersion(),
+            'git_commit' => $this->config->getGitCommit(),
         ];
 
         try {
@@ -105,6 +113,12 @@ class Settings
             $settings['cronjob_status_message'] = $schedule->getMessages();
         }
 
-        return $this->json->serialize($settings);
+        // Retrieve installed modules
+        $installedModules = $this->moduleList->getNames();
+        $settings['installed_modules'] = $installedModules;
+
+        return [
+            'data' => $settings
+        ];
     }
 }

@@ -259,6 +259,10 @@
                         <config_path>payment/amwal_payments/enable_pre_checkout_trigger</config_path>
                         <tooltip>Enable Pre Checkout Trigger</tooltip>
                     </field>
+                    <field id="plugin_version" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Plugin Version</label>
+                        <frontend_model>Amwal\Payments\Model\Config\Frontend\PluginVersion</frontend_model>
+                    </field>
                 </group>
             </group>
         </section>

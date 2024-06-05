@@ -3,24 +3,83 @@ declare(strict_types=1);
 
 namespace Amwal\Payments\Model\Button;
 
+use Amwal\Payments\Api\Data\AmwalAddressInterfaceFactory;
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
 use Amwal\Payments\Api\Data\RefIdDataInterface;
+use Amwal\Payments\Api\RefIdManagementInterface;
+use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
+use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product;
+use Magento\Checkout\Model\SessionFactory as CheckoutSessionFactory;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Customer\Model\SessionFactory as CustomerSessionFactory;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
+use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Quote\Model\Quote\Item;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class GetCartButtonConfig extends GetConfig
 {
-    protected Json $jsonSerializer;
-    protected CityHelper $cityHelper;
-    protected StoreManagerInterface $storeManager;
+    private AttributeRepositoryInterface $attributeRepository;
     protected $amwalQuote;
+
+    /**
+     * @param AmwalButtonConfigFactory $buttonConfigFactory
+     * @param Config $config
+     * @param StoreManagerInterface $storeManager
+     * @param CustomerSessionFactory $customerSessionFactory
+     * @param CheckoutSessionFactory $checkoutSessionFactory
+     * @param CityHelper $cityHelper
+     * @param AmwalAddressInterfaceFactory $amwalAddressFactory
+     * @param RefIdManagementInterface $refIdManagement
+     * @param CartRepositoryInterface $cartRepository
+     * @param ProductRepositoryInterface $productRepository
+     * @param Json $jsonSerializer
+     * @param RegionCollectionFactory $regionCollectionFactory
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @param AttributeRepositoryInterface $attributeRepository
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     */
+    public function __construct(
+        AmwalButtonConfigFactory $buttonConfigFactory,
+        Config $config,
+        StoreManagerInterface $storeManager,
+        CustomerSessionFactory $customerSessionFactory,
+        CheckoutSessionFactory $checkoutSessionFactory,
+        CityHelper $cityHelper,
+        AmwalAddressInterfaceFactory $amwalAddressFactory,
+        RefIdManagementInterface $refIdManagement,
+        CartRepositoryInterface $cartRepository,
+        ProductRepositoryInterface $productRepository,
+        Json $jsonSerializer,
+        RegionCollectionFactory $regionCollectionFactory,
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        AttributeRepositoryInterface $attributeRepository
+    ) {
+        parent::__construct(
+            $buttonConfigFactory, $config, $storeManager, $customerSessionFactory, $checkoutSessionFactory, $cityHelper,
+            $amwalAddressFactory, $refIdManagement, $cartRepository, $productRepository, $jsonSerializer,
+            $regionCollectionFactory, $quoteIdMaskFactory
+        );
+
+        $this->attributeRepository = $attributeRepository;
+    }
+
 
     /**
      * @param RefIdDataInterface $refIdData
@@ -265,18 +324,86 @@ class GetCartButtonConfig extends GetConfig
     {
         $orderContent = [];
         foreach ($quote->getAllItems() as $item) {
-            if ($item->getParentItemId()) {
-                continue;
+            if (!$item->getParentItemId()) {
+                $orderContent[] = $this->getProductData($item);
             }
-            $orderContent[] = [
-                'id' => $item->getProductId(),
-                'name' => $item->getName(),
-                'quantity' => $item->getQty(),
-                'total' => (float)$item->getRowTotalInclTax(),
-                'url' => $item->getProduct()->getProductUrl(),
-                'image' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $item->getProduct()->getImage(),
-            ];
         }
         return $orderContent;
+    }
+
+    /**
+     * @param Item $item
+     * @return array
+     */
+    private function getProductData(Item $item): array
+    {
+        // Check if the item is part of a configurable product
+        if ($item->getProductType() === 'configurable') {
+            foreach ($item->getChildren() as $child) {
+                return [
+                    'id' => $child->getProductId(),
+                    'name' => $this->getProductName($item->getProduct(), $child->getProduct()),
+                    'quantity' => (float)$item->getQty(),
+                    'total' => (float)$child->getRowTotalInclTax() == 0 ? (float)$item->getRowTotalInclTax() : (float)$child->getRowTotalInclTax(),
+                    'url' => $child->getProductUrl(),
+                    'image' => $this->getProductImageUrl($child->getProduct())
+                ];
+            }
+        }
+        return [
+            'id' => $item->getProductId(),
+            'name' => $item->getName(),
+            'quantity' => (float)$item->getQty(),
+            'total' => (float)$item->getRowTotalInclTax(),
+            'url' => $item->getProductUrl(),
+            'image' => $this->getProductImageUrl($item->getProduct())
+        ];
+    }
+
+    /**
+     * @param ProductInterface $product
+     * @return string
+     */
+    private function getProductImageUrl(ProductInterface $product): string
+    {
+        $image = $product->getData('small_image') ?: $product->getData('thumbnail');
+        if (!$image) {
+            return '';
+        }
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $image;
+    }
+
+    /**
+     * @param ProductInterface $configurableProduct
+     * @param ProductInterface $simpleProduct
+     *
+     * @return string
+     */
+    private function getProductName(ProductInterface $configurableProduct, ProductInterface $simpleProduct): string
+    {
+        /** @var Configurable $typeInstance */
+        $typeInstance = $configurableProduct->getTypeInstance();
+        $configurableAttributes = $typeInstance->getConfigurableAttributes($configurableProduct);
+
+        $simpleProduct = $this->productRepository->get($simpleProduct->getSku());
+        $name = $configurableProduct->getName();
+        $attributeValues = [];
+
+        foreach ($configurableAttributes as $attribute) {
+            try {
+                $attribute = $this->attributeRepository->get(Product::ENTITY, $attribute->getAttributeId());
+            } catch (NoSuchEntityException $e) {
+                continue;
+            }
+
+            $optionValue = $simpleProduct->getData($attribute->getAttributeCode());
+
+            if (!$optionValue) {
+                continue;
+            }
+
+            $attributeValues[] = $attribute->getSource()->getOptionText($optionValue);
+        }
+        return trim($name . ' ' . implode(' ', $attributeValues));
     }
 }
