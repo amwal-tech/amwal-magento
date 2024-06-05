@@ -1,3 +1,20 @@
+# [1.0.35] (2024-06-05)
+### Features
+- [#339](https://github.com/amwal-tech/amwal-magento/pull/339) - Add Extra settings (sentry, discount_ribbon, pwa, bank_installments, magagento_version, php_version, version)
+- [#343](https://github.com/amwal-tech/amwal-magento/pull/343) - Refactor product data methods to dynamically handle custom attributes.
+- [#344](https://github.com/amwal-tech/amwal-magento/pull/344) - Dynamic attribute data gathering for configurable products
+- [#345](https://github.com/amwal-tech/amwal-magento/pull/345) - Settings enhance the return data to json and add more settings
+- [#346](https://github.com/amwal-tech/amwal-magento/pull/346) - Adjust GrandTotal Check in isExpressCheckoutActive Method
+- [#347](https://github.com/amwal-tech/amwal-magento/pull/347) - Amwal-magento-react-button upgrade dependencies to latest versions
+- [#348](https://github.com/amwal-tech/amwal-magento/pull/348) - Add plugin version and Git commit info to Developer Settings
+- [#351](https://github.com/amwal-tech/amwal-magento/pull/351) - Login checkout button UI enhancement
+- [#352](https://github.com/amwal-tech/amwal-magento/pull/352) - Add codecov coverage reporting to integration tests
+
+### Bug Fixes
+- [#340](https://github.com/amwal-tech/amwal-magento/pull/340) - Shipping rates cart price rules fix
+- [#341](https://github.com/amwal-tech/amwal-magento/pull/341) - Fixed product image URL retrieval to ensure it returns the correct small image URL or an empty string if no image is available.
+- [#342](https://github.com/amwal-tech/amwal-magento/pull/342) - Explicitly set cache lifetime for Amwal checkout button
+
 # [1.0.34] (2024-05-13)
 ### Features
 - [#307](https://github.com/amwal-tech/amwal-magento/pull/307) - Add Github Actions (Integration test, unit test, PHP MD, Static code analysis)
