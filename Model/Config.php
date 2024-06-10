@@ -57,6 +57,7 @@ class Config
     public const XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER = 'payment/amwal_payments/enable_pre_checkout_trigger';
     public const XML_CONFIG_PATH_IS_PWA_MODE = 'payment/amwal_payments/pwa_mode';
     public const XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS = 'payment/amwal_payments/enable_bank_installments';
+    public const XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT = 'payment/amwal_payments/virtual_items_support';
 
   /**
      * @var string
@@ -531,5 +532,13 @@ class Config
             return trim($result->getOutput());
         }
         return '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isVirtualItemsSupportEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT);
     }
 }

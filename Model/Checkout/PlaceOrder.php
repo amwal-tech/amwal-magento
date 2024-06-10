@@ -159,9 +159,9 @@ class PlaceOrder extends AmwalCheckoutAction
         // Check if the cartId is a masked or a numeric, for logged in users the cartId is a numeric value.
         $quoteId = is_numeric($cartId) ? $cartId : $this->maskedQuoteIdToQuoteId->execute($cartId);
         $quote = $this->quoteRepository->get($quoteId);
-        // Check if the quote has virtual items, as they are not supported.
-        if ($quote->hasVirtualItems()) {
-            $this->throwException(__('Virtual products are not supported.'));
+        // Check if the quote has virtual items.
+        if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupportEnabled()) {
+            $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
         }
         $quote->setData(self::IS_AMWAL_API_CALL, true);
         $quote->setPaymentMethod(ConfigProvider::CODE);
