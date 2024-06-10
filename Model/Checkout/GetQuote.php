@@ -171,6 +171,10 @@ class GetQuote extends AmwalCheckoutAction
             }
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
             $quote = $this->getQuote($quoteId, $orderItems);
+            // Check if the quote has virtual items.
+            if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupportEnabled()) {
+                $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
+            }
             if (!$quote->getItems()) {
                 $this->throwException(__('One or more selected products are currently not available.'));
             }
