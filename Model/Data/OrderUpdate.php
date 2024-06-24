@@ -296,7 +296,7 @@ class OrderUpdate
             $this->sendAdminEmail($order, $subject, $message);
             throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
         }
-        if ((float)$order->getGrandTotal() !== (float)$amwalOrderData->getTotalAmount()) {
+        if ($this->roundValue($order->getGrandTotal()) !== $this->roundValue($amwalOrderData->getTotalAmount())) {
             $message = $this->dataValidationMessage(
                 $order->getIncrementId(),
                 'grand_total',
@@ -346,5 +346,17 @@ class OrderUpdate
     private function verifyStatus(?string $status): bool
     {
         return $status === 'success';
+    }
+
+    /**
+     * Rounds a value to a specified precision.
+     *
+     * @param float $value The value to be rounded.
+     * @param int $precision The number of decimal places to round to.
+     * @return float The rounded value.
+     */
+    private function roundValue($value, $precision = 2)
+    {
+        return round((float)$value, $precision);
     }
 }
