@@ -57,6 +57,8 @@ class Config
     public const XML_CONFIG_PATH_ENABLE_PRE_CHECKOUT_TRIGGER = 'payment/amwal_payments/enable_pre_checkout_trigger';
     public const XML_CONFIG_PATH_IS_PWA_MODE = 'payment/amwal_payments/pwa_mode';
     public const XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS = 'payment/amwal_payments/enable_bank_installments';
+    public const XML_CONFIG_PATH_DISCOUNT_RULE = 'payment/amwal_payments/discount_rule';
+    public const XML_CONFIG_PATH_CARDS_BIN_CODES = 'payment/amwal_payments/cards_bin_codes';
 
   /**
      * @var string
@@ -531,5 +533,22 @@ class Config
             return trim($result->getOutput());
         }
         return '';
+    }
+
+    /**
+     * @return array
+     */
+    public function getCardsBinCodes(): array
+    {
+        $cardsBinCodes = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_CARDS_BIN_CODES);
+        return $cardsBinCodes ? explode(',', $cardsBinCodes) : [];
+    }
+
+    /**
+     * @return string
+     */
+    public function getDiscountRule(): string
+    {
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_DISCOUNT_RULE);
     }
 }

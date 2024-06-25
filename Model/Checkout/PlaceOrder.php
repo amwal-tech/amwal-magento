@@ -116,6 +116,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param string $amwalOrderId
      * @param string $triggerContext
      * @param bool $hasAmwalAddress
+     * @param string $card_bin
      * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -130,7 +131,8 @@ class PlaceOrder extends AmwalCheckoutAction
         RefIdDataInterface $refIdData,
         string $amwalOrderId,
         string $triggerContext,
-        bool $hasAmwalAddress
+        bool $hasAmwalAddress,
+        string $card_bin
     ): OrderInterface {
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
@@ -220,6 +222,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
+        $this->applyBinDiscountRule($quote, $card_bin);
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
 
@@ -403,5 +406,23 @@ class PlaceOrder extends AmwalCheckoutAction
     public function verifyRefId(string $refId, RefIdDataInterface $refIdData): bool
     {
         return $this->refIdManagement->verifyRefId($refId, $refIdData);
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @param string $card_bin
+     * @return void
+     */
+    private function applyBinDiscountRule(CartInterface $quote, string $card_bin): void
+    {
+        $selectedDiscount = $this->config->getDiscountRule();
+        $cards_bin_codes = $this->config->getCardsBinCodes();
+        if (!$selectedDiscount) {
+            return;
+        }
+        if (!in_array($card_bin, $cards_bin_codes)) {
+            return;
+        }
+        $quote->setCouponCode($selectedDiscount);
     }
 }
