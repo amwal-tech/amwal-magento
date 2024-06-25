@@ -263,7 +263,8 @@ class CheckoutFlowTest extends IntegrationTestBase
             $this->getMockRefIdData(),
             $amwalTransactionData['id'],
             'test-case',
-            true
+            true,
+            "545454"
         );
 
         $this->assertTrue(is_a($order, OrderInterface::class));
