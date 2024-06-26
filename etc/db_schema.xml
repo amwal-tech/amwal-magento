@@ -6,4 +6,7 @@
         <column xsi:type="varchar" name="ref_id" nullable="true" length="255" comment="Reference ID of the order in Amwal"/>
         <column xsi:type="varchar" name="amwal_trigger_context" nullable="true" length="255" comment="Trigger context of the order in Amwal"/>
     </table>
+    <table name="quote">
+        <column xsi:type="boolean" name="is_amwal_bin_discount" nullable="false" comment="Quote has amwal bin discount"/>
+    </table>
 </schema>

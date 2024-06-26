@@ -427,5 +427,6 @@ class PlaceOrder extends AmwalCheckoutAction
             return;
         }
         $quote->setCouponCode($selectedDiscount);
+        $quote->setIsAmwalBinDiscount(true);
     }
 }
