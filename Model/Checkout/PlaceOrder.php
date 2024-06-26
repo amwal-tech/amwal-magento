@@ -116,7 +116,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param string $amwalOrderId
      * @param string $triggerContext
      * @param bool $hasAmwalAddress
-     * @param string $card_bin
+     * @param null|string $card_bin
      * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -132,7 +132,7 @@ class PlaceOrder extends AmwalCheckoutAction
         string $amwalOrderId,
         string $triggerContext,
         bool $hasAmwalAddress,
-        string $card_bin
+        string $card_bin = null
     ): OrderInterface {
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
@@ -222,7 +222,10 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
-        $this->applyBinDiscountRule($quote, $card_bin);
+        if ($card_bin) {
+            $this->logDebug(sprintf('Applying discount rule for card bin %s to quote with ID %s', $card_bin, $quote->getId()));
+            $this->applyBinDiscountRule($quote, $card_bin);
+        }
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
 
