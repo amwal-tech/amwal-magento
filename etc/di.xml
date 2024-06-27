@@ -120,4 +120,9 @@
     <type name="Magento\Sales\Model\ResourceModel\Order\Grid\Collection">
         <plugin name="AmwalSalesOrderGrid" type="\Amwal\Payments\Plugin\Sales\Order\SalesOrderGridPlugin" />
     </type>
+    <type name="Amwal\Payments\Model\Config\Source\DiscountRule">
+        <arguments>
+            <argument name="ruleCollectionFactory" xsi:type="object">Magento\SalesRule\Model\ResourceModel\Rule\CollectionFactory</argument>
+        </arguments>
+    </type>
 </config>
