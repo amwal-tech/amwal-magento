@@ -549,6 +549,6 @@ class Config
      */
     public function getDiscountRule(): string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_DISCOUNT_RULE);
+        return (string) ($this->scopeConfig->getValue(self::XML_CONFIG_PATH_DISCOUNT_RULE) ?? '');
     }
 }

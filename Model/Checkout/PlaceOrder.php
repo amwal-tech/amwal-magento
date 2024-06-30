@@ -412,6 +412,8 @@ class PlaceOrder extends AmwalCheckoutAction
     }
 
     /**
+     * Apply discount rule based on card bin prefix.
+     *
      * @param CartInterface $quote
      * @param string $card_bin
      * @return void
@@ -419,14 +421,21 @@ class PlaceOrder extends AmwalCheckoutAction
     private function applyBinDiscountRule(CartInterface $quote, string $card_bin): void
     {
         $selectedDiscount = $this->config->getDiscountRule();
-        $cards_bin_codes = $this->config->getCardsBinCodes();
         if (!$selectedDiscount) {
             return;
         }
-        if (!in_array($card_bin, $cards_bin_codes)) {
-            return;
+        $cards_bin_codes = $this->config->getCardsBinCodes();
+        foreach ($cards_bin_codes as $bin) {
+            if (!ctype_digit($bin)) {
+                continue; // Skip if $bin is not purely numeric
+            }
+            $card_bin_prefix = substr($card_bin, 0, 4);
+            $bin_prefix = substr($bin, 0, 4);
+            if ($card_bin_prefix === $bin_prefix) {
+                $quote->setCouponCode($selectedDiscount);
+                $quote->setIsAmwalBinDiscount(true);
+                return;
+            }
         }
-        $quote->setCouponCode($selectedDiscount);
-        $quote->setIsAmwalBinDiscount(true);
     }
 }
