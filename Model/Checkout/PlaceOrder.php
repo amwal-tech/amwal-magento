@@ -429,7 +429,7 @@ class PlaceOrder extends AmwalCheckoutAction
             if (!ctype_digit($bin)) {
                 continue; // Skip if $bin is not purely numeric
             }
-            if ( str_contains($card_bin, $bin) ) {
+            if ( str_starts_with($card_bin, $bin) ) {
                 $quote->setCouponCode($selectedDiscount);
                 $quote->setIsAmwalBinDiscount(true);
                 return;
