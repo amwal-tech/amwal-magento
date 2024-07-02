@@ -268,7 +268,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
             );
             $order->cancel();
-            $order->setAmwalOrderId($amwalOrderId . '-canceled');
+            $order->setIsAmwalOrderCanceled(true);
             $this->orderRepository->save($order);
         }
         if ($this->config->isQuoteOverrideEnabled()) {

@@ -112,7 +112,7 @@ class OrderUpdate
             if (!$amwalOrderId) {
                 throw new RuntimeException(sprintf('Order %s does not have an Amwal Order ID', $order->getIncrementId()));
             }
-            if (strpos($amwalOrderId, '-canceled') !== false) {
+            if ($order->getIsAmwalOrderCanceled()) {
                 throw new RuntimeException(sprintf('Skipping Order %s as it was canceled because the payment was retried.', $amwalOrderId));
             }
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
