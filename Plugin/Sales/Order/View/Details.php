@@ -49,8 +49,7 @@ class Details
             if(!$amwalOrderId){
                 return;
             }
-            // check if the $amwalOrderId have -canceled suffix
-            if (strpos($amwalOrderId, '-canceled') !== false) {
+            if ($subject->getOrder()->getIsAmwalOrderCanceled()) {
                 return;
             }
 
