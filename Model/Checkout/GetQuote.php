@@ -171,14 +171,13 @@ class GetQuote extends AmwalCheckoutAction
             }
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
             $quote = $this->getQuote($quoteId, $orderItems);
+            if (!$quote->getItems()) {
+                $this->throwException(__('One or more selected products are currently not available.'));
+            }
             // Check if the quote has virtual items.
             if ($quote->hasVirtualItems() && $this->config->isVirtualItemsSupportEnabled()) {
                 $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
             }
-            if (!$quote->getItems()) {
-                $this->throwException(__('One or more selected products are currently not available.'));
-            }
-
             // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
             if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
                 $quote->setCustomerIsGuest(true);

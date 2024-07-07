@@ -162,7 +162,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $quoteId = is_numeric($cartId) ? $cartId : $this->maskedQuoteIdToQuoteId->execute($cartId);
         $quote = $this->quoteRepository->get($quoteId);
         // Check if the quote has virtual items.
-        if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupportEnabled()) {
+        if ($quote->hasVirtualItems() && $this->config->isVirtualItemsSupportEnabled()) {
             $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
         }
         $quote->setData(self::IS_AMWAL_API_CALL, true);
