@@ -116,6 +116,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param string $amwalOrderId
      * @param string $triggerContext
      * @param bool $hasAmwalAddress
+     * @param null|string $card_bin
      * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -130,7 +131,8 @@ class PlaceOrder extends AmwalCheckoutAction
         RefIdDataInterface $refIdData,
         string $amwalOrderId,
         string $triggerContext,
-        bool $hasAmwalAddress
+        bool $hasAmwalAddress,
+        string $card_bin = null
     ): OrderInterface {
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
@@ -223,6 +225,10 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
+        if ($card_bin) {
+            $this->logDebug(sprintf('Applying discount rule for card bin %s to quote with ID %s', $card_bin, $quote->getId()));
+            $this->applyBinDiscountRule($quote, $card_bin);
+        }
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
 
@@ -265,7 +271,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
             );
             $order->cancel();
-            $order->setAmwalOrderId($amwalOrderId . '-canceled');
+            $order->setIsAmwalOrderCanceled(true);
             $this->orderRepository->save($order);
         }
         if ($this->config->isQuoteOverrideEnabled()) {
@@ -406,5 +412,31 @@ class PlaceOrder extends AmwalCheckoutAction
     public function verifyRefId(string $refId, RefIdDataInterface $refIdData): bool
     {
         return $this->refIdManagement->verifyRefId($refId, $refIdData);
+    }
+
+    /**
+     * Apply discount rule based on card bin prefix.
+     *
+     * @param CartInterface $quote
+     * @param string $cardBin
+     * @return void
+     */
+    private function applyBinDiscountRule(CartInterface $quote, string $cardBin): void
+    {
+        $selectedDiscount = $this->config->getDiscountRule();
+        if (!$selectedDiscount) {
+            return;
+        }
+        $cardsBinCodes = $this->config->getCardsBinCodes();
+        foreach ($cardsBinCodes as $bin) {
+            if (!ctype_digit($bin)) {
+                continue; // Skip if $bin is not purely numeric
+            }
+            if (strpos($cardBin, $bin) === 0 ) {
+                $quote->setCouponCode($selectedDiscount);
+                $quote->setIsAmwalBinDiscount(true);
+                return;
+            }
+        }
     }
 }

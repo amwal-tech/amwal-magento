@@ -250,7 +250,8 @@ const AmwalMagentoReactButton = ({
         amwal_order_id: event.detail.id,
         ref_id_data: refIdData,
         trigger_context: triggerContext,
-        has_amwal_address: !(triggerContext === 'regular-checkout')
+        has_amwal_address: !(triggerContext === 'regular-checkout'),
+        card_bin: event.detail.card_bin
       })
     })
     const data = await response.json()
@@ -260,7 +261,10 @@ const AmwalMagentoReactButton = ({
       buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerAck', {
         detail: {
           order_id: data.entity_id,
-          order_total_amount: data.total_due
+          order_total_amount: data.total_due,
+          card_bin_additional_discount_message: data.discount_description,
+          card_bin_additional_discount: Math.abs(data.discount_amount),
+          old_amount: data.subtotal_incl_tax
         }
       }))
     } else {

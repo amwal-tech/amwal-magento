@@ -58,11 +58,13 @@ class Config
     public const XML_CONFIG_PATH_IS_PWA_MODE = 'payment/amwal_payments/pwa_mode';
     public const XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS = 'payment/amwal_payments/enable_bank_installments';
     public const XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT = 'payment/amwal_payments/virtual_items_support';
+    public const XML_CONFIG_PATH_DISCOUNT_RULE = 'payment/amwal_payments/discount_rule';
+    public const XML_CONFIG_PATH_CARDS_BIN_CODES = 'payment/amwal_payments/cards_bin_codes';
 
   /**
      * @var string
      */
-    const MODULE_VERSION = '1.0.34';
+    const MODULE_VERSION = '1.0.35';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
@@ -540,5 +542,22 @@ class Config
     public function isVirtualItemsSupportEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT);
+    }
+    
+    /** 
+     * @return array
+     */
+    public function getCardsBinCodes(): array
+    {
+        $cardsBinCodes = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_CARDS_BIN_CODES);
+        return $cardsBinCodes ? explode(',', $cardsBinCodes) : [];
+    }
+
+    /**
+     * @return string
+     */
+    public function getDiscountRule(): string
+    {
+        return (string) ($this->scopeConfig->getValue(self::XML_CONFIG_PATH_DISCOUNT_RULE) ?? '');
     }
 }

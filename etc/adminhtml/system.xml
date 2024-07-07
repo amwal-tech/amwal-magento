@@ -109,6 +109,25 @@
                     </field>
                 </group>
 
+                <!-- Promotion Seetings -->
+                <group id="amwal_payments_promotion" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="26">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <label>Promotion Settings</label>
+                    <field id="discount_rule" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Discount Rule</label>
+                        <source_model>Amwal\Payments\Model\Config\Source\DiscountRule</source_model>
+                        <config_path>payment/amwal_payments/discount_rule</config_path>
+                        <tooltip>Choose the discount rule to be applied</tooltip>
+                    </field>
+
+                    <field id="cards_bin_codes" translate="label tooltip" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Credit card BIN codes</label>
+                        <config_path>payment/amwal_payments/cards_bin_codes</config_path>
+                        <tooltip>Enter the bin codes of the cards that you want to filter. Use commas to separate multiple pin codes.</tooltip>
+                        <comment><![CDATA[<strong class="colorGreen">Note</strong>: Starting from April 2022, both Visa and Mastercard will issue credit cards with 8 BIN codes. <br> <strong class="colorGreen">Example</strong>: 1234, 5678, 9012]]></comment>
+                    </field>
+                </group>
+
                 <!-- Address Attribute Settings -->
                 <group id="amwal_payments_address_attributes" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>

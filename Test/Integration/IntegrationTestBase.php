@@ -39,7 +39,9 @@ class IntegrationTestBase extends TestCase
         'payment/amwal_payments/merchant_id_valid' => 1,
         'payment/amwal_payments/merchant_id' => 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47',
         'payment/amwal_payments/order_status_changed_customer_email' => 0,
-        'payment/amwal_payments/order_status_changed_admin_email' => 0
+        'payment/amwal_payments/order_status_changed_admin_email' => 0,
+        'payment/amwal_payments/cards_bin_codes' => '545454,601382,601383,601384,601385,601386,601387,601388,601389,601390,601391',
+        'payment/amwal_payments/discount_rule' => '1'
     ];
 
     protected const MOCK_PRODUCT_SKU = 'amwal_simple';
