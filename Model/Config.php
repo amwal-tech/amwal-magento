@@ -59,6 +59,7 @@ class Config
     public const XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS = 'payment/amwal_payments/enable_bank_installments';
     public const XML_CONFIG_PATH_DISCOUNT_RULE = 'payment/amwal_payments/discount_rule';
     public const XML_CONFIG_PATH_CARDS_BIN_CODES = 'payment/amwal_payments/cards_bin_codes';
+    public const XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT = 'payment/amwal_payments/virtual_items_support';
 
   /**
      * @var string
@@ -550,5 +551,13 @@ class Config
     public function getDiscountRule(): string
     {
         return (string) ($this->scopeConfig->getValue(self::XML_CONFIG_PATH_DISCOUNT_RULE) ?? '');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isVirtualItemsSupport(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT);
     }
 }

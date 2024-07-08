@@ -183,6 +183,12 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/order_status_changed_admin_email</config_path>
                     </field>
+                    <field id="virtual_items_support" translate="label tooltip" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Virtual Items Support</label>
+                        <tooltip>Enable this setting if you are selling virtual items.</tooltip>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/virtual_items_support</config_path>
+                    </field>
                 </group>
 
                 <!--Country specific settings-->
