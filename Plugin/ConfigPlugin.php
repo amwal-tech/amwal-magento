@@ -33,14 +33,18 @@ class ConfigPlugin
     public function beforeSave(Config $subject)
     {
         $groups = $subject->getGroups();
-        $amwalGroup = $groups['amwal_payments']['groups']['amwal_payments_promotion']['fields']['cards_bin_codes'] ?? null;
-
-        if ($amwalGroup !== null) {
-            $value = $amwalGroup['value'] ?? '';
-            if (!empty($value) && !$this->validator->validateBinCodes($value)) {
-                throw new LocalizedException(__('[Amwal Payments][Promotion Settings] Please enter valid BIN codes. Each code should be 4 to 8 digits and separated by commas.'));
-            }
+        $cardsBinCodes = $groups['amwal_payments']['groups']['amwal_payments_promotion']['fields']['cards_bin_codes'] ?? null;
+        if ($cardsBinCodes === null) {
+            return;
         }
-
+        $value = $cardsBinCodes['value'] ?? '';
+        $value = str_replace(' ', '', $value);
+        if (!empty($value) && !$this->validator->validateBinCodes($value)) {
+            throw new LocalizedException(__('[Amwal Payments][Promotion Settings] Please enter valid BIN codes. Each code should be 4 to 8 digits and separated by commas.'));
+        }
+        // Save the value after removing spaces
+        $cardsBinCodes['value'] = $value;
+        $groups['amwal_payments']['groups']['amwal_payments_promotion']['fields']['cards_bin_codes'] = $cardsBinCodes;
+        $subject->setGroups($groups);
     }
 }
