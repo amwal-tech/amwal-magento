@@ -13,7 +13,7 @@ class Validator
      */
     public function validateBinCodes(string $value): bool
     {
-        $regex = '/^[0-9]{4,14}(?:,[0-9]{4,14})*$/';
+        $regex = '/^[0-9]{4,16}(?:,[0-9]{4,16})*$/';
         return (bool) preg_match($regex, $value);
     }
 }
