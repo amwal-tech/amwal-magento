@@ -61,6 +61,7 @@ class CanceledOrdersUpdate
             ->addFilter('created_at', $toTime, 'lt')
             ->addFilter('status', Order::STATE_CANCELED, 'eq')
             ->addFilter('amwal_order_id', true, 'notnull')
+            ->addFilter('is_amwal_order_canceled', false, 'eq')
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
