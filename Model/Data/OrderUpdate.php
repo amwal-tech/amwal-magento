@@ -127,7 +127,7 @@ class OrderUpdate
             }
 
             $status = $amwalOrderData->getStatus();
-            if ($trigger === 'PendingOrdersUpdate') {
+            if ($trigger === 'PendingOrdersUpdate' || $trigger === 'CanceledOrdersUpdate') {
                 $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderId);
             } elseif ($trigger === 'AmwalOrderDetails') {
                 $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
