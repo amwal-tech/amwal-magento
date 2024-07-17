@@ -125,4 +125,7 @@
             <argument name="ruleCollectionFactory" xsi:type="object">Magento\SalesRule\Model\ResourceModel\Rule\CollectionFactory</argument>
         </arguments>
     </type>
+    <type name="Magento\Config\Model\Config">
+        <plugin name="amwal_payments_config_plugin" type="Amwal\Payments\Plugin\ConfigPlugin" />
+    </type>
 </config>
