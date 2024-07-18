@@ -128,7 +128,9 @@ class OrderUpdate
 
             $status = $amwalOrderData->getStatus();
             if ($trigger === 'PendingOrdersUpdate') {
-                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderId);
+                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Pending Orders Cron Job', $amwalOrderId);
+            } elseif ($trigger === 'CanceledOrdersUpdate') {
+                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Canceled Orders Cron Job', $amwalOrderId);
             } elseif ($trigger === 'AmwalOrderDetails') {
                 $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
             } elseif ($trigger === 'PayOrder') {
@@ -155,6 +157,7 @@ class OrderUpdate
             } elseif ($status === 'fail' && $order->getState() !== Order::STATE_CANCELED) {
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
+                $order->setIsAmwalOrderCanceled(true);
                 $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
                 $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
             }
