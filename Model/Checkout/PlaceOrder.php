@@ -432,6 +432,7 @@ class PlaceOrder extends AmwalCheckoutAction
             if (strpos($cardBin, $bin) === 0 ) {
                 $quote->setCouponCode($selectedDiscount);
                 $quote->setIsAmwalBinDiscount(true);
+                $quote->setAppliedRuleIds($quote->getAppliedRuleIds());
                 return;
             }
         }
