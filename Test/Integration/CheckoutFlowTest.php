@@ -35,6 +35,7 @@ use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\SalesRule\Api\RuleRepositoryInterface;
 use Mockery;
 use Mockery\LegacyMockInterface;
 use Mockery\MockInterface;
@@ -126,6 +127,7 @@ class CheckoutFlowTest extends IntegrationTestBase
                 $this->objectManager->get(LoggerInterface::class),
                 $this->objectManager->get(SearchCriteriaBuilder::class),
                 $this->objectManager->get(StoreManagerInterface::class),
+                $this->objectManager->get(RuleRepositoryInterface::class)
             ]
         )->makePartial();
 

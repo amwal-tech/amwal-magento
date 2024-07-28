@@ -429,7 +429,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private function applyBinDiscountRule(CartInterface $quote, string $cardBin): void
     {
         $selectedDiscount = $this->config->getDiscountRule();
-        if (!$selectedDiscount) {
+        if (!$this->hasValidDiscount($selectedDiscount)) {
             return;
         }
 
@@ -479,5 +479,14 @@ class PlaceOrder extends AmwalCheckoutAction
         if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupport()) {
             $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
         }
+    }
+
+    /**
+     * @param $selectedDiscount
+     * @return bool
+     */
+    private function hasValidDiscount($selectedDiscount): bool
+    {
+        return $selectedDiscount && strpos($selectedDiscount, '-') !== false;
     }
 }
