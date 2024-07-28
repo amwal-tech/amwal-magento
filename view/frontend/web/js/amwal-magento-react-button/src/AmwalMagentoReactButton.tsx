@@ -263,8 +263,7 @@ const AmwalMagentoReactButton = ({
           order_id: data.entity_id,
           order_total_amount: data.total_due,
           card_bin_additional_discount_message: data.discount_description,
-          card_bin_additional_discount: Math.abs(data.discount_amount),
-          old_amount: data.subtotal_incl_tax
+          card_bin_additional_discount: data.extension_attributes.amwal_card_bin_additional_discount
         }
       }))
     } else {

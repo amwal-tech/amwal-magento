@@ -34,11 +34,11 @@ class DiscountRule implements ArrayInterface
         $options = [];
         $rules = $this->ruleCollectionFactory->create();
         foreach ($rules as $rule) {
-            if (!$rule->getIsActive()) {
+            if(!$rule->getIsActive() || !$rule->getCode()){
                 continue;
             }
             $options[] = [
-                'value' => $rule->getCode(),
+                'value' => $rule->getId().'-'.$rule->getCode(),
                 'label' => $rule->getName(),
             ];
         }

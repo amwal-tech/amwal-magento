@@ -31,6 +31,7 @@ use RuntimeException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Throwable;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\SalesRule\Api\RuleRepositoryInterface;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -51,6 +52,7 @@ class PlaceOrder extends AmwalCheckoutAction
     private SentryExceptionReport $sentryExceptionReport;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private StoreManagerInterface $storeManager;
+    private RuleRepositoryInterface $ruleRepository;
 
     /**
      * @param QuoteManagement $quoteManagement
@@ -70,6 +72,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param Config $config
      * @param LoggerInterface $logger
      * @param StoreManagerInterface $storeManager
+     * @param RuleRepositoryInterface $ruleRepository
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -89,7 +92,8 @@ class PlaceOrder extends AmwalCheckoutAction
         Config $config,
         LoggerInterface $logger,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        RuleRepositoryInterface $ruleRepository
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteManagement = $quoteManagement;
@@ -106,6 +110,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $this->sentryExceptionReport = $sentryExceptionReport;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->storeManager = $storeManager;
+        $this->ruleRepository = $ruleRepository;
     }
 
     /**
@@ -309,6 +314,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
 
+        if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
+            $order->getExtensionAttributes()->setAmwalCardBinAdditionalDiscount($quote->getAmwalAdditionalDiscountAmount());
+        }
         if ($this->config->isQuoteOverrideEnabled()) {
             $order->setStoreId($this->storeManager->getStore()->getId());
             $order->setSubtotal($order->getBaseSubtotal());
@@ -424,15 +432,38 @@ class PlaceOrder extends AmwalCheckoutAction
         if (!$selectedDiscount) {
             return;
         }
+
+        $appliedRuleIds = $quote->getAppliedRuleIds();
+        $appliedRuleIdsArray = !empty($appliedRuleIds) ? explode(',', $appliedRuleIds) : [];
+        $totalDiscount = 0;
+        $totalDue = $quote->getGrandTotal();
+
+        foreach ($appliedRuleIdsArray as $ruleId) {
+            $rule = $this->ruleRepository->getById($ruleId);
+            if ($rule->getDiscountAmount() == 100) {
+                return; // Exit if any applied discount is 100%
+            }
+            $totalDiscount += $rule->getDiscountAmount();
+        }
+
         $cardsBinCodes = $this->config->getCardsBinCodes();
         foreach ($cardsBinCodes as $bin) {
             if (!ctype_digit($bin)) {
                 continue; // Skip if $bin is not purely numeric
             }
             if (strpos($cardBin, $bin) === 0 ) {
-                $quote->setCouponCode($selectedDiscount);
+                $selectedDiscount = explode('-', $selectedDiscount);
+                $binRule = $this->ruleRepository->getById($selectedDiscount[0]);
+                if (($totalDiscount + $binRule->getDiscountAmount()) > 100) {
+                    return; // Exit if total discount exceeds 100%
+                }
+                $quote->setCouponCode($selectedDiscount[1]);
                 $quote->setIsAmwalBinDiscount(true);
                 $quote->setAppliedRuleIds($quote->getAppliedRuleIds());
+                $quote->setTotalsCollectedFlag(false);
+                $quote->collectTotals();
+                $this->quoteRepository->save($quote);
+                $quote->setAmwalAdditionalDiscountAmount($totalDue - $quote->getGrandTotal());
                 return;
             }
         }
