@@ -33,6 +33,10 @@ class DiscountRule implements ArrayInterface
     {
         $options = [];
         $rules = $this->ruleCollectionFactory->create();
+        $options[] = [
+            'value' => '',
+            'label' => __('None'),
+        ];
         foreach ($rules as $rule) {
             if (!$rule->getIsActive()) {
                 continue;

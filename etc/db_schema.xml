@@ -9,5 +9,6 @@
     </table>
     <table name="quote">
         <column xsi:type="boolean" name="is_amwal_bin_discount" nullable="false" comment="Quote has amwal bin discount"/>
+        <column xsi:type="float" name="amwal_additional_discount_amount" nullable="true" precision="12" scale="4" comment="Amwal additional discount amount"/>
     </table>
 </schema>

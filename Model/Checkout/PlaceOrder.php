@@ -308,7 +308,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalTriggerContext($triggerContext);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
-
+        if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
+            $order->getExtensionAttributes()->setAmwalCardBinAdditionalDiscount($quote->getAmwalAdditionalDiscountAmount());
+        }
         if ($this->config->isQuoteOverrideEnabled()) {
             $order->setStoreId($this->storeManager->getStore()->getId());
             $order->setSubtotal($order->getBaseSubtotal());
@@ -430,9 +432,15 @@ class PlaceOrder extends AmwalCheckoutAction
                 continue; // Skip if $bin is not purely numeric
             }
             if (strpos($cardBin, $bin) === 0 ) {
+                $oldDiscount = $quote->getSubtotal() - $quote->getSubtotalWithDiscount();
+
+                // Apply the new coupon code
                 $quote->setCouponCode($selectedDiscount);
                 $quote->setIsAmwalBinDiscount(true);
-                $quote->setAppliedRuleIds($quote->getAppliedRuleIds());
+                $quote->setTotalsCollectedFlag(false);
+                $quote->collectTotals();
+                $newDiscount = abs($quote->getSubtotal() - $quote->getSubtotalWithDiscount());
+                $quote->setAmwalAdditionalDiscountAmount($newDiscount - $oldDiscount);
                 return;
             }
         }
