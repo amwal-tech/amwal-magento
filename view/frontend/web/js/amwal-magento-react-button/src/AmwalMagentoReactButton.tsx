@@ -258,7 +258,6 @@ const AmwalMagentoReactButton = ({
     if (response.ok) {
       setPlacedOrderId(data.entity_id)
       setIncrementId(data.increment_id)
-      console.log(Math.abs(data.discount_amount))
       buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerAck', {
         detail: {
           order_id: data.entity_id,
