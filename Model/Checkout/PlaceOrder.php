@@ -222,7 +222,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
-        if ($card_bin) {
+        if (!$quote->getCouponCode() && $card_bin) {
             $this->logDebug(sprintf('Applying discount rule for card bin %s to quote with ID %s', $card_bin, $quote->getId()));
             $this->applyBinDiscountRule($quote, $card_bin);
         }
