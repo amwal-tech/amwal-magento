@@ -222,7 +222,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
-        if ($card_bin) {
+        if (!$quote->getCouponCode() && $card_bin) {
             $this->logDebug(sprintf('Applying discount rule for card bin %s to quote with ID %s', $card_bin, $quote->getId()));
             $this->applyBinDiscountRule($quote, $card_bin);
         }
@@ -308,7 +308,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalTriggerContext($triggerContext);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
-
+        if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
+            $order->getExtensionAttributes()->setAmwalCardBinAdditionalDiscount($quote->getAmwalAdditionalDiscountAmount());
+        }
         if ($this->config->isQuoteOverrideEnabled()) {
             $order->setStoreId($this->storeManager->getStore()->getId());
             $order->setSubtotal($order->getBaseSubtotal());
@@ -430,9 +432,21 @@ class PlaceOrder extends AmwalCheckoutAction
                 continue; // Skip if $bin is not purely numeric
             }
             if (strpos($cardBin, $bin) === 0 ) {
+                // Calculate the old discount amount
+                $previousDiscount = $quote->getSubtotal() - $quote->getSubtotalWithDiscount();
+
+                // Apply the new coupon code
                 $quote->setCouponCode($selectedDiscount);
                 $quote->setIsAmwalBinDiscount(true);
-                $quote->setAppliedRuleIds($quote->getAppliedRuleIds());
+                $quote->setTotalsCollectedFlag(false);
+                $quote->collectTotals();
+
+                // Calculate the new discount amount
+                $newDiscount = $quote->getSubtotal() - $quote->getSubtotalWithDiscount();
+
+                // Update the additional discount amount
+                $additionalDiscountAmount = abs($newDiscount - $previousDiscount)  - $quote->getShippingAddress()->getShippingDiscountAmount();
+                $quote->setAmwalAdditionalDiscountAmount($additionalDiscountAmount);
                 return;
             }
         }
