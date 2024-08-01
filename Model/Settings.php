@@ -88,29 +88,59 @@ class Settings
             'php_version' => $this->config->getPhpVersion(),
             'version' => $this->config->getVersion(),
             'git_commit' => $this->config->getGitCommit(),
+            'bin_discount_rule' => !$this->config->getDiscountRule()
         ];
-
+        // Fetch pending payment orders count and amwal order ids
         try {
             $pendingPaymentOrders = $this->orderRepository->getList(
                 $this->searchCriteriaBuilder
-                    ->addFilter('payment_method', 'amwal_payment')
+                    ->addFilter('amwal_order_id', '', 'neq')
                     ->addFilter('status', 'pending_payment')
                     ->create()
             );
             $settings['pending_payment_orders'] = $pendingPaymentOrders->getTotalCount();
+            $settings['pending_payment_orders_amwal_ids'] = array_map(function ($order) {
+                return $order->getAmwalOrderId();
+            }, $pendingPaymentOrders->getItems());
         } catch (\Exception $e) {
             $settings['pending_payment_orders'] = 0;
         }
+        // Fetch cancelled orders count and amwal order ids
+        try {
+            $cancelledOrders = $this->orderRepository->getList(
+                $this->searchCriteriaBuilder
+                    ->addFilter('amwal_order_id', '', 'neq')
+                    ->addFilter('status', 'canceled')
+                    ->create()
+            );
+            $settings['cancelled_orders'] = $cancelledOrders->getTotalCount();
+            $settings['cancelled_orders_amwal_ids'] = array_map(function ($order) {
+                return $order->getAmwalOrderId();
+            }, $cancelledOrders->getItems());
+        } catch (\Exception $e) {
+            $settings['cancelled_orders'] = 0;
+        }
 
-        // Fetch cron job information
-        $scheduleCollection = $this->scheduleCollectionFactory->create();
-        $scheduleCollection->addFieldToFilter('job_code', 'amwal_pending_orders_update');
-        $scheduleCollection->setOrder('executed_at', 'desc');
-        $schedule = $scheduleCollection->getFirstItem();
-        if ($schedule) {
-            $settings['cronjob_last_run'] = $schedule->getExecutedAt();
-            $settings['cronjob_status'] = $schedule->getStatus();
-            $settings['cronjob_status_message'] = $schedule->getMessages();
+        // Fetch cron job information for amwal_pending_orders_update
+        $scheduleCollectionPending = $this->scheduleCollectionFactory->create();
+        $scheduleCollectionPending->addFieldToFilter('job_code', 'amwal_pending_orders_update');
+        $scheduleCollectionPending->setOrder('executed_at', 'desc');
+        $schedulePending = $scheduleCollectionPending->getFirstItem();
+        if ($schedulePending->getId()) {
+            $settings['pending_orders_update']['cronjob_last_run'] = $schedulePending->getExecutedAt();
+            $settings['pending_orders_update']['cronjob_status'] = $schedulePending->getStatus();
+            $settings['pending_orders_update']['cronjob_status_message'] = $schedulePending->getMessages();
+        }
+
+        // Fetch cron job information for amwal_canceled_orders_update
+        $scheduleCollectionCanceled = $this->scheduleCollectionFactory->create();
+        $scheduleCollectionCanceled->addFieldToFilter('job_code', 'amwal_canceled_orders_update');
+        $scheduleCollectionCanceled->setOrder('executed_at', 'desc');
+        $scheduleCanceled = $scheduleCollectionCanceled->getFirstItem();
+        if ($scheduleCanceled->getId()) {
+            $settings['canceled_orders_update']['cronjob_last_run'] = $scheduleCanceled->getExecutedAt();
+            $settings['canceled_orders_update']['cronjob_status'] = $scheduleCanceled->getStatus();
+            $settings['canceled_orders_update']['cronjob_status_message'] = $scheduleCanceled->getMessages();
         }
 
         // Retrieve installed modules
