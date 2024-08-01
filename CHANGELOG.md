@@ -14,7 +14,7 @@
 ### Bug Fixes
 - [#358](https://github.com/amwal-tech/amwal-magento/pull/358) - Fix floating-point precision issues in order total comparison.
 - [#368](https://github.com/amwal-tech/amwal-magento/pull/368) - Login checkout fixed width issue.
-
+- 
 # [1.0.35] (2024-06-05)
 ### Features
 - [#339](https://github.com/amwal-tech/amwal-magento/pull/339) - Add Extra settings (sentry, discount_ribbon, pwa, bank_installments, magagento_version, php_version, version)
