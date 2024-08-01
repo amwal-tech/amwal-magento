@@ -18,6 +18,8 @@ use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Amwal\Payments\Model\Settings;
+use Amwal\Payments\Cron\PendingOrdersUpdate;
+use Amwal\Payments\Cron\CanceledOrdersUpdate;
 use Exception;
 use JsonException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -50,6 +52,8 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
  *    - Placing Order
  *    - Paying Order
  *    - Settings
+ *    - Pending Orders Cron Job
+ *    - Canceled Orders Cron Job
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -263,7 +267,8 @@ class CheckoutFlowTest extends IntegrationTestBase
             $this->getMockRefIdData(),
             $amwalTransactionData['id'],
             'test-case',
-            true
+            true,
+            "545454"
         );
 
         $this->assertTrue(is_a($order, OrderInterface::class));
@@ -318,6 +323,35 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertIsArray($settingsData);
         $this->assertArrayHasKey('amwal_payment', $settingsData);
         $this->assertIsBool($settingsData['amwal_payment']);
+    }
+
+    /**
+     * @covers PendingOrdersUpdate::execute
+     *
+     * @return void
+     * @throws JsonException
+     */
+    public function testPendingOrdersUpdate(): void
+    {
+        /** @var PendingOrdersUpdate $pendingOrdersUpdate */
+        $pendingOrdersUpdate = $this->objectManager->get(PendingOrdersUpdate::class);
+
+        $pendingOrdersUpdate->execute();
+    }
+
+
+    /**
+     * @covers CanceledOrdersUpdate::execute
+     *
+     * @return void
+     * @throws JsonException
+     */
+    public function testCanceledOrdersUpdate(): void
+    {
+        /** @var CanceledOrdersUpdate $canceledOrdersUpdate */
+        $canceledOrdersUpdate = $this->objectManager->get(CanceledOrdersUpdate::class);
+
+        $canceledOrdersUpdate->execute();
     }
 
     /**

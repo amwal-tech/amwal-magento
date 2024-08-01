@@ -112,7 +112,7 @@ class OrderUpdate
             if (!$amwalOrderId) {
                 throw new RuntimeException(sprintf('Order %s does not have an Amwal Order ID', $order->getIncrementId()));
             }
-            if (strpos($amwalOrderId, '-canceled') !== false) {
+            if ($order->getIsAmwalOrderCanceled()) {
                 throw new RuntimeException(sprintf('Skipping Order %s as it was canceled because the payment was retried.', $amwalOrderId));
             }
             $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
@@ -128,7 +128,9 @@ class OrderUpdate
 
             $status = $amwalOrderData->getStatus();
             if ($trigger === 'PendingOrdersUpdate') {
-                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderId);
+                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Pending Orders Cron Job', $amwalOrderId);
+            } elseif ($trigger === 'CanceledOrdersUpdate') {
+                $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Canceled Orders Cron Job', $amwalOrderId);
             } elseif ($trigger === 'AmwalOrderDetails') {
                 $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
             } elseif ($trigger === 'PayOrder') {
@@ -155,6 +157,7 @@ class OrderUpdate
             } elseif ($status === 'fail' && $order->getState() !== Order::STATE_CANCELED) {
                 $order->setState(Order::STATE_CANCELED);
                 $order->setStatus(Order::STATE_CANCELED);
+                $order->setIsAmwalOrderCanceled(true);
                 $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
                 $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
             }
@@ -296,7 +299,7 @@ class OrderUpdate
             $this->sendAdminEmail($order, $subject, $message);
             throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
         }
-        if ((float)$order->getGrandTotal() !== (float)$amwalOrderData->getTotalAmount()) {
+        if ($this->roundValue($order->getGrandTotal()) !== $this->roundValue($amwalOrderData->getTotalAmount())) {
             $message = $this->dataValidationMessage(
                 $order->getIncrementId(),
                 'grand_total',
@@ -346,5 +349,17 @@ class OrderUpdate
     private function verifyStatus(?string $status): bool
     {
         return $status === 'success';
+    }
+
+    /**
+     * Rounds a value to a specified precision.
+     *
+     * @param float $value The value to be rounded.
+     * @param int $precision The number of decimal places to round to.
+     * @return float The rounded value.
+     */
+    private function roundValue($value, $precision = 2)
+    {
+        return round((float)$value, $precision);
     }
 }

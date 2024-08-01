@@ -123,7 +123,9 @@ class OrderUpdateTest extends TestCase
         $amwalOrderId = $order->getAmwalOrderId();
         $status = $amwalOrderData->getStatus();
         if($trigger == 'PendingOrdersUpdate') {
-            $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Cron Job', $amwalOrderId);
+            $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Pending Orders Cron Job', $amwalOrderId);
+        } elseif($trigger == 'CanceledOrdersUpdate') {
+            $historyComment = __('Successfully completed Amwal payment with transaction ID %1 By Canceled Orders Cron Job', $amwalOrderId);
         } elseif($trigger == 'AmwalOrderDetails') {
             $historyComment = __('Order status updated to (%1) by Amwal Payments webhook', $status);
         } elseif($trigger == 'PayOrder') {

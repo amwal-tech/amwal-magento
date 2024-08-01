@@ -25,6 +25,10 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use TddWizard\Fixtures\Catalog\ProductBuilder;
 use TddWizard\Fixtures\Catalog\ProductFixture;
+use Magento\CatalogRule\Api\CatalogRuleRepositoryInterface;
+use Magento\CatalogRule\Api\Data\RuleInterface;
+use Magento\CatalogRule\Api\Data\RuleInterfaceFactory;
+use RuntimeException;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -39,7 +43,10 @@ class IntegrationTestBase extends TestCase
         'payment/amwal_payments/merchant_id_valid' => 1,
         'payment/amwal_payments/merchant_id' => 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47',
         'payment/amwal_payments/order_status_changed_customer_email' => 0,
-        'payment/amwal_payments/order_status_changed_admin_email' => 0
+        'payment/amwal_payments/order_status_changed_admin_email' => 0,
+        'payment/amwal_payments/cards_bin_codes' => '545454,601382,601383,601384,601385,601386,601387,601388,601389,601390,601391',
+        'payment/amwal_payments/discount_rule' => '5',
+        'payment/amwal_payments/cronjob_enabled' => 1
     ];
 
     protected const MOCK_PRODUCT_SKU = 'amwal_simple';
@@ -74,6 +81,16 @@ class IntegrationTestBase extends TestCase
     private ?ProductFixture $productFixture = null;
 
     /**
+     * @var CatalogRuleRepositoryInterface|null
+     */
+    private ?CatalogRuleRepositoryInterface $catalogRuleRepository = null;
+
+    /**
+     * @var RuleInterfaceFactory|null
+     */
+    private ?RuleInterfaceFactory $ruleFactory = null;
+
+    /**
      * @return void
      * @throws Exception
      */
@@ -82,8 +99,11 @@ class IntegrationTestBase extends TestCase
         $this->objectManager = Bootstrap::getObjectManager();
         $this->refIdDataFactory = $this->objectManager->get(RefIdDataInterfaceFactory::class);
         $this->productRepository = $this->objectManager->get(ProductRepositoryInterface::class);
+        $this->catalogRuleRepository = $this->objectManager->get(CatalogRuleRepositoryInterface::class);
+        $this->ruleFactory = $this->objectManager->get(RuleInterfaceFactory::class);
         $this->setupScopeConfig();
         $this->setupFixtures();
+        $this->createDiscountPriceRule();
     }
 
     /**
@@ -102,6 +122,35 @@ class IntegrationTestBase extends TestCase
                     ->withPrice(32)
                     ->build()
             );
+        }
+    }
+
+    /**
+     * @return void
+     */
+    protected function createDiscountPriceRule(): void
+    {
+        /** @var RuleInterface $rule */
+        $rule = $this->ruleFactory->create();
+        $rule->setName('Test Discount Rule')
+            ->setDescription('Integration Test Discount Rule')
+            ->setIsActive(1)
+            ->setCustomerGroupIds([0, 1, 2, 3]) // Set customer group IDs
+            ->setFromDate('2024-01-01')
+            ->setToDate('2030-12-31')
+            ->setSimpleAction('by_percent') // Discount by percentage
+            ->setDiscountAmount(10) // 10% discount
+            ->setStopRulesProcessing(0)
+            ->setIsAdvanced(1)
+            ->setProductIds('')
+            ->setCouponCode('BINCARD')
+            ->setUsesPerCoupon(0)
+            ->setUsesPerCustomer(0);
+
+        try {
+            $this->catalogRuleRepository->save($rule);
+        } catch (Exception $e) {
+            throw new RuntimeException('Could not create discount price rule: ' . $e->getMessage());
         }
     }
 

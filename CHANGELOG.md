@@ -1,3 +1,20 @@
+# [1.0.36] (2024-08-01)
+### Features
+- [#362](https://github.com/amwal-tech/amwal-magento/pull/362) - Add quote virtual items support.
+- [#359](https://github.com/amwal-tech/amwal-magento/pull/359) - Add Promotion Settings to Amwal Payments configuration.
+  - Choose the Discount Rule to apply to the cart automatically through the Amwal Payments.
+  - List your Credit card BIN codes to apply the discount rule to the cart automatically.
+- [#367](https://github.com/amwal-tech/amwal-magento/pull/367) - Add Cronjobs to Integration tests.
+  - Pending Orders update job.
+  - Canceled Orders update job. 
+
+### Enhancement
+- [#361](https://github.com/amwal-tech/amwal-magento/pull/361) - Refactor canceled orders check.
+
+### Bug Fixes
+- [#358](https://github.com/amwal-tech/amwal-magento/pull/358) - Fix floating-point precision issues in order total comparison.
+- [#368](https://github.com/amwal-tech/amwal-magento/pull/368) - Login checkout fixed width issue.
+- 
 # [1.0.35] (2024-06-05)
 ### Features
 - [#339](https://github.com/amwal-tech/amwal-magento/pull/339) - Add Extra settings (sentry, discount_ribbon, pwa, bank_installments, magagento_version, php_version, version)

@@ -116,6 +116,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param string $amwalOrderId
      * @param string $triggerContext
      * @param bool $hasAmwalAddress
+     * @param null|string $card_bin
      * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -130,7 +131,8 @@ class PlaceOrder extends AmwalCheckoutAction
         RefIdDataInterface $refIdData,
         string $amwalOrderId,
         string $triggerContext,
-        bool $hasAmwalAddress
+        bool $hasAmwalAddress,
+        string $card_bin = null
     ): OrderInterface {
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
@@ -159,7 +161,7 @@ class PlaceOrder extends AmwalCheckoutAction
         // Check if the cartId is a masked or a numeric, for logged in users the cartId is a numeric value.
         $quoteId = is_numeric($cartId) ? $cartId : $this->maskedQuoteIdToQuoteId->execute($cartId);
         $quote = $this->quoteRepository->get($quoteId);
-
+        $this->virtualItemSupport($quote);
         $quote->setData(self::IS_AMWAL_API_CALL, true);
         $quote->setPaymentMethod(ConfigProvider::CODE);
 
@@ -220,6 +222,10 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
+        if (!$quote->getCouponCode() && $card_bin) {
+            $this->logDebug(sprintf('Applying discount rule for card bin %s to quote with ID %s', $card_bin, $quote->getId()));
+            $this->applyBinDiscountRule($quote, $card_bin);
+        }
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
 
@@ -262,7 +268,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
             );
             $order->cancel();
-            $order->setAmwalOrderId($amwalOrderId . '-canceled');
+            $order->setIsAmwalOrderCanceled(true);
             $this->orderRepository->save($order);
         }
         if ($this->config->isQuoteOverrideEnabled()) {
@@ -302,7 +308,9 @@ class PlaceOrder extends AmwalCheckoutAction
         $order->setAmwalTriggerContext($triggerContext);
         $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
         $order->setRefId($refId);
-
+        if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
+            $order->getExtensionAttributes()->setAmwalCardBinAdditionalDiscount($quote->getAmwalAdditionalDiscountAmount());
+        }
         if ($this->config->isQuoteOverrideEnabled()) {
             $order->setStoreId($this->storeManager->getStore()->getId());
             $order->setSubtotal($order->getBaseSubtotal());
@@ -403,5 +411,56 @@ class PlaceOrder extends AmwalCheckoutAction
     public function verifyRefId(string $refId, RefIdDataInterface $refIdData): bool
     {
         return $this->refIdManagement->verifyRefId($refId, $refIdData);
+    }
+
+    /**
+     * Apply discount rule based on card bin prefix.
+     *
+     * @param CartInterface $quote
+     * @param string $cardBin
+     * @return void
+     */
+    private function applyBinDiscountRule(CartInterface $quote, string $cardBin): void
+    {
+        $selectedDiscount = $this->config->getDiscountRule();
+        if (!$selectedDiscount) {
+            return;
+        }
+        $cardsBinCodes = $this->config->getCardsBinCodes();
+        foreach ($cardsBinCodes as $bin) {
+            if (!ctype_digit($bin)) {
+                continue; // Skip if $bin is not purely numeric
+            }
+            if (strpos($cardBin, $bin) === 0 ) {
+                // Calculate the old discount amount
+                $previousDiscount = $quote->getSubtotal() - $quote->getSubtotalWithDiscount();
+
+                // Apply the new coupon code
+                $quote->setCouponCode($selectedDiscount);
+                $quote->setIsAmwalBinDiscount(true);
+                $quote->setTotalsCollectedFlag(false);
+                $quote->collectTotals();
+
+                // Calculate the new discount amount
+                $newDiscount = $quote->getSubtotal() - $quote->getSubtotalWithDiscount();
+
+                // Update the additional discount amount
+                $additionalDiscountAmount = abs($newDiscount - $previousDiscount)  - $quote->getShippingAddress()->getShippingDiscountAmount();
+                $quote->setAmwalAdditionalDiscountAmount($additionalDiscountAmount);
+                return;
+            }
+        }
+    }
+
+    /**
+     * @param Quote $quote
+     * @return void
+     * @throws LocalizedException
+     */
+    private function virtualItemSupport(Quote $quote): void
+    {
+        if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupport()) {
+            $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
+        }
     }
 }

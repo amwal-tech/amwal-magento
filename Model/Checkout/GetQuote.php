@@ -174,6 +174,7 @@ class GetQuote extends AmwalCheckoutAction
             if (!$quote->getItems()) {
                 $this->throwException(__('One or more selected products are currently not available.'));
             }
+            $this->virtualItemSupport($quote);
 
             // Fix for Magento 2.4.0 where the quote is marked as not being a guest quote, even though it is.
             if (!$quote->getCustomerId() && !$quote->getCustomerIsGuest()) {
@@ -541,5 +542,17 @@ class GetQuote extends AmwalCheckoutAction
     public function getSubtotal(Address $shippingAddress, float $taxAmount, bool $useBaseCurrency): float
     {
         return ($useBaseCurrency ? $shippingAddress->getBaseSubtotalTotalInclTax() : $shippingAddress->getSubtotalInclTax()) - $taxAmount;
+    }
+
+    /**
+     * @param Quote $quote
+     * @return void
+     * @throws LocalizedException
+     */
+    private function virtualItemSupport(Quote $quote): void
+    {
+        if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupport()) {
+            $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
+        }
     }
 }

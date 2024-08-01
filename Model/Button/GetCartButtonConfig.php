@@ -120,6 +120,7 @@ class GetCartButtonConfig extends GetConfig
         if ($triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $this->addRegularCheckoutButtonConfig($buttonConfig, $quote);
         }
+        $this->checkIsBinCodeDiscount($quote);
         $buttonConfig->setCartId($cartId);
         $buttonConfig->setAmount($this->getAmount($quote, $buttonConfig, $productId));
         $buttonConfig->setDiscount($this->getDiscountAmount($quote, $buttonConfig, $productId));
@@ -405,5 +406,18 @@ class GetCartButtonConfig extends GetConfig
             $attributeValues[] = $attribute->getSource()->getOptionText($optionValue);
         }
         return trim($name . ' ' . implode(' ', $attributeValues));
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @return void
+     */
+    private function checkIsBinCodeDiscount(CartInterface $quote): void
+    {
+        if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
+            $quote->setCouponCode('');
+            $quote->collectTotals();
+            $this->cartRepository->save($quote);
+        }
     }
 }
