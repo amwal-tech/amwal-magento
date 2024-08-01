@@ -45,7 +45,8 @@ class IntegrationTestBase extends TestCase
         'payment/amwal_payments/order_status_changed_customer_email' => 0,
         'payment/amwal_payments/order_status_changed_admin_email' => 0,
         'payment/amwal_payments/cards_bin_codes' => '545454,601382,601383,601384,601385,601386,601387,601388,601389,601390,601391',
-        'payment/amwal_payments/discount_rule' => '5'
+        'payment/amwal_payments/discount_rule' => '5',
+        'payment/amwal_payments/cronjob_enabled' => 1
     ];
 
     protected const MOCK_PRODUCT_SKU = 'amwal_simple';
