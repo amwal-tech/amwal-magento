@@ -263,6 +263,9 @@ class AddressResolver
                 ->setRegion($region->getName())
                 ->setRegionCode($region->getCode())
                 ->setRegionId($region->getId());
+        } else {
+            return $this->regionFactory->create()
+                ->setRegion($amwalAddress->getState());
         }
 
         $countryRegionsCollection = $this->regionCollectionFactory->create()
