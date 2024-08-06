@@ -12,11 +12,12 @@
 [![Monthly Downloads](https://poser.pugx.org/amwal/payments/d/monthly)](https://packagist.org/packages/amwal/payments)
 [![PHP Version Require](http://poser.pugx.org/amwal/payments/require/php)](https://packagist.org/packages/amwal/payments)
 [![npm](https://img.shields.io/npm/v/amwal-magento-react-button)](https://www.npmjs.com/package/amwal-magento-react-button)
-[![CI status](https://github.com/amwal-tech/amwal-magento/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
-[![Tests status](https://github.com/amwal-tech/amwal-magento/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
-[![SCA status](https://github.com/amwal-tech/amwal-magento/actions/workflows/sca.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
+[![Static Code Analysis](https://github.com/amwal-tech/amwal-magento/actions/workflows/static-code-analysis.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
+[![Mess Detector](https://github.com/amwal-tech/amwal-magento/actions/workflows/mess-detector.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
+[![Integration Tests](https://github.com/amwal-tech/amwal-magento/actions/workflows/integration-tests.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
+[![Deploy](https://github.com/amwal-tech/amwal-magento/actions/workflows/deploy.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
+[![Continuous integration](https://github.com/amwal-tech/amwal-magento/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/amwal-tech/amwal-magento/actions)
 [![codecov](https://codecov.io/github/amwal-tech/amwal-magento/graph/badge.svg?token=6Z986R91N2)](https://codecov.io/github/amwal-tech/amwal-magento)
-[![Type coverage](https://shepherd.dev/github/amwal-tech/amwal-magento/coverage.svg)](https://shepherd.dev/github/amwal-tech/amwal-magento)
 
 Amwal is an emerging leader in authentication, identity orchestration, and frictionless payment solutions.
 
