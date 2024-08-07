@@ -24,6 +24,7 @@ Amwal is an emerging leader in authentication, identity orchestration, and frict
 ## Table of Contents
   - [Getting started](#getting-started)
   - [Requirements](#requirements)
+  - [Supported Magento Versions](#supported-magento-versions)
   - [Composer Installation](#composer-installation)
   - [Manual Installation](#manual-installation)
   - [Enabling the plugin](#enabling-the-plugin)
@@ -36,6 +37,16 @@ Amwal is an emerging leader in authentication, identity orchestration, and frict
 ### Requirements
 - Magento 2.4.4 or higher
 - PHP 7.4 or higher
+
+### Supported Magento Versions
+This module has been tested and is verified to work with the following Magento versions:
+
+| Magento Version | Status |
+|-----------------|--------|
+| Magento 2.4.3   | ![Integration Tests](https://github.com/amwal-tech/amwal-magento/actions/workflows/integration-tests.yml/badge.svg?branch=develop&event=push&job=mage243) |
+| Magento 2.4.5   | ![Integration Tests](https://github.com/amwal-tech/amwal-magento/actions/workflows/integration-tests.yml/badge.svg?branch=develop&event=push&job=mage245) |
+| Magento 2.4.6   | ![Integration Tests](https://github.com/amwal-tech/amwal-magento/actions/workflows/integration-tests.yml/badge.svg?branch=develop&event=push&job=mage246) |
+| Magento 2.4.7   | ![Integration Tests](https://github.com/amwal-tech/amwal-magento/actions/workflows/integration-tests.yml/badge.svg?branch=develop&event=push&job=mage247) |
 
 ### Composer Installation
 To install the Module you will need to be using [Composer]([https://getcomposer.org/)
