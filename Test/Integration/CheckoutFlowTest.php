@@ -20,6 +20,7 @@ use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Amwal\Payments\Model\Settings;
 use Amwal\Payments\Cron\PendingOrdersUpdate;
 use Amwal\Payments\Cron\CanceledOrdersUpdate;
+use Amwal\Payments\Plugin\Sales\Order\SalesOrderGridPlugin;
 use Exception;
 use JsonException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -37,6 +38,7 @@ use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Sales\Model\ResourceModel\Order\Grid\Collection;
 use Mockery;
 use Mockery\LegacyMockInterface;
 use Mockery\MockInterface;
@@ -54,6 +56,7 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
  *    - Settings
  *    - Pending Orders Cron Job
  *    - Canceled Orders Cron Job
+ *    - Sales Order Grid Plugin
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -130,6 +133,7 @@ class CheckoutFlowTest extends IntegrationTestBase
                 $this->objectManager->get(LoggerInterface::class),
                 $this->objectManager->get(SearchCriteriaBuilder::class),
                 $this->objectManager->get(StoreManagerInterface::class),
+                $this->objectManager->get(Collection::class)
             ]
         )->makePartial();
 
@@ -354,6 +358,23 @@ class CheckoutFlowTest extends IntegrationTestBase
         $canceledOrdersUpdate->execute();
     }
 
+
+    /**
+     * @covers SalesOrderGridPlugin::beforeLoad
+     *
+     * @return void
+     */
+    public function testSalesOrderGridPlugin(): void
+    {
+        /** @var Collection $collection */
+        $collection = $this->objectManager->get(Collection::class);
+
+        $firstItem = $collection->getFirstItem();
+        $this->assertArrayHasKey('amwal_order_id', $firstItem->getData(), 'amwal_order_id is not present in the order grid collection');
+        $this->assertArrayHasKey('amwal_trigger_context', $firstItem->getData(), 'amwal_trigger_context is not present in the order grid collection');
+    }
+
+
     /**
      * Amwal pop-up - Generate a transaction on button press
      *
@@ -372,3 +393,4 @@ class CheckoutFlowTest extends IntegrationTestBase
         );
     }
 }
+
