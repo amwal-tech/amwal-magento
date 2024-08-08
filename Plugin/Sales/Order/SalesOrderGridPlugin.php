@@ -2,23 +2,33 @@
 
 namespace Amwal\Payments\Plugin\Sales\Order;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\ResourceModel\Order\Grid\Collection;
 
 class SalesOrderGridPlugin
 {
     /**
+     * Join the fields to render the value in order grid
+     *
      * @param Collection $subject
-     * @return null
+     * @param bool $printQuery
+     * @param bool $logQuery
+     * @return array
+     * @throws LocalizedException
      */
-    public function beforeLoad(Collection $subject)
+    public function beforeLoad(Collection $subject, bool $printQuery = false, bool $logQuery = false): array
     {
         if (!$subject->isLoaded()) {
+            $primaryKey = $subject->getResource()->getIdFieldName();
+            $salesOrderTable = $subject->getResource()->getTable('sales_order');
+
             $subject->getSelect()->joinLeft(
-                ['sales_order' => $subject->getTable('sales_order')],
-                'main_table.entity_id = sales_order.entity_id',
-                ['amwal_order_id', 'amwal_trigger_context']
-            );
+                ['sales_order' => $salesOrderTable],
+                'main_table.' . $primaryKey . ' = sales_order.entity_id',
+                ['amwal_order_id' => 'sales_order.amwal_order_id', 'amwal_trigger_context' => 'sales_order.amwal_trigger_context']
+            )->distinct(true);
         }
-        return null;
+
+        return [$printQuery, $logQuery];
     }
 }
