@@ -18,6 +18,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Message\MessageInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Multishipping\Model\DisableMultishipping;
+use Magento\Framework\Controller\Result\Json as JsonResult;
 
 class EnrichAddToCartResponse
 {
@@ -55,6 +56,11 @@ class EnrichAddToCartResponse
         $lastMessage = $this->messageManager->getMessages()->getLastAddedMessage();
 
         if (!$lastMessage || $lastMessage->getType() !== MessageInterface::TYPE_ERROR || !$lastMessage->getText()) {
+            return $result;
+        }
+
+        // Check if the result is a JSON response
+        if (!$result instanceof JsonResult) {
             return $result;
         }
 
