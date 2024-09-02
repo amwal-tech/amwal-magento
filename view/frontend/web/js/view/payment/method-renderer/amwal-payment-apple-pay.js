@@ -46,7 +46,7 @@ function ($, Component, $t) {
                     clearInterval(eventListenerInterval);
                 } else {
                     self.initializeAmwalButton();
-                    updateSecureTextContent($t('Pay securely with Apple Pay, It\'s only available on Safari browser.'));
+                    updateSecureTextContent($t('Pay securely with Apple Pay.'));
                 }
             }, 250);
 
