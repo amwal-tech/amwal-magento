@@ -17,7 +17,7 @@ export interface IAmwalButtonConfig {
   address_required: boolean
   address_handshake: boolean
   ref_id: string
-  label: 'checkout' | 'quick-buy'
+  label: 'Quick Checkout' | 'Pay with Apple Pay'
   disabled: boolean
   show_payment_brands: boolean
   enable_pre_checkout_trigger: boolean

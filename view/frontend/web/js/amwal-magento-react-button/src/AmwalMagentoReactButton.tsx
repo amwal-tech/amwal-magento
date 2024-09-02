@@ -19,6 +19,7 @@ interface AmwalMagentoReactButtonProps {
   redirectURL?: string
   performSuccessRedirection?: (orderId: string, IncrementId: string) => void
   debug?: boolean
+  applePayCheckout?: boolean
 }
 
 const AmwalMagentoReactButton = ({
@@ -36,7 +37,8 @@ const AmwalMagentoReactButton = ({
   overrideCartId,
   redirectURL = '/checkout/onepage/success',
   performSuccessRedirection = () => { window.location.href = redirectURL },
-  debug
+  debug,
+  applePayCheckout
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -53,6 +55,7 @@ const AmwalMagentoReactButton = ({
   const [refIdData, setRefIdData] = React.useState<IRefIdData | undefined>(undefined)
   const [triggerPreCheckoutAck, setTriggerPreCheckoutAck] = React.useState(false)
   const [IncrementId, setIncrementId] = React.useState<string | undefined>(undefined)
+  const paymentMethod = applePayCheckout ? 'amwal_payments_apple_pay' : 'amwal_payments';
 
   const applyButtonConfig = (data: IAmwalButtonConfig): void => {
     setConfig(data)
@@ -251,7 +254,8 @@ const AmwalMagentoReactButton = ({
         ref_id_data: refIdData,
         trigger_context: triggerContext,
         has_amwal_address: !(triggerContext === 'regular-checkout'),
-        card_bin: event.detail.card_bin
+        card_bin: event.detail.card_bin,
+        payment_method: paymentMethod
       })
     })
     const data = await response.json()
@@ -364,7 +368,7 @@ const AmwalMagentoReactButton = ({
         emailRequired={config.email_required}
         addressRequired={config.address_required}
         refId={config.ref_id}
-        label={config.label}
+        label={config.label || (applePayCheckout ? 'Pay with Apple Pay' : 'Quick Checkout')}
         showPaymentBrands={config.show_payment_brands}
         initialEmail={config.initial_email}
         initialPhoneNumber={config.initial_phone}
@@ -391,6 +395,7 @@ const AmwalMagentoReactButton = ({
         locale={locale}
         debug={debug}
         enableBankInstallments={config.enable_bank_installments}
+        enableAppleCheckout={applePayCheckout}
     />
     : <></>
 }

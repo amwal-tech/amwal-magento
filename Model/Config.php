@@ -60,6 +60,7 @@ class Config
     public const XML_CONFIG_PATH_DISCOUNT_RULE = 'payment/amwal_payments/discount_rule';
     public const XML_CONFIG_PATH_CARDS_BIN_CODES = 'payment/amwal_payments/cards_bin_codes';
     public const XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT = 'payment/amwal_payments/virtual_items_support';
+    public const XML_CONFIG_PATH_APPLE_PAY_ACTIVE = 'payment/amwal_payments_apple_pay/active';
 
   /**
      * @var string
@@ -108,6 +109,16 @@ class Config
     public function isActive(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
+            $this->getMerchantId() &&
+            $this->isMerchantValid();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isApplePayActive(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_APPLE_PAY_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
             $this->getMerchantId() &&
             $this->isMerchantValid();
     }
