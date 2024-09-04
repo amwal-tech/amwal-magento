@@ -1,0 +1,69 @@
+
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <style>
+        .checkout-container #opc-sidebar #co-place-order-area .osc-place-order-wrapper button.action.primary.checkout{
+            display:none;
+        }
+        .payment-brand{
+            display: inline-flex;
+        }
+        .payment-brand-logos{
+            margin-top: -10px;
+            margin-bottom: -20px;
+        }
+        .payment-brand-logos img{
+            padding: 5px;
+            height: 20px;
+            width: 40px;
+            align-self: center;
+            border: 1px solid lightgray;
+            border-radius: 5px;
+            margin: 5px;
+            object-fit: contain;
+            box-sizing: content-box;
+        }
+        .secure-text{
+            margin-top: 10px;
+            color: gray;
+        }
+    </style>
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <label data-bind="attr: {'for': getCode()}" class="label">
+            <div class="payment-brand">
+                <span data-bind="text: getTitle()"></span>
+                <div class="payment-brand-logos">
+                    <img alt="apple pay" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDIxLjAuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgYmFzZVByb2ZpbGU9InRpbnkiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIgoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNTEyIDIxMC4yIiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHBhdGggaWQ9IlhNTElEXzM0XyIgZD0iTTkzLjYsMjcuMUM4Ny42LDM0LjIsNzgsMzkuOCw2OC40LDM5Yy0xLjItOS42LDMuNS0xOS44LDktMjYuMWM2LTcuMywxNi41LTEyLjUsMjUtMTIuOQoJQzEwMy40LDEwLDk5LjUsMTkuOCw5My42LDI3LjEgTTEwMi4zLDQwLjljLTEzLjktMC44LTI1LjgsNy45LTMyLjQsNy45Yy02LjcsMC0xNi44LTcuNS0yNy44LTcuM2MtMTQuMywwLjItMjcuNiw4LjMtMzQuOSwyMS4yCgljLTE1LDI1LjgtMy45LDY0LDEwLjYsODVjNy4xLDEwLjQsMTUuNiwyMS44LDI2LjgsMjEuNGMxMC42LTAuNCwxNC44LTYuOSwyNy42LTYuOWMxMi45LDAsMTYuNiw2LjksMjcuOCw2LjcKCWMxMS42LTAuMiwxOC45LTEwLjQsMjYtMjAuOGM4LjEtMTEuOCwxMS40LTIzLjMsMTEuNi0yMy45Yy0wLjItMC4yLTIyLjQtOC43LTIyLjYtMzQuM2MtMC4yLTIxLjQsMTcuNS0zMS42LDE4LjMtMzIuMgoJQzEyMy4zLDQyLjksMTA3LjcsNDEuMywxMDIuMyw0MC45IE0xODIuNiwxMS45djE1NS45aDI0LjJ2LTUzLjNoMzMuNWMzMC42LDAsNTIuMS0yMSw1Mi4xLTUxLjRjMC0zMC40LTIxLjEtNTEuMi01MS4zLTUxLjJIMTgyLjZ6CgkgTTIwNi44LDMyLjNoMjcuOWMyMSwwLDMzLDExLjIsMzMsMzAuOWMwLDE5LjctMTIsMzEtMzMuMSwzMWgtMjcuOFYzMi4zeiBNMzM2LjYsMTY5YzE1LjIsMCwyOS4zLTcuNywzNS43LTE5LjloMC41djE4LjdoMjIuNFY5MC4yCgljMC0yMi41LTE4LTM3LTQ1LjctMzdjLTI1LjcsMC00NC43LDE0LjctNDUuNCwzNC45aDIxLjhjMS44LTkuNiwxMC43LTE1LjksMjIuOS0xNS45YzE0LjgsMCwyMy4xLDYuOSwyMy4xLDE5LjZ2OC42bC0zMC4yLDEuOAoJYy0yOC4xLDEuNy00My4zLDEzLjItNDMuMywzMy4yQzI5OC40LDE1NS42LDMxNC4xLDE2OSwzMzYuNiwxNjl6IE0zNDMuMSwxNTAuNWMtMTIuOSwwLTIxLjEtNi4yLTIxLjEtMTUuN2MwLTkuOCw3LjktMTUuNSwyMy0xNi40CglsMjYuOS0xLjd2OC44QzM3MS45LDE0MC4xLDM1OS41LDE1MC41LDM0My4xLDE1MC41eiBNNDI1LjEsMjEwLjJjMjMuNiwwLDM0LjctOSw0NC40LTM2LjNMNTEyLDU0LjdoLTI0LjZsLTI4LjUsOTIuMWgtMC41CglsLTI4LjUtOTIuMWgtMjUuM2w0MSwxMTMuNWwtMi4yLDYuOWMtMy43LDExLjctOS43LDE2LjItMjAuNCwxNi4yYy0xLjksMC01LjYtMC4yLTcuMS0wLjR2MTguN0M0MTcuMywyMTAsNDIzLjMsMjEwLjIsNDI1LjEsMjEwLjJ6CgkiLz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPC9zdmc+Cg==">
+                </div>
+            </div>
+
+            <p class="secure-text" id="apple-pay-secure-text"></p>
+        </label>
+    </div>
+    <div class="payment-method-content">
+        <!-- ko foreach: getRegion('messages') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <div id="amwal-apple-pay-place-order-button" data-trigger-context="regular-checkout" data-locale="ar" data-scope-code="" data-apple-pay-checkout="true">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

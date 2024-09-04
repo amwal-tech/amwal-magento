@@ -32,6 +32,16 @@
                 <enable_pre_checkout_trigger>1</enable_pre_checkout_trigger>
                 <virtual_items_support>0</virtual_items_support>
             </amwal_payments>
+            <amwal_payments_apple_pay>
+                <title>Amwal apple pay</title>
+                <active>1</active>
+                <model>Amwal\Payments\Model\ApplePay</model>
+                <group>amwal_payments_group</group>
+                <is_gateway>1</is_gateway>
+                <can_use_checkout>1</can_use_checkout>
+                <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+            </amwal_payments_apple_pay>
         </payment>
         <dev>
             <js>

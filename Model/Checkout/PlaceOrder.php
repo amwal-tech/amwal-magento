@@ -117,6 +117,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @param string $triggerContext
      * @param bool $hasAmwalAddress
      * @param null|string $card_bin
+     * @param string $paymentMethod
      * @return OrderInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -132,7 +133,8 @@ class PlaceOrder extends AmwalCheckoutAction
         string $amwalOrderId,
         string $triggerContext,
         bool $hasAmwalAddress,
-        string $card_bin = null
+        string $card_bin = null,
+        string $paymentMethod = ConfigProvider::CODE
     ): OrderInterface {
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
@@ -163,7 +165,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $quote = $this->quoteRepository->get($quoteId);
         $this->virtualItemSupport($quote);
         $quote->setData(self::IS_AMWAL_API_CALL, true);
-        $quote->setPaymentMethod(ConfigProvider::CODE);
+        $quote->setPaymentMethod($paymentMethod);
 
         $customerAddress = null;
         if ($hasAmwalAddress) {
