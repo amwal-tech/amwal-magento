@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="controller_action_predispatch">
+        <observer name="amwal_load_utm" instance="Amwal\Payments\Observer\LoadUtm" />
+    </event>
+    <event name="sales_order_invoice_register">
+        <observer name="amwal_save_utm" instance="Amwal\Payments\Observer\SaveUtm"/>
+    </event>
+</config>
+
+
