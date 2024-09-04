@@ -15,8 +15,8 @@ function (
         ApplePayMethodCode = 'amwal_payments_apple_pay',
         userAgent = navigator.userAgent.toLowerCase();
 
-    // Check if the userAgent is Safari
-    let isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    // Check if Apple Pay is supported
+    let windowSupportsApplePay = window.ApplePaySession?.canMakePayments() ?? false;
 
     if (config[methodCode] && config[methodCode].isActive &&
         config[methodCode].isRegularCheckoutActive &&
@@ -29,7 +29,7 @@ function (
             }
         );
 
-        if (isSafari && config[methodCode].isApplePayActive) {
+        if (windowSupportsApplePay && config[methodCode].isApplePayActive) {
             rendererList.push({
                 type: ApplePayMethodCode,
                 component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment-apple-pay'
