@@ -3,9 +3,10 @@
     <event name="controller_action_predispatch">
         <observer name="amwal_load_utm" instance="Amwal\Payments\Observer\LoadUtm" />
     </event>
+    <event name="controller_action_predispatch_catalog_product_view">
+        <observer name="amwal_load_utm" instance="Amwal\Payments\Observer\LoadUtm" />
+    </event>
     <event name="sales_order_invoice_register">
         <observer name="amwal_save_utm" instance="Amwal\Payments\Observer\SaveUtm"/>
     </event>
 </config>
-
-
