@@ -242,10 +242,10 @@ class GetCartButtonConfig extends GetConfig
             'postcode' => $shippingAddress->getPostcode()
         ];
         $formattedAddress = json_encode($addressComponents);
-
+        $phoneNumber = $shippingAddress->getTelephone() ?? $billingAddress->getTelephone() ?? null;
         $buttonConfig->setInitialAddress($formattedAddress);
         $buttonConfig->setInitialEmail($shippingAddress->getEmail() ?? $billingAddress->getEmail() ?? $customer->getEmail() ?? null);
-        $buttonConfig->setInitialPhone($shippingAddress->getTelephone() ?? $billingAddress->getTelephone() ?? null);
+        $buttonConfig->setInitialPhone($this->phoneFormat($phoneNumber, $shippingAddress->getCountryId()));
         $buttonConfig->setInitialFirstName($shippingAddress->getFirstname() ?? $billingAddress->getFirstname() ?? $customer->getFirstname() ?? null);
         $buttonConfig->setInitialLastName($shippingAddress->getLastname() ?? $billingAddress->getLastname() ?? $customer->getLastname() ?? null);
         $buttonConfig->setAddressRequired(false);
