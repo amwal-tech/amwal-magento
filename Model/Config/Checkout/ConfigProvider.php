@@ -112,7 +112,7 @@ class ConfigProvider implements ConfigProviderInterface
             'allowedAddressCities' => $this->cityHelper->getCityCodes(),
             'pluginVersion' => $this->config->getVersion(),
             'useBaseCurrency' => $this->config->shouldUseBaseCurrency(),
-            'isApplePayActive' => $this->config->isApplePayActive(),
+            'isApplePayActive' => $this->config->isApplePayActive()
         ];
 
         return [
