@@ -4,6 +4,7 @@ namespace Amwal\Payments\Block\Product;
 
 
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Config\Source\ModuleType;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Block\Product\Context;
 use Magento\Catalog\Model\Product\Visibility;
@@ -131,13 +132,17 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
     /**
      * @return bool
      */
-    private function shouldRender(): bool
+    public function shouldRender(): bool
     {
         $config = ObjectManager::getInstance()->get(Config::class);
-        if (!$config->isActive() || !$config->isExpressCheckoutActive()) {
+
+        // Check if the module is Lite
+        if ($this->config->getModuleType() === ModuleType::MODULE_TYPE_LITE) {
             return false;
         }
-        return true;
+
+        // Check if the configuration is active and express checkout is enabled
+        return $config->isActive() && $config->isExpressCheckoutActive();
     }
 
     /**
@@ -145,9 +150,6 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
      */
     protected function _toHtml()
     {
-        if (!$this->shouldRender()) {
-            return '';
-        }
         return parent::_toHtml();
     }
 

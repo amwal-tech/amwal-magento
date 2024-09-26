@@ -31,6 +31,7 @@
                 <show_discount_ribbon>1</show_discount_ribbon>
                 <enable_pre_checkout_trigger>1</enable_pre_checkout_trigger>
                 <virtual_items_support>0</virtual_items_support>
+                <module_type>lite</module_type>
             </amwal_payments>
             <amwal_payments_apple_pay>
                 <title>Amwal apple pay</title>
