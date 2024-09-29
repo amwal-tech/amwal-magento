@@ -12,6 +12,7 @@ use Magento\Framework\Math\Random;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\View\Context;
+use Amwal\Payments\Model\Config\Source\ModuleType;
 
 class ExpressCheckoutButton implements ArgumentInterface
 {
@@ -85,6 +86,11 @@ class ExpressCheckoutButton implements ArgumentInterface
     public function isExpressCheckoutActive(): bool
     {
         $quote = $this->checkoutSessionFactory->create()->getQuote();
+
+        if ($this->config->getModuleType() === ModuleType::MODULE_TYPE_LITE) {
+            return false;
+        }
+
         return $this->config->isActive()
             && $this->config->isExpressCheckoutActive()
             && $this->storeManager->getStore()->getCurrentCurrencyCode() == self::AMWAL_CURRENCY
