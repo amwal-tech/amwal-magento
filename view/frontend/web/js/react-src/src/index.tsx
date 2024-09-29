@@ -10,6 +10,7 @@ export const renderReactElement = (container: Element): void => {
   const buttonId = container.getAttribute('data-button-id')
   const formSelector = container.getAttribute('data-form-selector')
   const applePayCheckout = container.getAttribute('data-apple-pay-checkout')
+  const paymentMethod = container.getAttribute('data-payment-method')
   if (triggerContext) {
     const submitAddToCart = async (): Promise<string | undefined> => {
       if (!formSelector) return
@@ -37,6 +38,7 @@ export const renderReactElement = (container: Element): void => {
             productId={productId ?? undefined}
             buttonId={buttonId ?? undefined}
             applePayCheckout={applePayCheckout}
+            paymentMethod={paymentMethod}
             preCheckoutTask={formSelector ? submitAddToCart : undefined}
         />)
   }

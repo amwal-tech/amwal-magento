@@ -13,7 +13,7 @@ function (
     let config = window.checkoutConfig.payment,
         methodCode = 'amwal_payments',
         ApplePayMethodCode = 'amwal_payments_apple_pay',
-        userAgent = navigator.userAgent.toLowerCase();
+        BankInstallmentMethodCode = 'amwal_payments_bank_installments';
 
     // Check if Apple Pay is supported
     let windowSupportsApplePay = window.ApplePaySession?.canMakePayments() ?? false;
@@ -33,6 +33,13 @@ function (
             rendererList.push({
                 type: ApplePayMethodCode,
                 component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment-apple-pay'
+            });
+        }
+
+        if (config[methodCode].isBankInstallmentsActive) {
+            rendererList.push({
+                type: BankInstallmentMethodCode,
+                component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment-bank-installments'
             });
         }
     }

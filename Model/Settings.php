@@ -88,7 +88,8 @@ class Settings
             'php_version' => $this->config->getPhpVersion(),
             'version' => $this->config->getVersion(),
             'git_commit' => $this->config->getGitCommit(),
-            'bin_discount_rule' => !$this->config->getDiscountRule()
+            'bin_discount_rule' => !$this->config->getDiscountRule(),
+            'bank_installments_active' => $this->config->isBankInstallmentsActive(),
         ];
         // Fetch pending payment orders count and amwal order ids
         try {

@@ -13,5 +13,8 @@
         <method name="amwal_payments_apple_pay">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
+        <method name="amwal_payments_bank_installments">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
