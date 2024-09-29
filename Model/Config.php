@@ -61,6 +61,7 @@ class Config
     public const XML_CONFIG_PATH_CARDS_BIN_CODES = 'payment/amwal_payments/cards_bin_codes';
     public const XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT = 'payment/amwal_payments/virtual_items_support';
     public const XML_CONFIG_PATH_APPLE_PAY_ACTIVE = 'payment/amwal_payments_apple_pay/active';
+    public const XML_CONFIG_PATH_MODULE_TYPE = 'payment/amwal_payments/module_type';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE = 'payment/amwal_payments_bank_installments/active';
 
   /**
@@ -581,5 +582,13 @@ class Config
     public function isVirtualItemsSupport(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT);
+    }
+
+    /**
+     * @return string
+     */
+    public function getModuleType(): string
+    {
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MODULE_TYPE, ScopeInterface::SCOPE_WEBSITE);
     }
 }

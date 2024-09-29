@@ -3,6 +3,7 @@
 namespace Amwal\Payments\Block\Widget;
 
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Config\Source\ModuleType;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Block\Product\Context;
@@ -139,12 +140,15 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
     /**
      * @return bool
      */
-    private function shouldRender(): bool
+    public function shouldRender(): bool
     {
-        if (!$this->config->isActive() || !$this->config->isExpressCheckoutActive()) {
+        // Return false if the module is of type LITE
+        if ($this->config->getModuleType() === ModuleType::MODULE_TYPE_LITE) {
             return false;
         }
-        return true;
+
+        // Return false if the configuration is not active or express checkout is not enabled
+        return $this->config->isActive() && $this->config->isExpressCheckoutActive();
     }
 
     /**
@@ -152,9 +156,6 @@ class ExpressCheckoutButton extends ListProduct implements BlockInterface
      */
     protected function _toHtml()
     {
-        if (!$this->shouldRender()) {
-            return '';
-        }
         return parent::_toHtml();
     }
 

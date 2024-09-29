@@ -32,6 +32,7 @@ use Magento\Checkout\Model\Cart;
     $itemsCount = $cart->getQuote()->getItemsCount();
     $isMinicartEmpty = $itemsCount == 0;
     ?>
+
     <div class="block widget block-products-list <?= /* @noEscape */ $mode ?>">
         <?php if ($block->getTitle()): ?>
             <div class="block-title">
@@ -88,7 +89,7 @@ use Magento\Checkout\Model\Cart;
                                                                 <span><?= $block->escapeHtml(__('Add to Cart')) ?></span>
                                                             </button>
                                                         </form>
-                                                        <?php if($isMinicartEmpty): ?>
+                                                        <?php if($isMinicartEmpty && $block->shouldRender()): ?>
                                                         <div class="amwal-express-checkout-button"
                                                              data-trigger-context="<?= $escaper->escapeHtmlAttr($triggerContext) ?>"
                                                              data-locale="<?= $escaper->escapeHtmlAttr($locale) ?>"
