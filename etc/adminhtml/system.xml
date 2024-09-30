@@ -306,6 +306,16 @@
                     <comment>Apple Pay is only available on Safari browser</comment>
                 </field>
             </group>
+            <group id="amwal_payments_bank_installments" translate="label" type="text" sortOrder="52" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Amwal Bank Installments</label>
+                <fieldset_css>amwal-payments-fieldset</fieldset_css>
+                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
+                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/amwal_payments/bank_installments_active</config_path>
+                </field>
+            </group>
         </section>
     </system>
 </config>

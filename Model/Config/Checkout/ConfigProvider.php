@@ -7,7 +7,6 @@ use Amwal\Payments\Api\Data\RefIdDataInterfaceFactory;
 use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
-use Amwal\Payments\Model\ApplePay;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
@@ -112,7 +111,8 @@ class ConfigProvider implements ConfigProviderInterface
             'allowedAddressCities' => $this->cityHelper->getCityCodes(),
             'pluginVersion' => $this->config->getVersion(),
             'useBaseCurrency' => $this->config->shouldUseBaseCurrency(),
-            'isApplePayActive' => $this->config->isApplePayActive()
+            'isApplePayActive' => $this->config->isApplePayActive(),
+            'isBankInstallmentsActive' => $this->config->isBankInstallmentsActive(),
         ];
 
         return [

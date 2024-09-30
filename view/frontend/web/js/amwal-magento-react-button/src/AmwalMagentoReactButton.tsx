@@ -20,6 +20,7 @@ interface AmwalMagentoReactButtonProps {
   performSuccessRedirection?: (orderId: string, IncrementId: string) => void
   debug?: boolean
   applePayCheckout?: boolean
+  paymentMethod?: string
 }
 
 const AmwalMagentoReactButton = ({
@@ -38,7 +39,8 @@ const AmwalMagentoReactButton = ({
   redirectURL = '/checkout/onepage/success',
   performSuccessRedirection = () => { window.location.href = redirectURL },
   debug,
-  applePayCheckout
+  applePayCheckout,
+  paymentMethod = 'amwal_payments'
 }: AmwalMagentoReactButtonProps): JSX.Element => {
   const buttonRef = React.useRef<HTMLAmwalCheckoutButtonElement>(null)
   const [config, setConfig] = React.useState<IAmwalButtonConfig | undefined>(undefined)
@@ -55,7 +57,6 @@ const AmwalMagentoReactButton = ({
   const [refIdData, setRefIdData] = React.useState<IRefIdData | undefined>(undefined)
   const [triggerPreCheckoutAck, setTriggerPreCheckoutAck] = React.useState(false)
   const [IncrementId, setIncrementId] = React.useState<string | undefined>(undefined)
-  const paymentMethod = applePayCheckout ? 'amwal_payments_apple_pay' : 'amwal_payments';
 
   const applyButtonConfig = (data: IAmwalButtonConfig): void => {
     setConfig(data)

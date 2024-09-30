@@ -91,6 +91,7 @@ class Settings
             'bin_discount_rule' => !$this->config->getDiscountRule(),
             'module_type' => $this->config->getModuleType(),
             'apple_pay_active' => $this->config->isApplePayActive(),
+            'bank_installments_active' => $this->config->isBankInstallmentsActive()
         ];
         // Fetch pending payment orders count and amwal order ids
         try {
