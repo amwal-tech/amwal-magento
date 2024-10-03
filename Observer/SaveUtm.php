@@ -50,6 +50,10 @@ class SaveUtm implements ObserverInterface
             'utm_content' => $this->cookieManager->getCookie('utm_content')
         ];
 
+        if (empty($utmParameters['utm_source'])) {
+            return;
+        }
+
         $order->setData('amwal_utm', $this->jsonHelper->jsonEncode($utmParameters));
 
         $this->orderRepository->save($order);
