@@ -57,6 +57,11 @@ const AmwalMagentoReactButton = ({
   const [refIdData, setRefIdData] = React.useState<IRefIdData | undefined>(undefined)
   const [triggerPreCheckoutAck, setTriggerPreCheckoutAck] = React.useState(false)
   const [IncrementId, setIncrementId] = React.useState<string | undefined>(undefined)
+  const paymentMethodLabels: Record<string, 'Quick Checkout' | 'Pay with Apple Pay' | 'Quick Installments'> = {
+    amwal_payments: 'Quick Checkout',
+    amwal_payments_apple_pay: 'Pay with Apple Pay',
+    amwal_payments_bank_installments: 'Quick Installments'
+  }
 
   const applyButtonConfig = (data: IAmwalButtonConfig): void => {
     setConfig(data)
@@ -369,7 +374,7 @@ const AmwalMagentoReactButton = ({
         emailRequired={config.email_required}
         addressRequired={applePayCheckout ? false : config.address_required}
         refId={config.ref_id}
-        label={applePayCheckout ? 'Pay with Apple Pay' : 'Quick Checkout'}
+        label={paymentMethodLabels[paymentMethod]}
         showPaymentBrands={config.show_payment_brands}
         initialEmail={config.initial_email}
         initialPhoneNumber={config.initial_phone}

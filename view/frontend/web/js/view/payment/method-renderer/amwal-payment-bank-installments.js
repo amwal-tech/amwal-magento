@@ -32,6 +32,9 @@ function ($, Component, $t) {
             self.getTitle = function () {
                 return $t('Bank Installments (Amwal)');
             }
+            self.getDescription = function () {
+                return $t('0% bank installment, up to 12 months with instant approval.');
+            }
             self.getLocale = function () {
                 return document.documentElement.lang;
             }
