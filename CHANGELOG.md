@@ -7,6 +7,7 @@
 - [#387](https://github.com/amwal-tech/amwal-magento/pull/387) - UTM Tracking for Amwal Payments.
 - [#394](https://github.com/amwal-tech/amwal-magento/pull/394) - Add Module type pro and lite.
 - [#396](https://github.com/amwal-tech/amwal-magento/pull/396) - Add Bank Installments Method.
+- [#400](https://github.com/amwal-tech/amwal-magento/pull/400) - Add Quick Installments label and banks icons.
 
 ### Bug Fixes
 -  [#377](https://github.com/amwal-tech/amwal-magento/pull/377) - If StateCode is null set state to the region.
