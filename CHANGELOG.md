@@ -1,3 +1,24 @@
+# [1.0.37] (2024-10-07)
+### Features
+- [#380](https://github.com/amwal-tech/amwal-magento/pull/380) - Support Magento 2.4.7.
+- [#381](https://github.com/amwal-tech/amwal-magento/pull/381) - Update README.md to include badges linked to specific integration test jobs.
+- [#383](https://github.com/amwal-tech/amwal-magento/pull/383) - Integration testing Add Sales Order Grid Plugin.
+- [#386](https://github.com/amwal-tech/amwal-magento/pull/386) - Apple pay payment method support.
+- [#387](https://github.com/amwal-tech/amwal-magento/pull/387) - UTM Tracking for Amwal Payments.
+- [#394](https://github.com/amwal-tech/amwal-magento/pull/394) - Add Module type pro and lite.
+- [#396](https://github.com/amwal-tech/amwal-magento/pull/396) - Add Bank Installments Method.
+- [#400](https://github.com/amwal-tech/amwal-magento/pull/400) - Add Quick Installments label and banks icons.
+
+### Bug Fixes
+-  [#377](https://github.com/amwal-tech/amwal-magento/pull/377) - If StateCode is null set state to the region.
+-  [#378](https://github.com/amwal-tech/amwal-magento/pull/378) - Fix trans file en_US.csv
+-  [#379](https://github.com/amwal-tech/amwal-magento/pull/379) - Refactor beforeLoad method to join sales_order fields.
+-  [#384](https://github.com/amwal-tech/amwal-magento/pull/384) - Fix issue with undefined method getContent().
+-  [#391](https://github.com/amwal-tech/amwal-magento/pull/391) - Update GetCartButtonConfig.php to ensure phone number is in international format using country code.
+-  [#392](https://github.com/amwal-tech/amwal-magento/pull/392) - Add catalog product view event.
+-  [#397](https://github.com/amwal-tech/amwal-magento/pull/397) - Added check for empty utm_source before saving UTM data
+-  [#398](https://github.com/amwal-tech/amwal-magento/pull/398) - Bank instalment enabled by default.
+
 # [1.0.36] (2024-08-01)
 ### Features
 - [#362](https://github.com/amwal-tech/amwal-magento/pull/362) - Add quote virtual items support.
