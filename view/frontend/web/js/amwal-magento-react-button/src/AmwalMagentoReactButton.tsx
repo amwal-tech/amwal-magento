@@ -400,7 +400,7 @@ const AmwalMagentoReactButton = ({
         installmentOptionsUrl={config.installment_options_url}
         locale={locale}
         debug={debug}
-        enableBankInstallments={paymentMethod === 'amwal_payments_bank_installments'}
+        onlyShowBankInstallment={paymentMethod === 'amwal_payments_bank_installments'}
         enableAppleCheckout={applePayCheckout}
     />
     : <></>
