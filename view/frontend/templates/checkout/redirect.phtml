@@ -9,19 +9,19 @@ if ($quote) {
     $shippingAddress = $quote->getShippingAddress();
     $items = $quote->getAllVisibleItems();
     ?>
-    <h2>Order Summary</h2>
-    <p><strong>Created At:</strong> <?= $quote->getCreatedAt() ?></p>
-    <p><strong>Customer Name:</strong> <?= htmlspecialchars($billingAddress->getName()) ?></p>
-    <p><strong>Email:</strong> <?= htmlspecialchars($quote->getCustomerEmail()) ?></p>
-    <p><strong>Total:</strong> <?= $quote->getGrandTotal() ?> <?= $quote->getQuoteCurrencyCode() ?></p>
+    <h2><?= __('Order Summary') ?></h2>
+    <p><strong><?= __('Created At:') ?></strong> <?= $quote->getCreatedAt() ?></p>
+    <p><strong><?= __('Customer Name:') ?></strong> <?= htmlspecialchars($billingAddress->getName()) ?></p>
+    <p><strong><?= __('Email:') ?></strong> <?= htmlspecialchars($quote->getCustomerEmail()) ?></p>
+    <p><strong><?= __('Total:') ?></strong> <?= $quote->getGrandTotal() ?> <?= $quote->getQuoteCurrencyCode() ?></p>
 
-    <h2>Shipping Address</h2>
+    <h2><?= __('Shipping Address') ?></h2>
     <p><?= $shippingAddress->format('html') ?></p>
 
-    <h2>Billing Address</h2>
+    <h2><?= __('Billing Address') ?></h2>
     <p><?= $billingAddress->format('html') ?></p>
 
-    <h2>Items</h2>
+    <h2><?= __('Items') ?></h2>
     <ul>
         <?php foreach ($items as $item): ?>
             <li>

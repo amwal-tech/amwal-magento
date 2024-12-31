@@ -10,19 +10,25 @@ use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Amwal\Payments\Model\Config as AmwalConfig;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+use Psr\Log\LoggerInterface;
+use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Sales\Model\Order;
 
 class Index implements HttpGetActionInterface
 {
     /**
      * @var PageFactory
      */
-    private $resultPageFactory;
+    private PageFactory $resultPageFactory;
 
     /**
      * @var QuoteRepositoryInterface
      */
-    private $quoteRepository;
+    private QuoteRepositoryInterface $quoteRepository;
 
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
     private $request;
 
     /**
@@ -33,12 +39,22 @@ class Index implements HttpGetActionInterface
     /**
      * @var AmwalConfig
      */
-    protected $config;
+    private AmwalConfig $config;
 
     /**
      * @var ExpressCheckoutButton
      */
-    protected $expressCheckoutButton;
+    private ExpressCheckoutButton $expressCheckoutButton;
+
+    /**
+     * @var LoggerInterface
+     */
+    private LoggerInterface $logger;
+
+    /**
+     * @var RedirectFactory
+     */
+    private RedirectFactory $resultRedirectFactory;
 
     public function __construct(
         Context $context,
@@ -46,7 +62,9 @@ class Index implements HttpGetActionInterface
         QuoteRepositoryInterface $quoteRepository,
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         AmwalConfig $config,
-        ExpressCheckoutButton $expressCheckoutButton
+        ExpressCheckoutButton $expressCheckoutButton,
+        LoggerInterface $logger,
+        RedirectFactory $resultRedirectFactory
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->quoteRepository = $quoteRepository;
@@ -54,6 +72,8 @@ class Index implements HttpGetActionInterface
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->config = $config;
         $this->expressCheckoutButton = $expressCheckoutButton;
+        $this->logger = $logger;
+        $this->resultRedirectFactory = $resultRedirectFactory;
     }
 
     public function execute()
@@ -61,31 +81,55 @@ class Index implements HttpGetActionInterface
         // Retrieve the quote_id from the URL
         $maskQuoteId = $this->request->getParam('quoteId');
         if (!$maskQuoteId) {
-            // Redirect to homepage or error page
+            // Log and redirect to homepage or error page
+            $this->logger->error('Missing quoteId parameter in the request.');
+            return $this->redirectToErrorPage();
         }
 
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($maskQuoteId);
-        // Fetch the quote details
-        $quote = null;
-        if ($quoteId) {
-            try {
-                $quote = $this->quoteRepository->get($quoteId);
-                $quote->setIsActive(true)->save();
-            } catch (\Exception $e) {
-                // Log error or handle gracefully
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($maskQuoteId);
+
+            // Fetch the quote details
+            $quote = $this->quoteRepository->get($quoteId);
+
+            // Check if the quote has an order and its status
+            $order = $quote->getOrder();
+            if ($order && !in_array($order->getStatus(), [Order::STATE_PENDING_PAYMENT, Order::STATE_NEW], true)) {
+                // Log the invalid status
+                $this->logger->warning(sprintf('Invalid order status: %s for quoteId: %s', $order->getStatus(), $quoteId));
+                return $this->redirectToErrorPage();
             }
+
+            // Reactivate the quote
+            $quote->setIsActive(true)->save();
+
+            // Pass order data to the block
+            $resultPage = $this->resultPageFactory->create();
+            $resultPage->getLayout()->getBlock('amwal.redirect')->setData([
+                'quote' => $quote,
+                'style_css' => $this->config->getStyleCss(),
+                'button_id' => $this->expressCheckoutButton->getUniqueId(),
+                'checkout_button_id' => $this->expressCheckoutButton->getCheckoutButtonId(),
+                'override_cart_id' => $maskQuoteId
+            ]);
+
+            return $resultPage;
+        } catch (\Exception $e) {
+            // Log the exception and redirect to error page
+            $this->logger->error(sprintf('Error processing quoteId: %s, error: %s', $maskQuoteId, $e->getMessage()));
+            return $this->redirectToErrorPage();
         }
+    }
 
-        // Pass order data to the block
-        $resultPage = $this->resultPageFactory->create();
-        $resultPage->getLayout()->getBlock('amwal.redirect')->setData([
-            'quote' => $quote,
-            'style_css' => $this->config->getStyleCss(),
-            'button_id' => $this->expressCheckoutButton->getUniqueId(),
-            'checkout_button_id' => $this->expressCheckoutButton->getCheckoutButtonId(),
-            'override_cart_id' => $maskQuoteId
-        ]);
-
-        return $resultPage;
+    /**
+     * Redirect to an error page
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
+    private function redirectToErrorPage()
+    {
+        $resultRedirect = $this->resultRedirectFactory->create();
+        $resultRedirect->setPath('/');
+        return $resultRedirect;
     }
 }
