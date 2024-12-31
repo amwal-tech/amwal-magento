@@ -75,6 +75,17 @@
         </div>
         <div class="actions-toolbar">
             <div class="primary">
+                <button class="action primary checkout amwal-place-order hide"
+                        type="submit"
+                        disabled="disabled"
+                        data-bind="
+                        click: placeOrder,
+						css: getCode(),
+                        attr: {title: $t('Place Order')},
+                        enable: isPlaceOrderActionAllowed()
+                        ">
+                    <span data-bind="i18n: 'Place Order'"></span>
+                </button>
                 <div id="amwal-bank-installments-place-order-button" data-trigger-context="regular-checkout" data-locale="ar" data-scope-code="" data-payment-method="amwal_payments_bank_installments">
 
                 </div>

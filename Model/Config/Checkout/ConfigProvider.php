@@ -11,6 +11,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Directory\Helper\Data as DirectoryHelper;
+use Magento\Framework\UrlInterface;
 
 class ConfigProvider implements ConfigProviderInterface
 {
@@ -52,6 +53,11 @@ class ConfigProvider implements ConfigProviderInterface
     private DirectoryHelper $directoryHelper;
 
     /**
+     * @var UrlInterface
+     */
+    private UrlInterface $urlInterface;
+
+    /**
      * @param Config $config
      * @param RefIdManagementInterface $refIdManagement
      * @param RefIdDataInterfaceFactory $refIdDataFactory
@@ -59,6 +65,7 @@ class ConfigProvider implements ConfigProviderInterface
      * @param CheckoutSession $checkoutSession
      * @param CityHelper $cityHelper
      * @param DirectoryHelper $directoryHelper
+     * @param UrlInterface $urlInterface
      */
     public function __construct(
         Config $config,
@@ -67,7 +74,8 @@ class ConfigProvider implements ConfigProviderInterface
         CustomerSession $customerSession,
         CheckoutSession $checkoutSession,
         CityHelper $cityHelper,
-        DirectoryHelper $directoryHelper
+        DirectoryHelper $directoryHelper,
+        UrlInterface $urlInterface
     ) {
         $this->config = $config;
         $this->refIdManagement = $refIdManagement;
@@ -76,6 +84,7 @@ class ConfigProvider implements ConfigProviderInterface
         $this->checkoutSession = $checkoutSession;
         $this->cityHelper = $cityHelper;
         $this->directoryHelper = $directoryHelper;
+        $this->urlInterface = $urlInterface;
     }
 
     /**
@@ -113,6 +122,8 @@ class ConfigProvider implements ConfigProviderInterface
             'useBaseCurrency' => $this->config->shouldUseBaseCurrency(),
             'isApplePayActive' => $this->config->isApplePayActive(),
             'isBankInstallmentsActive' => $this->config->isBankInstallmentsActive(),
+            'defaultRedirectUrl' => $this->urlInterface->getUrl('amwal/redirect'),
+            'isRegularCheckoutRedirect' => $this->config->isRegularCheckoutRedirect(),
         ];
 
         return [

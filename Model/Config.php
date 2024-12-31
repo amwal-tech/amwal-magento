@@ -63,6 +63,7 @@ class Config
     public const XML_CONFIG_PATH_APPLE_PAY_ACTIVE = 'payment/amwal_payments_apple_pay/active';
     public const XML_CONFIG_PATH_MODULE_TYPE = 'payment/amwal_payments/module_type';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE = 'payment/amwal_payments_bank_installments/active';
+    public const XML_CONFIG_PATH_REGULAR_CHECKOUT_REDIRECT = 'payment/amwal_payments/regular_checkout_redirect';
 
   /**
      * @var string
@@ -590,5 +591,13 @@ class Config
     public function getModuleType(): string
     {
         return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MODULE_TYPE, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRegularCheckoutRedirect(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_REGULAR_CHECKOUT_REDIRECT, ScopeInterface::SCOPE_WEBSITE);
     }
 }

@@ -33,6 +33,7 @@
                 <virtual_items_support>0</virtual_items_support>
                 <module_type>lite</module_type>
                 <enable_bank_installments>1</enable_bank_installments>
+                <regular_checkout_redirect>0</regular_checkout_redirect>
             </amwal_payments>
             <amwal_payments_apple_pay>
                 <title>Amwal apple pay</title>
