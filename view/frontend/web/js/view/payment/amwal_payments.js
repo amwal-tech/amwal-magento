@@ -19,15 +19,16 @@ function (
     let windowSupportsApplePay = window.ApplePaySession?.canMakePayments() ?? false;
 
     if (config[methodCode] && config[methodCode].isActive &&
-        config[methodCode].isRegularCheckoutActive &&
         (parseFloat(totals.totals().base_grand_total) > 0)
     ) {
-        rendererList.push(
-            {
-                type: methodCode,
-                component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment'
-            }
-        );
+        if(config[methodCode].isRegularCheckoutActive) {
+            rendererList.push(
+                {
+                    type: methodCode,
+                    component: 'Amwal_Payments/js/view/payment/method-renderer/amwal-payment'
+                }
+            );
+        }
 
         if (windowSupportsApplePay && config[methodCode].isApplePayActive) {
             rendererList.push({
