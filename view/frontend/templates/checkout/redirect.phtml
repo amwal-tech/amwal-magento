@@ -10,17 +10,6 @@ if ($quote) {
     $items = $quote->getAllVisibleItems();
     ?>
     <h2><?= __('Order Summary') ?></h2>
-    <p><strong><?= __('Created At:') ?></strong> <?= $quote->getCreatedAt() ?></p>
-    <p><strong><?= __('Customer Name:') ?></strong> <?= htmlspecialchars($billingAddress->getName()) ?></p>
-    <p><strong><?= __('Email:') ?></strong> <?= htmlspecialchars($quote->getCustomerEmail()) ?></p>
-    <p><strong><?= __('Total:') ?></strong> <?= $quote->getGrandTotal() ?> <?= $quote->getQuoteCurrencyCode() ?></p>
-
-    <h2><?= __('Shipping Address') ?></h2>
-    <p><?= $shippingAddress->format('html') ?></p>
-
-    <h2><?= __('Billing Address') ?></h2>
-    <p><?= $billingAddress->format('html') ?></p>
-
     <h2><?= __('Items') ?></h2>
     <ul>
         <?php foreach ($items as $item): ?>
@@ -30,6 +19,7 @@ if ($quote) {
             </li>
         <?php endforeach; ?>
     </ul>
+    <h2><strong><?= __('Total:') ?></strong> <?= $quote->getGrandTotal() ?> <?= $quote->getQuoteCurrencyCode() ?></h2>
     <div class="actions-toolbar">
         <div class="primary">
             <div class="amwal-express-checkout-button"
@@ -51,7 +41,8 @@ if ($quote) {
             "#<?= $block->getData('button_id') ?>": {
                 "Amwal_Payments/js/checkout-button": {
                     "buttonId" : "<?= $block->getData('button_id') ?>",
-                    "triggerContext": "regular-checkout"
+                    "triggerContext": "regular-checkout",
+                    "redirectOnLoadClick": "<?= $block->getData('is_redirect_on_load_click') ?>"
                 }
             }
         }
@@ -61,8 +52,6 @@ if ($quote) {
         .amwal-wrapper { border: 1px solid #dfdfdf; border-radius: 5px; margin-bottom: 25px;  width: 500px;} .amwal-wrapper-login { display: flex; justify-content: center; align-items: center; flex-direction: column; padding-right: 14px; padding-left: 14px;} .amwal-or { position: relative; top: 10px; width: 40px; height: 10px; line-height: 0; text-align: center; margin-left: auto; margin-right: auto; color: #757575; background: white; }
     </style>
     <?php
-} else {
-    echo '<p>Quote not found or invalid quote ID.</p>';
 }
 ?>
 
