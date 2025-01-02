@@ -110,7 +110,8 @@ class Index implements HttpGetActionInterface
                 'style_css' => $this->config->getStyleCss(),
                 'button_id' => $this->expressCheckoutButton->getUniqueId(),
                 'checkout_button_id' => $this->expressCheckoutButton->getCheckoutButtonId(),
-                'override_cart_id' => $maskQuoteId
+                'override_cart_id' => $maskQuoteId,
+                'is_redirect_on_load_click' => $this->config->isRedirectOnLoadClick()
             ]);
 
             return $resultPage;

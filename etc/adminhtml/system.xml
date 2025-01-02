@@ -99,8 +99,14 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/regular_checkout_redirect</config_path>
                         <tooltip>Indicates if the Regular Checkout redirect functionality should be enabled</tooltip>
+                    </field>
+                    <field id="redirect_on_load_click" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Regular checkout redirect on load click</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/redirect_on_load_click</config_path>
+                        <tooltip>Enable this option to automatically click the regular checkout redirect button on page load.</tooltip>
                         <depends>
-                            <field id="regular_checkout_active">1</field>
+                            <field id="regular_checkout_redirect">1</field>
                         </depends>
                     </field>
                 </group>
