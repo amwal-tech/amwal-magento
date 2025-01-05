@@ -25,6 +25,7 @@ function ($, Component, redirectOnSuccessAction, $t) {
             amwalApplePayButtonId: 'amwal-apple-pay-place-order-button',
             amwalApplePayButtonContainer: null,
             isInitialized: false,
+            redirectAfterPlaceOrder: false,
         },
 
         initialize: function () {
