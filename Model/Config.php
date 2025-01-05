@@ -60,9 +60,9 @@ class Config
     public const XML_CONFIG_PATH_DISCOUNT_RULE = 'payment/amwal_payments/discount_rule';
     public const XML_CONFIG_PATH_CARDS_BIN_CODES = 'payment/amwal_payments/cards_bin_codes';
     public const XML_CONFIG_PATH_VIRTUAL_ITEMS_SUPPORT = 'payment/amwal_payments/virtual_items_support';
-    public const XML_CONFIG_PATH_APPLE_PAY_ACTIVE = 'payment/amwal_payments_apple_pay/active';
+    public const XML_CONFIG_PATH_APPLE_PAY_ACTIVE = 'payment/amwal_payments/apple_pay_active';
     public const XML_CONFIG_PATH_MODULE_TYPE = 'payment/amwal_payments/module_type';
-    public const XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE = 'payment/amwal_payments_bank_installments/active';
+    public const XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE = 'payment/amwal_payments/bank_installments_active';
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_REDIRECT = 'payment/amwal_payments/regular_checkout_redirect';
     public const XML_CONFIG_PATH_REDIRECT_ON_LOAD_CLICK = 'payment/amwal_payments/redirect_on_load_click';
 
@@ -132,7 +132,7 @@ class Config
      */
     public function isBankInstallmentsActive(): bool
     {
-        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ENABLE_BANK_INSTALLMENTS, ScopeInterface::SCOPE_WEBSITE) &&
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
             $this->getMerchantId() &&
             $this->isMerchantValid();
     }
