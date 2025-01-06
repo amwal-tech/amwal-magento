@@ -44,10 +44,10 @@ class Success extends Template
 
     public function getAmwalTransaction()
     {
-        if ($this->isBankInstallmentsEnabled()) {
+        $order = $this->getOrder();
+        if ($this->isBankInstallmentsEnabled() && $order->getAmwalOrderId() === null) {
             return null;
         }
-        $order = $this->getOrder();
         $amwalClient = $this->amwalClientFactory->create();
         $response = $amwalClient->get('transactions/' . $order->getAmwalOrderId());
 
