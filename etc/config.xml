@@ -35,6 +35,7 @@
                 <enable_bank_installments>1</enable_bank_installments>
                 <regular_checkout_redirect>0</regular_checkout_redirect>
                 <redirect_on_load_click>0</redirect_on_load_click>
+                <success_page_override>0</success_page_override>
             </amwal_payments>
             <amwal_payments_apple_pay>
                 <title>Amwal apple pay</title>
