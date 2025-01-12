@@ -264,7 +264,7 @@ class PlaceOrder extends AmwalCheckoutAction
 
         if ($order) {
             if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
-                throw new RuntimeException('Found an existing order with same transacation Id with non pending payment state');
+                $this->throwException(__('Found an existing order with same transaction Id with non pending payment state'));
             }
             $this->logDebug(
                 sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
@@ -300,25 +300,8 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->throwException();
         }
 
-        $this->logDebug(sprintf('Updating order state and status for order with ID %s', $order->getEntityId()));
-
-        $order->setState(Order::STATE_PENDING_PAYMENT);
-        $order->setStatus(Order::STATE_PENDING_PAYMENT);
-        $order->setAmwalOrderId($amwalOrderId);
-        $order->setAmwalTriggerContext($triggerContext);
-        $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
-        $order->setRefId($refId);
-        if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
-            $order->getExtensionAttributes()->setAmwalCardBinAdditionalDiscount($quote->getAmwalAdditionalDiscountAmount());
-        }
-        if ($this->config->isQuoteOverrideEnabled()) {
-            $order->setStoreId($this->storeManager->getStore()->getId());
-            $order->setSubtotal($order->getBaseSubtotal());
-            $order->setGrandTotal($order->getBaseGrandTotal());
-            $order->setTotalDue($order->getBaseTotalDue());
-            $order->setTotalPaid($order->getBaseTotalPaid());
-        }
-
+        $this->updateOrderDetails($order, $amwalOrderId, $triggerContext, $refId, $quote);
+        
         return $order;
     }
 
@@ -474,6 +457,39 @@ class PlaceOrder extends AmwalCheckoutAction
     {
         if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupport()) {
             $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
+        }
+    }
+
+    /**
+     * @param Order $order
+     * @param string $amwalOrderId
+     * @param string $triggerContext
+     * @param string $refId
+     * @param Quote $quote
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    private function updateOrderDetails(Order $order, string $amwalOrderId, string $triggerContext, string $refId, Quote $quote): void
+    {
+        $this->logDebug(sprintf('Updating order state and status for order with ID %s', $order->getEntityId()));
+
+
+        $order->setState(Order::STATE_PENDING_PAYMENT);
+        $order->setStatus(Order::STATE_PENDING_PAYMENT);
+        $order->setAmwalOrderId($amwalOrderId);
+        $order->setAmwalTriggerContext($triggerContext);
+        $order->addCommentToStatusHistory('Amwal Transaction ID: ' . $amwalOrderId);
+        $order->setRefId($refId);
+
+        if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
+            $order->getExtensionAttributes()->setAmwalCardBinAdditionalDiscount($quote->getAmwalAdditionalDiscountAmount());
+        }
+        if ($this->config->isQuoteOverrideEnabled()) {
+            $order->setStoreId($this->storeManager->getStore()->getId());
+            $order->setSubtotal($order->getBaseSubtotal());
+            $order->setGrandTotal($order->getBaseGrandTotal());
+            $order->setTotalDue($order->getBaseTotalDue());
+            $order->setTotalPaid($order->getBaseTotalPaid());
         }
     }
 }
