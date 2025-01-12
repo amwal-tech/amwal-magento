@@ -45,7 +45,7 @@ class Success extends Template
     public function getAmwalTransaction()
     {
         $order = $this->getOrder();
-        if ($this->isBankInstallmentsEnabled() && $order->getAmwalOrderId() === null) {
+        if ($order->getAmwalOrderId() === null) {
             return null;
         }
         $amwalClient = $this->amwalClientFactory->create();
@@ -60,9 +60,6 @@ class Success extends Template
 
     public function isBankInstallmentsEnabled()
     {
-        if (!$this->config->isSuccessPageOverride()) {
-            return false;
-        }
         return $this->config->isBankInstallmentsEnabled();
     }
 

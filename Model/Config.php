@@ -65,7 +65,6 @@ class Config
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE = 'payment/amwal_payments/bank_installments_active';
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_REDIRECT = 'payment/amwal_payments/regular_checkout_redirect';
     public const XML_CONFIG_PATH_REDIRECT_ON_LOAD_CLICK = 'payment/amwal_payments/redirect_on_load_click';
-    public const XML_CONFIG_PATH_SUCCESS_PAGE_OVERRIDE = 'payment/amwal_payments/success_page_override';
 
   /**
      * @var string
@@ -609,13 +608,5 @@ class Config
     public function isRedirectOnLoadClick(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_REDIRECT_ON_LOAD_CLICK, ScopeInterface::SCOPE_WEBSITE);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isSuccessPageOverride(): bool
-    {
-        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_SUCCESS_PAGE_OVERRIDE, ScopeInterface::SCOPE_WEBSITE);
     }
 }
