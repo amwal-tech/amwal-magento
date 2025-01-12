@@ -283,20 +283,18 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->quoteRepository->save($quote);
         }
 
-        $orderId = $this->quoteManagement->placeOrder($quote->getId());
-        $order = $this->orderRepository->get($orderId);
-
-        $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
-
-        if (!$order) {
-            $message = sprintf('Unable create an order because we failed to submit the quote with ID "%s"', $quote->getId());
-            $this->reportError($amwalOrderId, $message);
-            $this->logger->error($message);
-            $this->throwException();
+        if ($this->config->isRegularCheckoutRedirect()) {
+            $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
+            $this->logDebug(sprintf('Order with ID %s found for quote with ID %s', $orderId, $quote->getId()));
+        } else {
+            $orderId = $this->quoteManagement->placeOrder($quote->getId());
         }
 
-        if (!$order->getEntityId()) {
-            $message = sprintf('Order could not be created from quote with ID "%s"', $quote->getId());
+        $order = $this->orderRepository->get($orderId);
+        $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
+
+        if (!$order || !$order->getEntityId()) {
+            $message = sprintf( 'Unable to create an order from quote with ID "%s"', $quote->getId());
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
             $this->throwException();
@@ -400,6 +398,19 @@ class PlaceOrder extends AmwalCheckoutAction
         $searchCriteria = $searchCriteria->create();
 
         // Search for order with the provided custom attribute value and get the order data
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+        return $orders ? reset($orders) : null;
+    }
+
+    /**
+     * @param $quoteId
+     * @return OrderInterface|null
+     */
+    public function getOrderByQuoteId($quoteId): ?OrderInterface
+    {
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('quote_id', $quoteId);
+        $searchCriteria = $searchCriteria->create();
+
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
         return $orders ? reset($orders) : null;
     }
