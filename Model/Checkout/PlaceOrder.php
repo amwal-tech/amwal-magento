@@ -283,7 +283,11 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->quoteRepository->save($quote);
         }
 
-        $orderId = $this->quoteManagement->placeOrder($quote->getId());
+        if ($this->config->isRegularCheckoutRedirect()) {
+            $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
+        } else {
+            $orderId = $this->quoteManagement->placeOrder($quote->getId());
+        }
         $order = $this->orderRepository->get($orderId);
 
         $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
@@ -400,6 +404,19 @@ class PlaceOrder extends AmwalCheckoutAction
         $searchCriteria = $searchCriteria->create();
 
         // Search for order with the provided custom attribute value and get the order data
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+        return $orders ? reset($orders) : null;
+    }
+
+    /**
+     * @param $quoteId
+     * @return OrderInterface|null
+     */
+    public function getOrderByQuoteId($quoteId): ?OrderInterface
+    {
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('quote_id', $quoteId);
+        $searchCriteria = $searchCriteria->create();
+
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
         return $orders ? reset($orders) : null;
     }
