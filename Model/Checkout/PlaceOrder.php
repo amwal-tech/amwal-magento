@@ -282,11 +282,9 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->collectTotals();
             $this->quoteRepository->save($quote);
         }
-
+        $orderId = $this->quoteManagement->placeOrder($quote->getId());
         if ($this->config->isRegularCheckoutRedirect()) {
             $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
-        } else {
-            $orderId = $this->quoteManagement->placeOrder($quote->getId());
         }
         $order = $this->orderRepository->get($orderId);
 
