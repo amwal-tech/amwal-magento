@@ -285,13 +285,12 @@ class PlaceOrder extends AmwalCheckoutAction
 
         if ($this->config->isRegularCheckoutRedirect()) {
             $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
-            $this->logDebug(sprintf('Order with ID %s found for quote with ID %s', $orderId, $quote->getId()));
         } else {
             $orderId = $this->quoteManagement->placeOrder($quote->getId());
         }
 
         $order = $this->orderRepository->get($orderId);
-        $this->logDebug(sprintf('Quote with ID %s has been submitted', $quote->getId()));
+        $this->logDebug(sprintf('Quote with ID %s has been submitted as order with ID %s', $quote->getId(), $order->getEntityId()));
 
         if (!$order || !$order->getEntityId()) {
             $message = sprintf( 'Unable to create an order from quote with ID "%s"', $quote->getId());
