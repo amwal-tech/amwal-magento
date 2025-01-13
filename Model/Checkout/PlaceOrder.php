@@ -31,6 +31,7 @@ use RuntimeException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Throwable;
 use Magento\Store\Model\StoreManagerInterface;
+use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -283,7 +284,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->quoteRepository->save($quote);
         }
 
-        if ($this->config->isRegularCheckoutRedirect()) {
+        if ($this->config->isRegularCheckoutRedirect() && $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
         } else {
             $orderId = $this->quoteManagement->placeOrder($quote->getId());
