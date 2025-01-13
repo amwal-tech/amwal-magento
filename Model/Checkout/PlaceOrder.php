@@ -290,7 +290,7 @@ class PlaceOrder extends AmwalCheckoutAction
         }
 
         $order = $this->orderRepository->get($orderId);
-        $this->logDebug(sprintf('Quote with ID %s has been submitted as order with ID %s', $quote->getId(), $order->getEntityId()));
+        $this->logDebug(sprintf('Quote with ID %s has been submitted as order with ID %s', $quote->getId(), $orderId));
 
         if (!$order || !$order->getEntityId()) {
             $message = sprintf( 'Unable to create an order from quote with ID "%s"', $quote->getId());
