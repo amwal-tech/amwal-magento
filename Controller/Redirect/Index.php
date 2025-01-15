@@ -13,6 +13,7 @@ use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Sales\Model\Order;
+use Magento\Store\Model\StoreManagerInterface;
 
 class Index implements HttpGetActionInterface
 {
@@ -56,6 +57,11 @@ class Index implements HttpGetActionInterface
      */
     private RedirectFactory $resultRedirectFactory;
 
+    /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
     public function __construct(
         Context $context,
         PageFactory $resultPageFactory,
@@ -64,7 +70,8 @@ class Index implements HttpGetActionInterface
         AmwalConfig $config,
         ExpressCheckoutButton $expressCheckoutButton,
         LoggerInterface $logger,
-        RedirectFactory $resultRedirectFactory
+        RedirectFactory $resultRedirectFactory,
+        StoreManagerInterface $storeManager
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->quoteRepository = $quoteRepository;
@@ -74,6 +81,7 @@ class Index implements HttpGetActionInterface
         $this->expressCheckoutButton = $expressCheckoutButton;
         $this->logger = $logger;
         $this->resultRedirectFactory = $resultRedirectFactory;
+        $this->storeManager = $storeManager;
     }
 
     public function execute()
@@ -111,7 +119,9 @@ class Index implements HttpGetActionInterface
                 'button_id' => $this->expressCheckoutButton->getUniqueId(),
                 'checkout_button_id' => $this->expressCheckoutButton->getCheckoutButtonId(),
                 'override_cart_id' => $maskQuoteId,
-                'is_redirect_on_load_click' => $this->config->isRedirectOnLoadClick()
+                'is_redirect_on_load_click' => $this->config->isRedirectOnLoadClick(),
+                'locale' => $this->getLocale(),
+                'scope_code' => $this->getScopeCode(),
             ]);
 
             return $resultPage;
@@ -132,5 +142,25 @@ class Index implements HttpGetActionInterface
         $resultRedirect = $this->resultRedirectFactory->create();
         $resultRedirect->setPath('/');
         return $resultRedirect;
+    }
+
+    /**
+     * Get current locale
+     *
+     * @return string
+     */
+    public function getLocale()
+    {
+        return $this->storeManager->getStore()->getLocaleCode();
+    }
+
+    /**
+     * Get current store code
+     *
+     * @return string
+     */
+    public function getScopeCode()
+    {
+        return $this->storeManager->getStore()->getCode();
     }
 }
