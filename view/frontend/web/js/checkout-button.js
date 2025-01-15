@@ -29,6 +29,12 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
             let self = this;
 
             self.productButtonContainer = document.getElementById(self.buttonId);
+            self.getLocale = function () {
+                return document.documentElement.lang;
+            }
+            self.getScopeCode = function () {
+                return window.checkoutConfig.storeCode;
+            }
             if (window.renderReactElement) {
                 window.renderReactElement(self.productButtonContainer);
 
@@ -44,17 +50,24 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 if (self.triggerContext === 'login') {
                     self.initializeLogin();
                 }
-                if (self.redirectOnLoadClick && self.triggerContext === 'regular-checkout') {
-                    const parentElement = document.getElementById(self.buttonId);
-                    if (parentElement) {
-                        const observer = new MutationObserver((mutationsList, observer) => {
-                            const childElement = parentElement.querySelector('.amwal-checkout-button');
-                            if (childElement) {
-                                childElement.click();
-                                observer.disconnect();
-                            }
-                        });
-                        observer.observe(parentElement, { childList: true, subtree: true });
+                if (self.triggerContext === 'regular-checkout') {
+                    const amwalButtonContainer = document.getElementById(self.buttonId);
+                    if (amwalButtonContainer) {
+                        amwalButtonContainer.setAttribute('data-locale', self.getLocale());
+                        amwalButtonContainer.setAttribute('data-scope-code', self.getScopeCode());
+                    }
+                    if (self.redirectOnLoadClick) {
+                        const parentElement = document.getElementById(self.buttonId);
+                        if (parentElement) {
+                            const observer = new MutationObserver((mutationsList, observer) => {
+                                const childElement = parentElement.querySelector('.amwal-checkout-button');
+                                if (childElement) {
+                                    childElement.click();
+                                    observer.disconnect();
+                                }
+                            });
+                            observer.observe(parentElement, { childList: true, subtree: true });
+                        }
                     }
                 }
                 window.addEventListener('cartUpdateNeeded', function(e) {

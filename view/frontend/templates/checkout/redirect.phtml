@@ -24,8 +24,8 @@ if ($quote) {
         <div class="primary">
             <div class="amwal-express-checkout-button"
                  data-trigger-context="regular-checkout"
-                 data-locale="<?= $block->getData('locale') ?>"
-                 data-scope-code="<?= $block->getData('scope_code') ?>"
+                 data-locale=""
+                 data-scope-code=""
                 <?= $payment_method === 'amwal_payments_apple_pay' ? 'data-apple-pay-checkout="true"' : '' ?>
                  data-payment-method="<?= $payment_method ?>"
                  data-override-cart-id="<?= $block->getData('override_cart_id') ?>"
