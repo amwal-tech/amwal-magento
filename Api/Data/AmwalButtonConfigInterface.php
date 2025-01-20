@@ -22,7 +22,6 @@ interface AmwalButtonConfigInterface
     public const TEST_ENVIRONMENT = 'test_environment';
     public const ALLOWED_ADDRESS_COUNTRIES = 'allowed_address_countries';
     public const POSTCODE_OPTIONAL_COUNTRIES = 'postcode_optional_countries';
-    public const INSTALLMENT_OPTIONS_URL = 'installment_options_url';
     public const ALLOWED_ADDRESS_STATES = 'allowed_address_states';
     public const ALLOWED_ADDRESS_CITIES = 'allowed_address_cities';
     public const INITIAL_ADDRESS = 'initial_address';
@@ -37,7 +36,6 @@ interface AmwalButtonConfigInterface
     public const TAX = 'tax';
     public const FEES = 'fees';
     public const ORDER_CONTENT = 'order_content';
-    public const ENABLE_BANK_INSTALLMENTS = 'enable_bank_installments';
 
     /**
      * @return string
@@ -307,18 +305,6 @@ interface AmwalButtonConfigInterface
     /**
      * @return string|null
      */
-    public function getInstallmentOptionsUrl(): ?string;
-
-    /**
-     * @param string|null $installmentOptionsUrl
-     * @return AmwalButtonConfigInterface
-     */
-    public function setInstallmentOptionsUrl(?string $installmentOptionsUrl): AmwalButtonConfigInterface;
-
-
-    /**
-     * @return string|null
-     */
     public function getCartId(): ?string;
 
     /**
@@ -383,15 +369,4 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setOrderContent(?string $orderContent): AmwalButtonConfigInterface;
-
-    /**
-     * @return bool
-     */
-    public function isEnableBankInstallments(): bool;
-
-    /**
-     * @param bool $enableBankInstallments
-     * @return AmwalButtonConfigInterface
-     */
-    public function setEnableBankInstallments(bool $enableBankInstallments): AmwalButtonConfigInterface;
 }

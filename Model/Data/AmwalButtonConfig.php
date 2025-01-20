@@ -383,24 +383,6 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getInstallmentOptionsUrl(): ?string
-    {
-        return $this->getData(self::INSTALLMENT_OPTIONS_URL);
-    }
-
-    /**
-     * @inheritDoc
-     */
-
-    public function setInstallmentOptionsUrl(?string $installmentOptionsUrl): AmwalButtonConfigInterface
-    {
-        return $this->setData(self::INSTALLMENT_OPTIONS_URL, $installmentOptionsUrl);
-    }
-
-
-    /**
-     * @inheritDoc
-     */
     public function getInitialFirstName(): ?string
     {
         return $this->getData(self::INITIAL_FIRST_NAME);
@@ -509,21 +491,5 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     public function setOrderContent(?string $orderContent): AmwalButtonConfigInterface
     {
         return $this->setData(self::ORDER_CONTENT, $orderContent);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function isEnableBankInstallments(): bool
-    {
-        return $this->getData(self::ENABLE_BANK_INSTALLMENTS);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setEnableBankInstallments(bool $enableBankInstallments): AmwalButtonConfigInterface
-    {
-        return $this->setData(self::ENABLE_BANK_INSTALLMENTS, $enableBankInstallments);
     }
 }

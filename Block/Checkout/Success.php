@@ -58,11 +58,6 @@ class Success extends Template
         return null;
     }
 
-    public function isBankInstallmentsEnabled()
-    {
-        return $this->config->isBankInstallmentsEnabled();
-    }
-
     public function getInstallmentUrl()
     {
         $store = $this->storeManager->getStore();

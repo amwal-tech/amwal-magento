@@ -120,8 +120,6 @@ class GetConfig
         $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
         $buttonConfig->setPluginVersion($this->config->getVersion());
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
-        $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());
-        $buttonConfig->setEnableBankInstallments($this->config->isBankInstallmentsEnabled());
         $initialAddressData = $this->getInitialAddressData($customerSession, $quote, $initialAddress);
         if ($initialAddressData) {
             $buttonConfig->setInitialAddress($initialAddressData['address']);

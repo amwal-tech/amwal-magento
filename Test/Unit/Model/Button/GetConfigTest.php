@@ -66,7 +66,6 @@ class GetConfigTest extends TestCase
     private const ENABLE_PRE_CHECKOUT_TRIGGER = true;
     private const DARK_MODE = 'off';
     private const ENABLE_PRE_PAY_TRIGGER = true;
-    private const INSTALLMENT_OPTIONS_URL = '';
     private const PLUGIN_VERSION = '1.0.0';
     private const COUNTRY_CODE = 'SA';
     private const MERCHANT_TEST_MODE = 'qa';
@@ -97,7 +96,6 @@ class GetConfigTest extends TestCase
         'isEnablePreCheckoutTrigger' => self::ENABLE_PRE_CHECKOUT_TRIGGER,
         'getDarkMode' => self::DARK_MODE,
         'isEnablePrePayTrigger' => self::ENABLE_PRE_PAY_TRIGGER,
-        'getInstallmentOptionsUrl' => self::INSTALLMENT_OPTIONS_URL,
         'getInitialAddress' => self::INITIAL_ADDRESS,
         'getPluginVersion' => self::PLUGIN_VERSION,
         'getCountryCode' => self::COUNTRY_CODE,
@@ -181,7 +179,6 @@ class GetConfigTest extends TestCase
         $this->assertEquals('off', $this->buttonConfigMock->getDarkMode());
         $this->assertTrue($this->buttonConfigMock->isEnablePrePayTrigger());
         $this->assertEquals(self::MERCHANT_ID, $this->buttonConfigMock->getMerchantId());
-        $this->assertEquals(self::INSTALLMENT_OPTIONS_URL, $this->buttonConfigMock->getInstallmentOptionsUrl());
         $this->assertEquals(self::PLUGIN_VERSION, $this->buttonConfigMock->getPluginVersion());
         $this->assertEquals(self::COUNTRY_CODE, $this->buttonConfigMock->getCountryCode());
         $this->assertEquals(self::MERCHANT_TEST_MODE, $this->buttonConfigMock->getTestEnvironment());

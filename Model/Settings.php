@@ -83,7 +83,6 @@ class Settings
             'sentry' => $this->config->isSentryReportEnabled(),
             'discount_ribbon' => $this->config->isDiscountRibbonEnabled(),
             'pwa' => $this->config->isPwaMode(),
-            'bank_installments' => $this->config->isBankInstallmentsEnabled(),
             'magagento_version' => $this->config->getMagentoVersion(),
             'php_version' => $this->config->getPhpVersion(),
             'version' => $this->config->getVersion(),

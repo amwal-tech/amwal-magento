@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 class AmwalButtonConfigInterfaceTest extends TestCase
 {
     private const AMOUNT = 100.00;
-    private const INSTALLMENT_OPTIONS_URL = 'https://store.amwal.tech/checkout';
     private const MERCHANT_ID = 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47';
     private const TEST_ENVIRONMENT = 'qa';
     private const ENABLE_PRE_CHECKOUT_TRIGGER = true;
@@ -61,15 +60,6 @@ class AmwalButtonConfigInterfaceTest extends TestCase
     {
         $this->amwalButtonConfigInterface->method('getAmount')->willReturn(self::AMOUNT);
         $this->assertEquals(self::AMOUNT, $this->amwalButtonConfigInterface->getAmount());
-    }
-
-    /**
-     * Test getter method for Installment Options Url.
-     */
-    public function testGetInstallmentOptionsUrl()
-    {
-        $this->amwalButtonConfigInterface->method('getInstallmentOptionsUrl')->willReturn(self::INSTALLMENT_OPTIONS_URL);
-        $this->assertEquals(self::INSTALLMENT_OPTIONS_URL, $this->amwalButtonConfigInterface->getInstallmentOptionsUrl());
     }
 
     /**

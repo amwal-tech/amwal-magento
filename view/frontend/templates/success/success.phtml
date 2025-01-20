@@ -1,14 +1,13 @@
 <?php
 $order = $block->getOrder();
 $transaction = $block->getAmwalTransaction();
-$isBankInstallmentsEnabled = $block->isBankInstallmentsEnabled();
 $installmentUrl = $block->getInstallmentUrl();
 
-function shouldDisplayInstallmentIframe($transaction, $isBankInstallmentsEnabled) {
-    return $transaction && $isBankInstallmentsEnabled && $transaction->payment_method === 'Installments';
+function shouldDisplayInstallmentIframe($transaction) {
+    return $transaction && $transaction->payment_method === 'Installments';
 }
 ?>
-<?php if (shouldDisplayInstallmentIframe($transaction, $isBankInstallmentsEnabled)): ?>
+<?php if (shouldDisplayInstallmentIframe($transaction)): ?>
     <div class="order-success">
         <iframe
             src="<?php echo htmlspecialchars($installmentUrl, ENT_QUOTES, 'UTF-8'); ?>"
