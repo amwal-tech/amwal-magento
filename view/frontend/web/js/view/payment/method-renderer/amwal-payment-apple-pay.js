@@ -74,10 +74,10 @@ function ($, Component, redirectOnSuccessAction, $t) {
             }
             if (window.checkoutConfig.payment.amwal_payments.isRegularCheckoutRedirect) {
                 self.amwalApplePayButtonContainer.style.display = 'none';
-                const amwalPlaceOrderButton = document.getElementsByClassName('amwal-place-order');
-                if (amwalPlaceOrderButton.length > 0) {
-                    amwalPlaceOrderButton[0].style.setProperty('display', 'block', 'important');
-                }
+                const amwalPlaceOrderButtons = document.querySelectorAll('.amwal-place-order');
+                amwalPlaceOrderButtons.forEach(button => {
+                    button.style.setProperty('display', 'block', 'important');
+                });
             }
             self.isInitialized = true;
         },
