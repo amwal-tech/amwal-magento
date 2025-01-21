@@ -112,7 +112,7 @@
                 </group>
 
                 <!-- Installments Settings -->
-                <group id="amwal_payments_installments" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="25">
+                <group id="amwal_payments_installments" translate="label" showInDefault="0" showInWebsite="0" showInStore="0" sortOrder="25">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <label>Installments Settings</label>
                     <field id="enable_bank_installments" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
