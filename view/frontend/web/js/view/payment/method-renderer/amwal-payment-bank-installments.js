@@ -71,7 +71,7 @@ function ($, Component, redirectOnSuccessAction, $t) {
                 self.amwalBankInstallmentsButtonContainer.style.display = 'none';
                 const amwalPlaceOrderButton = document.getElementsByClassName('amwal-place-order');
                 if (amwalPlaceOrderButton.length > 0) {
-                    amwalPlaceOrderButton[0].style.display = 'block';
+                    amwalPlaceOrderButton[0].style.setProperty('display', 'block', 'important');
                 }
             }
             self.isInitialized = true;
