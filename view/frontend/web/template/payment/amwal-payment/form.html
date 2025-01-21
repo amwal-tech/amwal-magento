@@ -1,8 +1,8 @@
 
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <style>
-        .checkout-container #opc-sidebar #co-place-order-area .osc-place-order-wrapper button.action.primary.checkout{
-            display:none;
+        .checkout-container #opc-sidebar #co-place-order-area .osc-place-order-wrapper button.action.primary.checkout, .amwal-place-order {
+            display: none!important;
         }
         .payment-brand{
             display: inline-flex;
@@ -71,7 +71,7 @@
         </div>
         <div class="actions-toolbar">
             <div class="primary">
-                <button class="action primary checkout amwal-place-order hide"
+                <button class="action primary checkout amwal-place-order"
                         type="submit"
                         disabled="disabled"
                         data-bind="
