@@ -3,7 +3,13 @@
 $quote = $block->getData('quote');
 $style_css = $block->getData('style_css');
 $payment_method = $quote->getPayment()->getMethod();
-
+function getLocaleCode()
+{
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $localeResolver = $objectManager->get(\Magento\Framework\Locale\Resolver::class);
+    $locale = $localeResolver->getLocale();
+    return $locale ? explode('_', $locale)[0] : 'en';
+}
 if ($quote) {
     $billingAddress = $quote->getBillingAddress();
     $shippingAddress = $quote->getShippingAddress();
@@ -24,7 +30,7 @@ if ($quote) {
         <div class="primary">
             <div class="amwal-express-checkout-button"
                  data-trigger-context="regular-checkout"
-                 data-locale=""
+                 data-locale="<?= getLocaleCode() ?>"
                  data-scope-code=""
                 <?= $payment_method === 'amwal_payments_apple_pay' ? 'data-apple-pay-checkout="true"' : '' ?>
                  data-payment-method="<?= $payment_method ?>"

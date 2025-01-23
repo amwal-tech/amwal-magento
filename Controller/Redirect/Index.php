@@ -56,6 +56,17 @@ class Index implements HttpGetActionInterface
      */
     private RedirectFactory $resultRedirectFactory;
 
+
+    /**
+     * @param Context $context
+     * @param PageFactory $resultPageFactory
+     * @param QuoteRepositoryInterface $quoteRepository
+     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AmwalConfig $config
+     * @param ExpressCheckoutButton $expressCheckoutButton
+     * @param LoggerInterface $logger
+     * @param RedirectFactory $resultRedirectFactory
+     */
     public function __construct(
         Context $context,
         PageFactory $resultPageFactory,
