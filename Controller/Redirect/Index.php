@@ -13,7 +13,6 @@ use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Sales\Model\Order;
-use Magento\Framework\Locale\Resolver;
 
 class Index implements HttpGetActionInterface
 {
@@ -57,10 +56,6 @@ class Index implements HttpGetActionInterface
      */
     private RedirectFactory $resultRedirectFactory;
 
-    /**
-     * @var Resolver
-     */
-    private Resolver $resolver;
 
     /**
      * @param Context $context
@@ -71,9 +66,7 @@ class Index implements HttpGetActionInterface
      * @param ExpressCheckoutButton $expressCheckoutButton
      * @param LoggerInterface $logger
      * @param RedirectFactory $resultRedirectFactory
-     * @param Resolver $resolver
      */
-
     public function __construct(
         Context $context,
         PageFactory $resultPageFactory,
@@ -82,8 +75,7 @@ class Index implements HttpGetActionInterface
         AmwalConfig $config,
         ExpressCheckoutButton $expressCheckoutButton,
         LoggerInterface $logger,
-        RedirectFactory $resultRedirectFactory,
-        Resolver $resolver
+        RedirectFactory $resultRedirectFactory
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->quoteRepository = $quoteRepository;
@@ -93,8 +85,6 @@ class Index implements HttpGetActionInterface
         $this->expressCheckoutButton = $expressCheckoutButton;
         $this->logger = $logger;
         $this->resultRedirectFactory = $resultRedirectFactory;
-        $this->resolver = $resolver;
-
     }
 
     public function execute()
@@ -132,8 +122,7 @@ class Index implements HttpGetActionInterface
                 'button_id' => $this->expressCheckoutButton->getUniqueId(),
                 'checkout_button_id' => $this->expressCheckoutButton->getCheckoutButtonId(),
                 'override_cart_id' => $maskQuoteId,
-                'is_redirect_on_load_click' => $this->config->isRedirectOnLoadClick(),
-                'locale' => $this->getLocaleCode(),
+                'is_redirect_on_load_click' => $this->config->isRedirectOnLoadClick()
             ]);
 
             return $resultPage;
@@ -154,18 +143,5 @@ class Index implements HttpGetActionInterface
         $resultRedirect = $this->resultRedirectFactory->create();
         $resultRedirect->setPath('/');
         return $resultRedirect;
-    }
-
-
-    /**
-     * Get the locale code for the current store
-     * @return string
-     */
-    private function getLocaleCode(): string
-    {
-        if ($locale = $this->resolver->getLocale()) {
-            $locale = explode('_', $locale)[0];
-        }
-        return $locale ?? 'en';
     }
 }
