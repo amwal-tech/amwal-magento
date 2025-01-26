@@ -3,7 +3,7 @@
 - [#410](https://github.com/amwal-tech/amwal-magento/pull/410) - Add regular checkout custom redirect page.
 
 ### Enhancements
-- [#411]() - Hide installments settings
+- [#422](https://github.com/amwal-tech/amwal-magento/pull/422) - Hide installments settings
 
 ### Bug Fixes
 -  [#414](https://github.com/amwal-tech/amwal-magento/pull/414) - success page iframe embed fix.
