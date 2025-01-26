@@ -1,3 +1,14 @@
+# [1.0.38] (2025-01-26)
+### Features
+- [#410](https://github.com/amwal-tech/amwal-magento/pull/410) - Add regular checkout custom redirect page.
+
+### Enhancements
+- [#411]() - Hide installments settings
+
+### Bug Fixes
+-  [#414](https://github.com/amwal-tech/amwal-magento/pull/414) - success page iframe embed fix.
+-  [#417](https://github.com/amwal-tech/amwal-magento/pull/417) - Use the previous order instead of place new order and refactor createOrder function.
+
 # [1.0.37] (2024-10-07)
 ### Features
 - [#380](https://github.com/amwal-tech/amwal-magento/pull/380) - Support Magento 2.4.7.
