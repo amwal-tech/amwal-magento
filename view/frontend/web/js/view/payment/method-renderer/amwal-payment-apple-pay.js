@@ -1,6 +1,7 @@
 define([
     'jquery',
     'Magento_Checkout/js/view/payment/default',
+    'Amwal_Payments/js/action/redirect-on-success',
     'mage/translate',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/totals',
@@ -9,7 +10,7 @@ define([
     'mage/url',
     'domReady!',
 ],
-function ($, Component, $t) {
+function ($, Component, redirectOnSuccessAction, $t) {
     'use strict';
 
     window.addEventListener('cartUpdateNeeded', function(e) {
@@ -24,6 +25,7 @@ function ($, Component, $t) {
             amwalApplePayButtonId: 'amwal-apple-pay-place-order-button',
             amwalApplePayButtonContainer: null,
             isInitialized: false,
+            redirectAfterPlaceOrder: false,
         },
 
         initialize: function () {
@@ -70,7 +72,17 @@ function ($, Component, $t) {
             if (window.renderReactElement) {
                 window.renderReactElement(self.amwalApplePayButtonContainer);
             }
+            if (window.checkoutConfig.payment.amwal_payments.isRegularCheckoutRedirect) {
+                self.amwalApplePayButtonContainer.style.display = 'none';
+                const amwalPlaceOrderButtons = document.querySelectorAll('.amwal-place-order');
+                amwalPlaceOrderButtons.forEach(button => {
+                    button.style.setProperty('display', 'block', 'important');
+                });
+            }
             self.isInitialized = true;
+        },
+        afterPlaceOrder: function (data, event) {
+            redirectOnSuccessAction.execute();
         },
     });
 });

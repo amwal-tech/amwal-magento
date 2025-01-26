@@ -45,6 +45,9 @@ class Success extends Template
     public function getAmwalTransaction()
     {
         $order = $this->getOrder();
+        if ($order->getAmwalOrderId() === null) {
+            return null;
+        }
         $amwalClient = $this->amwalClientFactory->create();
         $response = $amwalClient->get('transactions/' . $order->getAmwalOrderId());
 

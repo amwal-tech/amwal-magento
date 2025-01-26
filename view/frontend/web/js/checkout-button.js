@@ -19,6 +19,7 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
         productButtonContainer: null,
         amwalCheckoutButton: null,
         hideProceedToCheckout: false,
+        redirectOnLoadClick: false,
 
         /**
          * @returns {exports.initialize}
@@ -42,6 +43,19 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                 }
                 if (self.triggerContext === 'login') {
                     self.initializeLogin();
+                }
+                if (self.redirectOnLoadClick && self.triggerContext === 'regular-checkout') {
+                    const parentElement = document.getElementById(self.buttonId);
+                    if (parentElement) {
+                        const observer = new MutationObserver((mutationsList, observer) => {
+                            const childElement = parentElement.querySelector('.amwal-checkout-button');
+                            if (childElement) {
+                                childElement.click();
+                                observer.disconnect();
+                            }
+                        });
+                        observer.observe(parentElement, { childList: true, subtree: true });
+                    }
                 }
                 window.addEventListener('cartUpdateNeeded', function(e) {
                     var sections = ['cart'];

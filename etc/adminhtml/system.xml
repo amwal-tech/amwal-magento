@@ -94,10 +94,25 @@
                             <field id="express_checkout_active">1</field>
                         </depends>
                     </field>
+                    <field id="regular_checkout_redirect" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Regular checkout redirect</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/regular_checkout_redirect</config_path>
+                        <tooltip>Indicates if the Regular Checkout redirect functionality should be enabled</tooltip>
+                    </field>
+                    <field id="redirect_on_load_click" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Regular checkout redirect on load click</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/redirect_on_load_click</config_path>
+                        <tooltip>Enable this option to automatically click the regular checkout redirect button on page load.</tooltip>
+                        <depends>
+                            <field id="regular_checkout_redirect">1</field>
+                        </depends>
+                    </field>
                 </group>
 
                 <!-- Installments Settings -->
-                <group id="amwal_payments_installments" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="25">
+                <group id="amwal_payments_installments" translate="label" showInDefault="0" showInWebsite="0" showInStore="0" sortOrder="25">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <label>Installments Settings</label>
                     <field id="enable_bank_installments" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">

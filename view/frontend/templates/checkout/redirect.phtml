@@ -1,0 +1,63 @@
+<?php
+/** @var \Magento\Quote\Model\Quote $quote */
+$quote = $block->getData('quote');
+$style_css = $block->getData('style_css');
+$payment_method = $quote->getPayment()->getMethod();
+function getLocaleCode()
+{
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $localeResolver = $objectManager->get(\Magento\Framework\Locale\Resolver::class);
+    $locale = $localeResolver->getLocale();
+    return $locale ? explode('_', $locale)[0] : 'en';
+}
+if ($quote) {
+    $billingAddress = $quote->getBillingAddress();
+    $shippingAddress = $quote->getShippingAddress();
+    $items = $quote->getAllVisibleItems();
+    ?>
+    <h2><?= __('Order Summary') ?></h2>
+    <h2><?= __('Items') ?></h2>
+    <ul>
+        <?php foreach ($items as $item): ?>
+            <li>
+                <?= htmlspecialchars($item->getName()) ?> (<?= $item->getQty() ?>)
+                - <?= $item->getRowTotalInclTax() ?> <?= $quote->getQuoteCurrencyCode() ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <h2><strong><?= __('Total:') ?></strong> <?= $quote->getGrandTotal() ?> <?= $quote->getQuoteCurrencyCode() ?></h2>
+    <div class="actions-toolbar">
+        <div class="primary">
+            <div class="amwal-express-checkout-button"
+                 data-trigger-context="regular-checkout"
+                 data-locale="<?= getLocaleCode() ?>"
+                 data-scope-code=""
+                <?= $payment_method === 'amwal_payments_apple_pay' ? 'data-apple-pay-checkout="true"' : '' ?>
+                 data-payment-method="<?= $payment_method ?>"
+                 data-override-cart-id="<?= $block->getData('override_cart_id') ?>"
+                 data-button-id="<?= $block->getData('checkout_button_id') ?>"
+                 id="<?= $block->getData('button_id') ?>"
+            >
+            </div>
+        </div>
+    </div>
+
+    <script type="text/x-magento-init">
+        {
+            "#<?= $block->getData('button_id') ?>": {
+                "Amwal_Payments/js/checkout-button": {
+                    "buttonId" : "<?= $block->getData('button_id') ?>",
+                    "triggerContext": "regular-checkout",
+                    "redirectOnLoadClick": "<?= $block->getData('is_redirect_on_load_click') ?>"
+                }
+            }
+        }
+    </script>
+    <style>
+        <?= $style_css ?>
+        .amwal-wrapper { border: 1px solid #dfdfdf; border-radius: 5px; margin-bottom: 25px;  width: 500px;} .amwal-wrapper-login { display: flex; justify-content: center; align-items: center; flex-direction: column; padding-right: 14px; padding-left: 14px;} .amwal-or { position: relative; top: 10px; width: 40px; height: 10px; line-height: 0; text-align: center; margin-left: auto; margin-right: auto; color: #757575; background: white; }
+    </style>
+    <?php
+}
+?>
+
