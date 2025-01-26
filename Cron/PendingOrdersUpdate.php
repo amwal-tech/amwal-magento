@@ -62,10 +62,10 @@ class PendingOrdersUpdate
         $this->logger->notice(sprintf('Searching for orders created between %s and %s', $fromTime, $toTime));
 
         $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('created_at', $fromTime, 'gt')
-            ->addFilter('created_at', $toTime, 'lt')
-            ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
-            ->addFilter('amwal_order_id', true, 'notnull')
+            ->addFilter('main_table.created_at', $fromTime, 'gt')
+            ->addFilter('main_table.created_at', $toTime, 'lt')
+            ->addFilter('main_table.status', Order::STATE_PENDING_PAYMENT, 'eq')
+            ->addFilter('main_table.amwal_order_id', true, 'notnull')
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();

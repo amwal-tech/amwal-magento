@@ -24,8 +24,14 @@ class SalesOrderGridPlugin
 
             $subject->getSelect()->joinLeft(
                 ['sales_order' => $salesOrderTable],
-                'main_table.' . $primaryKey . ' = sales_order.entity_id',
-                ['amwal_order_id' => 'sales_order.amwal_order_id', 'amwal_trigger_context' => 'sales_order.amwal_trigger_context']
+                $subject->getConnection()->quoteInto(
+                    'main_table.' . $primaryKey . ' = sales_order.entity_id AND sales_order.amwal_order_id IS NOT NULL',
+                    []
+                ),
+                [
+                    'amwal_order_id' => 'sales_order.amwal_order_id',
+                    'amwal_trigger_context' => 'sales_order.amwal_trigger_context'
+                ]
             )->distinct(true);
         }
 

@@ -60,11 +60,11 @@ class CanceledOrdersUpdate
         $this->logger->notice(sprintf('Searching for orders created between %s and %s', $fromTime, $toTime));
 
         $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('created_at', $fromTime, 'gt')
-            ->addFilter('created_at', $toTime, 'lt')
-            ->addFilter('status', Order::STATE_CANCELED, 'eq')
-            ->addFilter('amwal_order_id', true, 'notnull')
-            ->addFilter('is_amwal_order_canceled', false, 'eq')
+            ->addFilter('main_table.created_at', $fromTime, 'gt')
+            ->addFilter('main_table.created_at', $toTime, 'lt')
+            ->addFilter('main_table.status', Order::STATE_CANCELED, 'eq')
+            ->addFilter('main_table.amwal_order_id', true, 'notnull')
+            ->addFilter('main_table.is_amwal_order_canceled', false, 'eq')
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
