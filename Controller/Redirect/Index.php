@@ -13,6 +13,7 @@ use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Sales\Model\Order;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 
 class Index implements HttpGetActionInterface
 {
@@ -56,6 +57,10 @@ class Index implements HttpGetActionInterface
      */
     private RedirectFactory $resultRedirectFactory;
 
+    /**
+     * @var QuoteIdMaskFactory
+     */
+    private QuoteIdMaskFactory $quoteIdMaskFactory;
 
     /**
      * @param Context $context
@@ -66,6 +71,7 @@ class Index implements HttpGetActionInterface
      * @param ExpressCheckoutButton $expressCheckoutButton
      * @param LoggerInterface $logger
      * @param RedirectFactory $resultRedirectFactory
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
      */
     public function __construct(
         Context $context,
@@ -75,7 +81,8 @@ class Index implements HttpGetActionInterface
         AmwalConfig $config,
         ExpressCheckoutButton $expressCheckoutButton,
         LoggerInterface $logger,
-        RedirectFactory $resultRedirectFactory
+        RedirectFactory $resultRedirectFactory,
+        QuoteIdMaskFactory $quoteIdMaskFactory
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->quoteRepository = $quoteRepository;
@@ -85,6 +92,7 @@ class Index implements HttpGetActionInterface
         $this->expressCheckoutButton = $expressCheckoutButton;
         $this->logger = $logger;
         $this->resultRedirectFactory = $resultRedirectFactory;
+        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
     public function execute()
@@ -97,6 +105,9 @@ class Index implements HttpGetActionInterface
             return $this->redirectToErrorPage();
         }
 
+        if (is_numeric($maskQuoteId)) {
+            $maskQuoteId = $this->quoteIdMaskFactory->create()->load($maskQuoteId, 'quote_id')->getMaskedId();
+        }
         try {
             $quoteId = $this->maskedQuoteIdToQuoteId->execute($maskQuoteId);
 
