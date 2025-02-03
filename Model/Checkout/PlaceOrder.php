@@ -287,7 +287,7 @@ class PlaceOrder extends AmwalCheckoutAction
         if ($this->config->isRegularCheckoutRedirect() && $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
         } else {
-            $orderId = $this->quoteManagement->placeOrder($quote->getId());
+            $orderId = $this->quoteManagement->submit($quote)->getId();
         }
 
         $order = $this->orderRepository->get($orderId);
