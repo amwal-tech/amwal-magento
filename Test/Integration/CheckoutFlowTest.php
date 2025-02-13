@@ -21,6 +21,7 @@ use Amwal\Payments\Model\Settings;
 use Amwal\Payments\Cron\PendingOrdersUpdate;
 use Amwal\Payments\Cron\CanceledOrdersUpdate;
 use Amwal\Payments\Plugin\Sales\Order\SalesOrderGridPlugin;
+use Amwal\Payments\Block\Adminhtml\Order\View\Tab\AmwalTab;
 use Exception;
 use JsonException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -57,6 +58,7 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
  *    - Pending Orders Cron Job
  *    - Canceled Orders Cron Job
  *    - Sales Order Grid Plugin
+ *    - Amwal Tab Block
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -373,6 +375,20 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertArrayHasKey('amwal_order_id', $firstItem->getData(), 'amwal_order_id is not present in the order grid collection');
         $this->assertArrayHasKey('amwal_trigger_context', $firstItem->getData(), 'amwal_trigger_context is not present in the order grid collection');
     }
+
+    /**
+     * @covers AmwalTab::getTabLabel
+     *
+     * @return void
+     */
+    public function testAmwalTab(): void
+    {
+        /** @var AmwalTab $amwalTab */
+        $amwalTab = $this->objectManager->get(AmwalTab::class);
+
+        $this->assertIsString($amwalTab->getTabLabel());
+    }
+
 
 
     /**
