@@ -179,6 +179,7 @@ class AmwalTab extends Template implements TabInterface
 
         $amwalClient = $this->amwalClientFactory->create();
         $baseUrl = $amwalClient->getConfig('base_uri');
+        
         return $baseUrl . 'transactions/' . $amwalOrderId;
     }
 }
