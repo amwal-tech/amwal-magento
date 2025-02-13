@@ -386,10 +386,9 @@ class CheckoutFlowTest extends IntegrationTestBase
         /** @var AmwalTab $amwalTab */
         $amwalTab = $this->objectManager->get(AmwalTab::class);
 
-        $this->assertIsString($amwalTab->getTabLabel());
+        $this->assertIsString((string) $amwalTab->getTabLabel());
+        $this->assertEquals('Amwal Payments', (string) $amwalTab->getTabLabel());
     }
-
-
 
     /**
      * Amwal pop-up - Generate a transaction on button press
