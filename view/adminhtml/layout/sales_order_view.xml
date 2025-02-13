@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <head>
-        <link src="Amwal_Payments::js/order-details.js"/>
-    </head>
+    <body>
+        <referenceBlock name="sales_order_tabs">
+            <action method="addTabAfter">
+                <argument name="name" xsi:type="string">amwal_tab</argument>
+                <argument name="block" xsi:type="string">Amwal\Payments\Block\Adminhtml\Order\View\Tab\AmwalTab</argument>
+                <argument name="after" xsi:type="string">transactions</argument>
+            </action>
+        </referenceBlock>
+    </body>
 </page>
