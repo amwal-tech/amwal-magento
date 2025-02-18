@@ -1,0 +1,200 @@
+<?php
+/** @var $block \Amwal\Payments\Block\Adminhtml\Order\View\Tab */
+
+// Retrieve the JSON data from the block.
+$amwalOrderDataJson = $block->getAmwalOrderData();
+$amwalOrderData = [];
+
+// Decode the JSON data into an associative array and check for errors.
+if ($amwalOrderDataJson) {
+    $amwalOrderData = json_decode($amwalOrderDataJson, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        // If decoding fails, default to an empty array.
+        $amwalOrderData = [];
+    }
+}
+
+// Safely extract the "error" information from order_details, if available.
+$orderErrors = [];
+if (!empty($amwalOrderData['order_details']['error']) && is_array($amwalOrderData['order_details']['error'])) {
+    $orderErrors = $amwalOrderData['order_details']['error'];
+}
+
+/**
+ * Helper lambda to format values for display.
+ * Converts arrays to a JSON string and casts other types to string.
+ *
+ * @param mixed $value
+ * @return string
+ */
+$getFormattedValue = function ($value) use ($block): string {
+    if (is_array($value)) {
+        return $block->escapeHtml(json_encode($value, JSON_PRETTY_PRINT));
+    }
+    return $block->escapeHtml((string)$value);
+};
+
+// Determine the Amwal order status and merge with failure reason if present.
+$status = $amwalOrderData['status'] ?? __('N/A');
+$hasFailure = !empty($amwalOrderData['failure_reason']);
+if ($hasFailure) {
+    $status .= ' - ' . $amwalOrderData['failure_reason'];
+}
+
+// Choose a text color based on whether there's a failure.
+$statusColor = $hasFailure ? 'red' : 'green';
+
+// Retrieve the store order status from the current Magento order.
+$currentOrder = $block->getCurrentOrder();
+$storeStatus = $currentOrder ? $currentOrder->getStatus() : __('N/A');
+
+// Determine if we need to show the inline update button.
+$showUpdateButton = (($amwalOrderData['status'] ?? '') === 'success' && $storeStatus !== 'processing');
+?>
+<div class="fieldset-wrapper">
+    <div class="fieldset-wrapper-title">
+        <span class="title"><?= $block->escapeHtml(__('Amwal Order Summary')) ?></span>
+    </div>
+    <table class="data-table admin__table-secondary">
+        <thead>
+        <tr>
+            <th><?= $block->escapeHtml(__('Attribute')) ?></th>
+            <th><?= $block->escapeHtml(__('Value')) ?></th>
+            <th><?= $block->escapeHtml(__('Actions')) ?></th>
+        </tr>
+        <tbody>
+        <?php if (!empty($amwalOrderData)): ?>
+            <tr>
+                <td colspan="2"><strong><?= $block->escapeHtml(__('Order Details')) ?></strong></td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Order ID')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['id'] ?? __('N/A')) ?></td>
+                <td>
+                    <a href="<?= $block->escapeUrl($block->getAmwalOrderUrl($amwalOrderData['id'] ?? '')) ?>"
+                       target="_blank">
+                        <?= $block->escapeHtml(__('View in Amwal API')) ?>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Transaction Type')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['type'] ?? __('N/A')) ?></td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Order Status')) ?></th>
+                <td>
+                    <span style="color: <?= $block->escapeHtmlAttr($statusColor) ?>;">
+                        <?= $getFormattedValue($status) ?>
+                    </span>
+                </td>
+                <td>
+                    <?php if ($showUpdateButton): ?>
+                        <button type="button" class="action-default amwal-order-status-update" style="margin-left: 10px;">
+                            <?= $block->escapeHtml(__('Update Order Status')) ?>
+                        </button>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Payment Method')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['payment_method'] ?? __('N/A')) ?></td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Payment Brand')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['paymentBrand'] ?? __('N/A')) ?></td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Payment Type')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['payment_option'] ?? __('N/A')) ?></td>
+            </tr>
+            <?php if ($amwalOrderData['installment_duration'] !== null): ?>
+            <tr>
+                <th><?= $block->escapeHtml(__('Installment Duration')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['installment_duration']. ' Months' ?? __('N/A')) ?></td>
+            </tr>
+            <?php endif; ?>
+            <tr>
+                <th><?= $block->escapeHtml(__('Order Position')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['order_details']['order_position'] ?? __('N/A')) ?></td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Plugin Version')) ?></th>
+                <td><?= $getFormattedValue($amwalOrderData['order_details']['plugin_version'] ?? __('N/A')) ?></td>
+                <td>
+                    <a href="https://github.com/amwal-tech/amwal-magento/releases" target="_blank">
+                        <?= $block->escapeHtml(__('Check for Updates')) ?>
+                    </a>
+                </td>
+            </tr>
+            <?php if (!empty($orderErrors)): ?>
+                <tr>
+                    <td colspan="2"><strong><?= $block->escapeHtml(__('Order Reported Errors')) ?></strong></td>
+                </tr>
+                <?php foreach ($orderErrors as $error): ?>
+                    <tr style="background-color: #ffcccc;">
+                        <th><?= $getFormattedValue($error['type'] ?? __('Error')) ?></th>
+                        <td><?= $getFormattedValue($error['errorMsg'] ?? $error['description'] ?? __('N/A')) ?></td>
+                        <td>
+                            <a href="mailto:support@amwal.com?subject=Support Request for Order <?= urlencode($amwalOrderData['id'] ?? '') ?>" target="_blank">
+                                <?= $block->escapeHtml(__('Contact Support')) ?>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="2"><?= $block->escapeHtml(__('No errors reported in order details.')) ?></td>
+                </tr>
+            <?php endif; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="2"><?= $block->escapeHtml(__('No Amwal order data available.')) ?></td>
+            </tr>
+        <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    require(['jquery', 'mage/translate'], function($, $t) {
+        var config = {
+            orderId: <?= json_encode($currentOrder ? $currentOrder->getIncrementId() : '') ?>,
+            amwalOrderId: <?= json_encode($amwalOrderData['id'] ?? '') ?>,
+            refId: <?= json_encode($amwalOrderData['ref_id'] ?? '') ?>,
+            amwalStatus: <?= json_encode($amwalOrderData['status'] ?? '') ?>,
+            storeStatus: <?= json_encode($storeStatus) ?>
+        };
+
+        // Only attach the click handler if the Amwal order is successful and the store order isn't.
+        if (config.amwalStatus === 'success' && config.storeStatus !== 'processing') {
+            $(document).on('click', '.amwal-order-status-update', function () {
+                var requestData = {
+                    order_id: config.orderId,
+                    amwal_order_id: config.amwalOrderId,
+                    ref_id: config.refId
+                };
+
+                fetch('/rest/V1/amwal/order/status', {
+                    method: 'POST',
+                    body: JSON.stringify(requestData),
+                    headers: {
+                        'Content-type': 'application/json; charset=UTF-8'
+                    }
+                })
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        if (data.message) {
+                            alert(data.message);
+                        }
+                        location.reload();
+                    })
+                    .catch(function(error) {
+                        alert($t('An error occurred while updating the order status.'));
+                    });
+            });
+        }
+    });
+</script>

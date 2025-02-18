@@ -1,3 +1,12 @@
+# [1.0.39] (2025-02-18)
+### Features
+- [#434](https://github.com/amwal-tech/amwal-magento/pull/434) - Add 'Amwal Order Summary' tab to Sales Order view
+- [#431](https://github.com/amwal-tech/amwal-magento/pull/431) - Upgrade amwal-checkout-button to 0.0.60-alpha
+- [#429](https://github.com/amwal-tech/amwal-magento/pull/429) - dev dependencies upgrade
+
+### Bug Fixes
+-  [#430](https://github.com/amwal-tech/amwal-magento/pull/430) - Refactor place order logic to use submit method
+
 # [1.0.38] (2025-01-26)
 ### Features
 - [#410](https://github.com/amwal-tech/amwal-magento/pull/410) - Add regular checkout custom redirect page.
