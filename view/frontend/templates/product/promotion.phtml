@@ -119,7 +119,7 @@
 
 <style>
     /* Amwal Promo Button */
-     #amwalPromo {
+    #amwalPromo {
         cursor: pointer;
         box-sizing: border-box;
         position: relative;
@@ -131,6 +131,11 @@
         max-width: 495px;
         float: right;
         margin: 2px 0 12px;
+    }
+
+    :lang(ar) #amwalPromo {
+        direction: rtl;
+        text-align: left;
     }
     .amwal-link {
         color: #3866df;
@@ -226,11 +231,14 @@
         margin-top: 8px !important;
     }
     .amwal-popup .modal-inner-wrap #amwal-dialog .styles_continue {
-        display: block;
-        flex-direction: row;
-        align-items: center;
+        text-align: left;
         cursor: pointer;
     }
+
+    :lang(ar) .amwal-popup .modal-inner-wrap #amwal-dialog .styles_continue {
+        text-align: right;
+    }
+
     .amwal-popup .modal-inner-wrap #amwal-dialog .styles_continue .styles_continue_text {
         font-size: 14px;
         color: #000;
