@@ -1,6 +1,17 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <referenceContainer name="cart.summary">
+            <block class="Amwal\Payments\Block\Product\View\Promotion"
+                   name="checkout.cart.amwal.promotion"
+                   as="cart_amwal_promotion"
+                   ifconfig="payment/amwal_payments/cart_promotions"
+                   template="Amwal_Payments::product/promotion.phtml"
+                   cacheable="false"
+                   before="checkout.cart.methods.bottom">
+                <action method="setIsOnShoppingCartPage" />
+            </block>
+        </referenceContainer>
         <referenceContainer name="checkout.cart.methods">
             <block class="Amwal\Payments\Block\ExpressCheckoutCartButton"
                    name="checkout.cart.methods.amwal.payments"

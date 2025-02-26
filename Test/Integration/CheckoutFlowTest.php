@@ -22,6 +22,7 @@ use Amwal\Payments\Cron\PendingOrdersUpdate;
 use Amwal\Payments\Cron\CanceledOrdersUpdate;
 use Amwal\Payments\Plugin\Sales\Order\SalesOrderGridPlugin;
 use Amwal\Payments\Block\Adminhtml\Order\View\Tab\AmwalTab;
+use Amwal\Payments\Block\Product\View\Promotion;
 use Exception;
 use JsonException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -59,6 +60,7 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
  *    - Canceled Orders Cron Job
  *    - Sales Order Grid Plugin
  *    - Amwal Tab Block
+ *    - Promotion Block
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -388,6 +390,19 @@ class CheckoutFlowTest extends IntegrationTestBase
 
         $this->assertIsString((string) $amwalTab->getTabLabel());
         $this->assertEquals('Amwal Payments', (string) $amwalTab->getTabLabel());
+    }
+
+    /**
+     * @covers Promotion::isPromotionsActive
+     *
+     * @return void
+     */
+    public function testPromotionBlock(): void
+    {
+        /** @var Promotion $promotion */
+        $promotion = $this->objectManager->get(Promotion::class);
+
+        $this->assertIsBool($promotion->isPromotionsActive());
     }
 
     /**
