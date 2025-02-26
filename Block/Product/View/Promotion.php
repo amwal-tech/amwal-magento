@@ -17,6 +17,9 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Amwal\Payments\Model\Config;
 
+/**
+ * @SuppressWarnings(PHPMD)
+ */
 class Promotion extends View
 {
     /**
