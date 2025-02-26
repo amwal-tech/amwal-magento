@@ -1,0 +1,297 @@
+<!-- Amwal Promo Script -->
+<script>
+    (function() {
+        const amwalConfig = {
+            installmentsCount: <?= $block->getInstallmentsCount() ?>,
+            price: <?= $block->getPrice() ?>,
+        };
+
+        /**
+         * Update the Amwal promotion based on the given price and currency.
+         * Calculates the installment price and updates elements and the iframe.
+         * @param {number} price - The new product price.
+         * @param {string} currency - The product's currency.
+         */
+        const updateAmwalPromotions = (price, currency) => {
+            console.log(price, currency);
+            const installmentPrice = price / amwalConfig.installmentsCount;
+
+            // Update text for installment count and price
+            document.querySelectorAll('.amwalInstallmentsCount').forEach(el => {
+                el.innerText = amwalConfig.installmentsCount;
+            });
+            document.querySelectorAll('.amwalPrice').forEach(el => {
+                el.innerText = `${currency} ${installmentPrice.toFixed(2)}`;
+            });
+
+            // Update the iframe's query parameters if it exists
+            const amwalIframe = document.getElementById('amwal-iframe');
+            if (amwalIframe) {
+                const [baseUrl, queryString] = amwalIframe.getAttribute('src').split('?');
+                const params = new URLSearchParams(queryString);
+                params.set('price', installmentPrice.toFixed(2));
+                params.set('currency', currency);
+                params.set('installmentsCount', amwalConfig.installmentsCount);
+                params.set('locale', document.documentElement.lang);
+                amwalIframe.setAttribute('src', `${baseUrl}?${params.toString()}`);
+            }
+        };
+
+        /**
+         * Extracts price data from the given element and updates promotions.
+         * @param {HTMLElement} elem - The element containing price data.
+         */
+        const handlePriceUpdate = (elem) => {
+            const priceAttr = elem.querySelector('[data-price-type="finalPrice"]')?.getAttribute('data-price-amount');
+            const price = parseFloat(priceAttr);
+            const currency = document.querySelector('meta[itemprop="priceCurrency"]')?.getAttribute('content');
+            if (!isNaN(price) && currency) {
+                updateAmwalPromotions(price, currency);
+            }
+        };
+
+        require(['jquery', 'Magento_Ui/js/modal/modal'], function ($ ,modal) {
+            // Bind events for standard products using a combined event string
+            $('.product-info-main .product-info-price .price-box.price-final_price')
+                .on('reloadPrice price-box-initialized', function() {
+                    handlePriceUpdate(this);
+                });
+
+            // For grouped products, recalculate the total price based on quantities
+            const $groupTable = $('#super-product-table');
+            if ($groupTable.length) {
+                const updateGroupedProducts = () => {
+                    let totalPrice = 0;
+                    const currency = $('meta[itemprop="priceCurrency"]').attr('content');
+                    let valid = true;
+                    $groupTable.find('.price-box.price-final_price').each(function() {
+                        const $priceBox = $(this);
+                        const localPrice = parseFloat($priceBox.find('[data-price-type="finalPrice"]').attr('data-price-amount'));
+                        const localId = $priceBox.data('product-id');
+                        const localQty = parseFloat($groupTable.find(`[data-selector="super_group[${localId}]"]`).val());
+                        const subtotal = localPrice * localQty;
+                        if (!isNaN(subtotal)) {
+                            totalPrice += subtotal;
+                        } else {
+                            valid = false;
+                        }
+                    });
+                    if (valid) {
+                        updateAmwalPromotions(totalPrice, currency);
+                    }
+                };
+
+                // Bind change events and initialize grouped products update
+                $groupTable.find('[data-selector^="super_group"]').on('change', updateGroupedProducts);
+                updateGroupedProducts();
+            }
+
+            $('#amwalPromo').on('click', function () {
+                const options = {
+                    type: 'popup',
+                    responsive: true,
+                    innerScroll: true,
+                    modalClass: 'amwal-popup'
+                };
+                modal(options, $('#amwal-dialog'));
+                $('#amwal-dialog').modal('openModal');
+
+                // Close modal on click of close or continue buttons
+                $('.amwal_close, .styles_continue').on('click', function () {
+                    $('#amwal-dialog').modal('closeModal');
+                });
+            });
+        });
+        if (window.location.href.indexOf('checkout/cart') !== -1) {
+            require(['Magento_Checkout/js/model/quote'], function (quote) {
+                // Update promotions when the quote totals change
+                function updateAmwalTotal(totals) {
+                    let price = parseFloat(totals.grand_total) + parseFloat(totals.tax_amount);
+                    updateAmwalPromotions(price, totals.quote_currency_code);
+                }
+
+                quote.getTotals().subscribe(updateAmwalTotal);
+                updateAmwalPromotions(quote.totals().grand_total, quote.totals().quote_currency_code);
+            });
+        }
+    })();
+</script>
+
+<style>
+    /* Amwal Promo Button */
+     #amwalPromo {
+        cursor: pointer;
+        box-sizing: border-box;
+        position: relative;
+        padding: 15px 67px 15px 15px;
+        border-radius: 4px;
+        border: 1px solid #000;
+        color: #222;
+        width: 100%;
+        max-width: 495px;
+        float: right;
+        margin: 2px 0 12px;
+    }
+    .amwal-link {
+        color: #3866df;
+        text-decoration: underline;
+    }
+    .amwal-logo {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        width: 65px;
+    }
+
+    /* Modal Base Styles */
+    .amwal-popup .modal-content {
+        padding: 0;
+    }
+    .amwal-popup .modal-inner-wrap {
+        width: max-content;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        background: #fff;
+        border-radius: 17px;
+        color: #292929;
+        font-family: "Inter", sans-serif;
+        overflow: auto;
+        padding: 32px;
+        align-items: stretch;
+    }
+    .amwal-popup .modal-inner-wrap .modal-header,
+    .amwal-popup .modal-inner-wrap .modal-footer {
+        display: none;
+    }
+
+    /* Modal – Only for #amwal-dialog */
+    .amwal-popup .modal-inner-wrap #amwal-dialog {
+        display: flex;
+        flex-direction: column;
+        width: 615px !important;
+        height: 100%;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header {
+        display: flex;
+        justify-content: space-between;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header > img {
+        width: 80px;
+        height: 32px;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header .amwal_close {
+        position: relative;
+        cursor: pointer;
+        width: 20px;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header .amwal_close:before,
+    .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header .amwal_close:after {
+        position: absolute;
+        top: 0;
+        left: 6px;
+        content: '';
+        height: 17px;
+        width: 2px;
+        background-color: #3e3e3e;
+        border-radius: 2px;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header .amwal_close:before {
+        transform: rotate(45deg);
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header .amwal_close:after {
+        transform: rotate(-45deg);
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .styles_title {
+        display: flex;
+        flex-direction: column;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .styles_title .styles_text {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 0;
+        font-size: 24px;
+        font-style: normal;
+        font-weight: 700;
+        font-family: Inter, sans-serif;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .styles_title .styles_help {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: 16px;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .styles_title > *:not(:first-child) {
+        margin-top: 8px !important;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .styles_continue {
+        display: block;
+        flex-direction: row;
+        align-items: center;
+        cursor: pointer;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .styles_continue .styles_continue_text {
+        font-size: 14px;
+        color: #000;
+        font-style: normal;
+        font-weight: 700;
+    }
+    .amwal-popup .modal-inner-wrap #amwal-dialog .styles_continue > *:not(:first-child) {
+        margin-left: 10px;
+    }
+    #amwal-iframe{
+        width: 100%;
+        height: 455px;
+        border: none;
+    }
+    @media only screen and (max-width: 768px) {
+        .amwal-popup .modal-inner-wrap #amwal-dialog {
+            width: 100% !important;
+            height: 100%;
+        }
+        #amwal-iframe{
+            height: 680px;
+        }
+    }
+</style>
+
+<!-- Amwal Promo Button -->
+<div id="amwalPromo">
+    <svg width="72" height="29" viewBox="0 0 72 29" fill="none" xmlns="http://www.w3.org/2000/svg" class="amwal-logo">
+        <rect width="72" height="28.946" rx="6" fill="black"/>
+        <path d="M24.1912 11.6545C25.5297 10.5672 27.8358 10.9347 28.8503 12.3232C28.8972 12.3845 28.9818 12.3896 29.0287 12.3334C29.0804 12.2722 29.1274 12.2109 29.179 12.1547C29.7191 11.5626 30.3861 11.241 31.1328 11.0981C31.9219 10.9449 32.7015 10.9909 33.453 11.3125C34.3641 11.7004 34.9794 12.4253 35.3598 13.3901C35.6369 14.0843 35.7684 14.8194 35.7731 15.5698C35.7825 17.1216 35.7778 18.6785 35.7872 20.2303C35.7872 20.3579 35.7543 20.3783 35.6463 20.3783C34.9512 20.3732 34.2561 20.3732 33.5657 20.3783C33.453 20.3783 33.4201 20.3528 33.4201 20.2252C33.4248 18.7551 33.4248 17.2849 33.4248 15.8148C33.4248 15.386 33.359 14.9725 33.1712 14.5897C32.5747 13.3748 31.0859 13.2522 30.3109 14.36C30.015 14.7836 29.8741 15.2686 29.8741 15.7944C29.8741 17.2747 29.8741 18.7551 29.8788 20.2354C29.8788 20.3528 29.8506 20.3783 29.7473 20.3783C29.0381 20.3732 28.3242 20.3732 27.615 20.3783C27.5211 20.3783 27.4976 20.3528 27.4976 20.2507C27.5023 18.7704 27.4976 17.29 27.5023 15.8097C27.5023 15.534 27.4788 15.2584 27.4178 14.9878C27.244 14.263 26.6804 13.7168 25.9994 13.6147C24.9521 13.4564 24.3227 14.314 24.1161 15.0644C24.0409 15.3298 24.0127 15.6004 24.0127 15.8811C24.0127 17.29 24.0127 18.704 24.0174 20.1129C24.0174 20.2609 23.9094 20.3783 23.7732 20.3783C23.1016 20.3732 22.43 20.3732 21.7536 20.3783C21.655 20.3783 21.6362 20.3477 21.6362 20.2507C21.6409 17.2798 21.6409 14.314 21.6362 11.3431C21.6362 11.2512 21.6503 11.2206 21.7443 11.2206C22.4675 11.2257 23.1908 11.2257 23.9141 11.2206C23.9892 11.2206 24.0174 11.2359 24.0127 11.3227C24.008 11.4044 24.008 11.4809 24.008 11.5626C24.008 11.6596 24.1161 11.7157 24.1912 11.6545Z" fill="white"/>
+        <path d="M43.8655 20.384C43.8233 20.4759 43.7012 20.4759 43.6589 20.384C43.3724 19.7357 43.0906 19.0976 42.8088 18.4595C42.527 17.8215 42.2452 17.1885 41.9634 16.5402C41.9211 16.4432 41.799 16.4432 41.7568 16.5402C41.1885 17.8266 40.6249 19.0976 40.0566 20.3942C40.0143 20.4861 39.8969 20.4912 39.8499 20.3993C38.3564 17.3314 36.8723 14.2839 35.374 11.216C35.4304 11.216 35.468 11.216 35.5055 11.216C36.2993 11.216 37.0977 11.216 37.8914 11.2109C37.9807 11.2109 38.0229 11.2467 38.0605 11.3283C38.6899 12.7117 39.3239 14.09 39.9579 15.4733C39.9767 15.509 39.9908 15.5448 40.019 15.606C40.1364 15.3406 40.2444 15.0905 40.3478 14.8454C40.4793 14.5494 40.6061 14.2482 40.7376 13.9521C40.7705 13.8807 40.7705 13.8245 40.7376 13.7479C40.39 12.9516 40.0425 12.1502 39.6996 11.3488C39.6855 11.313 39.6668 11.2773 39.6527 11.2365C39.6761 11.2007 39.709 11.216 39.7372 11.216C40.4323 11.216 41.1274 11.216 41.8225 11.2109C41.9024 11.2109 41.9399 11.2416 41.9728 11.3181C42.5881 12.7219 43.208 14.1257 43.828 15.5295C43.8327 15.5397 43.8421 15.5499 43.8609 15.5754C43.9595 15.3304 44.0581 15.1007 44.152 14.8659C44.6264 13.6867 45.1055 12.5075 45.5751 11.3283C45.6127 11.2365 45.655 11.2109 45.7442 11.2109C46.4393 11.216 47.1344 11.2109 47.8295 11.2109C47.8671 11.2109 47.9047 11.2109 47.9563 11.2109C46.5896 14.2788 45.2323 17.3212 43.8655 20.384Z" fill="white"/>
+        <path d="M59.6416 13.6148C59.6416 15.8149 59.6416 18.015 59.6463 20.2151C59.6463 20.3376 59.6275 20.3733 59.5054 20.3733C58.7962 20.3682 58.0824 20.3682 57.3732 20.3733C57.2839 20.3733 57.2651 20.3478 57.2651 20.2508C57.2698 15.8302 57.2698 11.4096 57.2651 6.99405C57.2651 6.88175 57.298 6.86133 57.3919 6.86133C58.0964 6.86643 58.8056 6.86643 59.5101 6.86133C59.6228 6.86133 59.6463 6.89196 59.6463 7.01447C59.6369 9.21457 59.6416 11.4147 59.6416 13.6148Z" fill="white"/>
+        <path d="M56.11 11.3788C56.11 11.3584 56.1053 11.3329 56.11 11.3125C56.1194 11.241 56.0959 11.2206 56.0255 11.2206C55.3304 11.2206 54.6306 11.2206 53.9355 11.2206C53.8228 11.2206 53.7335 11.3176 53.7335 11.4401C53.7335 11.486 53.7335 11.532 53.7335 11.5779C53.7335 11.68 53.6255 11.7362 53.5504 11.68C53.0478 11.2818 52.4842 11.0725 51.8737 11.0368C50.6244 10.9602 49.5676 11.4707 48.7316 12.4661C47.689 13.7117 47.3414 15.1869 47.6326 16.8306C47.9755 18.7397 49.3938 20.3579 51.2866 20.5621C51.9911 20.6387 52.6674 20.5161 53.292 20.1333C53.3813 20.0771 53.4611 20.0159 53.541 19.9444C53.6161 19.8781 53.7288 19.9342 53.7288 20.0414C53.7288 20.118 53.7288 20.1894 53.7241 20.266C53.7194 20.363 53.7429 20.3885 53.8322 20.3885C54.4991 20.3834 55.166 20.3834 55.8376 20.3885C55.9832 20.3885 56.1053 20.2609 56.1053 20.1027C56.1053 17.1828 56.11 14.2783 56.11 11.3788ZM53.6678 16.7438C53.3719 17.535 52.705 18.0149 51.9112 18.0098C50.6572 17.9893 49.8259 16.8663 49.9621 15.5544C50.0608 14.5743 50.6103 13.8903 51.4228 13.6606C52.5688 13.339 53.6772 14.166 53.8087 15.4472C53.8556 15.8964 53.8228 16.3303 53.6678 16.7438Z" fill="white"/>
+        <path d="M20.528 11.3792C20.528 11.3537 20.5233 11.3333 20.528 11.3129C20.5374 11.2414 20.5139 11.221 20.4435 11.221C19.7014 11.221 18.964 11.2261 18.222 11.221C18.1468 11.221 18.1421 11.2567 18.1421 11.318C18.1421 11.4048 18.1421 11.4864 18.1421 11.5783C18.1421 11.6804 18.0388 11.7366 17.959 11.6804C17.4564 11.2874 16.8928 11.0781 16.2823 11.0423C15.0846 10.9658 14.0561 11.4303 13.2388 12.3644C12.013 13.7478 11.6655 15.4221 12.1539 17.2649C12.6799 19.2506 14.3285 20.634 16.1883 20.5676C16.8365 20.5421 17.4376 20.3787 17.9543 19.9346C18.0294 19.8683 18.1421 19.9244 18.1421 20.0316C18.1421 20.1031 18.1421 20.1745 18.1374 20.246C18.1327 20.3481 18.1562 20.3736 18.2549 20.3736C18.964 20.3685 19.6685 20.3685 20.3777 20.3736C20.4951 20.3736 20.5327 20.3481 20.5327 20.2154C20.5233 17.27 20.528 14.3246 20.528 11.3792ZM18.0529 16.8208C17.7147 17.6069 17.123 17.9898 16.3809 18.0153C15.3148 18.0153 14.4834 17.1985 14.3801 16.0959C14.2862 15.1158 14.6619 14.2736 15.404 13.8499C16.5171 13.2067 17.9871 13.7988 18.222 15.4068C18.2877 15.8917 18.2455 16.3716 18.0529 16.8208Z" fill="white"/>
+    </svg>
+    <?= __('Split in') ?> <span class="amwalInstallmentsCount">0</span> <?= __('interest-free payments of') ?> <span class="amwalPrice">0</span>.
+    <span class="amwal-link"><?= __('Learn more') ?></span>
+</div>
+
+<!-- Modal Markup -->
+<div id="amwal-dialog" style="display: none">
+    <div class="amwal_header">
+        <svg width="72" height="29" viewBox="0 0 72 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="28.946" rx="6" fill="black"/>
+            <path d="M24.1912 11.6545C25.5297 10.5672 27.8358 10.9347 28.8503 12.3232C28.8972 12.3845 28.9818 12.3896 29.0287 12.3334C29.0804 12.2722 29.1274 12.2109 29.179 12.1547C29.7191 11.5626 30.3861 11.241 31.1328 11.0981C31.9219 10.9449 32.7015 10.9909 33.453 11.3125C34.3641 11.7004 34.9794 12.4253 35.3598 13.3901C35.6369 14.0843 35.7684 14.8194 35.7731 15.5698C35.7825 17.1216 35.7778 18.6785 35.7872 20.2303C35.7872 20.3579 35.7543 20.3783 35.6463 20.3783C34.9512 20.3732 34.2561 20.3732 33.5657 20.3783C33.453 20.3783 33.4201 20.3528 33.4201 20.2252C33.4248 18.7551 33.4248 17.2849 33.4248 15.8148C33.4248 15.386 33.359 14.9725 33.1712 14.5897C32.5747 13.3748 31.0859 13.2522 30.3109 14.36C30.015 14.7836 29.8741 15.2686 29.8741 15.7944C29.8741 17.2747 29.8741 18.7551 29.8788 20.2354C29.8788 20.3528 29.8506 20.3783 29.7473 20.3783C29.0381 20.3732 28.3242 20.3732 27.615 20.3783C27.5211 20.3783 27.4976 20.3528 27.4976 20.2507C27.5023 18.7704 27.4976 17.29 27.5023 15.8097C27.5023 15.534 27.4788 15.2584 27.4178 14.9878C27.244 14.263 26.6804 13.7168 25.9994 13.6147C24.9521 13.4564 24.3227 14.314 24.1161 15.0644C24.0409 15.3298 24.0127 15.6004 24.0127 15.8811C24.0127 17.29 24.0127 18.704 24.0174 20.1129C24.0174 20.2609 23.9094 20.3783 23.7732 20.3783C23.1016 20.3732 22.43 20.3732 21.7536 20.3783C21.655 20.3783 21.6362 20.3477 21.6362 20.2507C21.6409 17.2798 21.6409 14.314 21.6362 11.3431C21.6362 11.2512 21.6503 11.2206 21.7443 11.2206C22.4675 11.2257 23.1908 11.2257 23.9141 11.2206C23.9892 11.2206 24.0174 11.2359 24.0127 11.3227C24.008 11.4044 24.008 11.4809 24.008 11.5626C24.008 11.6596 24.1161 11.7157 24.1912 11.6545Z" fill="white"/>
+            <path d="M43.8655 20.384C43.8233 20.4759 43.7012 20.4759 43.6589 20.384C43.3724 19.7357 43.0906 19.0976 42.8088 18.4595C42.527 17.8215 42.2452 17.1885 41.9634 16.5402C41.9211 16.4432 41.799 16.4432 41.7568 16.5402C41.1885 17.8266 40.6249 19.0976 40.0566 20.3942C40.0143 20.4861 39.8969 20.4912 39.8499 20.3993C38.3564 17.3314 36.8723 14.2839 35.374 11.216C35.4304 11.216 35.468 11.216 35.5055 11.216C36.2993 11.216 37.0977 11.216 37.8914 11.2109C37.9807 11.2109 38.0229 11.2467 38.0605 11.3283C38.6899 12.7117 39.3239 14.09 39.9579 15.4733C39.9767 15.509 39.9908 15.5448 40.019 15.606C40.1364 15.3406 40.2444 15.0905 40.3478 14.8454C40.4793 14.5494 40.6061 14.2482 40.7376 13.9521C40.7705 13.8807 40.7705 13.8245 40.7376 13.7479C40.39 12.9516 40.0425 12.1502 39.6996 11.3488C39.6855 11.313 39.6668 11.2773 39.6527 11.2365C39.6761 11.2007 39.709 11.216 39.7372 11.216C40.4323 11.216 41.1274 11.216 41.8225 11.2109C41.9024 11.2109 41.9399 11.2416 41.9728 11.3181C42.5881 12.7219 43.208 14.1257 43.828 15.5295C43.8327 15.5397 43.8421 15.5499 43.8609 15.5754C43.9595 15.3304 44.0581 15.1007 44.152 14.8659C44.6264 13.6867 45.1055 12.5075 45.5751 11.3283C45.6127 11.2365 45.655 11.2109 45.7442 11.2109C46.4393 11.216 47.1344 11.2109 47.8295 11.2109C47.8671 11.2109 47.9047 11.2109 47.9563 11.2109C46.5896 14.2788 45.2323 17.3212 43.8655 20.384Z" fill="white"/>
+            <path d="M59.6416 13.6148C59.6416 15.8149 59.6416 18.015 59.6463 20.2151C59.6463 20.3376 59.6275 20.3733 59.5054 20.3733C58.7962 20.3682 58.0824 20.3682 57.3732 20.3733C57.2839 20.3733 57.2651 20.3478 57.2651 20.2508C57.2698 15.8302 57.2698 11.4096 57.2651 6.99405C57.2651 6.88175 57.298 6.86133 57.3919 6.86133C58.0964 6.86643 58.8056 6.86643 59.5101 6.86133C59.6228 6.86133 59.6463 6.89196 59.6463 7.01447C59.6369 9.21457 59.6416 11.4147 59.6416 13.6148Z" fill="white"/>
+            <path d="M56.11 11.3788C56.11 11.3584 56.1053 11.3329 56.11 11.3125C56.1194 11.241 56.0959 11.2206 56.0255 11.2206C55.3304 11.2206 54.6306 11.2206 53.9355 11.2206C53.8228 11.2206 53.7335 11.3176 53.7335 11.4401C53.7335 11.486 53.7335 11.532 53.7335 11.5779C53.7335 11.68 53.6255 11.7362 53.5504 11.68C53.0478 11.2818 52.4842 11.0725 51.8737 11.0368C50.6244 10.9602 49.5676 11.4707 48.7316 12.4661C47.689 13.7117 47.3414 15.1869 47.6326 16.8306C47.9755 18.7397 49.3938 20.3579 51.2866 20.5621C51.9911 20.6387 52.6674 20.5161 53.292 20.1333C53.3813 20.0771 53.4611 20.0159 53.541 19.9444C53.6161 19.8781 53.7288 19.9342 53.7288 20.0414C53.7288 20.118 53.7288 20.1894 53.7241 20.266C53.7194 20.363 53.7429 20.3885 53.8322 20.3885C54.4991 20.3834 55.166 20.3834 55.8376 20.3885C55.9832 20.3885 56.1053 20.2609 56.1053 20.1027C56.1053 17.1828 56.11 14.2783 56.11 11.3788ZM53.6678 16.7438C53.3719 17.535 52.705 18.0149 51.9112 18.0098C50.6572 17.9893 49.8259 16.8663 49.9621 15.5544C50.0608 14.5743 50.6103 13.8903 51.4228 13.6606C52.5688 13.339 53.6772 14.166 53.8087 15.4472C53.8556 15.8964 53.8228 16.3303 53.6678 16.7438Z" fill="white"/>
+            <path d="M20.528 11.3792C20.528 11.3537 20.5233 11.3333 20.528 11.3129C20.5374 11.2414 20.5139 11.221 20.4435 11.221C19.7014 11.221 18.964 11.2261 18.222 11.221C18.1468 11.221 18.1421 11.2567 18.1421 11.318C18.1421 11.4048 18.1421 11.4864 18.1421 11.5783C18.1421 11.6804 18.0388 11.7366 17.959 11.6804C17.4564 11.2874 16.8928 11.0781 16.2823 11.0423C15.0846 10.9658 14.0561 11.4303 13.2388 12.3644C12.013 13.7478 11.6655 15.4221 12.1539 17.2649C12.6799 19.2506 14.3285 20.634 16.1883 20.5676C16.8365 20.5421 17.4376 20.3787 17.9543 19.9346C18.0294 19.8683 18.1421 19.9244 18.1421 20.0316C18.1421 20.1031 18.1421 20.1745 18.1374 20.246C18.1327 20.3481 18.1562 20.3736 18.2549 20.3736C18.964 20.3685 19.6685 20.3685 20.3777 20.3736C20.4951 20.3736 20.5327 20.3481 20.5327 20.2154C20.5233 17.27 20.528 14.3246 20.528 11.3792ZM18.0529 16.8208C17.7147 17.6069 17.123 17.9898 16.3809 18.0153C15.3148 18.0153 14.4834 17.1985 14.3801 16.0959C14.2862 15.1158 14.6619 14.2736 15.404 13.8499C16.5171 13.2067 17.9871 13.7988 18.222 15.4068C18.2877 15.8917 18.2455 16.3716 18.0529 16.8208Z" fill="white"/>
+        </svg>
+        <div class="amwal_close"></div>
+    </div>
+    <div class="amwal_body">
+        <iframe
+            src="<?php echo htmlspecialchars($block->getPromotionUrl(), ENT_QUOTES, 'UTF-8'); ?>"
+            id="amwal-iframe"
+            frameborder="0">
+        </iframe>
+        <div class="styles_continue" style="margin-top: 6px;">
+            <div class="styles_continue_text"><?= __('Continue shopping') ?></div>
+        </div>
+    </div>
+</div>
+

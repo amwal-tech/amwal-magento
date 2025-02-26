@@ -146,6 +146,18 @@
                         <tooltip>Enter the bin codes of the cards that you want to filter. Use commas to separate multiple pin codes.</tooltip>
                         <comment><![CDATA[<strong class="colorGreen">Note</strong>: Starting from April 2022, both Visa and Mastercard will issue credit cards with 8 BIN codes. <br> <strong class="colorGreen">Example</strong>: 1234, 5678, 9012]]></comment>
                     </field>
+
+                    <field id="product_promotions" translate="label" type="select" sortOrder="123" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Show promotions on product pages</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/product_promotions</config_path>
+                    </field>
+
+                    <field id="cart_promotions" translate="label" type="select" sortOrder="124" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Show promotions on shopping cart</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/cart_promotions</config_path>
+                    </field>
                 </group>
 
                 <!-- Address Attribute Settings -->
