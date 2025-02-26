@@ -1,6 +1,15 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <referenceContainer name="product.info.main">
+            <block class="Amwal\Payments\Block\Product\View\Promotion"
+                   name="product.info.amwal.promotion"
+                   as="product_amwal_promotion"
+                   ifconfig="payment/amwal_payments/product_promotions"
+                   template="Amwal_Payments::product/promotion.phtml"
+                   cacheable="true"
+                   after="product.info.price" />
+        </referenceContainer>
         <referenceBlock name="product.info.addtocart">
             <block ifconfig="payment/amwal_payments/express_checkout_active"
                    class="Magento\Framework\View\Element\Template"
