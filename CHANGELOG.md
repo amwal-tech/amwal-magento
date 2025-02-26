@@ -1,3 +1,7 @@
+# [1.0.40] (2025-02-26)
+### Features
+- [#438](https://github.com/amwal-tech/amwal-magento/pull/438) - Add installments promotion popup
+
 # [1.0.39] (2025-02-18)
 ### Features
 - [#434](https://github.com/amwal-tech/amwal-magento/pull/434) - Add 'Amwal Order Summary' tab to Sales Order view
