@@ -9,7 +9,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\State;
 use Sentry;
 use Sentry\State\Scope;
-
+use Sentry\Sdk;
 
 class SentryExceptionReport
 {
@@ -17,12 +17,10 @@ class SentryExceptionReport
      * @var Config
      */
     private Config $config;
-
     /**
      * @var ScopeConfigInterface
      */
     private ScopeConfigInterface $scopeConfig;
-
     /**
      * @var State
      */
@@ -30,6 +28,10 @@ class SentryExceptionReport
 
     /**
      * SentryExceptionReport constructor.
+     *
+     * @param Config $config
+     * @param ScopeConfigInterface $scopeConfig
+     * @param State $state
      */
     public function __construct(
         Config $config,
@@ -40,26 +42,31 @@ class SentryExceptionReport
         $this->scopeConfig = $scopeConfig;
         $this->state = $state;
     }
+
     /**
+     * Report an exception to Sentry
+     *
      * @param \Throwable $exception
-     * @return void
      */
     public function report(\Throwable $exception): void
     {
-        $this->initializeSentrySdk();
-        Sentry\configureScope(function (Scope $scope) {
-            // Add extra context data to the exception
+        if (!$this->initializeSentrySDK()) {
+            return;
+        }
+
+        Sdk::getCurrentHub()->configureScope(function (Scope $scope) {
             $scope->setExtra('domain', $this->scopeConfig->getValue(Custom::XML_PATH_SECURE_BASE_URL) ?? 'runtime cli');
             $scope->setExtra('plugin_type', 'magento2');
             $scope->setExtra('plugin_version', Config::MODULE_VERSION);
             $scope->setExtra('php_version', phpversion());
         });
 
-        // Send exception to Sentry with the hint
         Sentry\captureException($exception);
     }
 
     /**
+     * Initialize the Sentry SDK
+     *
      * @return bool
      */
     private function initializeSentrySDK(): bool
@@ -69,7 +76,6 @@ class SentryExceptionReport
         }
 
         Sentry\init(['dsn' => 'https://1fe7bb63698145909bb12240e03fa59e@sentry.amwal.dev/5']);
-
         return true;
     }
 }
