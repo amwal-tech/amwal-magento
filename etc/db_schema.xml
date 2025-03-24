@@ -12,4 +12,31 @@
         <column xsi:type="boolean" name="is_amwal_bin_discount" nullable="false" comment="Quote has amwal bin discount"/>
         <column xsi:type="float" name="amwal_additional_discount_amount" nullable="true" precision="12" scale="4" comment="Amwal additional discount amount"/>
     </table>
+    <table name="amwal_webhook_log" resource="default" engine="innodb" comment="Amwal Webhook Log Table">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="event_type" nullable="false" length="255" comment="Event Type"/>
+        <column xsi:type="text" name="payload" nullable="false" comment="Event Payload"/>
+        <column xsi:type="varchar" name="api_key_fingerprint" nullable="true" length="255" comment="API Key Fingerprint"/>
+        <column xsi:type="boolean" name="signature_verified" nullable="false" default="0" comment="Signature Verification Status"/>
+        <column xsi:type="varchar" name="order_id" nullable="true" length="255" comment="Associated Order ID"/>
+        <column xsi:type="varchar" name="magento_order_id" nullable="true" length="255" comment="Magento Order ID"/>
+        <column xsi:type="boolean" name="success" nullable="false" default="0" comment="Processing Success"/>
+        <column xsi:type="text" name="message" nullable="true" comment="Processing Message/Error"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="AMWAL_WEBHOOK_LOG_EVENT_TYPE" indexType="btree">
+            <column name="event_type"/>
+        </index>
+        <index referenceId="AMWAL_WEBHOOK_LOG_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+        <index referenceId="AMWAL_WEBHOOK_LOG_MAGENTO_ORDER_ID" indexType="btree">
+            <column name="magento_order_id"/>
+        </index>
+        <index referenceId="AMWAL_WEBHOOK_LOG_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
 </schema>

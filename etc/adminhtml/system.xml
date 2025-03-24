@@ -276,6 +276,58 @@
                     </field>
                 </group>
 
+                <!-- Webhook Settings -->
+                <group id="webhook" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Webhook Settings</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Webhooks</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="endpoint_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Webhook Endpoint URL</label>
+                        <comment>This is your store's webhook endpoint that will receive notifications.</comment>
+                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookUrl</frontend_model>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="webhook_events" translate="label" type="multiselect" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Webhook Events</label>
+                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookEvents</frontend_model>
+                        <comment>Choose the events that will trigger the webhook.</comment>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="create_api_key" translate="label" type="button" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Create Amwal Webhook API Key</label>
+                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\CreateApiKey</frontend_model>
+                        <comment>Click to create a new Webhook API key from Amwal and configure webhook integration.</comment>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="api_key_fingerprint" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>API Key Fingerprint</label>
+                        <comment>This will be automatically populated when you create an Webhook API key.</comment>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="private_key_hint" translate="label" type="note" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Private Key Status</label>
+                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\PrivateKeyStatus</frontend_model>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="debug" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Debug Mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment>Enable detailed logging for webhook events.</comment>
+                    </field>
+                </group>
+
                 <!-- Developer Settings -->
                 <group id="amwal_payments_developer" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="70">
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
