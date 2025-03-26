@@ -10,6 +10,7 @@ use Magento\Framework\DB\Transaction;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Psr\Log\LoggerInterface;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 /**
  * Handles order.success webhook event
@@ -42,24 +43,32 @@ class OrderSuccess implements HandlerInterface
     private $logger;
 
     /**
+     * @var CartRepositoryInterface
+     */
+    private $quoteRepository;
+
+    /**
      * @param OrderRepositoryInterface $orderRepository
      * @param InvoiceService $invoiceService
      * @param Transaction $transaction
      * @param InvoiceSender $invoiceSender
      * @param LoggerInterface $logger
+     * @param CartRepositoryInterface $quoteRepository
      */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         InvoiceService $invoiceService,
         Transaction $transaction,
         InvoiceSender $invoiceSender,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CartRepositoryInterface $quoteRepository
     ) {
         $this->orderRepository = $orderRepository;
         $this->invoiceService = $invoiceService;
         $this->transaction = $transaction;
         $this->invoiceSender = $invoiceSender;
         $this->logger = $logger;
+        $this->quoteRepository = $quoteRepository;
     }
 
     /**
@@ -69,10 +78,32 @@ class OrderSuccess implements HandlerInterface
      * @param array $data
      * @return void
      * @throws LocalizedException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function execute(Order $order, array $data)
     {
         $this->logger->info('Processing order.success for order #' . $order->getIncrementId());
+
+        // Check if the quote still exists and is not cleaned up
+        try {
+            $quoteId = $order->getQuoteId();
+            if ($quoteId) {
+                $quote = $this->quoteRepository->get($quoteId);
+                if ($quote && !$quote->getIsActive()) {
+                    // Quote exists but is inactive - frontend might still be processing
+                    $this->logger->info("Quote #{$quoteId} found but inactive for order #{$order->getIncrementId()}");
+                    // Instead of using sleep, we'll check if the order is ready to be processed
+                    if (!$this->isOrderReadyForProcessing($order)) {
+                        $this->logger->info("Order #{$order->getIncrementId()} not ready for processing yet. Will be handled by subsequent webhook or cron.");
+                        return;
+                    }
+                }
+            }
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+            // Quote already removed, no need for delay
+            $this->logger->info("Quote already cleaned up for order #{$order->getIncrementId()}, proceeding with processing");
+        }
 
         // Don't process already completed/closed orders
         if ($order->getState() === Order::STATE_COMPLETE || $order->getState() === Order::STATE_CLOSED) {
@@ -160,5 +191,43 @@ class OrderSuccess implements HandlerInterface
         $this->orderRepository->save($order);
 
         $this->logger->info("Order #{$order->getIncrementId()} updated to {$orderState} status");
+    }
+
+    /**
+     * Check if order is ready for processing
+     *
+     * This method determines if an order is ready for webhook processing based on
+     * various conditions. This replaces the need for a blocking sleep() call.
+     *
+     * @param Order $order
+     * @return bool
+     */
+    private function isOrderReadyForProcessing(Order $order)
+    {
+        // Check if order has any front-end locks or is in a transitional state
+
+        // 1. Check if the order was just created (within the last few seconds)
+        // This helps avoid race conditions with the frontend order placement
+        $createdAt = strtotime($order->getCreatedAt());
+        $currentTime = time();
+        $timeDifference = $currentTime - $createdAt;
+
+        if ($timeDifference < 5) {
+            // Order was created less than 5 seconds ago
+            // Too early to process the webhook, let frontend finish first
+            return false;
+        }
+
+        // 2. Check order status to see if it's in a state that should be processed
+        // If it's already been processed by the frontend, we can proceed
+        if ($order->getState() != Order::STATE_NEW &&
+            $order->getState() != Order::STATE_PENDING_PAYMENT) {
+            // Order has already been updated by another process
+            return false;
+        }
+
+        // Add any additional checks specific to your payment flow
+
+        return true;
     }
 }
