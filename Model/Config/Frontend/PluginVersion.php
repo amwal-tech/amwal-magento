@@ -49,21 +49,8 @@ class PluginVersion extends Field
     {
         return $this->generateHtml(
             $element,
-            $this->config->getVersion(),
-            $this->config->getGitCommit(),
-            $this->generateCommitLink($this->config->getGitCommit())
+            $this->config->getVersion()
         );
-    }
-
-    /**
-     * Generate the Git commit link
-     *
-     * @param string|null $commitHash
-     * @return string
-     */
-    private function generateCommitLink(?string $commitHash): string
-    {
-        return $commitHash ? 'https://github.com/amwal-tech/amwal-magento/commit/' . $commitHash : '';
     }
 
     /**
@@ -71,17 +58,13 @@ class PluginVersion extends Field
      *
      * @param AbstractElement $element
      * @param string $version
-     * @param string|null $commitHash
-     * @param string $commitLink
      * @return string
      */
-    private function generateHtml(AbstractElement $element, string $version, ?string $commitHash, string $commitLink): string
+    private function generateHtml(AbstractElement $element, string $version): string
     {
         return '
         <div id="' . $element->getHtmlId() . '" style="padding: 10px 0 0 10px; font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-            <span style="font-weight: bold;">Version:</span> ' . $this->escaper->escapeHtml($version) . '<br/>
-            <span style="font-weight: bold;">Git Commit:</span>
-            <a href="' . $this->escaper->escapeHtml($commitLink) . '" target="_blank" style="color: #1e88e5; text-decoration: none;">' . $this->escaper->escapeHtml($commitHash) . '</a>
+            <span style="font-weight: bold;">' . $this->escaper->escapeHtml($version) . '</span>
         </div>';
     }
 }

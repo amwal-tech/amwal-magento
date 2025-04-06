@@ -1,0 +1,100 @@
+<?php
+/**
+ * Amwal Payments - API Key creation button template
+ *
+ * @var $block \Amwal\Payments\Block\Adminhtml\System\Config\CreateApiKey
+ */
+?>
+<button type="button" class="action-create-api-key" id="<?= $block->getHtmlId() ?>_button">
+    <span><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
+</button>
+
+<div id="api-key-creation-result" style="margin-top: 10px; display: none;"></div>
+
+<script type="text/javascript">
+    require(['jquery', 'mage/translate'], function($, $t) {
+        $(document).ready(function() {
+            // API key creation button click handler
+            $('#<?= $block->getHtmlId() ?>_button').click(function() {
+                // Get webhook URL
+                var webhookUrl = $('#payment_other_amwal_payments_webhook_endpoint_url').val();
+                // get webhook events
+                var webhookEvents =  $('input[name="groups[amwal][fields][webhook_events][value][]"]:checked').map(function() {
+                    return this.value;
+                }).get();
+
+                // Get form key
+                var formKey = $('input[name="form_key"]').val();
+
+                // Show loading message
+                $('#api-key-creation-result')
+                    .html('<div class="message message-notice">' + $t('Creating Webhook API key, please wait...') + '</div>')
+                    .show();
+
+                // Disable the button during the API call
+                $(this).attr('disabled', true);
+
+                // Send AJAX request to create API key
+                $.ajax({
+                    url: '<?= $block->getAjaxUrl() ?>',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        webhook_url: webhookUrl,
+                        webhook_events: webhookEvents,
+                        form_key: formKey
+                    },
+                    success: function(response) {
+                        $('#api-key-creation-result').empty();
+
+                        // Handle successful API key creation
+                        if (response.success) {
+                            // Show success message
+                            $('#api-key-creation-result').html(
+                                '<div class="message message-success">' +
+                                $t('Webhook API key created successfully! The configuration has been updated.') +
+                                '</div>'
+                            );
+
+                            // Update the fingerprint and public key fields
+                            $('#payment_other_amwal_payments_webhook_api_key_fingerprint').val(response.key_fingerprint);
+
+                            // Show private key notification
+                            if (response.private_key) {
+                                var privateKeyMsg = '<div class="message message-warning">' +
+                                    '<p><strong>' + $t('IMPORTANT: Store your private key securely') + '</strong></p>' +
+                                    '<p>' + $t('This private key will only be shown once. Please copy and store it securely:') + '</p>' +
+                                    '<textarea rows="8" style="width: 100%; font-family: monospace;" readonly onClick="this.select();">' +
+                                    response.private_key +
+                                    '</textarea>' +
+                                    '<p><em>' + $t('This key has been securely stored in your configuration, but keeping a backup is recommended.') + '</em></p>' +
+                                    '</div>';
+
+                                $('#api-key-creation-result').append(privateKeyMsg);
+                            }
+                        } else {
+                            // Show error message
+                            $('#api-key-creation-result').html(
+                                '<div class="message message-error">' +
+                                $t('Failed to create Webhook API key: ') + response.message +
+                                '</div>'
+                            );
+                        }
+                    },
+                    error: function() {
+                        // Show general error message
+                        $('#api-key-creation-result').html(
+                            '<div class="message message-error">' +
+                            $t('An error occurred while trying to create the Webhook API key. Please try again or check system logs.') +
+                            '</div>'
+                        );
+                    },
+                    complete: function() {
+                        // Re-enable button
+                        $('#<?= $block->getHtmlId() ?>_button').attr('disabled', false);
+                    }
+                });
+            });
+        });
+    });
+</script>

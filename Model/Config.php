@@ -65,6 +65,11 @@ class Config
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE = 'payment/amwal_payments/bank_installments_active';
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_REDIRECT = 'payment/amwal_payments/regular_checkout_redirect';
     public const XML_CONFIG_PATH_REDIRECT_ON_LOAD_CLICK = 'payment/amwal_payments/redirect_on_load_click';
+    public const XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT = 'payment/amwal_payments/webhook/api_key_fingerprint';
+    public const XML_CONFIG_PATH_WEBHOOK_PRIVATE_KEY = 'payment/amwal_payments/webhook/private_key';
+    public const XML_CONFIG_PATH_WEBHOOK_EVENTS = 'payment/amwal_payments/webhook/events';
+    public const XML_CONFIG_PATH_WEBHOOK_ENABLED = 'payment/amwal_payments/webhook/enabled';
+    public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
 
   /**
      * @var string
@@ -547,21 +552,6 @@ class Config
     }
 
     /**
-     * Get the current Git commit hash.
-     *
-     * @return string The current Git commit hash.
-     */
-    public function getGitCommit(): string
-    {
-        $pluginPath = __DIR__;
-        $result = $this->shell->execute('git -C ' . $pluginPath . ' rev-parse HEAD', []);
-        if ($result->getExitCode() === 0) {
-            return trim($result->getOutput());
-        }
-        return '';
-    }
-
-    /**
      * @return array
      */
     public function getCardsBinCodes(): array
@@ -608,5 +598,45 @@ class Config
     public function isRedirectOnLoadClick(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_REDIRECT_ON_LOAD_CLICK, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getApiKeyFingerprint(): ?string
+    {
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getWebhookPrivateKey(): ?string
+    {
+        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_PRIVATE_KEY, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getWebhookEvents(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_EVENTS, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isWebhookEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_WEBHOOK_ENABLED, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isWebhookDebugMode(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_WEBHOOK_DEBUG, ScopeInterface::SCOPE_STORE);
     }
 }
