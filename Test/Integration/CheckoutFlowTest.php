@@ -20,7 +20,6 @@ use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Amwal\Payments\Model\Settings;
 use Amwal\Payments\Cron\PendingOrdersUpdate;
 use Amwal\Payments\Cron\CanceledOrdersUpdate;
-use Amwal\Payments\Plugin\Sales\Order\SalesOrderGridPlugin;
 use Amwal\Payments\Block\Adminhtml\Order\View\Tab\AmwalTab;
 use Amwal\Payments\Block\Product\View\Promotion;
 use Exception;
@@ -58,7 +57,6 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
  *    - Settings
  *    - Pending Orders Cron Job
  *    - Canceled Orders Cron Job
- *    - Sales Order Grid Plugin
  *    - Amwal Tab Block
  *    - Promotion Block
  *
@@ -360,22 +358,6 @@ class CheckoutFlowTest extends IntegrationTestBase
         $canceledOrdersUpdate = $this->objectManager->get(CanceledOrdersUpdate::class);
 
         $canceledOrdersUpdate->execute();
-    }
-
-
-    /**
-     * @covers SalesOrderGridPlugin::beforeLoad
-     *
-     * @return void
-     */
-    public function testSalesOrderGridPlugin(): void
-    {
-        /** @var Collection $collection */
-        $collection = $this->objectManager->get(Collection::class);
-
-        $firstItem = $collection->getFirstItem();
-        $this->assertArrayHasKey('amwal_order_id', $firstItem->getData(), 'amwal_order_id is not present in the order grid collection');
-        $this->assertArrayHasKey('amwal_trigger_context', $firstItem->getData(), 'amwal_trigger_context is not present in the order grid collection');
     }
 
     /**

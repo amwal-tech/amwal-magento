@@ -43,6 +43,9 @@
          */
         const handlePriceUpdate = (elem) => {
             const priceAttr = elem.querySelector('[data-price-type="finalPrice"]')?.getAttribute('data-price-amount');
+            if (!priceAttr) {
+                document.getElementById('amwalPromo').style.display = 'none';
+            }
             const price = parseFloat(priceAttr);
             const currency = document.querySelector('meta[itemprop="priceCurrency"]')?.getAttribute('content');
             if (!isNaN(price) && currency) {
