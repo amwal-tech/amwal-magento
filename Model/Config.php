@@ -552,21 +552,6 @@ class Config
     }
 
     /**
-     * Get the current Git commit hash.
-     *
-     * @return string The current Git commit hash.
-     */
-    public function getGitCommit(): string
-    {
-        $pluginPath = __DIR__;
-        $result = $this->shell->execute('git -C ' . $pluginPath . ' rev-parse HEAD', []);
-        if ($result->getExitCode() === 0) {
-            return trim($result->getOutput());
-        }
-        return '';
-    }
-
-    /**
      * @return array
      */
     public function getCardsBinCodes(): array

@@ -87,11 +87,15 @@ class Settings
             'magagento_version' => $this->config->getMagentoVersion(),
             'php_version' => $this->config->getPhpVersion(),
             'version' => $this->config->getVersion(),
-            'git_commit' => $this->config->getGitCommit(),
             'bin_discount_rule' => !$this->config->getDiscountRule(),
             'module_type' => $this->config->getModuleType(),
             'apple_pay_active' => $this->config->isApplePayActive(),
-            'bank_installments_active' => $this->config->isBankInstallmentsActive()
+            'bank_installments_active' => $this->config->isBankInstallmentsActive(),
+            'webhook_enabled' => $this->config->isWebhookEnabled(),
+            'webhook_events' => $this->config->getWebhookEvents(),
+            'webhook_private_key' => $this->config->getWebhookPrivateKey() ? 'stored' : 'empty',
+            'webhook_fingerprint' => $this->config->getApiKeyFingerprint() ? 'stored' : 'empty',
+            'webhook_debug' => $this->config->isWebhookDebugMode(),
         ];
         // Fetch pending payment orders count and amwal order ids
         try {

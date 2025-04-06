@@ -59,7 +59,7 @@ class PrivateKeyStatus extends Field
 
         // Check if encrypted private key exists
         $privateKeyExists = $this->_scopeConfig->getValue(
-            'payment/amwal/webhook/private_key',
+            'payment/amwal_payments/webhook/private_key',
             $scope,
             $scopeId
         );

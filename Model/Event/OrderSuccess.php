@@ -90,10 +90,9 @@ class OrderSuccess implements HandlerInterface
             $quoteId = $order->getQuoteId();
             if ($quoteId) {
                 $quote = $this->quoteRepository->get($quoteId);
-                if ($quote && !$quote->getIsActive()) {
-                    // Quote exists but is inactive - frontend might still be processing
+                $this->logger->info("Quote #{$quoteId} found for order #{$order->getIncrementId()} with status: {$quote->getIsActive()}");
+                if ($quote && $quote->getIsActive()) {
                     $this->logger->info("Quote #{$quoteId} found but inactive for order #{$order->getIncrementId()}");
-                    // Instead of using sleep, we'll check if the order is ready to be processed
                     if (!$this->isOrderReadyForProcessing($order)) {
                         $this->logger->info("Order #{$order->getIncrementId()} not ready for processing yet. Will be handled by subsequent webhook or cron.");
                         return;
@@ -212,8 +211,9 @@ class OrderSuccess implements HandlerInterface
         $currentTime = time();
         $timeDifference = $currentTime - $createdAt;
 
-        if ($timeDifference < 5) {
-            // Order was created less than 5 seconds ago
+        if ($timeDifference < 10) {
+            $this->logger->info("Order #{$order->getIncrementId()} created less than 10 seconds ago. Waiting for frontend to finish processing.");
+            // Order was created less than 10 seconds ago
             // Too early to process the webhook, let frontend finish first
             return false;
         }
@@ -222,12 +222,10 @@ class OrderSuccess implements HandlerInterface
         // If it's already been processed by the frontend, we can proceed
         if ($order->getState() != Order::STATE_NEW &&
             $order->getState() != Order::STATE_PENDING_PAYMENT) {
+            $this->logger->info("Order #{$order->getIncrementId()} is in state {$order->getState()}. Proceeding with processing.");
             // Order has already been updated by another process
             return false;
         }
-
-        // Add any additional checks specific to your payment flow
-
         return true;
     }
 }
