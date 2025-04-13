@@ -7,6 +7,7 @@
         <column xsi:type="varchar" name="amwal_trigger_context" nullable="true" length="255" comment="Trigger context of the order in Amwal"/>
         <column xsi:type="boolean" name="is_amwal_order_canceled" nullable="false" comment="Order is canceled by Amwal"/>
         <column xsi:type="text" name="amwal_utm" nullable="true" comment="UTM Parameters as JSON"/>
+        <column xsi:type="boolean" name="amwal_webhook_processed" nullable="false" default="0" comment="Webhook processed"/>
     </table>
     <table name="quote">
         <column xsi:type="boolean" name="is_amwal_bin_discount" nullable="false" comment="Quote has amwal bin discount"/>
