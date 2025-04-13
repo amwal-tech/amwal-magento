@@ -3,6 +3,7 @@
 
 // Retrieve the JSON data from the block.
 $amwalOrderDataJson = $block->getAmwalOrderData();
+$orderData = $block->getOrderData();
 $amwalOrderData = [];
 
 // Decode the JSON data into an associative array and check for errors.
@@ -95,6 +96,10 @@ $showUpdateButton = (($amwalOrderData['status'] ?? '') === 'success' && $storeSt
                         </button>
                     <?php endif; ?>
                 </td>
+            </tr>
+            <tr>
+                <th><?= $block->escapeHtml(__('Webhook Processed')) ?></th>
+                <td><?= $getFormattedValue($orderData['amwal_webhook_processed'] ? __('Yes') : __('No')) ?></td>
             </tr>
             <tr>
                 <th><?= $block->escapeHtml(__('Payment Method')) ?></th>

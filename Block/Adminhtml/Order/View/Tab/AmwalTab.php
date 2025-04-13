@@ -160,6 +160,21 @@ class AmwalTab extends Template implements TabInterface
     }
 
     /**
+     * Retrieve the order data from the current order.
+     *
+     * @return array|null Order data if available, or null if not available.
+     */
+    public function getOrderData(): ?array
+    {
+        $order = $this->getCurrentOrder();
+        if (!$order) {
+            $this->logger->warning('No current order found in registry.');
+            return null;
+        }
+        return $order->getData();
+    }
+
+    /**
      * Retrieve the Amwal order URL.
      *
      * @return string|null URL if available, or null if not available.
