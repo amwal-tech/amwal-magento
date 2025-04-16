@@ -1,18 +1,21 @@
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <!-- Mobile responsive styles added -->
     <style>
+        /* Original styles */
         .checkout-container #opc-sidebar #co-place-order-area .osc-place-order-wrapper button.action.primary.checkout, .amwal-place-order {
             display: none!important;
         }
         /* Restructure the title area */
-        .payment-method-title .label {
+        .payment-method-title-amwal .label {
             display: flex;
             align-items: center;
             justify-content: space-between;
             width: 100%;
+            padding-bottom: 0 !important;
         }
         /* Left side with title and Amwal logo */
         .title-with-logo {
-            display: flex;
+            display: inline-flex;
             align-items: center;
         }
         /* Amwal logo styling */
@@ -25,8 +28,9 @@
         }
         /* Bank logos container */
         .banks-logos {
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            margin-left: auto;
         }
         .banks-logos img {
             height: 24px;
@@ -42,8 +46,70 @@
         .banks-logos img.bank-stc {
             height: 28px;
         }
+
+        /* Mobile responsive styles */
+        @media screen and (max-width: 767px) {
+            /* Restructure the title area for mobile */
+            .payment-method-title-amwal .label {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 0;
+            }
+
+            /* Title with logo styling */
+            .title-with-logo {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+
+            /* Bank logos container */
+            .banks-logos {
+                width: 100%;
+                justify-content: flex-start;
+                margin-left: 0;
+                flex-wrap: wrap;
+            }
+
+            .banks-logos img {
+                margin-left: 0;
+                margin-right: 10px;
+                margin-bottom: 5px;
+            }
+
+            /* Adjust the payment method radio button position */
+            .payment-method-title-amwal .radio {
+                align-self: flex-start;
+                margin-top: 12px;
+            }
+
+            /* RTL support for Arabic */
+            [dir="rtl"] .banks-logos img,
+            html[lang="ar"] .banks-logos img {
+                margin-right: 10px;
+                margin-left: 0;
+            }
+        }
+
+        /* Extra small devices */
+        @media screen and (max-width: 480px) {
+            /* Even more compact layout for very small screens */
+            .banks-logos img {
+                height: 20px;
+            }
+
+            .banks-logos img.bank-riyad,
+            .banks-logos img.bank-snb,
+            .banks-logos img.bank-stc {
+                height: 24px;
+            }
+
+            /* Make the amwal logo smaller */
+            .amwal-logo {
+                height: 16px !important;
+            }
+        }
     </style>
-    <div class="payment-method-title field choice">
+    <div class="payment-method-title payment-method-title-amwal field choice">
         <input type="radio"
                name="payment[method]"
                class="radio"
@@ -54,7 +120,6 @@
                 <img class="amwal-logo" alt="amwal" data-bind="attr: { src: require.toUrl('Amwal_Payments/images/amwal.png') }"/>
             </div>
             <div class="banks-logos">
-                <img class="bank-stc" alt="stc" data-bind="attr: { src: require.toUrl('Amwal_Payments/images/bank-3.png') }"/>
                 <img class="bank-snb" alt="snb" data-bind="attr: { src: require.toUrl('Amwal_Payments/images/bank-2.png') }"/>
                 <img class="bank-riyad" alt="riyad bank" data-bind="attr: { src: require.toUrl('Amwal_Payments/images/bank-1.png') }"/>
             </div>
