@@ -1,11 +1,14 @@
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
-    <!-- Mobile responsive styles added -->
     <style>
-        /* Original styles */
         .checkout-container #opc-sidebar #co-place-order-area .osc-place-order-wrapper button.action.primary.checkout, .amwal-place-order {
             display: none!important;
         }
-        /* Restructure the title area */
+        .amwal-bank-installments-place-order-button {
+            width: 400px;
+        }
+        .installments.payment-progress {
+            padding: unset;
+        }
         .payment-method-title-amwal .label {
             display: flex;
             align-items: center;
@@ -13,12 +16,10 @@
             width: 100%;
             padding-bottom: 0 !important;
         }
-        /* Left side with title and Amwal logo */
         .title-with-logo {
             display: inline-flex;
             align-items: center;
         }
-        /* Amwal logo styling */
         .amwal-logo {
             height: 20px !important;
             background: #000;
@@ -26,7 +27,6 @@
             padding: 4px 10px;
             margin-left: 10px;
         }
-        /* Bank logos container */
         .banks-logos {
             display: inline-flex;
             align-items: center;
@@ -46,43 +46,34 @@
         .banks-logos img.bank-stc {
             height: 28px;
         }
-
-        /* Mobile responsive styles */
         @media screen and (max-width: 767px) {
-            /* Restructure the title area for mobile */
+            .amwal-bank-installments-place-order-button {
+                width: 359px;
+            }
             .payment-method-title-amwal .label {
                 flex-direction: column;
                 align-items: flex-start;
                 padding: 10px 0;
             }
-
-            /* Title with logo styling */
             .title-with-logo {
                 margin-bottom: 10px;
                 width: 100%;
             }
-
-            /* Bank logos container */
             .banks-logos {
                 width: 100%;
                 justify-content: flex-start;
                 margin-left: 0;
                 flex-wrap: wrap;
             }
-
             .banks-logos img {
                 margin-left: 0;
                 margin-right: 10px;
                 margin-bottom: 5px;
             }
-
-            /* Adjust the payment method radio button position */
             .payment-method-title-amwal .radio {
                 align-self: flex-start;
                 margin-top: 12px;
             }
-
-            /* RTL support for Arabic */
             [dir="rtl"] .banks-logos img,
             html[lang="ar"] .banks-logos img {
                 margin-right: 10px;
@@ -90,24 +81,23 @@
             }
         }
 
-        /* Extra small devices */
         @media screen and (max-width: 480px) {
-            /* Even more compact layout for very small screens */
+            .amwal-bank-installments-place-order-button {
+                width: 280px;
+            }
             .banks-logos img {
                 height: 20px;
             }
-
             .banks-logos img.bank-riyad,
             .banks-logos img.bank-snb,
             .banks-logos img.bank-stc {
                 height: 24px;
             }
-
-            /* Make the amwal logo smaller */
             .amwal-logo {
                 height: 16px !important;
             }
         }
+
     </style>
     <div class="payment-method-title payment-method-title-amwal field choice">
         <input type="radio"
@@ -153,7 +143,7 @@
                         ">
                     <span data-bind="i18n: 'Place Order'"></span>
                 </button>
-                <div id="amwal-bank-installments-place-order-button" data-trigger-context="regular-checkout" data-locale="ar" data-scope-code="" data-payment-method="amwal_payments_bank_installments">
+                <div id="amwal-bank-installments-place-order-button" class="amwal-bank-installments-place-order-button" data-trigger-context="regular-checkout" data-locale="ar" data-scope-code="" data-payment-method="amwal_payments_bank_installments">
                 </div>
             </div>
         </div>
