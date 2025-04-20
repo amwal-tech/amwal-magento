@@ -78,6 +78,8 @@ class OrderFailed implements HandlerInterface
 
             // Add failure details to payment
             $payment->setAdditionalInformation('amwal_failure_reason', $reason);
+            // Set custom field for webhook processing
+            $order->setData('amwal_webhook_processed', true);
 
             // Save payment changes
             $this->orderRepository->save($order);
