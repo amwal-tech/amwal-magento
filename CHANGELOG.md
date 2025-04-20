@@ -1,14 +1,15 @@
 # [1.0.41] (2025-04-20)
 ### Features
 - [#443](https://github.com/amwal-tech/amwal-magento/pull/443) - Add Order Status Webhooks for Success and Failure Events
-- [#449](https://github.com/amwal-tech/amwal-magento/pull/449) - Add api for health-check
 - [#444](https://github.com/amwal-tech/amwal-magento/pull/444) - Add `amwal_webhook_processed` flag
 - [#445](https://github.com/amwal-tech/amwal-magento/pull/445) - Add installments-timeline
 - [#447](https://github.com/amwal-tech/amwal-magento/pull/447) - Promotion component text and style refactor
+- [#449](https://github.com/amwal-tech/amwal-magento/pull/449) - Add api for health-check
 
 ### Bug Fixes
 -  [#442](https://github.com/amwal-tech/amwal-magento/pull/442) - Replace deprecated Sentry\configureScope with Sdk::getCurrentHub
 -  [#441](https://github.com/amwal-tech/amwal-magento/pull/441) - Disable AmwalSalesOrderGrid plugin
+-  [#451](https://github.com/amwal-tech/amwal-magento/pull/451) - Set default `$paymentMethod` if empty
 
 # [1.0.40] (2025-02-26)
 ### Features
