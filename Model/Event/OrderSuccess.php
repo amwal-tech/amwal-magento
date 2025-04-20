@@ -91,6 +91,10 @@ class OrderSuccess implements HandlerInterface
             return;
         }
 
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        sleep(10);
+        $this->logger->info("Delay of 10 seconds added for order #{$order->getIncrementId()}");
+
         // Check if already processed to prevent duplicate processing
         if ($order->getPayment()->getAdditionalInformation('amwal_webhook_processed')) {
             $this->logger->info("Order #{$order->getIncrementId()} already processed by webhook. Skipping.");
@@ -183,16 +187,6 @@ class OrderSuccess implements HandlerInterface
 
         // Save the order
         $this->orderRepository->save($order);
-
-        // Clean up the quote
-        $quoteId = $order->getQuoteId();
-        if ($quoteId) {
-            $quote = $this->quoteRepository->get($quoteId);
-            $quote->setIsActive(false);
-            $this->quoteRepository->save($quote);
-            $this->logger->info("Quote #{$quoteId} has been deactivated for order #{$order->getIncrementId()}");
-        }
-
         $this->logger->info("Order #{$order->getIncrementId()} updated to {$orderState} status");
     }
 }
