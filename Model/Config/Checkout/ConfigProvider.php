@@ -12,10 +12,12 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Framework\UrlInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class ConfigProvider implements ConfigProviderInterface
 {
     public const CODE = 'amwal_payments';
+    public const AMWAL_CURRENCY = 'SAR';
 
     /**
      * @var Config
@@ -58,6 +60,11 @@ class ConfigProvider implements ConfigProviderInterface
     private UrlInterface $urlInterface;
 
     /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
+    /**
      * @param Config $config
      * @param RefIdManagementInterface $refIdManagement
      * @param RefIdDataInterfaceFactory $refIdDataFactory
@@ -66,6 +73,7 @@ class ConfigProvider implements ConfigProviderInterface
      * @param CityHelper $cityHelper
      * @param DirectoryHelper $directoryHelper
      * @param UrlInterface $urlInterface
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Config $config,
@@ -75,7 +83,8 @@ class ConfigProvider implements ConfigProviderInterface
         CheckoutSession $checkoutSession,
         CityHelper $cityHelper,
         DirectoryHelper $directoryHelper,
-        UrlInterface $urlInterface
+        UrlInterface $urlInterface,
+        StoreManagerInterface $storeManager
     ) {
         $this->config = $config;
         $this->refIdManagement = $refIdManagement;
@@ -85,6 +94,7 @@ class ConfigProvider implements ConfigProviderInterface
         $this->cityHelper = $cityHelper;
         $this->directoryHelper = $directoryHelper;
         $this->urlInterface = $urlInterface;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -104,7 +114,7 @@ class ConfigProvider implements ConfigProviderInterface
 
         $config = [
             'isActive' => $this->config->isActive(),
-            'isRegularCheckoutActive' => $this->config->isRegularCheckoutActive(),
+            'isRegularCheckoutActive' => $this->isRegularCheckoutActive(),
             'isExpressCheckoutActive' => $this->config->isExpressCheckoutActive(),
             'merchantId' => $this->config->getMerchantId(),
             'merchantMode' => $this->config->getMerchantMode(),
@@ -132,4 +142,26 @@ class ConfigProvider implements ConfigProviderInterface
             ]
         ];
     }
+
+    /**
+     * Check if regular checkout is active
+     *
+     * @return bool
+     */
+    private function isRegularCheckoutActive(): bool
+    {
+        // Check if regular checkout is enabled in configuration
+        $isRegularCheckoutActive = $this->config->isRegularCheckoutActive();
+
+        // Determine which currency code to check based on configuration
+        $currencyToCheck = $this->config->shouldUseBaseCurrency()
+            ? $this->storeManager->getStore()->getBaseCurrencyCode()
+            : $this->storeManager->getStore()->getCurrentCurrencyCode();
+
+        // Check if the currency is SAR
+        $isStoreCurrencySar = ($currencyToCheck === self::AMWAL_CURRENCY);
+
+        return $isRegularCheckoutActive && $isStoreCurrencySar;
+    }
+
 }
