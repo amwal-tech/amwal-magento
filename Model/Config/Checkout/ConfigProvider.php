@@ -130,8 +130,8 @@ class ConfigProvider implements ConfigProviderInterface
             'allowedAddressCities' => $this->cityHelper->getCityCodes(),
             'pluginVersion' => $this->config->getVersion(),
             'useBaseCurrency' => $this->config->shouldUseBaseCurrency(),
-            'isApplePayActive' => $this->config->isApplePayActive(),
-            'isBankInstallmentsActive' => $this->config->isBankInstallmentsActive(),
+            'isApplePayActive' => $this->isApplePayActive(),
+            'isBankInstallmentsActive' => $this->isBankInstallmentsActive(),
             'defaultRedirectUrl' => $this->urlInterface->getUrl('amwal/redirect'),
             'isRegularCheckoutRedirect' => $this->config->isRegularCheckoutRedirect(),
         ];
@@ -144,24 +144,46 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Check if the store currency is supported by Amwal (SAR)
+     *
+     * @return bool
+     */
+    private function isStoreCurrencySupported(): bool
+    {
+        $currencyToCheck = $this->config->shouldUseBaseCurrency()
+            ? $this->storeManager->getStore()->getBaseCurrencyCode()
+            : $this->storeManager->getStore()->getCurrentCurrencyCode();
+
+        return $currencyToCheck === self::AMWAL_CURRENCY;
+    }
+
+    /**
      * Check if regular checkout is active
      *
      * @return bool
      */
     private function isRegularCheckoutActive(): bool
     {
-        // Check if regular checkout is enabled in configuration
-        $isRegularCheckoutActive = $this->config->isRegularCheckoutActive();
-
-        // Determine which currency code to check based on configuration
-        $currencyToCheck = $this->config->shouldUseBaseCurrency()
-            ? $this->storeManager->getStore()->getBaseCurrencyCode()
-            : $this->storeManager->getStore()->getCurrentCurrencyCode();
-
-        // Check if the currency is SAR
-        $isStoreCurrencySar = ($currencyToCheck === self::AMWAL_CURRENCY);
-
-        return $isRegularCheckoutActive && $isStoreCurrencySar;
+        return $this->config->isRegularCheckoutActive() && $this->isStoreCurrencySupported();
     }
 
+    /**
+     * Check if bank installments are active
+     *
+     * @return bool
+     */
+    private function isBankInstallmentsActive(): bool
+    {
+        return $this->config->isBankInstallmentsActive() && $this->isStoreCurrencySupported();
+    }
+
+    /**
+     * Check if Apple Pay is active
+     *
+     * @return bool
+     */
+    private function isApplePayActive(): bool
+    {
+        return $this->config->isApplePayActive() && $this->isStoreCurrencySupported();
+    }
 }
