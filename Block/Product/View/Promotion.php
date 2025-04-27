@@ -16,6 +16,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\Config\Source\ModuleType;
 
 /**
  * @SuppressWarnings(PHPMD)
@@ -86,7 +87,12 @@ class Promotion extends View
      */
     public function isPromotionsActive(): bool
     {
-        return $this->config->isBankInstallmentsActive();
+        if ($this->config->getModuleType() === ModuleType::MODULE_TYPE_LITE) {
+            return false;
+        }
+        return $this->config->isActive()
+            && $this->config->isExpressCheckoutActive()
+            && $this->config->isBankInstallmentsActive();
     }
 
     /**
