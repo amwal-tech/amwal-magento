@@ -1,4 +1,14 @@
-<!-- Amwal Promo Script -->
+<?php
+use Magento\Catalog\Block\Product\ProductList\Item\Block;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+/**
+ * @var Escaper $escaper
+ * @var Template|Block $block
+ */
+?>
+
+<?php if ($block->isPromotionsActive()): ?>
 <script>
     (function() {
         const amwalConfig = {
@@ -13,7 +23,6 @@
          * @param {string} currency - The product's currency.
          */
         const updateAmwalPromotions = (price, currency) => {
-            console.log(price, currency);
             const installmentPrice = price / amwalConfig.installmentsCount;
 
             // Update text for installment count and price
@@ -119,7 +128,6 @@
         }
     })();
 </script>
-
 <style>
     /* Amwal Promo Button */
     #amwalPromo {
@@ -306,7 +314,6 @@
         }
     }
 </style>
-
 <!-- Amwal Promo Button -->
 <div id="amwalPromo">
     <div class="amwal-promo-content">
@@ -322,7 +329,6 @@
 
     </div>
 </div>
-
 <!-- Modal Markup -->
 <div id="amwal-dialog" style="display: none">
     <div class="amwal_header">
@@ -347,4 +353,4 @@
         </div>
     </div>
 </div>
-
+<?php endif; ?>
