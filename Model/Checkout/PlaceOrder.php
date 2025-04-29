@@ -166,7 +166,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $quote = $this->quoteRepository->get($quoteId);
         $this->virtualItemSupport($quote);
         $quote->setData(self::IS_AMWAL_API_CALL, true);
-        $quote->setPaymentMethod($paymentMethod ?? ConfigProvider::CODE);
+        $quote->getPayment()->importData(['method' => $paymentMethod ?? ConfigProvider::CODE]);
 
         $customerAddress = null;
         if ($hasAmwalAddress) {
