@@ -62,7 +62,7 @@ class WebhookUrl extends Field
         $html .= '<input type="text" id="' . $element->getHtmlId() . '" ';
         $html .= 'name="' . $element->getName() . '" ';
         $html .= 'value="' . $webhookUrl . '" ';
-        $html .= 'class="input-text admin__control-text" readonly="readonly" ';
+        $html .= 'class="input-text admin__control-text"';
         $html .= 'style="width: calc(100% - 50px);" />';
         $html .= '</div>';
 
