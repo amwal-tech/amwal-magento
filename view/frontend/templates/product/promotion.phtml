@@ -208,7 +208,7 @@ use Magento\Framework\View\Element\Template;
         display: flex;
         flex-direction: column;
         box-sizing: border-box;
-        background: #fff;
+        background: linear-gradient(to bottom, #e8f4ef, #f5faf7);
         border-radius: 17px;
         color: #292929;
         font-family: "Inter", sans-serif;
@@ -225,7 +225,7 @@ use Magento\Framework\View\Element\Template;
     .amwal-popup .modal-inner-wrap #amwal-dialog {
         display: flex;
         flex-direction: column;
-        width: 615px !important;
+        width: 800px !important;
         height: 100%;
     }
     .amwal-popup .modal-inner-wrap #amwal-dialog .amwal_header {
@@ -301,8 +301,7 @@ use Magento\Framework\View\Element\Template;
     }
     #amwal-iframe{
         width: 100%;
-        height: 455px;
-        border: none;
+        height: 900px;
     }
     @media only screen and (max-width: 768px) {
         .amwal-popup .modal-inner-wrap #amwal-dialog {
@@ -310,11 +309,10 @@ use Magento\Framework\View\Element\Template;
             height: 100%;
         }
         #amwal-iframe{
-            height: 680px;
+            height: 900px;
         }
     }
 </style>
-<!-- Amwal Promo Button -->
 <div id="amwalPromo">
     <div class="amwal-promo-content">
         <svg width="72" height="29" viewBox="0 0 72 29" fill="none" xmlns="http://www.w3.org/2000/svg" class="amwal-logo">
@@ -329,7 +327,6 @@ use Magento\Framework\View\Element\Template;
 
     </div>
 </div>
-<!-- Modal Markup -->
 <div id="amwal-dialog" style="display: none">
     <div class="amwal_header">
         <svg width="72" height="29" viewBox="0 0 72 29" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -346,11 +343,9 @@ use Magento\Framework\View\Element\Template;
         <iframe
             src="<?php echo htmlspecialchars($block->getPromotionUrl(), ENT_QUOTES, 'UTF-8'); ?>"
             id="amwal-iframe"
-            frameborder="0">
+            frameborder="0"
+        >
         </iframe>
-        <div class="styles_continue" style="margin-top: 6px;">
-            <div class="styles_continue_text"><?= __('Continue shopping') ?></div>
-        </div>
     </div>
 </div>
 <?php endif; ?>
