@@ -70,6 +70,7 @@ class Config
     public const XML_CONFIG_PATH_WEBHOOK_EVENTS = 'payment/amwal_payments/webhook/events';
     public const XML_CONFIG_PATH_WEBHOOK_ENABLED = 'payment/amwal_payments/webhook/enabled';
     public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
+    private const XML_PATH_PRODUCT_LIST_WIDGET_ENABLED = 'payment/amwal_payments/product_list_widget_enabled';
 
   /**
      * @var string
@@ -638,5 +639,15 @@ class Config
     public function isWebhookDebugMode(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_WEBHOOK_DEBUG, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * Check if Product List Widget is enabled
+     *
+     * @return bool
+     */
+    public function isProductListWidgetEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag( self::XML_PATH_PRODUCT_LIST_WIDGET_ENABLED, ScopeInterface::SCOPE_STORE );
     }
 }

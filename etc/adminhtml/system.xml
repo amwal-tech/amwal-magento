@@ -66,7 +66,6 @@
                         <config_path>payment/amwal_payments/style_css</config_path>
                         <tooltip>Custom style CSS to be applied to the Amwal checkout button</tooltip>
                     </field>
-
                     <field id="show_discount_ribbon" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Show Discount Ribbon</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -108,6 +107,12 @@
                         <depends>
                             <field id="regular_checkout_redirect">1</field>
                         </depends>
+                    </field>
+                    <field id="product_list_widget_enabled" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Enable Product List Widget</label>
+                        <tooltip>Enable or disable Amwal checkout buttons in product list widgets</tooltip>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/product_list_widget_enabled</config_path>
                     </field>
                 </group>
 
