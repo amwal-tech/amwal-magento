@@ -17,7 +17,7 @@
             // API key creation button click handler
             $('#<?= $block->getHtmlId() ?>_button').click(function() {
                 // Get webhook URL
-                var webhookUrl = $('#payment_other_amwal_payments_webhook_endpoint_url').val();
+                var webhookUrl = document.querySelector('[name="groups[amwal_payments][groups][webhook][fields][endpoint_url][value]"]').value
                 // get webhook events
                 var webhookEvents =  $('input[name="groups[amwal][fields][webhook_events][value][]"]:checked').map(function() {
                     return this.value;
