@@ -1,6 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { AmwalMagentoInstallmentsTimeline, AmwalMagentoReactButton } from 'amwal-magento-react-button'
+import { AmwalMagentoReactButton } from 'amwal-magento-react-button'
 
 export const renderReactElement = (container: Element): void => {
   const triggerContext = container.getAttribute('data-trigger-context')
@@ -46,43 +46,19 @@ export const renderReactElement = (container: Element): void => {
   }
 }
 
-export const renderTimelineElement = (container: Element): void => {
-  const amountStr = container.getAttribute('data-amount')
-  const installmentsCountStr = container.getAttribute('data-installments-count')
-  const amount = amountStr ? parseFloat(amountStr) : undefined
-  const installmentsCount = installmentsCountStr ? parseInt(installmentsCountStr, 10) : undefined
-  const border = container.getAttribute('data-border') === 'true'
-  const locale = container.getAttribute('data-locale')
-  const enableInstallments = container.getAttribute('data-enable-installments') === 'true'
-  const root = createRoot(container)
-  root.render(
-    <AmwalMagentoInstallmentsTimeline
-        enableInstallments={enableInstallments}
-        locale={locale ?? undefined}
-        amount={amount}
-        installmentsCount={installmentsCount}
-        border={border}
-    />
-  )
-}
-
 export const renderReactAll = (): void => {
   const containers = document.getElementsByClassName('amwal-express-checkout-button')
   Array.from(containers).forEach(renderReactElement)
-  const timelineContainers = document.getElementsByClassName('amwal-installments-timeline')
-  Array.from(timelineContainers).forEach(renderTimelineElement)
 }
 
 declare global {
   interface Window {
     renderReactElement?: (container: Element) => void
-    renderTimelineElement?: (container: Element) => void
     autoRenderReact?: boolean
   }
 }
 
 window.renderReactElement = renderReactElement
-window.renderTimelineElement = renderTimelineElement
 
 if (window.autoRenderReact) {
   renderReactAll()
