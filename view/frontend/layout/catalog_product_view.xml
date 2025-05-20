@@ -29,22 +29,6 @@
         <referenceBlock name="product.info.addtocart.additional">
             <block ifconfig="payment/amwal_payments/express_checkout_active"
                    class="Magento\Framework\View\Element\Template"
-                   name="amwal.express-checkout.button"
-                   template="Amwal_Payments::express/installments-timeline.phtml">
-                <arguments>
-                    <argument name="view_model" xsi:type="object">Amwal\Payments\ViewModel\ExpressCheckoutButton</argument>
-                    <argument name="trigger_context" xsi:type="const">Amwal\Payments\ViewModel\ExpressCheckoutButton::TRIGGER_CONTEXT_PRODUCT_DETAIL</argument>
-                    <argument name="form_selector" xsi:type="string">form#product_addtocart_form</argument>
-                </arguments>
-                <action method="setData">
-                    <argument name="key" xsi:type="string">cache_lifetime</argument>
-                    <argument name="value" xsi:type="boolean">false</argument>
-                </action>
-            </block>
-        </referenceBlock>
-        <referenceBlock name="product.info.addtocart.additional">
-            <block ifconfig="payment/amwal_payments/express_checkout_active"
-                   class="Magento\Framework\View\Element\Template"
                    name="amwal.express-checkout.button.configurable"
                    template="Amwal_Payments::express/checkout-button.phtml">
                 <arguments>
