@@ -92,6 +92,10 @@ function ($, Component, redirectOnSuccessAction, $t) {
             let self = this;
 
             self.amwalButtonContainer = document.getElementById(self.amwalButtonId);
+            if (!self.amwalButtonContainer) {
+                // Element not found in DOM yet, will try again later
+                return;
+            }
             self.amwalButtonContainer.setAttribute('data-locale', self.getLocale());
             self.amwalButtonContainer.setAttribute('data-scope-code', self.getScopeCode());
             self.amwalButtonContainer.setAttribute('data-button-id', self.getButtonId());

@@ -61,6 +61,11 @@ function ($, Component, redirectOnSuccessAction, $t) {
             let self = this;
 
             self.amwalBankInstallmentsButtonContainer = document.getElementById(self.amwalBankInstallmentsButtonId);
+            if (!self.amwalBankInstallmentsButtonContainer) {
+                // Element not found in DOM yet, will try again later
+                return;
+            }
+
             self.amwalBankInstallmentsButtonContainer.setAttribute('data-locale', self.getLocale());
             self.amwalBankInstallmentsButtonContainer.setAttribute('data-scope-code', self.getScopeCode());
             self.amwalBankInstallmentsButtonContainer.setAttribute('data-button-id', self.getButtonId());
