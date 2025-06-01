@@ -75,7 +75,7 @@ class SentryExceptionReport
             return false;
         }
 
-        Sentry\init(['dsn' => 'https://1fe7bb63698145909bb12240e03fa59e@sentry.amwal.dev/5']);
+        Sentry\init(['dsn' => 'https://0352c5fdf6587d2cf2313bae5e3fa6fe@o4509389080690688.ingest.us.sentry.io/4509389509623808']);
         return true;
     }
 }
