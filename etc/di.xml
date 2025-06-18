@@ -133,6 +133,9 @@
     <preference for="Magento\CatalogWidget\Block\Product\ProductsList" type="Amwal\Payments\Block\Product\ProductsList" />
 
     <!-- Plugins -->
+    <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
+        <plugin name="amwal_payments_prevent_email_on_order_submit" type="Amwal\Payments\Plugin\Sales\Order\Email\PreventEmailForNewOrder" sortOrder="10" />
+    </type>
     <type name="Magento\Webapi\Controller\Rest">
         <plugin name="amwal_rest_api_cors" type="Amwal\Payments\Plugin\RestApiCors" sortOrder="1" />
     </type>
