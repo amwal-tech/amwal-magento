@@ -101,6 +101,9 @@ class OrderSuccess implements HandlerInterface
             return;
         }
 
+        // Validate order data before processing
+        $this->validateOrderData($order, $data);
+
         // Get transaction details
         $transactionId = $data['data']['id'] ?? null;
         if (!$transactionId) {
@@ -188,5 +191,52 @@ class OrderSuccess implements HandlerInterface
         // Save the order
         $this->orderRepository->save($order);
         $this->logger->info("Order #{$order->getIncrementId()} updated to {$orderState} status");
+    }
+
+    /**
+     * Validate order data against Amwal data
+     *
+     * @param Order $order
+     * @param array $data
+     * @return void
+     */
+    private function validateOrderData(Order $order, array $data)
+    {
+        $amwalTotalAmount = $data['data']['total_amount'] ?? null;
+
+        if ($amwalTotalAmount === null) {
+            $this->logger->error("No total_amount found in webhook data for order #{$order->getIncrementId()}");
+            return;
+        }
+
+        // Convert to float for comparison
+        $amwalTotalAmount = (float)$amwalTotalAmount;
+
+        if ($this->roundValue($order->getGrandTotal()) !== $this->roundValue($amwalTotalAmount)) {
+            $errorMessage = sprintf(
+                'Order (%s) %s does not match Amwal Order %s (%s != %s)',
+                $order->getIncrementId(),
+                'grand_total',
+                'total_amount',
+                $order->getGrandTotal(),
+                $amwalTotalAmount
+            );
+
+            $this->logger->error($errorMessage);
+            return;
+        }
+
+        $this->logger->info("Amount validation passed for order #{$order->getIncrementId()}");
+    }
+
+    /**
+     * Round value to 2 decimal places for comparison
+     *
+     * @param float $value
+     * @return float
+     */
+    private function roundValue($value)
+    {
+        return round((float)$value, 2);
     }
 }
