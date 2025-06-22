@@ -65,6 +65,36 @@ class SentryExceptionReport
     }
 
     /**
+     * Set tags for Sentry reporting
+     *
+     * @param array|string $tags Array of key-value pairs or single tag key
+     * @param string|null $value Tag value if $tags is a string
+     * @return bool True if tags were set successfully, false otherwise
+     */
+    public function setTags($tags, ?string $value = null): bool
+    {
+        if (!$this->initializeSentrySDK()) {
+            return false;
+        }
+
+        Sdk::getCurrentHub()->configureScope(function (Scope $scope) use ($tags, $value) {
+            if (is_string($tags) && $value !== null) {
+                // Single tag
+                $scope->setTag($tags, $value);
+            } elseif (is_array($tags)) {
+                // Multiple tags
+                foreach ($tags as $key => $val) {
+                    if (is_string($key) && (is_string($val) || is_numeric($val))) {
+                        $scope->setTag($key, (string)$val);
+                    }
+                }
+            }
+        });
+
+        return true;
+    }
+
+    /**
      * Initialize the Sentry SDK
      *
      * @return bool
