@@ -47,7 +47,7 @@ class OrderUpdate
     private const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
         'ref_id' => 'ref_id',
-        'discount_amount' => 'discount_amount',
+        'discount_amount' => 'discount',
     ];
 
     private const DEFAULT_CURRENCY_CODE = 'SAR';
