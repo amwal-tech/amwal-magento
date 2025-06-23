@@ -228,7 +228,7 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            $this->throwException($e->getMessage(), $e);
+            $this->throwException($e->getMessage(), $e, $quote->getAmwalOrderId());
         }
 
         return $quoteData;
@@ -264,12 +264,14 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param Phrase|string|null $message
      * @param Throwable|null $originalException
+     * @param int|null $amwalOrderId
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, Throwable $originalException = null): void
+    private function throwException($message = null, Throwable $originalException = null, ?int $amwalOrderId = null): void
     {
         if($originalException){
+            $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);
             $this->sentryExceptionReport->report($originalException);
         }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
@@ -349,7 +351,7 @@ class GetQuote extends AmwalCheckoutAction
             );
             $this->reportError($refId, $message);
             $this->logger->error($message);
-            $this->throwException(__('Something went wrong while processing you address information.'), $e);
+            $this->throwException(__('Something went wrong while processing you address information.'), $e, $amwalOrderData->getOrderId());
         }
         return $customerAddress;
     }
@@ -528,7 +530,7 @@ class GetQuote extends AmwalCheckoutAction
             $grandTotal -= $extraFee;
         }
         if (!$grandTotal) {
-            $this->throwException(__('Unable to calculate order total'));
+            $this->throwException(__('Unable to calculate order total'), null, $quote->getAmwalOrderId());
         }
         return $grandTotal;
     }
@@ -552,7 +554,7 @@ class GetQuote extends AmwalCheckoutAction
     private function virtualItemSupport(Quote $quote): void
     {
         if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupport()) {
-            $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
+            $this->throwException(__('Virtual products are not supported, please remove them from your cart.'), null, $quote->getAmwalOrderId());
         }
     }
 }

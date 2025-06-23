@@ -140,7 +140,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
             $this->logger->error(sprintf('Unable to retrieve Amwal Order Data for cart with ID "%s". Amwal Order id: %s', $cartId, $amwalOrderId));
-            $this->throwException(__('We were unable to retrieve your transaction data.'));
+            $this->throwException(__('We were unable to retrieve your transaction data.'), null, $amwalOrderId);
         }
 
         $this->logDebug(sprintf(
@@ -159,7 +159,7 @@ class PlaceOrder extends AmwalCheckoutAction
             );
             $this->logDebug($message);
             $this->reportError($amwalOrderId, $message);
-            $this->throwException(__('We were unable to verify your payment.'));
+            $this->throwException(__('We were unable to verify your payment.'), null, $amwalOrderId);
         }
         // Check if the cartId is a masked or a numeric, for logged in users the cartId is a numeric value.
         $quoteId = is_numeric($cartId) ? $cartId : $this->maskedQuoteIdToQuoteId->execute($cartId);
@@ -199,7 +199,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 );
                 $this->reportError($amwalOrderId, $message);
                 $this->logger->error($message);
-                $this->throwException($message, $e);
+                $this->throwException($message, $e, $amwalOrderId);
             }
 
             $amwalClientEmail = $amwalOrderData->getClientEmail();
@@ -265,7 +265,7 @@ class PlaceOrder extends AmwalCheckoutAction
 
         if ($order) {
             if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
-                $this->throwException(__('Found an existing order with same transaction Id with non pending payment state'));
+                $this->throwException(__('Found an existing order with same transaction Id with non pending payment state'), null, $amwalOrderId);
             }
             $this->logDebug(
                 sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
@@ -297,7 +297,7 @@ class PlaceOrder extends AmwalCheckoutAction
             $message = sprintf( 'Unable to create an order from quote with ID "%s"', $quote->getId());
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
-            $this->throwException();
+            $this->throwException($message, null, $amwalOrderId);
         }
 
         $this->updateOrderDetails($order, $amwalOrderId, $triggerContext, $refId, $quote);
@@ -316,12 +316,14 @@ class PlaceOrder extends AmwalCheckoutAction
     /**
      * @param Phrase|string|null $message
      * @param Throwable|null $originalException
+     * @param string|null $amwalOrderId
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, Throwable $originalException = null): void
+    private function throwException($message = null, Throwable $originalException = null, string $amwalOrderId = null): void
     {
         if ($originalException) {
+            $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);
             $this->sentryExceptionReport->report($originalException);
         }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
