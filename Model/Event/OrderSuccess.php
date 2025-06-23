@@ -47,6 +47,11 @@ class OrderSuccess implements HandlerInterface
      */
     private $quoteRepository;
 
+    private const FIELD_MAPPINGS = [
+        'discount_amount' => 'discount',
+        'grand_total' => 'total_amount',
+    ];
+
     /**
      * @param OrderRepositoryInterface $orderRepository
      * @param InvoiceService $invoiceService
@@ -202,31 +207,40 @@ class OrderSuccess implements HandlerInterface
      */
     private function validateOrderData(Order $order, array $data)
     {
-        $amwalTotalAmount = $data['data']['total_amount'] ?? null;
+        $amwalData = $data['data'] ?? [];
 
-        if ($amwalTotalAmount === null) {
-            $this->logger->error("No total_amount found in webhook data for order #{$order->getIncrementId()}");
-            return;
+        foreach (self::FIELD_MAPPINGS as $orderField => $amwalField) {
+            $orderValue = $order->getData($orderField);
+            $amwalValue = $amwalData[$amwalField] ?? null;
+
+            // Handle null values
+            if ($amwalValue === null) {
+                $this->logger->error("No {$amwalField} found in webhook data for order #{$order->getIncrementId()}");
+                return;
+            }
+
+            // Special handling for monetary values that need rounding
+            if (in_array($orderField, ['grand_total', 'discount_amount'])) {
+                $orderValue = $this->roundValue((float)$orderValue);
+                $amwalValue = $this->roundValue((float)$amwalValue);
+            }
+
+            if ($orderValue != $amwalValue) {
+                $errorMessage = sprintf(
+                    'Order (%s) %s does not match Amwal Order %s (%s != %s)',
+                    $order->getIncrementId(),
+                    $orderField,
+                    $amwalField,
+                    $orderValue,
+                    $amwalValue
+                );
+
+                $this->logger->error($errorMessage);
+                return;
+            }
         }
 
-        // Convert to float for comparison
-        $amwalTotalAmount = (float)$amwalTotalAmount;
-
-        if ($this->roundValue($order->getGrandTotal()) !== $this->roundValue($amwalTotalAmount)) {
-            $errorMessage = sprintf(
-                'Order (%s) %s does not match Amwal Order %s (%s != %s)',
-                $order->getIncrementId(),
-                'grand_total',
-                'total_amount',
-                $order->getGrandTotal(),
-                $amwalTotalAmount
-            );
-
-            $this->logger->error($errorMessage);
-            return;
-        }
-
-        $this->logger->info("Amount validation passed for order #{$order->getIncrementId()}");
+        $this->logger->info("All field validation passed for order #{$order->getIncrementId()}");
     }
 
     /**
