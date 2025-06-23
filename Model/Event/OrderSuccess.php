@@ -47,6 +47,11 @@ class OrderSuccess implements HandlerInterface
      */
     private $quoteRepository;
 
+    private const FIELD_MAPPINGS = [
+        'discount_amount' => 'discount',
+        'grand_total' => 'total_amount',
+    ];
+
     /**
      * @param OrderRepositoryInterface $orderRepository
      * @param InvoiceService $invoiceService
@@ -100,6 +105,9 @@ class OrderSuccess implements HandlerInterface
             $this->logger->info("Order #{$order->getIncrementId()} already processed by webhook. Skipping.");
             return;
         }
+
+        // Validate order data before processing
+        $this->validateOrderData($order, $data);
 
         // Get transaction details
         $transactionId = $data['data']['id'] ?? null;
@@ -188,5 +196,61 @@ class OrderSuccess implements HandlerInterface
         // Save the order
         $this->orderRepository->save($order);
         $this->logger->info("Order #{$order->getIncrementId()} updated to {$orderState} status");
+    }
+
+    /**
+     * Validate order data against Amwal data
+     *
+     * @param Order $order
+     * @param array $data
+     * @return void
+     */
+    private function validateOrderData(Order $order, array $data)
+    {
+        $amwalData = $data['data'] ?? [];
+
+        foreach (self::FIELD_MAPPINGS as $orderField => $amwalField) {
+            $orderValue = $order->getData($orderField);
+            $amwalValue = $amwalData[$amwalField] ?? null;
+
+            // Handle null values
+            if ($amwalValue === null) {
+                $this->logger->error("No {$amwalField} found in webhook data for order #{$order->getIncrementId()}");
+                return;
+            }
+
+            // Special handling for monetary values that need rounding
+            if (in_array($orderField, ['grand_total', 'discount_amount'])) {
+                $orderValue = $this->roundValue((float)$orderValue);
+                $amwalValue = $this->roundValue((float)$amwalValue);
+            }
+
+            if ($orderValue != $amwalValue) {
+                $errorMessage = sprintf(
+                    'Order (%s) %s does not match Amwal Order %s (%s != %s)',
+                    $order->getIncrementId(),
+                    $orderField,
+                    $amwalField,
+                    $orderValue,
+                    $amwalValue
+                );
+
+                $this->logger->error($errorMessage);
+                return;
+            }
+        }
+
+        $this->logger->info("All field validation passed for order #{$order->getIncrementId()}");
+    }
+
+    /**
+     * Round value to 2 decimal places for comparison
+     *
+     * @param float $value
+     * @return float
+     */
+    private function roundValue($value)
+    {
+        return round((float)$value, 2);
     }
 }
