@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { AmwalMagentoReactButton } from 'amwal-magento-react-button'
 
 export const renderReactElement = (container: Element): void => {
+  // if container has content, don't render again
+  if (container.children.length > 0) return
   const triggerContext = container.getAttribute('data-trigger-context')
   const locale = container.getAttribute('data-locale')
   const scopeCode = container.getAttribute('data-scope-code')
