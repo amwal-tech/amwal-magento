@@ -8,6 +8,7 @@ define([
     'Magento_Customer/js/customer-data',
     'underscore',
     'mage/translate',
+    'mage/validation',
     'domReady!'
 ],
 function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBuilder, customerData, _) {
@@ -103,7 +104,10 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
              * @return Boolean
              */
             const isProductFormValid = () => {
-                addToCartForm.validation();
+                // Initialize validation if not already done
+                if (!addToCartForm.data('validation')) {
+                    addToCartForm.validation();
+                }
                 const formIsValid = addToCartForm.validation('isValid');
                 addToCartForm.validation('clearError');
                 return formIsValid;
