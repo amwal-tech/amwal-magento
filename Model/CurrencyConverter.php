@@ -6,6 +6,7 @@ namespace Amwal\Payments\Model;
 use Magento\Directory\Model\CurrencyFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
@@ -42,7 +43,8 @@ class CurrencyConverter
      *
      * @param Quote $quote
      * @return Quote
-     * @throws \Exception
+     * @throws LocalizedException
+     * @throws CouldNotSaveException
      */
     public function convertQuoteToSAR(Quote $quote): Quote
     {
@@ -63,82 +65,81 @@ class CurrencyConverter
         // Store original amounts for logging
         $originalGrandTotal = $quote->getGrandTotal();
 
-        try {
-            // Get the SAR store
-            $saStore = $this->storeManager->getStore('SA');
+        // Get the SAR store
+        $saStore = $this->storeManager->getStore('SA');
 
-            // Get the exchange rate from base currency (USD) to SAR
-            $baseCurrency = $store->getBaseCurrency();
-            $sarCurrency = $this->currencyFactory->create()->load(self::SAR_CURRENCY_CODE);
-            $exchangeRate = $baseCurrency->getRate($sarCurrency);
+        // Get the exchange rate from base currency (USD) to SAR
+        $baseCurrency = $store->getBaseCurrency();
+        $sarCurrency = $this->currencyFactory->create()->load(self::SAR_CURRENCY_CODE);
+        $exchangeRate = $baseCurrency->getRate($sarCurrency);
 
-            if (!$exchangeRate || $exchangeRate <= 0) {
-                throw new \Exception('Invalid exchange rate for SAR conversion');
-            }
+        if (!$exchangeRate || $exchangeRate <= 0) {
+            throw new LocalizedException(__('Invalid exchange rate for SAR conversion'));
+        }
 
-            // Set the new store and currency
-            $quote->setStoreId($saStore->getId());
-            $quote->setQuoteCurrencyCode(self::SAR_CURRENCY_CODE);
+        // Set the new store and currency
+        $quote->setStoreId($saStore->getId());
+        $quote->setQuoteCurrencyCode(self::SAR_CURRENCY_CODE);
 
-            // Set the proper exchange rate
-            $quote->setBaseToQuoteRate($exchangeRate);
+        // Set the proper exchange rate
+        $quote->setBaseToQuoteRate($exchangeRate);
 
-            // Force recalculation of totals
-            $quote->setTotalsCollectedFlag(false);
-            $quote->collectTotals();
+        // Force recalculation of totals
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
 
-            // Verify the conversion worked correctly
-            $expectedGrandTotal = $quote->getBaseGrandTotal() * $exchangeRate;
-            $actualGrandTotal = $quote->getGrandTotal();
+        // Verify the conversion worked correctly
+        $expectedGrandTotal = $quote->getBaseGrandTotal() * $exchangeRate;
+        $actualGrandTotal = $quote->getGrandTotal();
 
-            // If there's a significant difference, manually set the correct amount
-            if (abs($expectedGrandTotal - $actualGrandTotal) > 0.01) {
-                $this->logger->warning(sprintf(
-                    'Grand total mismatch after conversion. Expected: %s, Got: %s. Correcting...',
-                    $expectedGrandTotal,
-                    $actualGrandTotal
-                ));
-
-                // Manually set the correct grand total
-                $quote->setGrandTotal($expectedGrandTotal);
-            }
-
-            $this->quoteRepository->save($quote);
-
-            $this->logger->info(sprintf(
-                'Quote converted to SAR. Final grand total: %s SAR (Original: %s %s, Rate: %s)',
-                $quote->getGrandTotal(),
-                $originalGrandTotal,
-                $currentCurrency,
-                $exchangeRate
+        // If there's a significant difference, manually set the correct amount
+        if (abs($expectedGrandTotal - $actualGrandTotal) > 0.01) {
+            $this->logger->warning(sprintf(
+                'Grand total mismatch after conversion. Expected: %s, Got: %s. Correcting...',
+                $expectedGrandTotal,
+                $actualGrandTotal
             ));
 
-            return $quote;
-
-        } catch (\Exception $e) {
-            $this->logger->error(sprintf('Error converting quote using Magento currency system: %s', $e->getMessage()));
-            throw new \Exception(sprintf('Currency conversion failed: %s', $e->getMessage()));
+            // Manually set the correct grand total
+            $quote->setGrandTotal($expectedGrandTotal);
         }
+
+        try {
+            $this->quoteRepository->save($quote);
+        } catch (\Exception $e) {
+            $this->logger->error(sprintf('Error saving converted quote: %s', $e->getMessage()));
+            throw new CouldNotSaveException(__('Could not save converted quote: %1', $e->getMessage()));
+        }
+
+        $this->logger->info(sprintf(
+            'Quote converted to SAR. Final grand total: %s SAR (Original: %s %s, Rate: %s)',
+            $quote->getGrandTotal(),
+            $originalGrandTotal,
+            $currentCurrency,
+            $exchangeRate
+        ));
+
+        return $quote;
     }
 
     /**
      * Validate quote before currency conversion
      *
      * @param Quote $quote
-     * @throws \Exception
+     * @throws LocalizedException
      */
     private function validateQuoteForConversion(Quote $quote): void
     {
         if (!$quote->getId()) {
-            throw new \Exception('Quote must be saved before currency conversion');
+            throw new LocalizedException(__('Quote must be saved before currency conversion'));
         }
 
         if ($quote->getGrandTotal() <= 0) {
-            throw new \Exception('Quote grand total must be greater than 0 for currency conversion');
+            throw new LocalizedException(__('Quote grand total must be greater than 0 for currency conversion'));
         }
 
         if (!$quote->getQuoteCurrencyCode()) {
-            throw new \Exception('Quote currency code is missing');
+            throw new LocalizedException(__('Quote currency code is missing'));
         }
     }
 
