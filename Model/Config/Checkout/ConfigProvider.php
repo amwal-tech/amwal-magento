@@ -144,20 +144,6 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Check if the store currency is supported by Amwal (SAR)
-     *
-     * @return bool
-     */
-    private function isStoreCurrencySupported(): bool
-    {
-        $currencyToCheck = $this->config->shouldUseBaseCurrency()
-            ? $this->storeManager->getStore()->getBaseCurrencyCode()
-            : $this->storeManager->getStore()->getCurrentCurrencyCode();
-
-        return $currencyToCheck === self::AMWAL_CURRENCY;
-    }
-
-    /**
      * Check if regular checkout is active
      *
      * @return bool
