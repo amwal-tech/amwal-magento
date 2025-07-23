@@ -164,7 +164,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     private function isRegularCheckoutActive(): bool
     {
-        return $this->config->isRegularCheckoutActive() && $this->isStoreCurrencySupported();
+        return $this->config->isRegularCheckoutActive();
     }
 
     /**
@@ -174,7 +174,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     private function isBankInstallmentsActive(): bool
     {
-        return $this->config->isBankInstallmentsActive() && $this->isStoreCurrencySupported();
+        return $this->config->isBankInstallmentsActive();
     }
 
     /**
@@ -184,6 +184,6 @@ class ConfigProvider implements ConfigProviderInterface
      */
     private function isApplePayActive(): bool
     {
-        return $this->config->isApplePayActive() && $this->isStoreCurrencySupported();
+        return $this->config->isApplePayActive();
     }
 }

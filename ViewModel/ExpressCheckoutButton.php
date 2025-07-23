@@ -93,7 +93,7 @@ class ExpressCheckoutButton implements ArgumentInterface
 
         return $this->config->isActive()
             && $this->config->isExpressCheckoutActive()
-            && $this->storeManager->getStore()->getCurrentCurrencyCode() == self::AMWAL_CURRENCY
+            //&& $this->storeManager->getStore()->getCurrentCurrencyCode() == self::AMWAL_CURRENCY
             && ($quote->getItemsCount() == 0 || $quote->getGrandTotal() > 0);
     }
 
