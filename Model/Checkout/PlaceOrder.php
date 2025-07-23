@@ -256,6 +256,8 @@ class PlaceOrder extends AmwalCheckoutAction
     }
 
     /**
+     * Create order from quote
+     *
      * @param Quote $quote
      * @param string $amwalOrderId
      * @param string $refId
@@ -267,72 +269,119 @@ class PlaceOrder extends AmwalCheckoutAction
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
 
-        // Store quote amounts before conversion for debugging
-        $originalQuoteAmounts = [
-            'grand_total' => $quote->getGrandTotal(),
-            'subtotal' => $quote->getSubtotal(),
-            'currency' => $quote->getQuoteCurrencyCode(),
-            'base_to_quote_rate' => $quote->getBaseToQuoteRate()
-        ];
+        $quote = $this->prepareQuoteForOrderCreation($quote, $amwalOrderId);
+        $this->handleExistingOrder($amwalOrderId);
+        $this->applyQuoteOverrideIfEnabled($quote);
 
-        // Handle SAR currency conversion if needed
-        if ($this->currencyConverter->needsConversionToSAR($quote)) {
-            $this->logDebug(sprintf('Quote is not in SAR currency, converting quote with ID %s to SAR', $quote->getId()));
-            try {
-                $quote = $this->currencyConverter->convertQuoteToSAR($quote);
+        $convertedQuoteAmounts = $this->captureQuoteAmounts($quote);
+        $this->logQuoteAmountsBeforeOrderCreation($convertedQuoteAmounts);
 
-                // Log converted quote amounts for debugging
-                $this->logDebug(sprintf(
-                    'Quote converted to SAR - Grand Total: %s SAR, Subtotal: %s SAR, Rate: %s',
-                    $quote->getGrandTotal(),
-                    $quote->getSubtotal(),
-                    $quote->getBaseToQuoteRate()
-                ));
+        $order = $this->submitQuoteAsOrder($quote, $triggerContext, $amwalOrderId);
+        $this->validateOrderCreation($order, $quote, $amwalOrderId);
+        $this->logOrderAmountsAfterCreation($order);
+        $this->correctOrderAmountsIfNeeded($order, $convertedQuoteAmounts);
+        $this->updateOrderDetails($order, $amwalOrderId, $triggerContext, $refId, $quote);
 
-                // Force save the converted quote to ensure all changes persist
-                $this->quoteRepository->save($quote);
+        return $order;
+    }
 
-                // Verify the quote was saved correctly by reloading it
-                $quote = $this->quoteRepository->get($quote->getId());
-                $this->logDebug(sprintf(
-                    'Quote reloaded after save - Grand Total: %s SAR, Subtotal: %s SAR',
-                    $quote->getGrandTotal(),
-                    $quote->getSubtotal()
-                ));
-
-            } catch (Throwable $e) {
-                $this->logger->error(sprintf('Error converting quote to SAR: %s', $e->getMessage()));
-                $this->reportError($amwalOrderId, 'Error converting quote to SAR: ' . $e->getMessage());
-                $this->throwException(__('Unable to convert quote to SAR currency.'), $e, $amwalOrderId);
-            }
+    /**
+     * Prepare quote for order creation including currency conversion
+     *
+     * @param Quote $quote
+     * @param string $amwalOrderId
+     * @return Quote
+     * @throws LocalizedException
+     */
+    private function prepareQuoteForOrderCreation(Quote $quote, string $amwalOrderId): Quote
+    {
+        if (!$this->currencyConverter->needsConversionToSAR($quote)) {
+            return $quote;
         }
 
-        $order = $this->getOrderByAmwalOrderId($amwalOrderId);
+        $this->logDebug(sprintf('Quote is not in SAR currency, converting quote with ID %s to SAR', $quote->getId()));
 
-        if ($order) {
-            if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
-                $this->throwException(__('Found an existing order with same transaction Id with non pending payment state'), null, $amwalOrderId);
-            }
-            $this->logDebug(
-                sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
-            );
-            $order->cancel();
-            $order->setIsAmwalOrderCanceled(true);
-            $this->orderRepository->save($order);
-        }
-        if ($this->config->isQuoteOverrideEnabled()) {
-            $quote->setStoreId($this->storeManager->getStore()->getId());
-            $quote->setStoreCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
-            $quote->setBaseCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
-            $quote->setQuoteCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
-            $quote->setTotalsCollectedFlag(false);
-            $quote->collectTotals();
+        try {
+            $quote = $this->currencyConverter->convertQuoteToSAR($quote);
+            $this->logDebug(sprintf(
+                'Quote converted to SAR - Grand Total: %s SAR, Subtotal: %s SAR, Rate: %s',
+                $quote->getGrandTotal(),
+                $quote->getSubtotal(),
+                $quote->getBaseToQuoteRate()
+            ));
+
             $this->quoteRepository->save($quote);
+            $quote = $this->quoteRepository->get($quote->getId());
+
+            $this->logDebug(sprintf(
+                'Quote reloaded after save - Grand Total: %s SAR, Subtotal: %s SAR',
+                $quote->getGrandTotal(),
+                $quote->getSubtotal()
+            ));
+
+        } catch (Throwable $e) {
+            $this->logger->error(sprintf('Error converting quote to SAR: %s', $e->getMessage()));
+            $this->reportError($amwalOrderId, 'Error converting quote to SAR: ' . $e->getMessage());
+            $this->throwException(__('Unable to convert quote to SAR currency.'), $e, $amwalOrderId);
         }
 
+        return $quote;
+    }
 
-        // Store converted quote amounts before order creation
-        $convertedQuoteAmounts = [
+    /**
+     * Handle existing order cancellation if needed
+     *
+     * @param string $amwalOrderId
+     * @return void
+     * @throws LocalizedException
+     */
+    private function handleExistingOrder(string $amwalOrderId): void
+    {
+        $order = $this->getOrderByAmwalOrderId($amwalOrderId);
+        if (!$order) {
+            return;
+        }
+
+        if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
+            $this->throwException(__('Found an existing order with same transaction Id with non pending payment state'), null, $amwalOrderId);
+        }
+
+        $this->logDebug(sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId()));
+        $order->cancel();
+        $order->setIsAmwalOrderCanceled(true);
+        $this->orderRepository->save($order);
+    }
+
+    /**
+     * Apply quote override configuration if enabled
+     *
+     * @param Quote $quote
+     * @return void
+     */
+    private function applyQuoteOverrideIfEnabled(Quote $quote): void
+    {
+        if (!$this->config->isQuoteOverrideEnabled()) {
+            return;
+        }
+
+        $quote->setStoreId($this->storeManager->getStore()->getId());
+        $quote->setStoreCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
+        $quote->setBaseCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
+        $quote->setQuoteCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
+        $this->quoteRepository->save($quote);
+    }
+
+    /**
+     * Capture quote amounts for comparison after order creation
+     *
+     * @param Quote $quote
+     * @return array
+     */
+    private function captureQuoteAmounts(Quote $quote): array
+    {
+        return [
             'grand_total' => $quote->getGrandTotal(),
             'subtotal' => $quote->getSubtotal(),
             'shipping_amount' => $quote->getShippingAddress()->getShippingAmount(),
@@ -342,12 +391,33 @@ class PlaceOrder extends AmwalCheckoutAction
             'currency' => $quote->getQuoteCurrencyCode(),
             'base_to_quote_rate' => $quote->getBaseToQuoteRate()
         ];
+    }
 
+    /**
+     * Log quote amounts before order creation
+     *
+     * @param array $amounts
+     * @return void
+     */
+    private function logQuoteAmountsBeforeOrderCreation(array $amounts): void
+    {
         $this->logDebug(sprintf(
             'Quote amounts before order creation: %s',
-            json_encode($convertedQuoteAmounts)
+            json_encode($amounts)
         ));
+    }
 
+    /**
+     * Submit quote as order
+     *
+     * @param Quote $quote
+     * @param string $triggerContext
+     * @param string $amwalOrderId
+     * @return OrderInterface
+     * @throws LocalizedException
+     */
+    private function submitQuoteAsOrder(Quote $quote, string $triggerContext, string $amwalOrderId): OrderInterface
+    {
         if ($this->config->isRegularCheckoutRedirect() && $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
         } else {
@@ -357,14 +427,36 @@ class PlaceOrder extends AmwalCheckoutAction
         $order = $this->orderRepository->get($orderId);
         $this->logDebug(sprintf('Quote with ID %s has been submitted as order with ID %s', $quote->getId(), $orderId));
 
+        return $order;
+    }
+
+    /**
+     * Validate that order was created successfully
+     *
+     * @param OrderInterface|null $order
+     * @param Quote $quote
+     * @param string $amwalOrderId
+     * @return void
+     * @throws LocalizedException
+     */
+    private function validateOrderCreation(?OrderInterface $order, Quote $quote, string $amwalOrderId): void
+    {
         if (!$order || !$order->getEntityId()) {
-            $message = sprintf( 'Unable to create an order from quote with ID "%s"', $quote->getId());
+            $message = sprintf('Unable to create an order from quote with ID "%s"', $quote->getId());
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
             $this->throwException($message, null, $amwalOrderId);
         }
+    }
 
-        // Debug: Log order amounts immediately after creation
+    /**
+     * Log order amounts immediately after creation
+     *
+     * @param OrderInterface $order
+     * @return void
+     */
+    private function logOrderAmountsAfterCreation(OrderInterface $order): void
+    {
         $this->logDebug(sprintf(
             'Order created with amounts - Grand Total: %s %s, Subtotal: %s, Shipping: %s, Base Grand Total: %s USD, Rate: %s',
             $order->getGrandTotal(),
@@ -374,60 +466,87 @@ class PlaceOrder extends AmwalCheckoutAction
             $order->getBaseGrandTotal(),
             $order->getBaseToOrderRate()
         ));
+    }
 
-        // Check if order amounts match quote amounts
+    /**
+     * Correct order amounts if they don't match quote amounts
+     *
+     * @param Order $order
+     * @param array $convertedQuoteAmounts
+     * @return void
+     */
+    private function correctOrderAmountsIfNeeded(Order $order, array $convertedQuoteAmounts): void
+    {
         $expectedGrandTotal = $convertedQuoteAmounts['grand_total'];
         $actualGrandTotal = $order->getGrandTotal();
 
-        if (abs($expectedGrandTotal - $actualGrandTotal) > 0.01) {
-            $this->logger->warning(sprintf(
-                'Order amount mismatch! Expected: %s, Got: %s. Correcting order amounts...',
-                $expectedGrandTotal,
-                $actualGrandTotal
-            ));
-
-            // Manually correct the order amounts
-            $order->setGrandTotal($convertedQuoteAmounts['grand_total']);
-            $order->setSubtotal($convertedQuoteAmounts['subtotal']);
-            $order->setShippingAmount($convertedQuoteAmounts['shipping_amount']);
-            $order->setTotalDue($convertedQuoteAmounts['grand_total']);
-
-            // Update order items if needed
-            foreach ($order->getAllItems() as $orderItem) {
-                if ($orderItem->getParentItemId()) {
-                    continue; // Skip child items
-                }
-
-                // Calculate correct item amounts
-                $expectedItemTotal = $orderItem->getBaseRowTotal() * $convertedQuoteAmounts['base_to_quote_rate'];
-                $expectedItemPrice = $orderItem->getBasePrice() * $convertedQuoteAmounts['base_to_quote_rate'];
-
-                if (abs($expectedItemTotal - $orderItem->getRowTotal()) > 0.01) {
-                    $this->logDebug(sprintf(
-                        'Correcting item %s: Row Total %s -> %s, Price %s -> %s',
-                        $orderItem->getSku(),
-                        $orderItem->getRowTotal(),
-                        $expectedItemTotal,
-                        $orderItem->getPrice(),
-                        $expectedItemPrice
-                    ));
-
-                    $orderItem->setRowTotal($expectedItemTotal);
-                    $orderItem->setRowTotalInclTax($expectedItemTotal);
-                    $orderItem->setPrice($expectedItemPrice);
-                    $orderItem->setPriceInclTax($expectedItemPrice);
-                }
-            }
-
-            $this->logDebug(sprintf(
-                'Order amounts corrected - New Grand Total: %s SAR',
-                $order->getGrandTotal()
-            ));
+        if (abs($expectedGrandTotal - $actualGrandTotal) <= 0.01) {
+            return;
         }
 
-        $this->updateOrderDetails($order, $amwalOrderId, $triggerContext, $refId, $quote);
-        
-        return $order;
+        $this->logger->warning(sprintf(
+            'Order amount mismatch! Expected: %s, Got: %s. Correcting order amounts...',
+            $expectedGrandTotal,
+            $actualGrandTotal
+        ));
+
+        $this->correctOrderTotals($order, $convertedQuoteAmounts);
+        $this->correctOrderItems($order, $convertedQuoteAmounts);
+
+        $this->logDebug(sprintf(
+            'Order amounts corrected - New Grand Total: %s SAR',
+            $order->getGrandTotal()
+        ));
+    }
+
+    /**
+     * Correct order totals
+     *
+     * @param Order $order
+     * @param array $convertedQuoteAmounts
+     * @return void
+     */
+    private function correctOrderTotals(Order $order, array $convertedQuoteAmounts): void
+    {
+        $order->setGrandTotal($convertedQuoteAmounts['grand_total']);
+        $order->setSubtotal($convertedQuoteAmounts['subtotal']);
+        $order->setShippingAmount($convertedQuoteAmounts['shipping_amount']);
+        $order->setTotalDue($convertedQuoteAmounts['grand_total']);
+    }
+
+    /**
+     * Correct order item amounts
+     *
+     * @param Order $order
+     * @param array $convertedQuoteAmounts
+     * @return void
+     */
+    private function correctOrderItems(Order $order, array $convertedQuoteAmounts): void
+    {
+        foreach ($order->getAllItems() as $orderItem) {
+            if ($orderItem->getParentItemId()) {
+                continue; // Skip child items
+            }
+
+            $expectedItemTotal = $orderItem->getBaseRowTotal() * $convertedQuoteAmounts['base_to_quote_rate'];
+            $expectedItemPrice = $orderItem->getBasePrice() * $convertedQuoteAmounts['base_to_quote_rate'];
+
+            if (abs($expectedItemTotal - $orderItem->getRowTotal()) > 0.01) {
+                $this->logDebug(sprintf(
+                    'Correcting item %s: Row Total %s -> %s, Price %s -> %s',
+                    $orderItem->getSku(),
+                    $orderItem->getRowTotal(),
+                    $expectedItemTotal,
+                    $orderItem->getPrice(),
+                    $expectedItemPrice
+                ));
+
+                $orderItem->setRowTotal($expectedItemTotal);
+                $orderItem->setRowTotalInclTax($expectedItemTotal);
+                $orderItem->setPrice($expectedItemPrice);
+                $orderItem->setPriceInclTax($expectedItemPrice);
+            }
+        }
     }
 
     /**
@@ -599,7 +718,6 @@ class PlaceOrder extends AmwalCheckoutAction
     private function updateOrderDetails(Order $order, string $amwalOrderId, string $triggerContext, string $refId, Quote $quote): void
     {
         $this->logDebug(sprintf('Updating order state and status for order with ID %s', $order->getEntityId()));
-
 
         $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
