@@ -276,7 +276,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $convertedQuoteAmounts = $this->captureQuoteAmounts($quote);
         $this->logQuoteAmountsBeforeOrderCreation($convertedQuoteAmounts);
 
-        $order = $this->submitQuoteAsOrder($quote, $triggerContext, $amwalOrderId);
+        $order = $this->submitQuoteAsOrder($quote, $triggerContext);
         $this->validateOrderCreation($order, $quote, $amwalOrderId);
         $this->logOrderAmountsAfterCreation($order);
         $this->correctOrderAmountsIfNeeded($order, $convertedQuoteAmounts);
@@ -412,11 +412,10 @@ class PlaceOrder extends AmwalCheckoutAction
      *
      * @param Quote $quote
      * @param string $triggerContext
-     * @param string $amwalOrderId
      * @return OrderInterface
      * @throws LocalizedException
      */
-    private function submitQuoteAsOrder(Quote $quote, string $triggerContext, string $amwalOrderId): OrderInterface
+    private function submitQuoteAsOrder(Quote $quote, string $triggerContext): OrderInterface
     {
         if ($this->config->isRegularCheckoutRedirect() && $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
