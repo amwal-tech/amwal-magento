@@ -144,27 +144,13 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Check if the store currency is supported by Amwal (SAR)
-     *
-     * @return bool
-     */
-    private function isStoreCurrencySupported(): bool
-    {
-        $currencyToCheck = $this->config->shouldUseBaseCurrency()
-            ? $this->storeManager->getStore()->getBaseCurrencyCode()
-            : $this->storeManager->getStore()->getCurrentCurrencyCode();
-
-        return $currencyToCheck === self::AMWAL_CURRENCY;
-    }
-
-    /**
      * Check if regular checkout is active
      *
      * @return bool
      */
     private function isRegularCheckoutActive(): bool
     {
-        return $this->config->isRegularCheckoutActive() && $this->isStoreCurrencySupported();
+        return $this->config->isRegularCheckoutActive();
     }
 
     /**
@@ -174,7 +160,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     private function isBankInstallmentsActive(): bool
     {
-        return $this->config->isBankInstallmentsActive() && $this->isStoreCurrencySupported();
+        return $this->config->isBankInstallmentsActive();
     }
 
     /**
@@ -184,6 +170,6 @@ class ConfigProvider implements ConfigProviderInterface
      */
     private function isApplePayActive(): bool
     {
-        return $this->config->isApplePayActive() && $this->isStoreCurrencySupported();
+        return $this->config->isApplePayActive();
     }
 }

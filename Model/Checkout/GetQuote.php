@@ -12,6 +12,7 @@ use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
+use Amwal\Payments\Model\CurrencyConverter;
 use Amwal\Payments\Model\ErrorReporter;
 use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -65,6 +66,7 @@ class GetQuote extends AmwalCheckoutAction
     private CheckoutSession $checkoutSession;
     private SentryExceptionReport $sentryExceptionReport;
     private QuoteIdMaskFactory $quoteIdMaskFactory;
+    private CurrencyConverter $currencyConverter;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -87,6 +89,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param Config $config
      * @param LoggerInterface $logger
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @param CurrencyConverter $currencyConverter
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -109,7 +112,8 @@ class GetQuote extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        CurrencyConverter $currencyConverter
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->customerRepository = $customerRepository;
@@ -129,6 +133,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->checkoutSession = $checkoutSession;
         $this->sentryExceptionReport = $sentryExceptionReport;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->currencyConverter = $currencyConverter;
     }
 
     /**
@@ -427,9 +432,11 @@ class GetQuote extends AmwalCheckoutAction
                 $this->logger->warning('Shipping method title is empty. Falling back to ID as title: ' . $id);
             }
             if ($rate->getAvailable()) {
+                $priceInclTax = (float)$rate->getPriceInclTax();
+                $convertedPrice = $this->currencyConverter->convertToSAR($priceInclTax, $quote);
                 $availableRates[$id] = [
                     'carrier_title' => $rate->getMethodTitle() ?? $id,
-                    'price' => number_format((float)$rate->getPriceInclTax(), 2)
+                    'price' => number_format($convertedPrice, 2)
                 ];
             }else{
                 $this->logger->warning(sprintf(
@@ -463,16 +470,19 @@ class GetQuote extends AmwalCheckoutAction
         $useBaseCurrency = $this->config->shouldUseBaseCurrency();
         $shippingAddress = $quote->getShippingAddress();
         $taxAmount = $useBaseCurrency ? $shippingAddress->getBaseTaxAmount() : $shippingAddress->getTaxAmount();
+        $shippingAmount = $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax();
+        $discountAmount = $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount());
+
         $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
         return [
             'cart_id' => $cartId,
             'available_rates' => $availableRates,
-            'amount' => $this->getAmount($quote, $useBaseCurrency),
-            'subtotal' => $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency),
-            'tax_amount' => $taxAmount,
-            'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
-            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
-            'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
+            'amount' => $this->currencyConverter->convertToSAR($this->getAmount($quote, $useBaseCurrency), $quote),
+            'subtotal' => $this->currencyConverter->convertToSAR($this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency), $quote),
+            'tax_amount' => $this->currencyConverter->convertToSAR($taxAmount, $quote),
+            'shipping_amount' => $this->currencyConverter->convertToSAR($shippingAmount, $quote),
+            'discount_amount' => $this->currencyConverter->convertToSAR($discountAmount, $quote),
+            'additional_fee_amount' => $this->currencyConverter->convertToSAR($this->getAdditionalFeeAmount($quote), $quote),
             'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
         ];
     }

@@ -91,8 +91,7 @@ class Promotion extends View
             return false;
         }
         return $this->config->isActive()
-            && $this->config->isExpressCheckoutActive()
-            && $this->config->isBankInstallmentsActive();
+            && $this->config->isExpressCheckoutActive();
     }
 
     /**
