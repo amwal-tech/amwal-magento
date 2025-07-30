@@ -17,6 +17,7 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Source\ModuleType;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * @SuppressWarnings(PHPMD)
@@ -90,6 +91,12 @@ class Promotion extends View
         if ($this->config->getModuleType() === ModuleType::MODULE_TYPE_LITE) {
             return false;
         }
+
+        // Check if we have a valid product
+        if (!$this->getProduct() || !$this->getProduct()->getId()) {
+            return false;
+        }
+
         return $this->config->isActive()
             && $this->config->isExpressCheckoutActive();
     }
@@ -101,8 +108,22 @@ class Promotion extends View
      */
     public function getPrice(): float
     {
-        $quote = $this->checkoutSession->getQuote();
-        return $quote ? (float) $quote->getGrandTotal() : 0.0;
+        try {
+            $product = $this->getProduct();
+
+            if (!$product || !$product->getId()) {
+                return 0.0;
+            }
+
+            // Get the final price including all discounts and taxes
+            $finalPrice = $product->getPriceInfo()->getPrice('final_price');
+            return (float) $finalPrice->getAmount()->getValue();
+
+        } catch (\Exception $e) {
+            // Log error if needed
+            $this->_logger->error('Amwal Promotion: Error getting product price: ' . $e->getMessage());
+            return 0.0;
+        }
     }
 
     /**
@@ -123,5 +144,44 @@ class Promotion extends View
     public function getPromotionUrl(): string
     {
         return 'https://pay.sa.amwal.tech/installment-promotion';
+    }
+
+    /**
+     * Get formatted price for display
+     *
+     * @return string
+     */
+    public function getFormattedPrice(): string
+    {
+        $price = $this->getPrice();
+        return $this->priceCurrency->format($price, false);
+    }
+
+    /**
+     * Get installment price
+     *
+     * @return float
+     */
+    public function getInstallmentPrice(): float
+    {
+        $totalPrice = $this->getPrice();
+        $installmentsCount = $this->getInstallmentsCount();
+
+        if ($installmentsCount <= 0) {
+            return $totalPrice;
+        }
+
+        return $totalPrice / $installmentsCount;
+    }
+
+    /**
+     * Get formatted installment price
+     *
+     * @return string
+     */
+    public function getFormattedInstallmentPrice(): string
+    {
+        $installmentPrice = $this->getInstallmentPrice();
+        return $this->priceCurrency->format($installmentPrice, false);
     }
 }
