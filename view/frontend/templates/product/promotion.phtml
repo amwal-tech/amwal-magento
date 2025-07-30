@@ -11,9 +11,15 @@ use Magento\Framework\View\Element\Template;
 <?php if ($block->isPromotionsActive()): ?>
     <script>
         (function() {
+            // Check if we have required dependencies
+            if (typeof require === 'undefined') {
+                console.warn('Amwal Promotion: RequireJS not available');
+                return;
+            }
+
             const amwalConfig = {
-                installmentsCount: <?= $block->getInstallmentsCount() ?>,
-                price: <?= $block->getPrice() ?>,
+                installmentsCount: <?= (int) $block->getInstallmentsCount() ?>,
+                price: <?= (float) $block->getPrice() ?>,
             };
 
             /**
@@ -23,29 +29,48 @@ use Magento\Framework\View\Element\Template;
              * @param {string} currency - The product's currency.
              */
             const updateAmwalPromotions = (price, currency) => {
-                const installmentPrice = price / amwalConfig.installmentsCount;
+                try {
+                    if (!price || !currency || isNaN(price) || price <= 0) {
+                        document.getElementById('amwal-promo').style.display = 'none';
+                        return;
+                    }
 
-                // Update config for when iframe is created
-                amwalConfig.price = price;
+                    const installmentPrice = price / amwalConfig.installmentsCount;
 
-                // Update text for installment count and price
-                document.querySelectorAll('.amwal-installments-count').forEach(el => {
-                    el.innerText = amwalConfig.installmentsCount;
-                });
-                document.querySelectorAll('.amwal-price').forEach(el => {
-                    el.innerText = `${currency} ${installmentPrice.toFixed(2)}`;
-                });
+                    // Update config for when iframe is created
+                    amwalConfig.price = price;
 
-                // Update the iframe's query parameters only if it exists (modal is open)
-                const amwalIframe = document.getElementById('amwal-iframe');
-                if (amwalIframe && amwalIframe.src) {
-                    const [baseUrl, queryString] = amwalIframe.src.split('?');
-                    const params = new URLSearchParams(queryString);
-                    params.set('price', installmentPrice.toFixed(2));
-                    params.set('currency', currency);
-                    params.set('installmentsCount', amwalConfig.installmentsCount);
-                    params.set('locale', document.documentElement.lang || 'en');
-                    amwalIframe.src = `${baseUrl}?${params.toString()}`;
+                    // Update text for installment count and price
+                    document.querySelectorAll('.amwal-installments-count').forEach(el => {
+                        el.innerText = amwalConfig.installmentsCount;
+                    });
+                    document.querySelectorAll('.amwal-price').forEach(el => {
+                        el.innerText = `${currency} ${installmentPrice.toFixed(2)}`;
+                    });
+
+                    // Show promotion if hidden
+                    const promoElement = document.getElementById('amwal-promo');
+                    if (promoElement) {
+                        promoElement.style.display = 'flex';
+                    }
+
+                    // Update the iframe's query parameters only if it exists (modal is open)
+                    const amwalIframe = document.getElementById('amwal-iframe');
+                    if (amwalIframe && amwalIframe.src) {
+                        try {
+                            const [baseUrl, queryString] = amwalIframe.src.split('?');
+                            const params = new URLSearchParams(queryString || '');
+                            params.set('price', installmentPrice.toFixed(2));
+                            params.set('currency', currency);
+                            params.set('installmentsCount', amwalConfig.installmentsCount);
+                            params.set('locale', document.documentElement.lang || 'en');
+                            amwalIframe.src = `${baseUrl}?${params.toString()}`;
+                        } catch (e) {
+                            console.warn('Amwal Promotion: Error updating iframe URL', e);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Amwal Promotion: Error updating promotions', error);
                 }
             };
 
@@ -54,15 +79,30 @@ use Magento\Framework\View\Element\Template;
              * @param {HTMLElement} elem - The element containing price data.
              */
             const handlePriceUpdate = (elem) => {
-                const priceAttr = elem.querySelector('[data-price-type="finalPrice"]')?.getAttribute('data-price-amount');
-                if (!priceAttr) {
-                    document.getElementById('amwal-promo').style.display = 'none';
-                    return;
-                }
-                const price = parseFloat(priceAttr);
-                const currency = document.querySelector('meta[itemprop="priceCurrency"]')?.getAttribute('content');
-                if (!isNaN(price) && currency) {
-                    updateAmwalPromotions(price, currency);
+                try {
+                    if (!elem) {
+                        return;
+                    }
+
+                    const priceElement = elem.querySelector('[data-price-type="finalPrice"]');
+                    const priceAttr = priceElement?.getAttribute('data-price-amount');
+
+                    if (!priceAttr) {
+                        document.getElementById('amwal-promo').style.display = 'none';
+                        return;
+                    }
+
+                    const price = parseFloat(priceAttr);
+                    const currencyElement = document.querySelector('meta[itemprop="priceCurrency"]');
+                    const currency = currencyElement?.getAttribute('content') || 'USD';
+
+                    if (!isNaN(price) && price > 0 && currency) {
+                        updateAmwalPromotions(price, currency);
+                    } else {
+                        document.getElementById('amwal-promo').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Amwal Promotion: Error handling price update', error);
                 }
             };
 
@@ -70,126 +110,151 @@ use Magento\Framework\View\Element\Template;
              * Creates the iframe dynamically with current promotion data
              */
             const createAmwalIframe = () => {
-                const iframe = document.createElement('iframe');
-                iframe.id = 'amwal-iframe';
-                iframe.frameBorder = '0';
-                iframe.loading = 'lazy';
-                iframe.allowFullscreen = true;
-                iframe.sandbox = 'allow-scripts allow-same-origin allow-forms';
+                try {
+                    const iframe = document.createElement('iframe');
+                    iframe.id = 'amwal-iframe';
+                    iframe.frameBorder = '0';
+                    iframe.loading = 'lazy';
+                    iframe.allowFullscreen = true;
+                    iframe.sandbox = 'allow-scripts allow-same-origin allow-forms';
 
-                // Get the base URL from the PHP block
-                const baseUrl = '<?php echo htmlspecialchars($block->getPromotionUrl(), ENT_QUOTES, 'UTF-8'); ?>';
+                    // Get the base URL from the PHP block
+                    const baseUrl = '<?php echo htmlspecialchars($block->getPromotionUrl(), ENT_QUOTES, 'UTF-8'); ?>';
 
-                // Create URL with current parameters
-                const params = new URLSearchParams();
-                const currentPrice = amwalConfig.price / amwalConfig.installmentsCount;
-                const currency = document.querySelector('meta[itemprop="priceCurrency"]')?.getAttribute('content') || 'USD';
+                    // Create URL with current parameters
+                    const params = new URLSearchParams();
+                    const currentPrice = amwalConfig.price / amwalConfig.installmentsCount;
+                    const currencyElement = document.querySelector('meta[itemprop="priceCurrency"]');
+                    const currency = currencyElement?.getAttribute('content') || 'USD';
 
-                params.set('price', currentPrice.toFixed(2));
-                params.set('currency', currency);
-                params.set('installmentsCount', amwalConfig.installmentsCount);
-                params.set('locale', document.documentElement.lang || 'en');
+                    params.set('price', currentPrice.toFixed(2));
+                    params.set('currency', currency);
+                    params.set('installmentsCount', amwalConfig.installmentsCount);
+                    params.set('locale', document.documentElement.lang || 'en');
 
-                iframe.src = `${baseUrl}?${params.toString()}`;
+                    iframe.src = `${baseUrl}?${params.toString()}`;
 
-                // Apply minimal inline styles for maximum protection
-                iframe.style.cssText = `
-                width: 100% !important;
-                height: 700px !important;
-                border: none !important;
-                display: block !important;
-            `.replace(/\s+/g, ' ');
+                    // Apply minimal inline styles for maximum protection
+                    iframe.style.cssText = `
+                    width: 100% !important;
+                    height: 700px !important;
+                    border: none !important;
+                    display: block !important;
+                `.replace(/\s+/g, ' ');
 
-                return iframe;
+                    return iframe;
+                } catch (error) {
+                    console.error('Amwal Promotion: Error creating iframe', error);
+                    return null;
+                }
             };
 
             /**
              * Creates and manages the modal overlay with history support
              */
             const createModalOverlay = () => {
-                // Remove existing overlay if present
-                const existingOverlay = document.getElementById('amwal-modal-overlay');
-                if (existingOverlay) {
-                    closeModalOverlay();
+                try {
+                    // Remove existing overlay if present
+                    const existingOverlay = document.getElementById('amwal-modal-overlay');
+                    if (existingOverlay) {
+                        closeModalOverlay();
+                    }
+
+                    // Add a simple history entry so back button works
+                    if (window.history && window.history.pushState) {
+                        window.history.pushState({ amwalModal: true }, '');
+                    }
+
+                    // Create new overlay with specific attributes to avoid conflicts
+                    const overlay = document.createElement('div');
+                    overlay.id = 'amwal-modal-overlay';
+                    overlay.className = 'amwal-modal-overlay';
+                    overlay.setAttribute('data-amwal-modal', 'true');
+                    overlay.style.cssText = `
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    background: rgba(0, 0, 0, 0.75) !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    z-index: 999999 !important;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                `.replace(/\s+/g, ' ');
+
+                    // Create modal container from template
+                    const modalTemplate = document.getElementById('amwal-dialog');
+                    if (!modalTemplate) {
+                        console.error('Amwal Promotion: Modal template not found');
+                        return null;
+                    }
+
+                    const modalContainer = modalTemplate.cloneNode(true);
+                    modalContainer.style.display = 'block';
+                    modalContainer.className = 'amwal-modal-container';
+                    modalContainer.setAttribute('data-amwal-content', 'true');
+
+                    // Apply inline styles to override any conflicting CSS
+                    modalContainer.style.cssText = `
+                    width: 90vw !important;
+                    max-width: 833px !important;
+                    max-height: 95vh !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    border: none !important;
+                    background: linear-gradient(to bottom, #e8f4ef, #f5faf7) !important;
+                    border-radius: 17px !important;
+                    color: #292929 !important;
+                    overflow: hidden !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    position: relative !important;
+                    text-align: left !important;
+                `.replace(/\s+/g, ' ');
+
+                    // Create and insert the iframe dynamically
+                    const amwalBody = modalContainer.querySelector('.amwal-body');
+                    if (amwalBody) {
+                        // Clear any existing content
+                        amwalBody.innerHTML = '';
+
+                        // Create iframe directly
+                        const iframe = createAmwalIframe();
+                        if (iframe) {
+                            amwalBody.appendChild(iframe);
+                        } else {
+                            console.error('Amwal Promotion: Failed to create iframe');
+                            return null;
+                        }
+                    }
+
+                    overlay.appendChild(modalContainer);
+                    document.body.appendChild(overlay);
+
+                    // Prevent body scroll
+                    document.body.style.overflow = 'hidden';
+
+                    return overlay;
+                } catch (error) {
+                    console.error('Amwal Promotion: Error creating modal overlay', error);
+                    return null;
                 }
-
-                // Add a simple history entry so back button works
-                if (window.history && window.history.pushState) {
-                    window.history.pushState({ amwalModal: true }, '');
-                }
-
-                // Create new overlay with specific attributes to avoid conflicts
-                const overlay = document.createElement('div');
-                overlay.id = 'amwal-modal-overlay';
-                overlay.className = 'amwal-modal-overlay';
-                overlay.setAttribute('data-amwal-modal', 'true');
-                overlay.style.cssText = `
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                background: rgba(0, 0, 0, 0.75) !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                z-index: 999999 !important;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-            `.replace(/\s+/g, ' ');
-
-                // Create modal container from template
-                const modalTemplate = document.getElementById('amwal-dialog');
-                const modalContainer = modalTemplate.cloneNode(true);
-                modalContainer.style.display = 'block';
-                modalContainer.className = 'amwal-modal-container';
-                modalContainer.setAttribute('data-amwal-content', 'true');
-
-                // Apply inline styles to override any conflicting CSS
-                modalContainer.style.cssText = `
-                width: 90vw !important;
-                max-width: 833px !important;
-                max-height: 95vh !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                border: none !important;
-                background: linear-gradient(to bottom, #e8f4ef, #f5faf7) !important;
-                border-radius: 17px !important;
-                color: #292929 !important;
-                overflow: hidden !important;
-                display: flex !important;
-                flex-direction: column !important;
-                position: relative !important;
-                text-align: left !important;
-            `.replace(/\s+/g, ' ');
-
-                // Create and insert the iframe dynamically
-                const amwalBody = modalContainer.querySelector('.amwal-body');
-                if (amwalBody) {
-                    // Clear any existing content
-                    amwalBody.innerHTML = '';
-
-                    // Create iframe directly
-                    const iframe = createAmwalIframe();
-                    amwalBody.appendChild(iframe);
-                }
-
-                overlay.appendChild(modalContainer);
-                document.body.appendChild(overlay);
-
-                // Prevent body scroll
-                document.body.style.overflow = 'hidden';
-
-                return overlay;
             };
 
             /**
              * Closes the modal overlay
              */
             const closeModalOverlay = () => {
-                const overlay = document.getElementById('amwal-modal-overlay');
-                if (overlay) {
-                    overlay.remove();
-                    document.body.style.overflow = '';
+                try {
+                    const overlay = document.getElementById('amwal-modal-overlay');
+                    if (overlay) {
+                        overlay.remove();
+                        document.body.style.overflow = '';
+                    }
+                } catch (error) {
+                    console.error('Amwal Promotion: Error closing modal overlay', error);
                 }
             };
 
@@ -216,81 +281,133 @@ use Magento\Framework\View\Element\Template;
                 }
             });
 
+            // Initialize when DOM is ready
             require(['jquery'], function ($) {
-                // Bind events for standard products using a combined event string
-                $('.product-info-main .product-info-price .price-box.price-final_price')
-                    .on('reloadPrice price-box-initialized', function() {
-                        handlePriceUpdate(this);
-                    });
-
-                // For grouped products, recalculate the total price based on quantities
-                const $groupTable = $('#super-product-table');
-                if ($groupTable.length) {
-                    const updateGroupedProducts = () => {
-                        let totalPrice = 0;
-                        const currency = $('meta[itemprop="priceCurrency"]').attr('content');
-                        let valid = true;
-                        $groupTable.find('.price-box.price-final_price').each(function() {
-                            const $priceBox = $(this);
-                            const localPrice = parseFloat($priceBox.find('[data-price-type="finalPrice"]').attr('data-price-amount'));
-                            const localId = $priceBox.data('product-id');
-                            const localQty = parseFloat($groupTable.find(`[data-selector="super_group[${localId}]"]`).val());
-                            const subtotal = localPrice * localQty;
-                            if (!isNaN(subtotal)) {
-                                totalPrice += subtotal;
-                            } else {
-                                valid = false;
-                            }
+                try {
+                    // Bind events for standard products using a combined event string
+                    $('.product-info-main .product-info-price .price-box.price-final_price')
+                        .on('reloadPrice price-box-initialized', function() {
+                            handlePriceUpdate(this);
                         });
-                        if (valid) {
-                            updateAmwalPromotions(totalPrice, currency);
-                        }
-                    };
 
-                    // Bind change events and initialize grouped products update
-                    $groupTable.find('[data-selector^="super_group"]').on('change', updateGroupedProducts);
-                    updateGroupedProducts();
-                }
+                    // For grouped products, recalculate the total price based on quantities
+                    const $groupTable = $('#super-product-table');
+                    if ($groupTable.length) {
+                        const updateGroupedProducts = () => {
+                            try {
+                                let totalPrice = 0;
+                                const currencyElement = $('meta[itemprop="priceCurrency"]');
+                                const currency = currencyElement.attr('content') || 'USD';
+                                let valid = true;
 
-                // Handle modal opening with custom overlay
-                $('#amwal-promo').on('click', function () {
-                    const overlay = createModalOverlay();
+                                $groupTable.find('.price-box.price-final_price').each(function() {
+                                    const $priceBox = $(this);
+                                    const priceElement = $priceBox.find('[data-price-type="finalPrice"]');
+                                    const localPrice = parseFloat(priceElement.attr('data-price-amount'));
+                                    const localId = $priceBox.data('product-id');
+                                    const qtyElement = $groupTable.find(`[data-selector="super_group[${localId}]"]`);
+                                    const localQty = parseFloat(qtyElement.val()) || 0;
+                                    const subtotal = localPrice * localQty;
 
-                    // Close modal on overlay click
-                    overlay.addEventListener('click', function(e) {
-                        if (e.target === overlay) {
-                            closeModalOverlay();
-                            if (window.history && window.history.back) {
-                                window.history.back();
+                                    if (!isNaN(subtotal) && subtotal >= 0) {
+                                        totalPrice += subtotal;
+                                    } else {
+                                        valid = false;
+                                    }
+                                });
+
+                                if (valid && totalPrice > 0) {
+                                    updateAmwalPromotions(totalPrice, currency);
+                                } else {
+                                    document.getElementById('amwal-promo').style.display = 'none';
+                                }
+                            } catch (error) {
+                                console.error('Amwal Promotion: Error updating grouped products', error);
                             }
+                        };
+
+                        // Bind change events and initialize grouped products update
+                        $groupTable.find('[data-selector^="super_group"]').on('change', updateGroupedProducts);
+                        updateGroupedProducts();
+                    }
+
+                    // Handle modal opening with custom overlay
+                    $('#amwal-promo').on('click', function (e) {
+                        e.preventDefault();
+                        try {
+                            const overlay = createModalOverlay();
+                            if (!overlay) {
+                                return;
+                            }
+
+                            // Close modal on overlay click
+                            overlay.addEventListener('click', function(e) {
+                                if (e.target === overlay) {
+                                    closeModalOverlay();
+                                    if (window.history && window.history.back) {
+                                        window.history.back();
+                                    }
+                                }
+                            });
+
+                            // Close modal on close button click
+                            const closeButton = overlay.querySelector('.amwal-close');
+                            if (closeButton) {
+                                closeButton.addEventListener('click', function() {
+                                    closeModalOverlay();
+                                    if (window.history && window.history.back) {
+                                        window.history.back();
+                                    }
+                                });
+                            }
+                        } catch (error) {
+                            console.error('Amwal Promotion: Error handling modal click', error);
                         }
                     });
 
-                    // Close modal on close button click
-                    overlay.querySelector('.amwal-close').addEventListener('click', function() {
-                        closeModalOverlay();
-                        if (window.history && window.history.back) {
-                            window.history.back();
-                        }
-                    });
-                });
+                    // Initial price update
+                    const initialPriceBox = $('.product-info-main .product-info-price .price-box.price-final_price').first();
+                    if (initialPriceBox.length) {
+                        handlePriceUpdate(initialPriceBox[0]);
+                    }
+
+                } catch (error) {
+                    console.error('Amwal Promotion: Error initializing jQuery functionality', error);
+                }
             });
 
             // Cart page integration
             if (window.location.href.indexOf('checkout/cart') !== -1) {
                 require(['Magento_Checkout/js/model/quote'], function (quote) {
-                    function updateAmwalTotal(totals) {
-                        let price = parseFloat(totals.grand_total) + parseFloat(totals.tax_amount);
-                        updateAmwalPromotions(price, totals.quote_currency_code);
-                    }
+                    try {
+                        function updateAmwalTotal(totals) {
+                            if (totals && totals.grand_total) {
+                                let price = parseFloat(totals.grand_total);
+                                if (totals.tax_amount) {
+                                    price += parseFloat(totals.tax_amount);
+                                }
+                                updateAmwalPromotions(price, totals.quote_currency_code || 'USD');
+                            }
+                        }
 
-                    quote.getTotals().subscribe(updateAmwalTotal);
-                    updateAmwalPromotions(quote.totals().grand_total, quote.totals().quote_currency_code);
+                        const quoteTotals = quote.getTotals();
+                        if (quoteTotals && quoteTotals.subscribe) {
+                            quoteTotals.subscribe(updateAmwalTotal);
+                        }
+
+                        const currentTotals = quote.totals();
+                        if (currentTotals) {
+                            updateAmwalTotal(currentTotals);
+                        }
+                    } catch (error) {
+                        console.error('Amwal Promotion: Error in cart integration', error);
+                    }
                 });
             }
         })();
     </script>
 
+    <!-- Keep all the existing CSS styles -->
     <style>
         /* CSS Reset for Amwal Components */
         .amwal-reset,
