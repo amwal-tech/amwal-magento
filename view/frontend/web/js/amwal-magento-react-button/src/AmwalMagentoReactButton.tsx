@@ -70,7 +70,19 @@ const AmwalMagentoReactButton = ({
   }
 
   const isSentryEnabled = enableSentryTracking && isAmwalSentryEnabled()
-  
+
+  // Initialize Sentry once at component level
+  React.useEffect(() => {
+    if (enableSentryTracking && !isAmwalSentryEnabled()) {
+      initAmwalSentry({
+        dsn: "https://0352c5fdf6587d2cf2313bae5e3fa6fe@o4509389080690688.ingest.us.sentry.io/4509389509623808",
+        environment: 'production' // Will be updated when config is available
+      }).catch(() => {
+        // Silently handle initialization errors
+      })
+    }
+  }, [enableSentryTracking])
+
   const logError = React.useCallback((error: Error | string, context: string, additionalData?: Record<string, any>) => {
     // Always log to console
     console.error(`[Amwal ${context}]:`, error)
@@ -90,15 +102,15 @@ const AmwalMagentoReactButton = ({
 
   // Helper function to handle API responses and check for 500 errors
   const handleApiResponse = React.useCallback(async (
-    response: Response, 
-    context: string, 
+    response: Response,
+    context: string,
     additionalData?: Record<string, any>
   ): Promise<any> => {
     // Check for 5xx server errors and report to Sentry
     if (response.status >= 500 && response.status < 600) {
       const errorMessage = `Server Error ${response.status}: ${response.statusText}`
       const error = new Error(errorMessage)
-      
+
       logError(error, `${context} - Server Error`, {
         statusCode: response.status,
         statusText: response.statusText,
@@ -108,19 +120,16 @@ const AmwalMagentoReactButton = ({
     }
 
     const data = await response.json()
-    
+
     if (!response.ok) {
       throw new Error(data.message || data || response.statusText)
     }
-    
+
     return data
   }, [logError])
 
   const applyButtonConfig = (data: IAmwalButtonConfig): void => {
-    initAmwalSentry({
-        dsn: "https://0352c5fdf6587d2cf2313bae5e3fa6fe@o4509389080690688.ingest.us.sentry.io/4509389509623808",
-        environment: (data.test_environment && data.test_environment.trim()) ? 'development' : 'production'
-    })
+    // Remove initAmwalSentry call from here since it's now handled at component level
     setConfig(data)
     setAmount(data.amount)
     setDiscount(data.discount ?? 0)
@@ -385,7 +394,7 @@ const AmwalMagentoReactButton = ({
         // Handle 500 errors for clean-quote as well
         if (response.status >= 500 && response.status < 600) {
           logError(
-            new Error(`Server Error ${response.status}: ${response.statusText}`), 
+            new Error(`Server Error ${response.status}: ${response.statusText}`),
             'Clean Quote - Server Error',
             {
               statusCode: response.status,
@@ -668,3 +677,4 @@ const AmwalMagentoReactButton = ({
 }
 
 export default AmwalMagentoReactButton;
+
