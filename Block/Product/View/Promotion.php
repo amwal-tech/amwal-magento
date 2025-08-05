@@ -35,6 +35,11 @@ class Promotion extends View
     protected $checkoutSession;
 
     /**
+     * @var bool
+     */
+    protected $isOnShoppingCartPage = false;
+
+    /**
      * @param ProductContext $context
      * @param EncoderInterface $urlEncoder
      * @param JsonEncoderInterface $jsonEncoder
@@ -82,6 +87,27 @@ class Promotion extends View
     }
 
     /**
+     * Set flag to indicate this is on shopping cart page
+     *
+     * @return $this
+     */
+    public function setIsOnShoppingCartPage(): self
+    {
+        $this->isOnShoppingCartPage = true;
+        return $this;
+    }
+
+    /**
+     * Check if this is on shopping cart page
+     *
+     * @return bool
+     */
+    public function isOnShoppingCartPage(): bool
+    {
+        return $this->isOnShoppingCartPage;
+    }
+
+    /**
      * Check if promotions are active
      *
      * @return bool
@@ -89,11 +115,6 @@ class Promotion extends View
     public function isPromotionsActive(): bool
     {
         if ($this->config->getModuleType() === ModuleType::MODULE_TYPE_LITE) {
-            return false;
-        }
-
-        // Check if we have a valid product
-        if (!$this->getProduct() || !$this->getProduct()->getId()) {
             return false;
         }
 
@@ -109,6 +130,11 @@ class Promotion extends View
     public function getPrice(): float
     {
         try {
+            // If on cart page, get cart total instead of product price
+            if ($this->isOnShoppingCartPage()) {
+                return $this->getCartTotal();
+            }
+
             $product = $this->getProduct();
 
             if (!$product || !$product->getId()) {
@@ -122,6 +148,30 @@ class Promotion extends View
         } catch (\Exception $e) {
             // Log error if needed
             $this->_logger->error('Amwal Promotion: Error getting product price: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
+
+    /**
+     * Get cart total for shopping cart page
+     *
+     * @return float
+     */
+    protected function getCartTotal(): float
+    {
+        try {
+            $quote = $this->checkoutSession->getQuote();
+            
+            if (!$quote || !$quote->getId()) {
+                return 0.0;
+            }
+
+            // Get grand total including taxes, shipping, discounts
+            $grandTotal = $quote->getGrandTotal();
+            
+            return (float) $grandTotal;
+        } catch (\Exception $e) {
+            $this->_logger->error('Amwal Promotion: Error getting cart total: ' . $e->getMessage());
             return 0.0;
         }
     }

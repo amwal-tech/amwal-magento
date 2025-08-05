@@ -7,7 +7,7 @@
                    as="product_amwal_promotion"
                    ifconfig="payment/amwal_payments/product_promotions"
                    template="Amwal_Payments::product/promotion.phtml"
-                   cacheable="true"
+                   cacheable="false"
                    after="product.info.price" />
         </referenceContainer>
         <referenceBlock name="product.info.addtocart">
