@@ -32,6 +32,7 @@
                 <value id="amwal" type="host">*.amwal.tech</value>
                 <value id="unpkg" type="host">https://unpkg.com</value>
                 <value id="sentry-ingest" type="host">*.sentry.io</value>
+                <value id="sentry-ingest-us" type="host">*.ingest.us.sentry.io</value>
             </values>
         </policy>
         <policy id="style-src">
