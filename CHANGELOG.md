@@ -1,3 +1,23 @@
+# [1.0.42] (2025-08-0)
+### Features
+- [#478](https://github.com/amwal-tech/amwal-magento/pull/478) - [Amwal React button] Add Sentry error tracking
+- [#477](https://github.com/amwal-tech/amwal-magento/pull/477) - Support Multi currency system
+- [#472](https://github.com/amwal-tech/amwal-magento/pull/472) - Add setTags method to SentryExceptionReport for flexible tag config
+- [#471](https://github.com/amwal-tech/amwal-magento/pull/471) - Add order amount validation
+- [#470](https://github.com/amwal-tech/amwal-magento/pull/470) - Enable PreventEmailForNewOrder
+- [#468](https://github.com/amwal-tech/amwal-magento/pull/468) - Add Freshworks customer support widget
+### Bug Fixes
+- [#476](https://github.com/amwal-tech/amwal-magento/pull/476) - Add missing mage/validation dependency to checkout button
+- [#473](https://github.com/amwal-tech/amwal-magento/pull/473) - Enhance/add discount amount data validation check
+- [#466](https://github.com/amwal-tech/amwal-magento/pull/466) - Style bank logos in payment form
+- [#465](https://github.com/amwal-tech/amwal-magento/pull/465) - Refactor Amwal modal with theme isolation and browser history support
+- [#464](https://github.com/amwal-tech/amwal-magento/pull/464) - Check if the Element found in DOM or not
+- [#463](https://github.com/amwal-tech/amwal-magento/pull/463) - Remove AmwalMagentoInstallmentsTimeline
+- [#459](https://github.com/amwal-tech/amwal-magento/pull/459) - Set quote payment method using importData for flexibility
+- [#458](https://github.com/amwal-tech/amwal-magento/pull/458) - Promotion widget style enahncement
+- [#457](https://github.com/amwal-tech/amwal-magento/pull/457) - isRegularCheckoutActive method for improved readability
+- [#456](https://github.com/amwal-tech/amwal-magento/pull/456) - Only show the installments promotion with module type pro
+
 # [1.0.41] (2025-04-20)
 ### Features
 - [#443](https://github.com/amwal-tech/amwal-magento/pull/443) - Add Order Status Webhooks for Success and Failure Events
