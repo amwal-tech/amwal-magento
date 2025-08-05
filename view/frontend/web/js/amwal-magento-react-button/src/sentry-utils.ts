@@ -1,3 +1,7 @@
+// Global flag to track initialization state
+let amwalSentryInitialized = false;
+let amwalSentryInitializing = false;
+
 export interface AmwalSentryConfig {
     dsn: string;
     environment?: string;
@@ -34,10 +38,19 @@ const importSentry = async (): Promise<{ Sentry: any } | null> => {
  * Call this in your main app's index.tsx or App.tsx
  */
 export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> => {
-    // Guard Clause: Check if Sentry has already been initialized by this utility.
-    if (isAmwalSentryEnabled()) {
+    // Enhanced guard clause to prevent multiple initializations
+    if (amwalSentryInitialized || amwalSentryInitializing) {
+        console.log('[Amwal] Sentry already initialized or initializing, skipping...');
         return;
     }
+
+    // Additional check for existing Sentry initialization
+    if (isAmwalSentryEnabled()) {
+        amwalSentryInitialized = true;
+        return;
+    }
+
+    amwalSentryInitializing = true;
 
     try {
         // Import Sentry dynamically
@@ -170,15 +183,18 @@ export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> 
             }
         });
 
-        // Set global flag that Sentry is initialized for Amwal
+        // Set global flags that Sentry is initialized for Amwal
         if (typeof window !== 'undefined') {
             (window as any).AmwalSentryEnabled = true;
         }
+        amwalSentryInitialized = true;
 
         console.log('[Amwal] Sentry initialized successfully');
 
     } catch (error) {
         console.warn('[Amwal] Failed to initialize Sentry:', error);
+    } finally {
+        amwalSentryInitializing = false;
     }
 };
 
@@ -212,12 +228,12 @@ export const reportAmwalError = async (
 
         Sentry.withScope((scope: any) => {
             scope.setTag('amwal_context', context);
-            
+
             // Set transaction_id as a tag if it exists in additionalData
             if (additionalData?.transaction_id) {
                 scope.setTag('transaction_id', additionalData.transaction_id);
             }
-            
+
             scope.setContext('amwal_error_data', additionalData || {});
             scope.setLevel('error');
 
@@ -282,8 +298,8 @@ export const setAmwalUserContext = async (user: {
  * Start a performance transaction
  */
 export const startAmwalTransaction = async (
-    name: string, 
-    operation: string, 
+    name: string,
+    operation: string,
     additionalTags?: Record<string, any>
 ): Promise<any> => {
     try {
@@ -297,7 +313,7 @@ export const startAmwalTransaction = async (
         return Sentry.startTransaction({
             name: `Amwal: ${name}`,
             op: `amwal.${operation}`,
-            tags: { 
+            tags: {
                 component: 'amwal-payment',
                 ...additionalTags
             }
