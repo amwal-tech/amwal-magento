@@ -4,10 +4,13 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model;
 
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\CurrencyConverter;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Cron\Model\ResourceModel\Schedule\CollectionFactory as ScheduleCollectionFactory;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Store\Model\StoreManagerInterface;
 
 class Settings
 {
@@ -38,6 +41,23 @@ class Settings
     private ModuleListInterface $moduleList;
 
     /**
+     * Currency converter instance
+     *
+     * @var CurrencyConverter
+     */
+    private CurrencyConverter $currencyConverter;
+
+    /**
+     * @var CheckoutSession
+     */
+    private CheckoutSession $checkoutSession;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
+    /**
      * Constructor
      *
      * @param Config $config
@@ -45,19 +65,29 @@ class Settings
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ScheduleCollectionFactory $scheduleCollectionFactory
      * @param ModuleListInterface $moduleList
+     * @param CurrencyConverter $currencyConverter
+     * @param CheckoutSession $checkoutSession
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        Config $config,
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
+        Config                    $config,
+        OrderRepositoryInterface  $orderRepository,
+        SearchCriteriaBuilder     $searchCriteriaBuilder,
         ScheduleCollectionFactory $scheduleCollectionFactory,
-        ModuleListInterface $moduleList
-    ) {
+        ModuleListInterface       $moduleList,
+        CurrencyConverter         $currencyConverter,
+        CheckoutSession           $checkoutSession,
+        StoreManagerInterface     $storeManager
+    )
+    {
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->scheduleCollectionFactory = $scheduleCollectionFactory;
         $this->moduleList = $moduleList;
+        $this->currencyConverter = $currencyConverter;
+        $this->checkoutSession = $checkoutSession;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -157,5 +187,49 @@ class Settings
         return [
             'data' => $settings
         ];
+    }
+
+    /**
+     * Get currency settings for API endpoint (without parameters)
+     *
+     * @return array
+     */
+    public function getCurrencySettings(): array
+    {
+        try {
+            $quote = $this->getQuoteOrNull();
+            $hasQuote = $quote && $quote->getId();
+
+            $currentCurrency = $hasQuote
+                ? ($quote->getQuoteCurrencyCode() ?: $this->config->getDefaultCurrency())
+                : $this->storeManager->getStore()->getCurrentCurrencyCode();
+
+            $grandTotal = $hasQuote ? $quote->getGrandTotal() : 0;
+            $convertedAmount = $hasQuote ? $this->currencyConverter->convertToSAR(floatval($grandTotal), $quote) : 0;
+
+            return [
+                'data' => [
+                    'success' => true,
+                    'current_currency' => $currentCurrency,
+                    'amount' => $convertedAmount,
+                    'grand_total' => $grandTotal,
+                    'has_quote' => $hasQuote
+                ]
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => __('Error retrieving currency settings: %1', $e->getMessage())->render()
+            ];
+        }
+    }
+
+    private function getQuoteOrNull()
+    {
+        try {
+            return $this->checkoutSession->getQuote();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
