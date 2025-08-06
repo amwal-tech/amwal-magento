@@ -17,6 +17,7 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Source\ModuleType;
+use Amwal\Payments\Model\CurrencyConverter;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -33,6 +34,12 @@ class Promotion extends View
      * @var CheckoutSession
      */
     protected $checkoutSession;
+
+    /**
+     * Currency converter instance
+     *
+     * @var CurrencyConverter
+     */
 
     /**
      * @var bool
@@ -52,6 +59,7 @@ class Promotion extends View
      * @param PriceCurrencyInterface $priceCurrency
      * @param Config $config
      * @param CheckoutSession $checkoutSession
+     * @param CurrencyConverter $currencyConverter
      * @param array $data
      */
     public function __construct(
@@ -67,6 +75,7 @@ class Promotion extends View
         PriceCurrencyInterface $priceCurrency,
         Config $config,
         CheckoutSession $checkoutSession,
+        CurrencyConverter $currencyConverter,
         array $data = []
     ) {
         parent::__construct(
@@ -84,6 +93,7 @@ class Promotion extends View
         );
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
+        $this->currencyConverter = $currencyConverter;
     }
 
     /**
@@ -141,9 +151,12 @@ class Promotion extends View
                 return 0.0;
             }
 
+            // Get the quote object for currency conversion
+            $quote = $this->checkoutSession->getQuote();
+
             // Get the final price including all discounts and taxes
             $finalPrice = $product->getPriceInfo()->getPrice('final_price');
-            return (float) $finalPrice->getAmount()->getValue();
+            return $this->currencyConverter->convertToSAR($finalPrice->getAmount()->getValue(), $quote);
 
         } catch (\Exception $e) {
             // Log error if needed
@@ -183,7 +196,7 @@ class Promotion extends View
      */
     public function getInstallmentsCount(): int
     {
-        return 6;
+        return 12;
     }
 
     /**

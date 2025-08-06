@@ -9,7 +9,7 @@ use Magento\Framework\View\Element\Template;
 ?>
 
 <?php if ($block->isPromotionsActive()): ?>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/amwal-checkout-button@0.1.1/dist/checkout/checkout.esm.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/amwal-checkout-button@latest/dist/checkout/checkout.esm.js"></script>
     <script>
         (function() {
             // Define the widget configuration
@@ -48,7 +48,6 @@ use Magento\Framework\View\Element\Template;
         style="width: 200px;"
         show-social-proof="true"
         social-proof-text="⭐ Trusted by 50,000+ happy customers"
-        <?php endif; ?>
-        credit-card-interest-rate="0.025">
+        <?php endif; ?>>
     </amwal-widget>
 <?php endif; ?>
