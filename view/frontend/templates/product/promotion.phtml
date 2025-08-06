@@ -22,7 +22,7 @@ use Magento\Framework\View\Element\Template;
                     const widget = document.getElementById('amwal-widget');
                     if (widget) {
                         widget.config = widgetConfig;
-                        widget.locale = document.documentElement.lang || 'en'
+                        widget.locale = document.documentElement.lang || 'en';
                     }
                 } catch (error) {
                     console.error('Amwal Promotion: Error initializing widget', error);
