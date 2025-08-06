@@ -14,8 +14,7 @@ use Magento\Framework\View\Element\Template;
             const widgetConfig = {
                 installmentsCount: <?= (int) $block->getInstallmentsCount() ?>,
                 price: <?= (float) $block->getPrice() ?>,
-                currency: "SAR",
-                locale: document.documentElement.lang || 'en'
+                currency: "SAR"
             };
             // Initialize when DOM is ready
             require(['jquery'], function ($) {
@@ -23,6 +22,7 @@ use Magento\Framework\View\Element\Template;
                     const widget = document.getElementById('amwal-widget');
                     if (widget) {
                         widget.config = widgetConfig;
+                        widget.locale = document.documentElement.lang || 'en'
                     }
                 } catch (error) {
                     console.error('Amwal Promotion: Error initializing widget', error);
