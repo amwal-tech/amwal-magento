@@ -295,31 +295,53 @@ class PlaceOrder extends AmwalCheckoutAction
      */
     private function prepareQuoteForOrderCreation(Quote $quote, string $amwalOrderId): Quote
     {
+        // Always ensure the quote is converted to SAR for payment processing
         if (!$this->currencyConverter->needsConversionToSAR($quote)) {
+            $this->logDebug('Quote is already in SAR currency, no conversion needed');
             return $quote;
         }
 
-        $this->logDebug(sprintf('Quote is not in SAR currency, converting quote with ID %s to SAR', $quote->getId()));
+        $originalCurrency = $quote->getQuoteCurrencyCode();
+        $originalGrandTotal = $quote->getGrandTotal();
+
+        $this->logDebug(sprintf(
+            'Converting quote %s from %s %s to SAR for payment processing',
+            $quote->getId(),
+            $originalGrandTotal,
+            $originalCurrency
+        ));
 
         try {
-            $quote = $this->currencyConverter->convertQuoteToSAR($quote);
+            // Use the enhanced convertQuoteForPayment method
+            $quote = $this->currencyConverter->convertQuoteForPayment($quote);
+
+            // Force totals recalculation after conversion
+            $quote->setTotalsCollectedFlag(false);
+            $quote->collectTotals();
+
             $this->logDebug(sprintf(
-                'Quote converted to SAR - Grand Total: %s SAR, Subtotal: %s SAR, Rate: %s',
+                'Quote conversion completed: %s %s -> %s SAR (Rate: %s)',
+                $originalGrandTotal,
+                $originalCurrency,
                 $quote->getGrandTotal(),
-                $quote->getSubtotal(),
                 $quote->getBaseToQuoteRate()
             ));
 
+            // Save the converted quote
             $this->quoteRepository->save($quote);
+
+            // Reload quote to ensure fresh data
             $quote = $this->quoteRepository->get($quote->getId());
 
             $this->logDebug(sprintf(
-                'Quote reloaded after save - Grand Total: %s SAR, Subtotal: %s SAR',
+                'Quote reloaded after SAR conversion - Grand Total: %s SAR, Subtotal: %s SAR, Currency: %s',
                 $quote->getGrandTotal(),
-                $quote->getSubtotal()
+                $quote->getSubtotal(),
+                $quote->getQuoteCurrencyCode()
             ));
 
         } catch (Throwable $e) {
+            dd($e->getMessage());
             $this->logger->error(sprintf('Error converting quote to SAR: %s', $e->getMessage()));
             $this->reportError($amwalOrderId, 'Error converting quote to SAR: ' . $e->getMessage());
             $this->throwException(__('Unable to convert quote to SAR currency.'), $e, $amwalOrderId);
@@ -479,73 +501,62 @@ class PlaceOrder extends AmwalCheckoutAction
         $expectedGrandTotal = $convertedQuoteAmounts['grand_total'];
         $actualGrandTotal = $order->getGrandTotal();
 
+        // Use a tolerance of 0.01 for floating point comparison
         if (abs($expectedGrandTotal - $actualGrandTotal) <= 0.01) {
+            $this->logDebug(sprintf(
+                'Order amounts match (within tolerance): Expected %s, Got %s',
+                $expectedGrandTotal,
+                $actualGrandTotal
+            ));
             return;
         }
 
         $this->logger->warning(sprintf(
-            'Order amount mismatch! Expected: %s, Got: %s. Correcting order amounts...',
+            'Order amount mismatch! Expected: %s, Got: %s. Using exact quote amounts without calculations...',
             $expectedGrandTotal,
             $actualGrandTotal
         ));
 
-        $this->correctOrderTotals($order, $convertedQuoteAmounts);
-        $this->correctOrderItems($order, $convertedQuoteAmounts);
+        // Simply use the exact amounts from the converted quote - no calculations
+        $this->setExactOrderAmounts($order, $convertedQuoteAmounts);
 
         $this->logDebug(sprintf(
-            'Order amounts corrected - New Grand Total: %s SAR',
-            $order->getGrandTotal()
+            'Order amounts set to exact quote amounts - Grand Total: %s SAR (was %s SAR)',
+            $order->getGrandTotal(),
+            $actualGrandTotal
         ));
     }
 
     /**
-     * Correct order totals
+     * Set exact order amounts from quote without any calculations
      *
      * @param Order $order
      * @param array $convertedQuoteAmounts
      * @return void
      */
-    private function correctOrderTotals(Order $order, array $convertedQuoteAmounts): void
+    private function setExactOrderAmounts(Order $order, array $convertedQuoteAmounts): void
     {
+        // Use exact amounts from the properly converted quote - no calculations whatsoever
         $order->setGrandTotal($convertedQuoteAmounts['grand_total']);
         $order->setSubtotal($convertedQuoteAmounts['subtotal']);
         $order->setShippingAmount($convertedQuoteAmounts['shipping_amount']);
         $order->setTotalDue($convertedQuoteAmounts['grand_total']);
-    }
 
-    /**
-     * Correct order item amounts
-     *
-     * @param Order $order
-     * @param array $convertedQuoteAmounts
-     * @return void
-     */
-    private function correctOrderItems(Order $order, array $convertedQuoteAmounts): void
-    {
-        foreach ($order->getAllItems() as $orderItem) {
-            if ($orderItem->getParentItemId()) {
-                continue; // Skip child items
-            }
+        // Set base amounts exactly as they are from the quote
+        $order->setBaseGrandTotal($convertedQuoteAmounts['base_grand_total']);
+        $order->setBaseSubtotal($convertedQuoteAmounts['base_subtotal']);
+        $order->setBaseShippingAmount($convertedQuoteAmounts['base_shipping_amount']);
+        $order->setBaseTotalDue($convertedQuoteAmounts['base_grand_total']);
 
-            $expectedItemTotal = $orderItem->getBaseRowTotal() * $convertedQuoteAmounts['base_to_quote_rate'];
-            $expectedItemPrice = $orderItem->getBasePrice() * $convertedQuoteAmounts['base_to_quote_rate'];
+        // Set the exact exchange rate from the quote
+        $order->setBaseToOrderRate($convertedQuoteAmounts['base_to_quote_rate']);
 
-            if (abs($expectedItemTotal - $orderItem->getRowTotal()) > 0.01) {
-                $this->logDebug(sprintf(
-                    'Correcting item %s: Row Total %s -> %s, Price %s -> %s',
-                    $orderItem->getSku(),
-                    $orderItem->getRowTotal(),
-                    $expectedItemTotal,
-                    $orderItem->getPrice(),
-                    $expectedItemPrice
-                ));
-
-                $orderItem->setRowTotal($expectedItemTotal);
-                $orderItem->setRowTotalInclTax($expectedItemTotal);
-                $orderItem->setPrice($expectedItemPrice);
-                $orderItem->setPriceInclTax($expectedItemPrice);
-            }
-        }
+        $this->logDebug(sprintf(
+            'Order totals set exactly: Grand Total %s SAR, Base Grand Total %s USD, Rate %s',
+            $order->getGrandTotal(),
+            $order->getBaseGrandTotal(),
+            $order->getBaseToOrderRate()
+        ));
     }
 
     /**
