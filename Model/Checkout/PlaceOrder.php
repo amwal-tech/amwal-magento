@@ -8,9 +8,9 @@ use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
-use Amwal\Payments\Model\CurrencyConverter;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
+use Amwal\Payments\Model\CurrencyConverter;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use JsonException;
 use Magento\Customer\Api\Data\AddressInterface;
@@ -145,7 +145,7 @@ class PlaceOrder extends AmwalCheckoutAction
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
         if (!$amwalOrderData) {
             $this->logger->error(sprintf('Unable to retrieve Amwal Order Data for cart with ID "%s". Amwal Order id: %s', $cartId, $amwalOrderId));
-            $this->throwException(__('We were unable to retrieve your transaction data.'), null, $amwalOrderId);
+            $this->throwException(__('We were unable to retrieve your transaction data.'));
         }
 
         $this->logDebug(sprintf(
@@ -164,14 +164,19 @@ class PlaceOrder extends AmwalCheckoutAction
             );
             $this->logDebug($message);
             $this->reportError($amwalOrderId, $message);
-            $this->throwException(__('We were unable to verify your payment.'), null, $amwalOrderId);
+            $this->throwException(__('We were unable to verify your payment.'));
         }
+
         // Check if the cartId is a masked or a numeric, for logged in users the cartId is a numeric value.
         $quoteId = is_numeric($cartId) ? $cartId : $this->maskedQuoteIdToQuoteId->execute($cartId);
         $quote = $this->quoteRepository->get($quoteId);
+
+        // Force currency conversion to SAR before processing
+        $this->convertQuoteToSAR($quote, $amwalOrderId);
+
         $this->virtualItemSupport($quote);
         $quote->setData(self::IS_AMWAL_API_CALL, true);
-        $quote->getPayment()->importData(['method' => $paymentMethod ?? ConfigProvider::CODE]);
+        $quote->setPaymentMethod($paymentMethod ?? ConfigProvider::CODE);
 
         $customerAddress = null;
         if ($hasAmwalAddress) {
@@ -204,7 +209,7 @@ class PlaceOrder extends AmwalCheckoutAction
                 );
                 $this->reportError($amwalOrderId, $message);
                 $this->logger->error($message);
-                $this->throwException($message, $e, $amwalOrderId);
+                $this->throwException($message, $e);
             }
 
             $amwalClientEmail = $amwalOrderData->getClientEmail();
@@ -230,10 +235,12 @@ class PlaceOrder extends AmwalCheckoutAction
             $quote->setCustomerEmail($customerEmail);
             $this->quoteRepository->save($quote);
         }
+
         if (!$quote->getCouponCode() && $card_bin) {
             $this->logDebug(sprintf('Applying discount rule for card bin %s to quote with ID %s', $card_bin, $quote->getId()));
             $this->applyBinDiscountRule($quote, $card_bin);
         }
+
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
 
@@ -256,8 +263,73 @@ class PlaceOrder extends AmwalCheckoutAction
     }
 
     /**
-     * Create order from quote
+     * Convert quote currency to SAR for Amwal payment processing
      *
+     * @param Quote $quote
+     * @param string $amwalOrderId
+     * @return void
+     * @throws LocalizedException
+     */
+    private function convertQuoteToSAR(Quote $quote, string $amwalOrderId): void
+    {
+        try {
+            $originalCurrency = $quote->getQuoteCurrencyCode();
+
+            // Check if conversion is needed
+            if (!$this->currencyConverter->needsConversion($quote)) {
+                $this->logDebug(sprintf(
+                    'Quote %s is already in SAR, no conversion needed',
+                    $quote->getId()
+                ));
+                return;
+            }
+
+            $this->logDebug(sprintf(
+                'Converting quote %s from %s to SAR for Amwal order %s',
+                $quote->getId(),
+                $originalCurrency,
+                $amwalOrderId
+            ));
+
+            // Get original amounts for logging
+            $originalGrandTotal = $quote->getGrandTotal();
+
+            // Convert quote to SAR
+            $this->currencyConverter->convertQuoteToCurrency($quote);
+
+            // Refresh quote after conversion
+            $quote = $this->quoteRepository->get($quote->getId());
+
+            $this->logDebug(sprintf(
+                'Quote currency conversion completed: %s %s -> %s SAR (Quote ID: %s, Amwal Order: %s)',
+                $originalGrandTotal,
+                $originalCurrency,
+                $quote->getGrandTotal(),
+                $quote->getId(),
+                $amwalOrderId
+            ));
+
+            // Save the converted quote
+            $this->quoteRepository->save($quote);
+
+        } catch (\Exception $e) {
+            $errorMessage = sprintf(
+                'Failed to convert quote %s to SAR for Amwal order %s: %s',
+                $quote->getId(),
+                $amwalOrderId,
+                $e->getMessage()
+            );
+
+            $this->logger->error($errorMessage);
+            $this->reportError($amwalOrderId, $errorMessage);
+
+            throw new LocalizedException(
+                __('Currency conversion failed. Please try again or contact support.')
+            );
+        }
+    }
+
+    /**
      * @param Quote $quote
      * @param string $amwalOrderId
      * @param string $refId
@@ -268,177 +340,19 @@ class PlaceOrder extends AmwalCheckoutAction
     public function createOrder(Quote $quote, string $amwalOrderId, string $refId, string $triggerContext): OrderInterface
     {
         $this->logDebug(sprintf('Submitting quote with ID %s', $quote->getId()));
-
-        $quote = $this->prepareQuoteForOrderCreation($quote, $amwalOrderId);
-        $this->handleExistingOrder($amwalOrderId);
-        $this->applyQuoteOverrideIfEnabled($quote);
-
-        $convertedQuoteAmounts = $this->captureQuoteAmounts($quote);
-        $this->logQuoteAmountsBeforeOrderCreation($convertedQuoteAmounts);
-
-        $order = $this->submitQuoteAsOrder($quote, $triggerContext);
-        $this->validateOrderCreation($order, $quote, $amwalOrderId);
-        $this->logOrderAmountsAfterCreation($order);
-        $this->correctOrderAmountsIfNeeded($order, $convertedQuoteAmounts);
-        $this->updateOrderDetails($order, $amwalOrderId, $triggerContext, $refId, $quote);
-
-        return $order;
-    }
-
-    /**
-     * Prepare quote for order creation including currency conversion
-     *
-     * @param Quote $quote
-     * @param string $amwalOrderId
-     * @return Quote
-     * @throws LocalizedException
-     */
-    private function prepareQuoteForOrderCreation(Quote $quote, string $amwalOrderId): Quote
-    {
-        // Always ensure the quote is converted to SAR for payment processing
-        if (!$this->currencyConverter->needsConversionToSAR($quote)) {
-            $this->logDebug('Quote is already in SAR currency, no conversion needed');
-            return $quote;
-        }
-
-        $originalCurrency = $quote->getQuoteCurrencyCode();
-        $originalGrandTotal = $quote->getGrandTotal();
-
-        $this->logDebug(sprintf(
-            'Converting quote %s from %s %s to SAR for payment processing',
-            $quote->getId(),
-            $originalGrandTotal,
-            $originalCurrency
-        ));
-
-        try {
-            // Use the enhanced convertQuoteForPayment method
-            $quote = $this->currencyConverter->convertQuoteForPayment($quote);
-
-            // Force totals recalculation after conversion
-            $quote->setTotalsCollectedFlag(false);
-            $quote->collectTotals();
-
-            $this->logDebug(sprintf(
-                'Quote conversion completed: %s %s -> %s SAR (Rate: %s)',
-                $originalGrandTotal,
-                $originalCurrency,
-                $quote->getGrandTotal(),
-                $quote->getBaseToQuoteRate()
-            ));
-
-            // Save the converted quote
-            $this->quoteRepository->save($quote);
-
-            // Reload quote to ensure fresh data
-            $quote = $this->quoteRepository->get($quote->getId());
-
-            $this->logDebug(sprintf(
-                'Quote reloaded after SAR conversion - Grand Total: %s SAR, Subtotal: %s SAR, Currency: %s',
-                $quote->getGrandTotal(),
-                $quote->getSubtotal(),
-                $quote->getQuoteCurrencyCode()
-            ));
-
-        } catch (Throwable $e) {
-            dd($e->getMessage());
-            $this->logger->error(sprintf('Error converting quote to SAR: %s', $e->getMessage()));
-            $this->reportError($amwalOrderId, 'Error converting quote to SAR: ' . $e->getMessage());
-            $this->throwException(__('Unable to convert quote to SAR currency.'), $e, $amwalOrderId);
-        }
-
-        return $quote;
-    }
-
-    /**
-     * Handle existing order cancellation if needed
-     *
-     * @param string $amwalOrderId
-     * @return void
-     * @throws LocalizedException
-     */
-    private function handleExistingOrder(string $amwalOrderId): void
-    {
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
-        if (!$order) {
-            return;
+
+        if ($order) {
+            if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
+                $this->throwException(__('Found an existing order with same transaction Id with non pending payment state'));
+            }
+            $this->logDebug(
+                sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId())
+            );
+            $order->cancel();
+            $order->setIsAmwalOrderCanceled(true);
+            $this->orderRepository->save($order);
         }
-
-        if ($order->getState() !== Order::STATE_PENDING_PAYMENT) {
-            $this->throwException(__('Found an existing order with same transaction Id with non pending payment state'), null, $amwalOrderId);
-        }
-
-        $this->logDebug(sprintf('Existing order with ID %s found. Canceling order and re-submitting quote.', $order->getEntityId()));
-        $order->cancel();
-        $order->setIsAmwalOrderCanceled(true);
-        $this->orderRepository->save($order);
-    }
-
-    /**
-     * Apply quote override configuration if enabled
-     *
-     * @param Quote $quote
-     * @return void
-     */
-    private function applyQuoteOverrideIfEnabled(Quote $quote): void
-    {
-        if (!$this->config->isQuoteOverrideEnabled()) {
-            return;
-        }
-
-        $quote->setStoreId($this->storeManager->getStore()->getId());
-        $quote->setStoreCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
-        $quote->setBaseCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
-        $quote->setQuoteCurrencyCode($this->storeManager->getStore()->getBaseCurrencyCode());
-        $quote->setTotalsCollectedFlag(false);
-        $quote->collectTotals();
-        $this->quoteRepository->save($quote);
-    }
-
-    /**
-     * Capture quote amounts for comparison after order creation
-     *
-     * @param Quote $quote
-     * @return array
-     */
-    private function captureQuoteAmounts(Quote $quote): array
-    {
-        return [
-            'grand_total' => $quote->getGrandTotal(),
-            'subtotal' => $quote->getSubtotal(),
-            'shipping_amount' => $quote->getShippingAddress()->getShippingAmount(),
-            'base_grand_total' => $quote->getBaseGrandTotal(),
-            'base_subtotal' => $quote->getBaseSubtotal(),
-            'base_shipping_amount' => $quote->getShippingAddress()->getBaseShippingAmount(),
-            'currency' => $quote->getQuoteCurrencyCode(),
-            'base_to_quote_rate' => $quote->getBaseToQuoteRate()
-        ];
-    }
-
-    /**
-     * Log quote amounts before order creation
-     *
-     * @param array $amounts
-     * @return void
-     */
-    private function logQuoteAmountsBeforeOrderCreation(array $amounts): void
-    {
-        $this->logDebug(sprintf(
-            'Quote amounts before order creation: %s',
-            json_encode($amounts)
-        ));
-    }
-
-    /**
-     * Submit quote as order
-     *
-     * @param Quote $quote
-     * @param string $triggerContext
-     * @return OrderInterface
-     * @throws LocalizedException
-     */
-    private function submitQuoteAsOrder(Quote $quote, string $triggerContext): OrderInterface
-    {
         if ($this->config->isRegularCheckoutRedirect() && $triggerContext === ExpressCheckoutButton::TRIGGER_CONTEXT_REGULAR_CHECKOUT) {
             $orderId = $this->getOrderByQuoteId($quote->getId())->getEntityId();
         } else {
@@ -448,115 +362,16 @@ class PlaceOrder extends AmwalCheckoutAction
         $order = $this->orderRepository->get($orderId);
         $this->logDebug(sprintf('Quote with ID %s has been submitted as order with ID %s', $quote->getId(), $orderId));
 
-        return $order;
-    }
-
-    /**
-     * Validate that order was created successfully
-     *
-     * @param OrderInterface|null $order
-     * @param Quote $quote
-     * @param string $amwalOrderId
-     * @return void
-     * @throws LocalizedException
-     */
-    private function validateOrderCreation(?OrderInterface $order, Quote $quote, string $amwalOrderId): void
-    {
         if (!$order || !$order->getEntityId()) {
-            $message = sprintf('Unable to create an order from quote with ID "%s"', $quote->getId());
+            $message = sprintf( 'Unable to create an order from quote with ID "%s"', $quote->getId());
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
-            $this->throwException($message, null, $amwalOrderId);
-        }
-    }
-
-    /**
-     * Log order amounts immediately after creation
-     *
-     * @param OrderInterface $order
-     * @return void
-     */
-    private function logOrderAmountsAfterCreation(OrderInterface $order): void
-    {
-        $this->logDebug(sprintf(
-            'Order created with amounts - Grand Total: %s %s, Subtotal: %s, Shipping: %s, Base Grand Total: %s USD, Rate: %s',
-            $order->getGrandTotal(),
-            $order->getOrderCurrencyCode(),
-            $order->getSubtotal(),
-            $order->getShippingAmount(),
-            $order->getBaseGrandTotal(),
-            $order->getBaseToOrderRate()
-        ));
-    }
-
-    /**
-     * Correct order amounts if they don't match quote amounts
-     *
-     * @param Order $order
-     * @param array $convertedQuoteAmounts
-     * @return void
-     */
-    private function correctOrderAmountsIfNeeded(Order $order, array $convertedQuoteAmounts): void
-    {
-        $expectedGrandTotal = $convertedQuoteAmounts['grand_total'];
-        $actualGrandTotal = $order->getGrandTotal();
-
-        // Use a tolerance of 0.01 for floating point comparison
-        if (abs($expectedGrandTotal - $actualGrandTotal) <= 0.01) {
-            $this->logDebug(sprintf(
-                'Order amounts match (within tolerance): Expected %s, Got %s',
-                $expectedGrandTotal,
-                $actualGrandTotal
-            ));
-            return;
+            $this->throwException();
         }
 
-        $this->logger->warning(sprintf(
-            'Order amount mismatch! Expected: %s, Got: %s. Using exact quote amounts without calculations...',
-            $expectedGrandTotal,
-            $actualGrandTotal
-        ));
+        $this->updateOrderDetails($order, $amwalOrderId, $triggerContext, $refId, $quote);
 
-        // Simply use the exact amounts from the converted quote - no calculations
-        $this->setExactOrderAmounts($order, $convertedQuoteAmounts);
-
-        $this->logDebug(sprintf(
-            'Order amounts set to exact quote amounts - Grand Total: %s SAR (was %s SAR)',
-            $order->getGrandTotal(),
-            $actualGrandTotal
-        ));
-    }
-
-    /**
-     * Set exact order amounts from quote without any calculations
-     *
-     * @param Order $order
-     * @param array $convertedQuoteAmounts
-     * @return void
-     */
-    private function setExactOrderAmounts(Order $order, array $convertedQuoteAmounts): void
-    {
-        // Use exact amounts from the properly converted quote - no calculations whatsoever
-        $order->setGrandTotal($convertedQuoteAmounts['grand_total']);
-        $order->setSubtotal($convertedQuoteAmounts['subtotal']);
-        $order->setShippingAmount($convertedQuoteAmounts['shipping_amount']);
-        $order->setTotalDue($convertedQuoteAmounts['grand_total']);
-
-        // Set base amounts exactly as they are from the quote
-        $order->setBaseGrandTotal($convertedQuoteAmounts['base_grand_total']);
-        $order->setBaseSubtotal($convertedQuoteAmounts['base_subtotal']);
-        $order->setBaseShippingAmount($convertedQuoteAmounts['base_shipping_amount']);
-        $order->setBaseTotalDue($convertedQuoteAmounts['base_grand_total']);
-
-        // Set the exact exchange rate from the quote
-        $order->setBaseToOrderRate($convertedQuoteAmounts['base_to_quote_rate']);
-
-        $this->logDebug(sprintf(
-            'Order totals set exactly: Grand Total %s SAR, Base Grand Total %s USD, Rate %s',
-            $order->getGrandTotal(),
-            $order->getBaseGrandTotal(),
-            $order->getBaseToOrderRate()
-        ));
+        return $order;
     }
 
     /**
@@ -570,14 +385,12 @@ class PlaceOrder extends AmwalCheckoutAction
     /**
      * @param Phrase|string|null $message
      * @param Throwable|null $originalException
-     * @param string|null $amwalOrderId
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, Throwable $originalException = null, string $amwalOrderId = null): void
+    private function throwException($message = null, Throwable $originalException = null): void
     {
         if ($originalException) {
-            $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);
             $this->sentryExceptionReport->report($originalException);
         }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
@@ -738,13 +551,6 @@ class PlaceOrder extends AmwalCheckoutAction
 
         if ($quote->getCouponCode() && $quote->getIsAmwalBinDiscount()) {
             $order->getExtensionAttributes()->setAmwalCardBinAdditionalDiscount($quote->getAmwalAdditionalDiscountAmount());
-        }
-        if ($this->config->isQuoteOverrideEnabled()) {
-            $order->setStoreId($this->storeManager->getStore()->getId());
-            $order->setSubtotal($order->getBaseSubtotal());
-            $order->setGrandTotal($order->getBaseGrandTotal());
-            $order->setTotalDue($order->getBaseTotalDue());
-            $order->setTotalPaid($order->getBaseTotalPaid());
         }
     }
 }
