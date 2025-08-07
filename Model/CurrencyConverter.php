@@ -13,33 +13,13 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Currency Converter for Amwal Payments
- * Handles all currency conversions for payment processing
+ * Handles all currency conversions for payment processing, primarily to SAR
  */
 class CurrencyConverter
 {
     private const DEFAULT_TARGET_CURRENCY = 'SAR';
     private const ROUNDING_PRECISION = 2;
     private const COMPARISON_TOLERANCE = 0.01; // 1 cent tolerance for float comparison
-
-    // Supported currencies for Amwal Payments
-    private const SUPPORTED_CURRENCIES = [
-        'SAR', 'AED', 'USD', 'EUR', 'GBP', 'KWD', 'BHD', 'OMR', 'QAR', 'EGP', 'JOD'
-    ];
-
-    // Fallback exchange rates (SAR as base) for when rates are not configured
-    private const FALLBACK_RATES = [
-        'SAR' => 1.0,
-        'AED' => 0.98,  // 1 AED = 1.02 SAR approximately
-        'USD' => 3.75,  // 1 USD = 3.75 SAR approximately
-        'EUR' => 4.1,   // 1 EUR = 4.1 SAR approximately
-        'GBP' => 4.8,   // 1 GBP = 4.8 SAR approximately
-        'KWD' => 12.3,  // 1 KWD = 12.3 SAR approximately
-        'BHD' => 9.96,  // 1 BHD = 9.96 SAR approximately
-        'OMR' => 9.74,  // 1 OMR = 9.74 SAR approximately
-        'QAR' => 1.03,  // 1 QAR = 1.03 SAR approximately
-        'EGP' => 0.12,  // 1 EGP = 0.12 SAR approximately
-        'JOD' => 5.29   // 1 JOD = 5.29 SAR approximately
-    ];
 
     public function __construct(
         private StoreManagerInterface $storeManager,
@@ -49,50 +29,11 @@ class CurrencyConverter
     ) {}
 
     /**
-     * Check if currency is supported by Amwal
-     *
-     * @param string $currency
-     * @return bool
-     */
-    public function isCurrencySupported(string $currency): bool
-    {
-        return in_array(strtoupper($currency), self::SUPPORTED_CURRENCIES);
-    }
-
-    /**
-     * Get the best target currency for payment processing
-     * Prefers to keep original currency if supported, otherwise converts to SAR
-     *
-     * @param Quote $quote
-     * @return string
-     */
-    public function getPaymentCurrency(Quote $quote): string
-    {
-        $quoteCurrency = $quote->getQuoteCurrencyCode();
-
-        // If quote currency is supported, use it directly
-        if ($this->isCurrencySupported($quoteCurrency)) {
-            $this->logger->debug(sprintf(
-                'Using original quote currency %s for payment',
-                $quoteCurrency
-            ));
-            return $quoteCurrency;
-        }
-
-        // Otherwise, default to SAR
-        $this->logger->debug(sprintf(
-            'Quote currency %s not supported, using SAR for payment',
-            $quoteCurrency
-        ));
-        return self::DEFAULT_TARGET_CURRENCY;
-    }
-
-    /**
      * Convert amount between currencies
      *
      * @param float $amount Amount to convert
      * @param Quote $quote Quote object for context
-     * @param string|null $targetCurrency Target currency code (null = auto-detect best currency)
+     * @param string $targetCurrency Target currency code
      * @return float Converted amount
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -100,19 +41,14 @@ class CurrencyConverter
     public function convertAmount(
         float $amount,
         Quote $quote,
-        ?string $targetCurrency = null
+        string $targetCurrency = self::DEFAULT_TARGET_CURRENCY
     ): float {
-        // Auto-detect best currency if not specified
-        if ($targetCurrency === null) {
-            $targetCurrency = $this->getPaymentCurrency($quote);
-        }
-
         $store = $this->storeManager->getStore($quote->getStoreId());
         $currentCurrency = $quote->getQuoteCurrencyCode() ?: $store->getCurrentCurrencyCode();
 
         // No conversion needed if currencies match
         if ($currentCurrency === $targetCurrency) {
-            return round($amount, self::ROUNDING_PRECISION);
+            return $amount;
         }
 
         // Handle zero amounts without conversion
@@ -124,21 +60,9 @@ class CurrencyConverter
             $rate = $this->getExchangeRate($currentCurrency, $targetCurrency, $store->getId());
 
             if (!$rate || $rate <= 0) {
-                // Try fallback rates
-                $rate = $this->getFallbackRate($currentCurrency, $targetCurrency);
-
-                if (!$rate || $rate <= 0) {
-                    throw new LocalizedException(
-                        __('No valid exchange rate from %1 to %2', $currentCurrency, $targetCurrency)
-                    );
-                }
-
-                $this->logger->warning(sprintf(
-                    'Using fallback exchange rate for %s to %s: %s',
-                    $currentCurrency,
-                    $targetCurrency,
-                    $rate
-                ));
+                throw new LocalizedException(
+                    __('No valid exchange rate from %1 to %2', $currentCurrency, $targetCurrency)
+                );
             }
 
             $convertedAmount = $amount * $rate;
@@ -165,44 +89,6 @@ class CurrencyConverter
                 __('Could not convert amount from %1 to %2: %3', $currentCurrency, $targetCurrency, $e->getMessage())
             );
         }
-    }
-
-    /**
-     * Get fallback exchange rate when Magento rates are not configured
-     *
-     * @param string $fromCurrency
-     * @param string $toCurrency
-     * @return float
-     */
-    private function getFallbackRate(string $fromCurrency, string $toCurrency): float
-    {
-        $fromCurrency = strtoupper($fromCurrency);
-        $toCurrency = strtoupper($toCurrency);
-
-        if ($fromCurrency === $toCurrency) {
-            return 1.0;
-        }
-
-        // Convert both to SAR first if not already
-        $fromRate = self::FALLBACK_RATES[$fromCurrency] ?? 0;
-        $toRate = self::FALLBACK_RATES[$toCurrency] ?? 0;
-
-        if ($fromRate <= 0 || $toRate <= 0) {
-            return 0;
-        }
-
-        // If converting to SAR
-        if ($toCurrency === 'SAR') {
-            return $fromRate;
-        }
-
-        // If converting from SAR
-        if ($fromCurrency === 'SAR') {
-            return 1 / $toRate;
-        }
-
-        // Cross-conversion through SAR
-        return $fromRate / $toRate;
     }
 
     /**
@@ -253,103 +139,89 @@ class CurrencyConverter
     }
 
     /**
-     * Get quote amounts in payment currency for processing
-     * Keeps original currency if supported, otherwise converts to SAR
+     * Get quote amounts in SAR for payment processing WITHOUT modifying the quote
      *
      * @param Quote $quote
-     * @param string|null $targetCurrency Override target currency (null = auto-detect)
-     * @return array Array with amounts and metadata
+     * @return array Array with converted amounts and metadata
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getQuoteAmountsForPayment(Quote $quote, ?string $targetCurrency = null): array
+    public function getQuoteAmountsInSAR(Quote $quote): array
     {
         $currentCurrency = $quote->getQuoteCurrencyCode();
         $shippingAddress = $quote->getShippingAddress();
 
-        // Auto-detect best payment currency if not specified
-        if ($targetCurrency === null) {
-            $targetCurrency = $this->getPaymentCurrency($quote);
-        }
-
-        // If already in target currency, return as-is
-        if ($currentCurrency === $targetCurrency) {
+        // If already in SAR, return as-is
+        if ($currentCurrency === self::DEFAULT_TARGET_CURRENCY) {
             return [
                 'grand_total' => round((float) $quote->getGrandTotal(), self::ROUNDING_PRECISION),
                 'subtotal' => round((float) $quote->getSubtotal(), self::ROUNDING_PRECISION),
                 'shipping_amount' => round((float) ($shippingAddress->getShippingAmount() ?? 0), self::ROUNDING_PRECISION),
                 'tax_amount' => round((float) ($shippingAddress->getTaxAmount() ?? 0), self::ROUNDING_PRECISION),
                 'discount_amount' => round((float) abs($shippingAddress->getDiscountAmount() ?? 0), self::ROUNDING_PRECISION),
-                'currency' => $targetCurrency,
+                'currency' => self::DEFAULT_TARGET_CURRENCY,
                 'original_currency' => $currentCurrency,
                 'original_amount' => round((float) $quote->getGrandTotal(), self::ROUNDING_PRECISION),
-                'exchange_rate' => 1.0,
-                'currency_supported' => true
+                'exchange_rate' => 1.0
             ];
         }
 
         try {
             // Convert amounts WITHOUT modifying the quote
-            $grandTotalConverted = $this->convertAmount($quote->getGrandTotal(), $quote, $targetCurrency);
+            $grandTotalSAR = $this->convertAmount($quote->getGrandTotal(), $quote, self::DEFAULT_TARGET_CURRENCY);
 
             return [
-                'grand_total' => $grandTotalConverted,
-                'subtotal' => $this->convertAmount($quote->getSubtotal(), $quote, $targetCurrency),
+                'grand_total' => $grandTotalSAR,
+                'subtotal' => $this->convertAmount($quote->getSubtotal(), $quote, self::DEFAULT_TARGET_CURRENCY),
                 'shipping_amount' => $this->convertAmount(
                     $shippingAddress->getShippingAmount() ?? 0,
                     $quote,
-                    $targetCurrency
+                    self::DEFAULT_TARGET_CURRENCY
                 ),
                 'tax_amount' => $this->convertAmount(
                     $shippingAddress->getTaxAmount() ?? 0,
                     $quote,
-                    $targetCurrency
+                    self::DEFAULT_TARGET_CURRENCY
                 ),
                 'discount_amount' => $this->convertAmount(
                     abs($shippingAddress->getDiscountAmount() ?? 0),
                     $quote,
-                    $targetCurrency
+                    self::DEFAULT_TARGET_CURRENCY
                 ),
-                'currency' => $targetCurrency,
+                'currency' => self::DEFAULT_TARGET_CURRENCY,
                 'original_currency' => $currentCurrency,
                 'original_amount' => round((float) $quote->getGrandTotal(), self::ROUNDING_PRECISION),
                 'exchange_rate' => $quote->getGrandTotal() > 0
-                    ? round($grandTotalConverted / $quote->getGrandTotal(), 4)
-                    : 1.0,
-                'currency_supported' => $this->isCurrencySupported($currentCurrency)
+                    ? round($grandTotalSAR / $quote->getGrandTotal(), 4)
+                    : 1.0
             ];
 
         } catch (\Exception $e) {
             $this->logger->error(sprintf(
-                'Failed to get payment amounts for quote %s: %s',
+                'Failed to get SAR amounts for quote %s: %s',
                 $quote->getId(),
                 $e->getMessage()
             ));
             throw new LocalizedException(
-                __('Could not convert quote amounts to %1: %2', $targetCurrency, $e->getMessage())
+                __('Could not convert quote amounts to SAR: %1', $e->getMessage())
             );
         }
     }
 
     /**
      * Convert quote to specified target currency
-     * WARNING: This modifies the quote permanently - use getQuoteAmountsForPayment for payment processing
+     * WARNING: This modifies the quote permanently - use getQuoteAmountsInSAR for payment processing
      *
      * @param Quote $quote
-     * @param string|null $targetCurrency
+     * @param string $targetCurrency
      * @return Quote Modified quote
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function convertQuoteToCurrency(
         Quote $quote,
-        ?string $targetCurrency = null
+        string $targetCurrency = self::DEFAULT_TARGET_CURRENCY
     ): Quote {
-        // Auto-detect if not specified
-        if ($targetCurrency === null) {
-            $targetCurrency = $this->getPaymentCurrency($quote);
-        }
-
         if ($quote->getQuoteCurrencyCode() === $targetCurrency) {
             return $quote;
         }
@@ -375,6 +247,83 @@ class CurrencyConverter
             ->collectTotals();
 
         return $quote;
+    }
+
+    /**
+     * Check if quote needs conversion to target currency
+     *
+     * @param Quote $quote
+     * @param string $targetCurrency
+     * @return bool
+     */
+    public function needsConversion(Quote $quote, string $targetCurrency = self::DEFAULT_TARGET_CURRENCY): bool
+    {
+        return $quote->getQuoteCurrencyCode() !== $targetCurrency;
+    }
+
+    /**
+     * Detect the best target currency for the quote based on store configuration
+     *
+     * @param Quote $quote
+     * @return string Currency code
+     * @throws NoSuchEntityException
+     */
+    public function detectTargetCurrency(Quote $quote): string
+    {
+        try {
+            $store = $this->storeManager->getStore($quote->getStoreId());
+            $availableCurrencies = $store->getAvailableCurrencyCodes();
+
+            // Priority: Current store currency > Base currency > SAR
+            $currentCurrency = $store->getCurrentCurrencyCode();
+            if ($currentCurrency && in_array($currentCurrency, $availableCurrencies)) {
+                return $currentCurrency;
+            }
+
+            $baseCurrency = $store->getBaseCurrencyCode();
+            if ($baseCurrency && in_array($baseCurrency, $availableCurrencies)) {
+                return $baseCurrency;
+            }
+
+        } catch (\Exception $e) {
+            $this->logger->warning('Currency detection failed: ' . $e->getMessage());
+        }
+
+        return self::DEFAULT_TARGET_CURRENCY;
+    }
+
+    /**
+     * Get available currencies for a store
+     *
+     * @param string|int|null $storeId
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function getAvailableCurrencies(string|int|null $storeId = null): array
+    {
+        $store = $this->storeManager->getStore($storeId);
+        return $store->getAvailableCurrencyCodes();
+    }
+
+    /**
+     * Get amount in original currency for validation (no conversion)
+     *
+     * @param Quote $quote
+     * @return array
+     */
+    public function getOriginalQuoteAmount(Quote $quote): array
+    {
+        $shippingAddress = $quote->getShippingAddress();
+
+        return [
+            'grand_total' => round((float) $quote->getGrandTotal(), self::ROUNDING_PRECISION),
+            'subtotal' => round((float) $quote->getSubtotal(), self::ROUNDING_PRECISION),
+            'shipping_amount' => round((float) ($shippingAddress->getShippingAmount() ?? 0), self::ROUNDING_PRECISION),
+            'tax_amount' => round((float) ($shippingAddress->getTaxAmount() ?? 0), self::ROUNDING_PRECISION),
+            'discount_amount' => round((float) abs($shippingAddress->getDiscountAmount() ?? 0), self::ROUNDING_PRECISION),
+            'currency' => $quote->getQuoteCurrencyCode(),
+            'is_original' => true
+        ];
     }
 
     /**
@@ -410,72 +359,9 @@ class CurrencyConverter
         }
     }
 
-    /**
-     * Check if quote needs conversion to target currency
-     *
-     * @param Quote $quote
-     * @param string|null $targetCurrency
-     * @return bool
-     */
-    public function needsConversion(Quote $quote, ?string $targetCurrency = null): bool
-    {
-        if ($targetCurrency === null) {
-            $targetCurrency = $this->getPaymentCurrency($quote);
-        }
-        return $quote->getQuoteCurrencyCode() !== $targetCurrency;
-    }
-
-    /**
-     * Get available currencies for a store
-     *
-     * @param string|int|null $storeId
-     * @return array
-     * @throws NoSuchEntityException
-     */
-    public function getAvailableCurrencies(string|int|null $storeId = null): array
-    {
-        $store = $this->storeManager->getStore($storeId);
-        return $store->getAvailableCurrencyCodes();
-    }
-
-    /**
-     * Get amount in original currency for validation (no conversion)
-     *
-     * @param Quote $quote
-     * @return array
-     */
-    public function getOriginalQuoteAmount(Quote $quote): array
-    {
-        $shippingAddress = $quote->getShippingAddress();
-
-        return [
-            'grand_total' => round((float) $quote->getGrandTotal(), self::ROUNDING_PRECISION),
-            'subtotal' => round((float) $quote->getSubtotal(), self::ROUNDING_PRECISION),
-            'shipping_amount' => round((float) ($shippingAddress->getShippingAmount() ?? 0), self::ROUNDING_PRECISION),
-            'tax_amount' => round((float) ($shippingAddress->getTaxAmount() ?? 0), self::ROUNDING_PRECISION),
-            'discount_amount' => round((float) abs($shippingAddress->getDiscountAmount() ?? 0), self::ROUNDING_PRECISION),
-            'currency' => $quote->getQuoteCurrencyCode(),
-            'is_original' => true,
-            'is_supported' => $this->isCurrencySupported($quote->getQuoteCurrencyCode())
-        ];
-    }
-
     // ========== BACKWARD COMPATIBILITY METHODS ==========
     // These methods maintain compatibility with existing code
-
-    /**
-     * Get quote amounts in SAR for payment processing WITHOUT modifying the quote
-     * @deprecated Use getQuoteAmountsForPayment() for better multi-currency support
-     *
-     * @param Quote $quote
-     * @return array Array with converted amounts and metadata
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    public function getQuoteAmountsInSAR(Quote $quote): array
-    {
-        return $this->getQuoteAmountsForPayment($quote, self::DEFAULT_TARGET_CURRENCY);
-    }
+    // Consider them deprecated - use the main methods above
 
     /**
      * Convert to SAR (backward compatibility)
@@ -488,7 +374,7 @@ class CurrencyConverter
 
     /**
      * Convert quote to SAR permanently (backward compatibility - avoid using)
-     * @deprecated Use getQuoteAmountsForPayment() instead to avoid modifying the quote
+     * @deprecated Use getQuoteAmountsInSAR() instead to avoid modifying the quote
      */
     public function convertQuoteToSAR(Quote $quote): Quote
     {
@@ -497,30 +383,23 @@ class CurrencyConverter
 
     /**
      * Convert quote for payment processing (backward compatibility)
-     * WARNING: This modifies the quote - consider using getQuoteAmountsForPayment() instead
-     * @deprecated Use getQuoteAmountsForPayment() to avoid modifying the quote
+     * WARNING: This modifies the quote to SAR - consider using getQuoteAmountsInSAR() instead
+     * @deprecated Use getQuoteAmountsInSAR() to avoid modifying the quote
      */
     public function convertQuoteForPayment(Quote $quote): Quote
     {
-        $targetCurrency = $this->getPaymentCurrency($quote);
-
         $this->logger->debug(sprintf(
-            'Converting quote to %s for payment (from %s)',
-            $targetCurrency,
+            'Converting quote to SAR for payment (from %s)',
             $quote->getQuoteCurrencyCode()
         ));
 
-        // Only convert if needed
-        if ($this->needsConversion($quote, $targetCurrency)) {
-            return $this->convertQuoteToCurrency($quote, $targetCurrency);
-        }
-
-        return $quote;
+        // For backward compatibility, return the converted Quote object
+        return $this->convertQuoteToCurrency($quote, self::DEFAULT_TARGET_CURRENCY);
     }
 
     /**
      * Get payment amounts in SAR without modifying the quote
-     * @deprecated Use getQuoteAmountsForPayment() for better multi-currency support
+     * This is the recommended method for payment processing
      *
      * @param Quote $quote
      * @return array Array with SAR amounts and original currency info
@@ -540,41 +419,31 @@ class CurrencyConverter
     }
 
     /**
-     * Detect the best target currency for the quote based on store configuration
-     *
-     * @param Quote $quote
-     * @return string Currency code
-     * @throws NoSuchEntityException
+     * Get SAR currency code (backward compatibility)
+     * @deprecated Use the constant directly
      */
-    public function detectTargetCurrency(Quote $quote): string
+    public function getSARCurrencyCode(): string
     {
-        // First check if current currency is supported
-        $currentCurrency = $quote->getQuoteCurrencyCode();
-        if ($this->isCurrencySupported($currentCurrency)) {
-            return $currentCurrency;
-        }
-
-        try {
-            $store = $this->storeManager->getStore($quote->getStoreId());
-            $availableCurrencies = $store->getAvailableCurrencyCodes();
-
-            // Check store's current currency
-            $storeCurrency = $store->getCurrentCurrencyCode();
-            if ($storeCurrency && $this->isCurrencySupported($storeCurrency) && in_array($storeCurrency, $availableCurrencies)) {
-                return $storeCurrency;
-            }
-
-            // Check base currency
-            $baseCurrency = $store->getBaseCurrencyCode();
-            if ($baseCurrency && $this->isCurrencySupported($baseCurrency) && in_array($baseCurrency, $availableCurrencies)) {
-                return $baseCurrency;
-            }
-
-        } catch (\Exception $e) {
-            $this->logger->warning('Currency detection failed: ' . $e->getMessage());
-        }
-
-        // Default to SAR if no supported currency found
         return self::DEFAULT_TARGET_CURRENCY;
+    }
+
+    /**
+     * Convert quote for display purposes
+     * @deprecated Use convertQuoteToCurrency() with detected currency
+     */
+    public function convertQuoteForDisplay(Quote $quote, ?string $preferredCurrency = null): Quote
+    {
+        $targetCurrency = $preferredCurrency ?: $this->detectTargetCurrency($quote);
+        return $this->convertQuoteToCurrency($quote, $targetCurrency);
+    }
+
+    /**
+     * Convert quote to dynamically detected currency
+     * @deprecated Use convertQuoteToCurrency() with detectTargetCurrency()
+     */
+    public function convertQuoteToDynamicCurrency(Quote $quote): Quote
+    {
+        $targetCurrency = $this->detectTargetCurrency($quote);
+        return $this->convertQuoteToCurrency($quote, $targetCurrency);
     }
 }
