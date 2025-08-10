@@ -23,10 +23,10 @@ class CurrencyConverter
     private array $conversionRates = [];
 
     public function __construct(
-        private readonly StoreManagerInterface $storeManager,
-        private readonly PriceCurrencyInterface $priceCurrency,
-        private readonly CurrencyFactory $currencyFactory,
-        private readonly LoggerInterface $logger
+        StoreManagerInterface $storeManager,
+        PriceCurrencyInterface $priceCurrency,
+        CurrencyFactory $currencyFactory,
+        LoggerInterface $logger
     ) {}
 
     /**

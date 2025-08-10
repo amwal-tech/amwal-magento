@@ -467,12 +467,6 @@ class GetQuote extends AmwalCheckoutAction
      */
     public function getResponseData(CartInterface $quote, array $availableRates): array
     {
-        $useBaseCurrency = $this->config->shouldUseBaseCurrency();
-        $shippingAddress = $quote->getShippingAddress();
-        $taxAmount = $useBaseCurrency ? $shippingAddress->getBaseTaxAmount() : $shippingAddress->getTaxAmount();
-        $shippingAmount = $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax();
-        $discountAmount = $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount());
-
         $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
         $totals = $this->currencyConverter->getMainAmountsInSAR($quote);
         return [
