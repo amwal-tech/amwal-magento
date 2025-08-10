@@ -22,13 +22,23 @@ class CurrencyConverter
      */
     private array $conversionRates = [];
 
+    private StoreManagerInterface $storeManager;
+    private PriceCurrencyInterface $priceCurrency;
+    private CurrencyFactory $currencyFactory;
+    private LoggerInterface $logger;
+
     public function __construct(
         StoreManagerInterface $storeManager,
         PriceCurrencyInterface $priceCurrency,
         CurrencyFactory $currencyFactory,
         LoggerInterface $logger
-    ) {}
-
+    ) {
+        $this->storeManager = $storeManager;
+        $this->priceCurrency = $priceCurrency;
+        $this->currencyFactory = $currencyFactory;
+        $this->logger = $logger;
+    }
+    
     /**
      * Convert the given amount to the target currency.
      *
