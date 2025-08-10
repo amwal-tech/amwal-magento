@@ -436,7 +436,7 @@ class GetQuote extends AmwalCheckoutAction
                 $convertedPrice = $this->currencyConverter->convertToSAR($priceInclTax, $quote);
                 $availableRates[$id] = [
                     'carrier_title' => $rate->getMethodTitle() ?? $id,
-                    'price' => number_format($convertedPrice, 2)
+                    'price' => $convertedPrice
                 ];
             }else{
                 $this->logger->warning(sprintf(
@@ -474,14 +474,15 @@ class GetQuote extends AmwalCheckoutAction
         $discountAmount = $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount());
 
         $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
+        $totals = $this->currencyConverter->getMainAmountsInSAR($quote);
         return [
             'cart_id' => $cartId,
             'available_rates' => $availableRates,
-            'amount' => $this->currencyConverter->convertToSAR($this->getAmount($quote, $useBaseCurrency), $quote),
-            'subtotal' => $this->currencyConverter->convertToSAR($this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency), $quote),
-            'tax_amount' => $this->currencyConverter->convertToSAR($taxAmount, $quote),
-            'shipping_amount' => $this->currencyConverter->convertToSAR($shippingAmount, $quote),
-            'discount_amount' => $this->currencyConverter->convertToSAR($discountAmount, $quote),
+            'amount' => $totals['grand_total'],
+            'subtotal' => $totals['subtotal'],
+            'tax_amount' => $totals['tax_amount'],
+            'shipping_amount' => $totals['shipping_amount'],
+            'discount_amount' => $totals['discount_amount'],
             'additional_fee_amount' => $this->currencyConverter->convertToSAR($this->getAdditionalFeeAmount($quote), $quote),
             'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
         ];
