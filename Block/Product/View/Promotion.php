@@ -92,11 +92,6 @@ class Promotion extends View
             return false;
         }
 
-        // Check if we have a valid product
-        if (!$this->getProduct() || !$this->getProduct()->getId()) {
-            return false;
-        }
-
         return $this->config->isActive()
             && $this->config->isExpressCheckoutActive();
     }
