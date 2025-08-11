@@ -502,8 +502,6 @@ const AmwalMagentoReactButton = ({
         detail: {
           order_id: data.entity_id,
           order_total_amount: data.total_due,
-          ...(data.discount_description && { card_bin_additional_discount_message: data.discount_description }),
-          ...(data.extension_attributes?.amwal_card_bin_additional_discount && { card_bin_additional_discount: data.extension_attributes.amwal_card_bin_additional_discount })
         }
       }))
 

@@ -16,7 +16,6 @@ use Amwal\Payments\Model\Checkout\UpdateShippingMethod;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\ErrorReporter;
 use Amwal\Payments\Model\GetAmwalOrderData;
-use Amwal\Payments\Model\CurrencyConverter;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Amwal\Payments\Model\Settings;
 use Amwal\Payments\Cron\PendingOrdersUpdate;
@@ -136,7 +135,6 @@ class CheckoutFlowTest extends IntegrationTestBase
                 $this->objectManager->get(LoggerInterface::class),
                 $this->objectManager->get(SearchCriteriaBuilder::class),
                 $this->objectManager->get(StoreManagerInterface::class),
-                $this->objectManager->get(CurrencyConverter::class),
                 $this->objectManager->get(Collection::class)
             ]
         )->makePartial();
