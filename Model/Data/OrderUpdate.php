@@ -49,7 +49,6 @@ class OrderUpdate
     private const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
         'ref_id' => 'ref_id',
-        'discount_amount' => 'discount',
     ];
 
     /**
@@ -302,6 +301,17 @@ class OrderUpdate
             $this->sendAdminEmail($order, $subject, $message);
             throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
         }
+        if ($this->roundValue($order->getDiscountAmount()) !== $this->roundValue($amwalOrderData->getDiscount())) {
+            $message = $this->dataValidationMessage(
+                $order->getIncrementId(),
+                'discount_amount',
+                'discount',
+                (string)$order->getGrandTotal(),
+                (string)$amwalOrderData->getTotalAmount()
+            );
+            $this->sendAdminEmail($order, $subject, $message);
+            throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'discount_amount', 'discount', $order->getDiscountAmount(), $amwalOrderData->getDiscount()));
+        }
         foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
             $orderValue = $order->getData($orderMethod);
             $amwalValue = $amwalOrderData->getData($amwalMethod);
@@ -324,11 +334,11 @@ class OrderUpdate
      * @param string $orderId
      * @param string $orderMethod
      * @param string $amwalMethod
-     * @param string $orderValue
+     * @param float|string $orderValue
      * @param string $amwalValue
      * @return string
      */
-    private function dataValidationMessage(string $orderId, string $orderMethod, string $amwalMethod, string $orderValue, string $amwalValue): string
+    private function dataValidationMessage(string $orderId, string $orderMethod, string $amwalMethod, $orderValue, string $amwalValue): string
     {
         return (string) __('Order (%1) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%2) %3 does not match Amwal Order %4 (%5 != %6)', $orderId, $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue);
     }

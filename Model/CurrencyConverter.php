@@ -61,7 +61,7 @@ class CurrencyConverter
             $currentCurrencyCode = $store->getCurrentCurrency()->getCode();
 
             if ($currentCurrencyCode === $targetCurrency) {
-                $finalAmount = $roundResult ? $this->decimal($amount) : $amount;
+                $finalAmount = $roundResult ? $this->priceCurrency->roundPrice($amount) : $amount;
                 return [
                     'amount' => $finalAmount,
                     'currency' => $targetCurrency,
@@ -74,13 +74,13 @@ class CurrencyConverter
             $convertedAmount = $amount * $rate;
 
             if ($roundResult) {
-                $convertedAmount = $this->decimal($convertedAmount);
+                $convertedAmount = $this->priceCurrency->roundPrice($convertedAmount);
             }
 
             return [
                 'amount' => $convertedAmount,
                 'currency' => $targetCurrency,
-                'original_amount' => $roundResult ? $this->decimal($amount) : $amount,
+                'original_amount' => $roundResult ? $this->priceCurrency->roundPrice($amount) : $amount,
                 'original_currency' => $currentCurrencyCode
             ];
         } catch (\Exception $e) {
@@ -113,21 +113,61 @@ class CurrencyConverter
     }
 
     /**
-     * Get simplified quote amounts converted to SAR (main totals only).
+     * Get simplified quote amounts converted to SAR.
+     * This is the final, production-ready version that handles both native and foreign currencies correctly.
      *
      * @param Quote $quote
-     * @param bool $roundResult Whether to truncate the results. Defaults to true.
+     * @param bool $roundResult Whether to round the results. Defaults to true.
      * @return array Array containing main converted amounts in SAR
      * @throws LocalizedException|NoSuchEntityException
      */
     public function getMainAmountsInSAR(Quote $quote, bool $roundResult = true): array
     {
+        // Step 1: Ensure Magento's internal calculations are complete and up-to-date.
+        $quote->collectTotals();
+
+        $address = $quote->getShippingAddress();
+        if (!$address) {
+            // Return zeroed array if the quote is incomplete.
+            return [
+                'subtotal' => 0.0, 'tax_amount' => 0.0, 'shipping_amount' => 0.0,
+                'discount_amount' => 0.0, 'grand_total' => 0.0
+            ];
+        }
+
+        $currentCurrencyCode = $quote->getStore()->getCurrentCurrency()->getCode();
+        $targetCurrency = self::DEFAULT_TARGET_CURRENCY;
+
+        // Step 2: Check if conversion is necessary.
+        // THIS IS THE KEY to getting a perfect match with your expected native SAR output.
+        if ($currentCurrencyCode === $targetCurrency) {
+
+            // --- SCENARIO A: NATIVE SAR ---
+            // No conversion needed. Use the exact values from Magento to guarantee a perfect match.
+            $subtotal = $address->getSubtotal();
+            $taxAmount = $address->getTaxAmount();
+            $shippingAmount = $address->getShippingAmount();
+            $discountAmount = abs($address->getDiscountAmount() ?? 0.0);
+            $grandTotal = $quote->getGrandTotal();
+
+        } else {
+
+            // --- SCENARIO B: FOREIGN CURRENCY ---
+            // A conversion is needed. Use the most reliable method: direct conversion of Magento's final totals.
+            $subtotal = $this->convertToSAR($address->getSubtotal(), $quote, $roundResult);
+            $taxAmount = $this->convertToSAR($address->getTaxAmount(), $quote, $roundResult);
+            $shippingAmount = $this->convertToSAR($address->getShippingAmount(), $quote, $roundResult);
+            $discountAmount = $this->convertToSAR(abs($address->getDiscountAmount() ?? 0.0), $quote, $roundResult);
+            $grandTotal = $this->convertToSAR($quote->getGrandTotal(), $quote, $roundResult);
+        }
+
+        // Step 3: Return the final, correctly rounded values.
         return [
-            'subtotal' => $this->convertToSAR($quote->getSubtotal(), $quote, $roundResult),
-            'tax_amount' => $this->convertToSAR($quote->getShippingAddress()->getTaxAmount(), $quote, $roundResult),
-            'shipping_amount' => $this->convertToSAR($quote->getShippingAddress()->getShippingAmount(), $quote, $roundResult),
-            'discount_amount' => $this->convertToSAR(abs($quote->getShippingAddress()->getDiscountAmount() ?? 0.0), $quote, $roundResult),
-            'grand_total' => $this->convertToSAR($quote->getGrandTotal(), $quote, $roundResult)
+            'subtotal'        => $this->priceCurrency->roundPrice($subtotal),
+            'tax_amount'      => $this->priceCurrency->roundPrice($taxAmount),
+            'shipping_amount' => $this->priceCurrency->roundPrice($shippingAmount),
+            'discount_amount' => $this->priceCurrency->roundPrice($discountAmount),
+            'grand_total'     => $this->priceCurrency->roundPrice($grandTotal)
         ];
     }
 
@@ -173,18 +213,6 @@ class CurrencyConverter
 
         return $this->conversionRates[$cacheKey];
     }
-
-    /**
-     * Truncates a float value to 2 decimal places by flooring it.
-     *
-     * @param float $value
-     * @return float
-     */
-    private function decimal(float $value): float
-    {
-        return floor($value * 100) / 100;
-    }
-
     /**
      * Retrieves the store object from the quote or the default store.
      *
