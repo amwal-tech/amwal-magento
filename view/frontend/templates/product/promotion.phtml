@@ -2,6 +2,7 @@
 use Magento\Catalog\Block\Product\ProductList\Item\Block;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
+
 /**
  * @var Escaper $escaper
  * @var Template|Block $block
@@ -20,13 +21,369 @@ use Magento\Framework\View\Element\Template;
             const amwalConfig = {
                 installmentsCount: <?= (int) $block->getInstallmentsCount() ?>,
                 price: <?= (float) $block->getPrice() ?>,
+                lastDetectedPrice: null,
+                priceDetectionStrategies: [],
+                observers: []
+            };
+
+            /**
+             * Dynamic price detection strategies
+             */
+            const PriceDetectionStrategies = {
+                // Strategy 1: Standard Magento data attributes
+                magentoDataAttributes: () => {
+                    const selectors = [
+                        '[data-price-type="finalPrice"]',
+                        '[data-price-type="basePrice"]',
+                        '[data-price-type="oldPrice"]'
+                    ];
+
+                    for (const selector of selectors) {
+                        const elements = document.querySelectorAll(selector);
+                        for (const element of elements) {
+                            const price = parseFloat(element.getAttribute('data-price-amount'));
+                            if (!isNaN(price) && price > 0) {
+                                return {
+                                    price: price,
+                                    currency: PriceDetectionStrategies.getCurrency(),
+                                    source: `data-attribute:${selector}`,
+                                    element: element
+                                };
+                            }
+                        }
+                    }
+                    return null;
+                },
+
+                // Strategy 2: Price box patterns
+                priceBoxPatterns: () => {
+                    const selectors = [
+                        '.price-box .price',
+                        '.price-final_price .price',
+                        '.product-price .price',
+                        '.regular-price .price',
+                        '.special-price .price',
+                        '[class*="price"] .price'
+                    ];
+
+                    for (const selector of selectors) {
+                        const elements = document.querySelectorAll(selector);
+                        for (const element of elements) {
+                            const priceText = element.textContent || element.innerText;
+                            const price = PriceDetectionStrategies.extractPriceFromText(priceText);
+                            if (price > 0) {
+                                return {
+                                    price: price,
+                                    currency: PriceDetectionStrategies.getCurrency(),
+                                    source: `text-content:${selector}`,
+                                    element: element
+                                };
+                            }
+                        }
+                    }
+                    return null;
+                },
+
+                // Strategy 3: JSON-LD structured data
+                structuredData: () => {
+                    try {
+                        const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+                        for (const script of scripts) {
+                            const data = JSON.parse(script.textContent);
+                            if (data['@type'] === 'Product' && data.offers) {
+                                const offer = Array.isArray(data.offers) ? data.offers[0] : data.offers;
+                                const price = parseFloat(offer.price);
+                                if (!isNaN(price) && price > 0) {
+                                    return {
+                                        price: price,
+                                        currency: offer.priceCurrency || 'USD',
+                                        source: 'structured-data',
+                                        element: script
+                                    };
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.debug('Amwal: Error parsing structured data', e);
+                    }
+                    return null;
+                },
+
+                // Strategy 4: Meta tags
+                metaTags: () => {
+                    const priceSelectors = [
+                        'meta[property="product:price:amount"]',
+                        'meta[name="price"]',
+                        'meta[itemprop="price"]'
+                    ];
+
+                    for (const selector of priceSelectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            const price = parseFloat(element.getAttribute('content'));
+                            if (!isNaN(price) && price > 0) {
+                                return {
+                                    price: price,
+                                    currency: PriceDetectionStrategies.getCurrency(),
+                                    source: `meta-tag:${selector}`,
+                                    element: element
+                                };
+                            }
+                        }
+                    }
+                    return null;
+                },
+
+                // Strategy 5: ID-based detection (most specific)
+                idBasedDetection: () => {
+                    // Common ID patterns for price elements
+                    const idPatterns = [
+                        /^product-price-\d+$/,
+                        /^price-\d+$/,
+                        /.*price.*final.*/i,
+                        /.*final.*price.*/i
+                    ];
+
+                    const allElements = document.querySelectorAll('[id]');
+                    for (const element of allElements) {
+                        const id = element.id;
+                        for (const pattern of idPatterns) {
+                            if (pattern.test(id)) {
+                                // Try data attribute first
+                                const dataPrice = parseFloat(element.getAttribute('data-price-amount'));
+                                if (!isNaN(dataPrice) && dataPrice > 0) {
+                                    return {
+                                        price: dataPrice,
+                                        currency: PriceDetectionStrategies.getCurrency(),
+                                        source: `id-data:${id}`,
+                                        element: element
+                                    };
+                                }
+
+                                // Try text content
+                                const textPrice = PriceDetectionStrategies.extractPriceFromText(element.textContent);
+                                if (textPrice > 0) {
+                                    return {
+                                        price: textPrice,
+                                        currency: PriceDetectionStrategies.getCurrency(),
+                                        source: `id-text:${id}`,
+                                        element: element
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    return null;
+                },
+
+                // Strategy 6: Advanced text extraction
+                advancedTextExtraction: () => {
+                    const containerSelectors = [
+                        '.product-info-main',
+                        '.product-price',
+                        '.price-container',
+                        '.product-info-price',
+                        '[class*="price"]'
+                    ];
+
+                    for (const selector of containerSelectors) {
+                        const containers = document.querySelectorAll(selector);
+                        for (const container of containers) {
+                            const textContent = container.textContent || container.innerText;
+                            const price = PriceDetectionStrategies.extractPriceFromText(textContent);
+                            if (price > 0) {
+                                return {
+                                    price: price,
+                                    currency: PriceDetectionStrategies.getCurrency(),
+                                    source: `text-extraction:${selector}`,
+                                    element: container
+                                };
+                            }
+                        }
+                    }
+                    return null;
+                },
+
+                // Helper: Extract price from text
+                extractPriceFromText: (text) => {
+                    if (!text) return 0;
+
+                    // Remove common currency symbols and formatting
+                    const cleanText = text.replace(/[^\d.,]/g, '');
+
+                    // Match price patterns
+                    const patterns = [
+                        /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/,  // 1,234.56
+                        /(\d+\.\d{2})/,                      // 1234.56
+                        /(\d+,\d{2})/,                       // 1234,56 (European)
+                        /(\d+)/                              // 1234
+                    ];
+
+                    for (const pattern of patterns) {
+                        const match = cleanText.match(pattern);
+                        if (match) {
+                            const priceStr = match[1].replace(/,/g, '');
+                            const price = parseFloat(priceStr);
+                            if (!isNaN(price) && price > 0) {
+                                return price;
+                            }
+                        }
+                    }
+                    return 0;
+                },
+
+                // Helper: Get currency
+                getCurrency: () => {
+                    // Try multiple currency detection methods
+                    const methods = [
+                        () => document.querySelector('meta[itemprop="priceCurrency"]')?.getAttribute('content'),
+                        () => document.querySelector('meta[property="product:price:currency"]')?.getAttribute('content'),
+                        () => document.querySelector('[data-currency]')?.getAttribute('data-currency'),
+                        () => {
+                            const currencySymbols = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY' };
+                            const bodyText = document.body.textContent;
+                            for (const [symbol, currency] of Object.entries(currencySymbols)) {
+                                if (bodyText.includes(symbol)) return currency;
+                            }
+                            return null;
+                        }
+                    ];
+
+                    for (const method of methods) {
+                        try {
+                            const currency = method();
+                            if (currency) return currency;
+                        } catch (e) {
+                            console.debug('Currency detection method failed:', e);
+                        }
+                    }
+                    return 'USD'; // Default fallback
+                }
+            };
+
+            /**
+             * Dynamic price detection with multiple strategies
+             */
+            const detectPrice = () => {
+                const strategies = [
+                    PriceDetectionStrategies.magentoDataAttributes,
+                    PriceDetectionStrategies.idBasedDetection,
+                    PriceDetectionStrategies.priceBoxPatterns,
+                    PriceDetectionStrategies.structuredData,
+                    PriceDetectionStrategies.metaTags,
+                    PriceDetectionStrategies.advancedTextExtraction
+                ];
+
+                for (const strategy of strategies) {
+                    try {
+                        const result = strategy();
+                        if (result && result.price > 0) {
+                            return result;
+                        }
+                    } catch (error) {
+                        console.debug('Amwal: Strategy failed', strategy.name, error);
+                    }
+                }
+
+                console.warn('Amwal: No price detected with any strategy');
+                return null;
+            };
+
+            /**
+             * Smart price monitoring with mutation observers
+             */
+            const setupPriceMonitoring = () => {
+                // Clean up existing observers
+                amwalConfig.observers.forEach(observer => observer.disconnect());
+                amwalConfig.observers = [];
+
+                // Create mutation observer for price changes
+                const priceObserver = new MutationObserver((mutations) => {
+                    let shouldUpdate = false;
+
+                    mutations.forEach((mutation) => {
+                        // Check for attribute changes on price elements
+                        if (mutation.type === 'attributes' &&
+                            (mutation.attributeName === 'data-price-amount' ||
+                                mutation.attributeName === 'content')) {
+                            shouldUpdate = true;
+                        }
+
+                        // Check for text content changes
+                        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                            const target = mutation.target;
+                            if (target.nodeType === Node.ELEMENT_NODE) {
+                                const element = target;
+                                if (element.matches && (
+                                    element.matches('[class*="price"]') ||
+                                    element.matches('[id*="price"]') ||
+                                    element.querySelector('[class*="price"]') ||
+                                    element.querySelector('[id*="price"]')
+                                )) {
+                                    shouldUpdate = true;
+                                }
+                            }
+                        }
+                    });
+
+                    if (shouldUpdate) {
+                        // Debounce updates
+                        clearTimeout(window.amwalUpdateTimeout);
+                        window.amwalUpdateTimeout = setTimeout(() => {
+                            const newPrice = detectPrice();
+                            if (newPrice && newPrice.price !== amwalConfig.lastDetectedPrice) {
+                                amwalConfig.lastDetectedPrice = newPrice.price;
+                                updateAmwalPromotions(newPrice.price, newPrice.currency);
+                            }
+                        }, 100);
+                    }
+                });
+
+                // Observe the entire document for changes
+                priceObserver.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['data-price-amount', 'content', 'class', 'id'],
+                    characterData: true
+                });
+
+                amwalConfig.observers.push(priceObserver);
+
+                // Also set up observers on specific containers if they exist
+                const containerSelectors = [
+                    '.product-info-main',
+                    '.price-box',
+                    '.product-price',
+                    '[class*="price"]'
+                ];
+
+                containerSelectors.forEach(selector => {
+                    const containers = document.querySelectorAll(selector);
+                    containers.forEach(container => {
+                        const containerObserver = new MutationObserver(() => {
+                            const newPrice = detectPrice();
+                            if (newPrice && newPrice.price !== amwalConfig.lastDetectedPrice) {
+                                amwalConfig.lastDetectedPrice = newPrice.price;
+                                updateAmwalPromotions(newPrice.price, newPrice.currency);
+                            }
+                        });
+
+                        containerObserver.observe(container, {
+                            childList: true,
+                            subtree: true,
+                            attributes: true,
+                            attributeFilter: ['data-price-amount', 'content'],
+                            characterData: true
+                        });
+
+                        amwalConfig.observers.push(containerObserver);
+                    });
+                });
             };
 
             /**
              * Update the Amwal promotion based on the given price and currency.
-             * Calculates the installment price and updates elements and the iframe if it exists.
-             * @param {number} price - The new product price.
-             * @param {string} currency - The product's currency.
              */
             const updateAmwalPromotions = (price, currency) => {
                 try {
@@ -34,9 +391,6 @@ use Magento\Framework\View\Element\Template;
                         document.getElementById('amwal-promo').style.display = 'none';
                         return;
                     }
-
-                    const installmentPrice = price / amwalConfig.installmentsCount;
-
                     // Update config for when iframe is created
                     amwalConfig.price = price;
 
@@ -45,7 +399,7 @@ use Magento\Framework\View\Element\Template;
                         el.innerText = amwalConfig.installmentsCount;
                     });
                     document.querySelectorAll('.amwal-price').forEach(el => {
-                        el.innerText = `${currency} ${installmentPrice.toFixed(2)}`;
+                        el.innerText = `${currency} ${price.toFixed(2)}`;
                     });
 
                     // Show promotion if hidden
@@ -60,7 +414,7 @@ use Magento\Framework\View\Element\Template;
                         try {
                             const [baseUrl, queryString] = amwalIframe.src.split('?');
                             const params = new URLSearchParams(queryString || '');
-                            params.set('price', installmentPrice.toFixed(2));
+                            params.set('price', price.toFixed(2));
                             params.set('currency', currency);
                             params.set('installmentsCount', amwalConfig.installmentsCount);
                             params.set('locale', document.documentElement.lang || 'en');
@@ -75,40 +429,129 @@ use Magento\Framework\View\Element\Template;
             };
 
             /**
-             * Extracts price data from the given element and updates promotions.
-             * @param {HTMLElement} elem - The element containing price data.
+             * Enhanced grouped product handling
              */
-            const handlePriceUpdate = (elem) => {
-                try {
-                    if (!elem) {
-                        return;
+            const handleGroupedProducts = () => {
+                const groupTable = document.getElementById('super-product-table');
+                if (!groupTable) return;
+
+                const updateGroupedPrice = () => {
+                    try {
+                        let totalPrice = 0;
+                        const priceResult = detectPrice();
+                        const currency = priceResult?.currency || 'USD';
+                        let valid = true;
+
+                        // Find all product rows in grouped product table
+                        const productRows = groupTable.querySelectorAll('[data-product-id]');
+                        productRows.forEach(row => {
+                            const productId = row.getAttribute('data-product-id');
+                            const qtyInput = groupTable.querySelector(`[data-selector="super_group[${productId}]"]`);
+                            const priceElement = row.querySelector('[data-price-amount]');
+
+                            if (qtyInput && priceElement) {
+                                const qty = parseFloat(qtyInput.value) || 0;
+                                const price = parseFloat(priceElement.getAttribute('data-price-amount'));
+
+                                if (!isNaN(price) && qty >= 0) {
+                                    totalPrice += price * qty;
+                                } else {
+                                    valid = false;
+                                }
+                            }
+                        });
+
+                        if (valid && totalPrice > 0) {
+                            updateAmwalPromotions(totalPrice, currency);
+                        } else {
+                            document.getElementById('amwal-promo').style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Amwal Promotion: Error updating grouped products', error);
                     }
+                };
 
-                    const priceElement = elem.querySelector('[data-price-type="finalPrice"]');
-                    const priceAttr = priceElement?.getAttribute('data-price-amount');
+                // Bind to quantity changes
+                const qtyInputs = groupTable.querySelectorAll('[data-selector^="super_group"]');
+                qtyInputs.forEach(input => {
+                    input.addEventListener('change', updateGroupedPrice);
+                    input.addEventListener('input', updateGroupedPrice);
+                });
 
-                    if (!priceAttr) {
-                        document.getElementById('amwal-promo').style.display = 'none';
-                        return;
-                    }
-
-                    const price = parseFloat(priceAttr);
-                    const currencyElement = document.querySelector('meta[itemprop="priceCurrency"]');
-                    const currency = currencyElement?.getAttribute('content') || 'USD';
-
-                    if (!isNaN(price) && price > 0 && currency) {
-                        updateAmwalPromotions(price, currency);
-                    } else {
-                        document.getElementById('amwal-promo').style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Amwal Promotion: Error handling price update', error);
-                }
+                updateGroupedPrice();
             };
 
             /**
-             * Creates the iframe dynamically with current promotion data
+             * Cart page integration with dynamic detection
              */
+            const handleCartIntegration = () => {
+                if (window.location.href.indexOf('checkout/cart') === -1) return;
+
+                try {
+                    // Try Magento's quote system first
+                    require(['Magento_Checkout/js/model/quote'], function (quote) {
+                        const updateCartTotal = (totals) => {
+                            if (totals && totals.grand_total) {
+                                let price = parseFloat(totals.grand_total);
+                                if (totals.tax_amount) {
+                                    price += parseFloat(totals.tax_amount);
+                                }
+                                updateAmwalPromotions(price, totals.quote_currency_code || 'USD');
+                            }
+                        };
+
+                        const quoteTotals = quote.getTotals();
+                        if (quoteTotals && quoteTotals.subscribe) {
+                            quoteTotals.subscribe(updateCartTotal);
+                        }
+
+                        const currentTotals = quote.totals();
+                        if (currentTotals) {
+                            updateCartTotal(currentTotals);
+                        }
+                    });
+                } catch (error) {
+                    console.debug('Amwal: Magento quote system not available, using fallback');
+
+                    // Fallback: detect cart total from DOM
+                    const detectCartTotal = () => {
+                        const totalSelectors = [
+                            '.grand.totals .price',
+                            '.totals .grand .price',
+                            '[data-th="Grand Total"] .price',
+                            '.cart-totals .grand .price'
+                        ];
+
+                        for (const selector of totalSelectors) {
+                            const element = document.querySelector(selector);
+                            if (element) {
+                                const price = PriceDetectionStrategies.extractPriceFromText(element.textContent);
+                                if (price > 0) {
+                                    const currency = PriceDetectionStrategies.getCurrency();
+                                    updateAmwalPromotions(price, currency);
+                                    return;
+                                }
+                            }
+                        }
+                    };
+
+                    detectCartTotal();
+
+                    // Monitor for cart updates
+                    const cartObserver = new MutationObserver(detectCartTotal);
+                    const cartContainer = document.querySelector('.cart-container, .checkout-cart-index, .cart-summary');
+                    if (cartContainer) {
+                        cartObserver.observe(cartContainer, {
+                            childList: true,
+                            subtree: true,
+                            characterData: true
+                        });
+                        amwalConfig.observers.push(cartObserver);
+                    }
+                }
+            };
+
+            // Keep all existing modal and iframe functions unchanged
             const createAmwalIframe = () => {
                 try {
                     const iframe = document.createElement('iframe');
@@ -118,14 +561,11 @@ use Magento\Framework\View\Element\Template;
                     iframe.allowFullscreen = true;
                     iframe.sandbox = 'allow-scripts allow-same-origin allow-forms';
 
-                    // Get the base URL from the PHP block
                     const baseUrl = '<?php echo htmlspecialchars($block->getPromotionUrl(), ENT_QUOTES, 'UTF-8'); ?>';
-
-                    // Create URL with current parameters
                     const params = new URLSearchParams();
-                    const currentPrice = amwalConfig.price / amwalConfig.installmentsCount;
-                    const currencyElement = document.querySelector('meta[itemprop="priceCurrency"]');
-                    const currency = currencyElement?.getAttribute('content') || 'USD';
+                    const currentPrice = amwalConfig.price;
+                    const priceResult = detectPrice();
+                    const currency = priceResult?.currency || 'USD';
 
                     params.set('price', currentPrice.toFixed(2));
                     params.set('currency', currency);
@@ -133,14 +573,12 @@ use Magento\Framework\View\Element\Template;
                     params.set('locale', document.documentElement.lang || 'en');
 
                     iframe.src = `${baseUrl}?${params.toString()}`;
-
-                    // Apply minimal inline styles for maximum protection
                     iframe.style.cssText = `
-                    width: 100% !important;
-                    height: 700px !important;
-                    border: none !important;
-                    display: block !important;
-                `.replace(/\s+/g, ' ');
+                        width: 100% !important;
+                        height: 700px !important;
+                        border: none !important;
+                        display: block !important;
+                    `.replace(/\s+/g, ' ');
 
                     return iframe;
                 } catch (error) {
@@ -149,42 +587,35 @@ use Magento\Framework\View\Element\Template;
                 }
             };
 
-            /**
-             * Creates and manages the modal overlay with history support
-             */
             const createModalOverlay = () => {
                 try {
-                    // Remove existing overlay if present
                     const existingOverlay = document.getElementById('amwal-modal-overlay');
                     if (existingOverlay) {
                         closeModalOverlay();
                     }
 
-                    // Add a simple history entry so back button works
                     if (window.history && window.history.pushState) {
                         window.history.pushState({ amwalModal: true }, '');
                     }
 
-                    // Create new overlay with specific attributes to avoid conflicts
                     const overlay = document.createElement('div');
                     overlay.id = 'amwal-modal-overlay';
                     overlay.className = 'amwal-modal-overlay';
                     overlay.setAttribute('data-amwal-modal', 'true');
                     overlay.style.cssText = `
-                    position: fixed !important;
-                    top: 0 !important;
-                    left: 0 !important;
-                    width: 100vw !important;
-                    height: 100vh !important;
-                    background: rgba(0, 0, 0, 0.75) !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    z-index: 999999 !important;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-                `.replace(/\s+/g, ' ');
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        width: 100vw !important;
+                        height: 100vh !important;
+                        background: rgba(0, 0, 0, 0.75) !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        z-index: 999999 !important;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                    `.replace(/\s+/g, ' ');
 
-                    // Create modal container from template
                     const modalTemplate = document.getElementById('amwal-dialog');
                     if (!modalTemplate) {
                         console.error('Amwal Promotion: Modal template not found');
@@ -196,31 +627,26 @@ use Magento\Framework\View\Element\Template;
                     modalContainer.className = 'amwal-modal-container';
                     modalContainer.setAttribute('data-amwal-content', 'true');
 
-                    // Apply inline styles to override any conflicting CSS
                     modalContainer.style.cssText = `
-                    width: 90vw !important;
-                    max-width: 833px !important;
-                    max-height: 95vh !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    border: none !important;
-                    background: linear-gradient(to bottom, #e8f4ef, #f5faf7) !important;
-                    border-radius: 17px !important;
-                    color: #292929 !important;
-                    overflow: hidden !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    position: relative !important;
-                    text-align: left !important;
-                `.replace(/\s+/g, ' ');
+                        width: 90vw !important;
+                        max-width: 833px !important;
+                        max-height: 95vh !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        border: none !important;
+                        background: linear-gradient(to bottom, #e8f4ef, #f5faf7) !important;
+                        border-radius: 17px !important;
+                        color: #292929 !important;
+                        overflow: hidden !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        position: relative !important;
+                        text-align: left !important;
+                    `.replace(/\s+/g, ' ');
 
-                    // Create and insert the iframe dynamically
                     const amwalBody = modalContainer.querySelector('.amwal-body');
                     if (amwalBody) {
-                        // Clear any existing content
                         amwalBody.innerHTML = '';
-
-                        // Create iframe directly
                         const iframe = createAmwalIframe();
                         if (iframe) {
                             amwalBody.appendChild(iframe);
@@ -232,8 +658,6 @@ use Magento\Framework\View\Element\Template;
 
                     overlay.appendChild(modalContainer);
                     document.body.appendChild(overlay);
-
-                    // Prevent body scroll
                     document.body.style.overflow = 'hidden';
 
                     return overlay;
@@ -243,9 +667,6 @@ use Magento\Framework\View\Element\Template;
                 }
             };
 
-            /**
-             * Closes the modal overlay
-             */
             const closeModalOverlay = () => {
                 try {
                     const overlay = document.getElementById('amwal-modal-overlay');
@@ -258,21 +679,18 @@ use Magento\Framework\View\Element\Template;
                 }
             };
 
-            // Handle browser back button to close modal
+            // Event listeners for modal controls
             window.addEventListener('popstate', function(event) {
                 const overlay = document.getElementById('amwal-modal-overlay');
                 if (overlay) {
-                    // Modal is open and user pressed back - close it
                     closeModalOverlay();
                 }
             });
 
-            // Handle ESC key to close modal
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape' || event.keyCode === 27) {
                     const overlay = document.getElementById('amwal-modal-overlay');
                     if (overlay) {
-                        // Close modal and go back in history
                         closeModalOverlay();
                         if (window.history && window.history.back) {
                             window.history.back();
@@ -284,63 +702,29 @@ use Magento\Framework\View\Element\Template;
             // Initialize when DOM is ready
             require(['jquery'], function ($) {
                 try {
-                    // Bind events for standard products using a combined event string
-                    $('.product-info-main .product-info-price .price-box.price-final_price')
-                        .on('reloadPrice price-box-initialized', function() {
-                            handlePriceUpdate(this);
-                        });
+                    // Set up dynamic price monitoring
+                    setupPriceMonitoring();
 
-                    // For grouped products, recalculate the total price based on quantities
-                    const $groupTable = $('#super-product-table');
-                    if ($groupTable.length) {
-                        const updateGroupedProducts = () => {
-                            try {
-                                let totalPrice = 0;
-                                const currencyElement = $('meta[itemprop="priceCurrency"]');
-                                const currency = currencyElement.attr('content') || 'USD';
-                                let valid = true;
+                    // Handle grouped products
+                    handleGroupedProducts();
 
-                                $groupTable.find('.price-box.price-final_price').each(function() {
-                                    const $priceBox = $(this);
-                                    const priceElement = $priceBox.find('[data-price-type="finalPrice"]');
-                                    const localPrice = parseFloat(priceElement.attr('data-price-amount'));
-                                    const localId = $priceBox.data('product-id');
-                                    const qtyElement = $groupTable.find(`[data-selector="super_group[${localId}]"]`);
-                                    const localQty = parseFloat(qtyElement.val()) || 0;
-                                    const subtotal = localPrice * localQty;
+                    // Handle cart integration
+                    handleCartIntegration();
 
-                                    if (!isNaN(subtotal) && subtotal >= 0) {
-                                        totalPrice += subtotal;
-                                    } else {
-                                        valid = false;
-                                    }
-                                });
-
-                                if (valid && totalPrice > 0) {
-                                    updateAmwalPromotions(totalPrice, currency);
-                                } else {
-                                    document.getElementById('amwal-promo').style.display = 'none';
-                                }
-                            } catch (error) {
-                                console.error('Amwal Promotion: Error updating grouped products', error);
-                            }
-                        };
-
-                        // Bind change events and initialize grouped products update
-                        $groupTable.find('[data-selector^="super_group"]').on('change', updateGroupedProducts);
-                        updateGroupedProducts();
+                    // Initial price detection and update
+                    const initialPrice = detectPrice();
+                    if (initialPrice) {
+                        amwalConfig.lastDetectedPrice = initialPrice.price;
+                        updateAmwalPromotions(initialPrice.price, initialPrice.currency);
                     }
 
-                    // Handle modal opening with custom overlay
+                    // Bind modal opening event
                     $('#amwal-promo').on('click', function (e) {
                         e.preventDefault();
                         try {
                             const overlay = createModalOverlay();
-                            if (!overlay) {
-                                return;
-                            }
+                            if (!overlay) return;
 
-                            // Close modal on overlay click
                             overlay.addEventListener('click', function(e) {
                                 if (e.target === overlay) {
                                     closeModalOverlay();
@@ -350,7 +734,6 @@ use Magento\Framework\View\Element\Template;
                                 }
                             });
 
-                            // Close modal on close button click
                             const closeButton = overlay.querySelector('.amwal-close');
                             if (closeButton) {
                                 closeButton.addEventListener('click', function() {
@@ -365,49 +748,29 @@ use Magento\Framework\View\Element\Template;
                         }
                     });
 
-                    // Initial price update
-                    const initialPriceBox = $('.product-info-main .product-info-price .price-box.price-final_price').first();
-                    if (initialPriceBox.length) {
-                        handlePriceUpdate(initialPriceBox[0]);
-                    }
+                    // Legacy event binding for compatibility
+                    $('.product-info-main .product-info-price .price-box.price-final_price')
+                        .on('reloadPrice price-box-initialized', function() {
+                            setTimeout(() => {
+                                const newPrice = detectPrice();
+                                if (newPrice && newPrice.price !== amwalConfig.lastDetectedPrice) {
+                                    amwalConfig.lastDetectedPrice = newPrice.price;
+                                    updateAmwalPromotions(newPrice.price, newPrice.currency);
+                                }
+                            }, 50);
+                        });
+
+                    console.log('Amwal Promotion: Dynamic price detection initialized');
 
                 } catch (error) {
                     console.error('Amwal Promotion: Error initializing jQuery functionality', error);
                 }
             });
 
-            // Cart page integration
-            if (window.location.href.indexOf('checkout/cart') !== -1) {
-                require(['Magento_Checkout/js/model/quote'], function (quote) {
-                    try {
-                        function updateAmwalTotal(totals) {
-                            if (totals && totals.grand_total) {
-                                let price = parseFloat(totals.grand_total);
-                                if (totals.tax_amount) {
-                                    price += parseFloat(totals.tax_amount);
-                                }
-                                updateAmwalPromotions(price, totals.quote_currency_code || 'USD');
-                            }
-                        }
-
-                        const quoteTotals = quote.getTotals();
-                        if (quoteTotals && quoteTotals.subscribe) {
-                            quoteTotals.subscribe(updateAmwalTotal);
-                        }
-
-                        const currentTotals = quote.totals();
-                        if (currentTotals) {
-                            updateAmwalTotal(currentTotals);
-                        }
-                    } catch (error) {
-                        console.error('Amwal Promotion: Error in cart integration', error);
-                    }
-                });
-            }
         })();
     </script>
 
-    <!-- Keep all the existing CSS styles -->
+    <!-- Keep all existing CSS styles unchanged -->
     <style>
         /* CSS Reset for Amwal Components */
         .amwal-reset,
@@ -441,7 +804,6 @@ use Magento\Framework\View\Element\Template;
             color: #222 !important;
             background: #fff !important;
             width: 100% !important;
-            max-width: 495px !important;
             margin: 10px 0 !important;
             display: flex !important;
             align-items: center !important;
@@ -511,8 +873,8 @@ use Magento\Framework\View\Element\Template;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: 100% !important;
             background: rgba(0, 0, 0, 0.75) !important;
             display: flex !important;
             align-items: center !important;
@@ -528,8 +890,8 @@ use Magento\Framework\View\Element\Template;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: 100% !important;
             z-index: 999999 !important;
             background: rgba(0, 0, 0, 0.75) !important;
             display: flex !important;
