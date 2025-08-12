@@ -165,7 +165,7 @@ class GetCartButtonConfig extends GetConfig
         $amount = ((float)
             $quote->getGrandTotal() +
             $this->getDiscountAmount($quote, $buttonConfig, $productId) -
-            $this->getTaxAmount($quote) -
+            $quote->getShippingAddress()->getTaxAmount() -
             $this->getFeesAmount($quote)
         );
 
@@ -191,7 +191,9 @@ class GetCartButtonConfig extends GetConfig
                 $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
             } else {
                 foreach ($quote->getAllVisibleItems() as $item) {
-                    $product = $this->productRepository->get($item->getSku());
+                    $product = $item->getProductId()
+                        ? $this->productRepository->getById($item->getProductId())
+                        : $this->productRepository->get($item->getSku());
                     $priceInfo = $product->getPriceInfo();
                     $price = $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
                     $discountAmount += $price * $item->getQty();
@@ -199,7 +201,7 @@ class GetCartButtonConfig extends GetConfig
             }
             $discountAmount += abs((float)$quote->getShippingAddress()->getDiscountAmount());
         }
-        return $this->currencyConverter->convertToSAR($discountAmount, $quote);
+        return $discountAmount;
     }
 
     /**

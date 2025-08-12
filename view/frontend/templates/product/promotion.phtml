@@ -23,6 +23,9 @@ use Magento\Framework\View\Element\Template;
                     if (widget) {
                         widget.config = widgetConfig;
                         widget.locale = document.documentElement.lang || 'en';
+                        widget.showPopularBadge = true;
+                        widget.showMonthlyPayment = true;
+                        widget.showGreenBorder = true;
                     }
                 } catch (error) {
                     console.error('Amwal Promotion: Error initializing widget', error);
@@ -30,18 +33,8 @@ use Magento\Framework\View\Element\Template;
             });
         })();
     </script>
-    <style>
-        <?php if ($block->isOnShoppingCartPage()): ?>
-        .amwal-promo {
-            min-width: 270px !important;
-        }
-        <?php endif; ?>
-    </style>
     <amwal-widget
         id="amwal-widget"
-        show-popular-badge="true"
-        show-monthly-payment="true"
-        show-green-border="true"
         <?php if (!$block->isOnShoppingCartPage()): ?>
         style="width: 200px;"
         show-social-proof="true"
