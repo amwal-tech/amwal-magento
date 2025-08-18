@@ -672,6 +672,8 @@ const AmwalMagentoReactButton = ({
         debug={debug}
         onlyShowBankInstallment={paymentMethod === 'amwal_payments_bank_installments'}
         enableAppleCheckout={applePayCheckout}
+        timelineStyle={config.timeline_style}
+        footerMessage={config.footer_message}
     />
     : <></>
 }

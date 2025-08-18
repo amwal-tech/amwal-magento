@@ -263,6 +263,8 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger($this->config->isPreCheckoutTriggerEnabled());
         $buttonConfig->setShowDiscountRibbon(false);
+        $buttonConfig->setTimelineStyle($this->config->getTimelineStyle());
+        $buttonConfig->setFooterMessage($this->config->getFooterMessage() . __('No fees, sharia compliant.'));
     }
 
 

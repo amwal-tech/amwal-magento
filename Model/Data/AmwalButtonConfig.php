@@ -526,4 +526,36 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     {
         return $this->setData(self::ENABLE_BANK_INSTALLMENTS, $enableBankInstallments);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTimelineStyle(): ?string
+    {
+        return $this->getData(self::TIMELINE_STYLE);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setTimelineStyle(?string $timelineStyle): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::TIMELINE_STYLE, $timelineStyle);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFooterMessage(): ?string
+    {
+        return $this->getData(self::FOOTER_MESSAGE);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setFooterMessage(?string $footerMessage): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::FOOTER_MESSAGE, $footerMessage);
+    }
 }
