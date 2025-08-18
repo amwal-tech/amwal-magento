@@ -148,15 +148,24 @@
                     </field>
 
                     <field id="product_promotions" translate="label" type="select" sortOrder="123" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Show promotions on product pages</label>
+                        <label>Promotions widget on product pages</label>
+                        <tooltip>Enable this option to show the promotions widget on product pages</tooltip>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/product_promotions</config_path>
                     </field>
 
                     <field id="cart_promotions" translate="label" type="select" sortOrder="124" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Show promotions on shopping cart</label>
+                        <label>Promotions widget on shopping cart</label>
+                        <tooltip>Enable this option to show the promotions widget on shopping cart page</tooltip>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/cart_promotions</config_path>
+                    </field>
+
+                    <field id="checkout_promotions" translate="label" type="select" sortOrder="125" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Promotions widget on checkout</label>
+                        <tooltip>Enable this option to show the promotions widget on checkout page</tooltip>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/checkout_promotions</config_path>
                     </field>
                 </group>
 
@@ -300,7 +309,7 @@
                         </depends>
                     </field>
                     <field id="create_api_key" translate="label" type="button" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Create Amwal Webhook API Key</label>
+                        <label>Create Webhook API Key</label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\CreateApiKey</frontend_model>
                         <comment>Click to create a new Webhook API key from Amwal and configure webhook integration.</comment>
                         <depends>
@@ -356,19 +365,13 @@
                         <config_path>payment/amwal_payments/sentry_report</config_path>
                         <tooltip>Enable reporting of errors to Amwal Sentry</tooltip>
                     </field>
-                    <field id="quote_override" translate="label tooltip" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Quote override</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/quote_override</config_path>
-                        <tooltip>If enabled, will override certain quote data. Use only if you are having issues related to quote amounts or currencies</tooltip>
-                    </field>
-                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Enable Pre Checkout Trigger</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/enable_pre_checkout_trigger</config_path>
                         <tooltip>Enable Pre Checkout Trigger</tooltip>
                     </field>
-                    <field id="plugin_version" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <field id="plugin_version" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Plugin Version</label>
                         <frontend_model>Amwal\Payments\Model\Config\Frontend\PluginVersion</frontend_model>
                     </field>
@@ -393,6 +396,23 @@
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <config_path>payment/amwal_payments/bank_installments_active</config_path>
+                </field>
+                <field id="timeline_style" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Timeline Style</label>
+                    <source_model>Amwal\Payments\Model\Config\Source\TimelineStyle</source_model>
+                    <config_path>payment/amwal_payments/bank_installments_timeline_style</config_path>
+                    <comment>Choose the style of the timeline for bank installments.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="footer_message" translate="label" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Footer Message</label>
+                    <config_path>payment/amwal_payments/bank_installments_footer_message</config_path>
+                    <comment>Custom message to be displayed in the footer of the bank installments section.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
                 </field>
             </group>
         </section>

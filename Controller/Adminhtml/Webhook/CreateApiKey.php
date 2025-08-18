@@ -140,7 +140,7 @@ class CreateApiKey extends Action
             // Check for errors
             if (!isset($responseData['webhook']) || !isset($responseData['api_key'])) {
                 $error = isset($responseData['error']) ? $responseData['error'] : 'Unknown error';
-                throw new LocalizedException(__('Failed to create Webhook API key: %1', $error));
+                throw new LocalizedException(__('Failed to register Webhook API key: %1', $error));
             }
             $webhookData = $responseData['webhook'];
             $apiKeyData = $responseData['api_key'];

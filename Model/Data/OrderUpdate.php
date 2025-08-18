@@ -301,7 +301,7 @@ class OrderUpdate
             $this->sendAdminEmail($order, $subject, $message);
             throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
         }
-        if ($this->roundValue($order->getDiscountAmount()) !== $this->roundValue($amwalOrderData->getDiscount())) {
+        if (abs($this->roundValue($order->getDiscountAmount())) !== $this->roundValue($amwalOrderData->getDiscount())) {
             $message = $this->dataValidationMessage(
                 $order->getIncrementId(),
                 'discount_amount',

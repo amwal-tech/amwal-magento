@@ -39,6 +39,8 @@ export interface IAmwalButtonConfig {
   show_discount_ribbon: boolean
   order_content: string[]
   enable_bank_installments: boolean
+  timeline_style: 'default' | 'simple'
+  footer_message: string
 }
 
 export interface IRefIdData {

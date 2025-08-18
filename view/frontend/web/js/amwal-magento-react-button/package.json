@@ -42,7 +42,7 @@
     "@sentry/react": "^9.40.0",
     "@sentry/replay": "^7.116.0",
     "@sentry/tracing": "^7.120.3",
-    "amwal-checkout-button": "^0.0.61-alpha-5",
-    "amwal-checkout-button-react": "^0.0.61-alpha-5"
+    "amwal-checkout-button": "^0.1.4",
+    "amwal-checkout-button-react": "^0.1.4"
   }
 }
