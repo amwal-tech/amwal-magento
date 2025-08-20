@@ -66,6 +66,10 @@ function ($, Component, redirectOnSuccessAction, $t) {
             let self = this;
 
             self.amwalApplePayButtonContainer = document.getElementById(self.amwalApplePayButtonId);
+            if (!self.amwalApplePayButtonContainer) {
+                // Element not found in DOM yet, will try again later
+                return;
+            }
             self.amwalApplePayButtonContainer.setAttribute('data-locale', self.getLocale());
             self.amwalApplePayButtonContainer.setAttribute('data-scope-code', self.getScopeCode());
             self.amwalApplePayButtonContainer.setAttribute('data-button-id', self.getButtonId());

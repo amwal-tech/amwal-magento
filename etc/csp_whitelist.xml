@@ -11,6 +11,7 @@
                 <value id="ppipe" type="host">https://test.ppipe.net</value>
                 <value id="shpf-base" type="host">https://secure.iframe.com</value>
                 <value id="iframe" type="host">https://iframe.com</value>
+                <value id="sentry" type="host">*.sentry.io</value>
             </values>
         </policy>
         <policy id="frame-src">
@@ -30,6 +31,8 @@
             <values>
                 <value id="amwal" type="host">*.amwal.tech</value>
                 <value id="unpkg" type="host">https://unpkg.com</value>
+                <value id="sentry-ingest" type="host">*.sentry.io</value>
+                <value id="sentry-ingest-us" type="host">*.ingest.us.sentry.io</value>
             </values>
         </policy>
         <policy id="style-src">

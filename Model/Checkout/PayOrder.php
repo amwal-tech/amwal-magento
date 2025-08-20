@@ -112,6 +112,7 @@ class PayOrder extends AmwalCheckoutAction
                 $message = sprintf('Unable to retrieve Amwal Order Data for order with ID "%s". Amwal Order id: %s', $orderId, $amwalOrderId);
                 $this->logger->error($message);
                 $this->reportError($amwalOrderId, $message);
+                $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);
                 $this->sentryExceptionReport->report($message);
             }
             return false;

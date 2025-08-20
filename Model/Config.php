@@ -70,11 +70,13 @@ class Config
     public const XML_CONFIG_PATH_WEBHOOK_EVENTS = 'payment/amwal_payments/webhook/events';
     public const XML_CONFIG_PATH_WEBHOOK_ENABLED = 'payment/amwal_payments/webhook/enabled';
     public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
+    public const XML_CONFIG_PATH_BANK_INSTALLMENTS_TIMELINE_STYLE = 'payment/amwal_payments/bank_installments_timeline_style';
+    public const XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE = 'payment/amwal_payments/bank_installments_footer_message';
 
   /**
      * @var string
      */
-    const MODULE_VERSION = '1.0.41';
+    const MODULE_VERSION = '1.0.42';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
@@ -638,5 +640,21 @@ class Config
     public function isWebhookDebugMode(): bool
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_WEBHOOK_DEBUG, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimelineStyle(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_BANK_INSTALLMENTS_TIMELINE_STYLE, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooterMessage(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE, ScopeInterface::SCOPE_WEBSITE);
     }
 }

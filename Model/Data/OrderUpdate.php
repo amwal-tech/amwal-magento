@@ -12,6 +12,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Model\CurrencyConverter;
 use Amwal\Payments\Model\GetAmwalOrderData;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Mail\MessageInterface;
@@ -43,13 +44,12 @@ class OrderUpdate
     private LoggerInterface $logger;
     private AmwalClientFactory $amwalClientFactory;
     private SentryExceptionReport $sentryExceptionReport;
+    private CurrencyConverter $currencyConverter;
 
     private const FIELD_MAPPINGS = [
         'amwal_order_id' => 'id',
         'ref_id' => 'ref_id',
     ];
-
-    private const DEFAULT_CURRENCY_CODE = 'SAR';
 
     /**
      * @param OrderRepositoryInterface $orderRepository
@@ -78,7 +78,8 @@ class OrderUpdate
         InvoiceOrder              $invoiceAmwalOrder,
         LoggerInterface           $logger,
         AmwalClientFactory        $amwalClientFactory,
-        SentryExceptionReport     $sentryExceptionReport
+        SentryExceptionReport     $sentryExceptionReport,
+        CurrencyConverter         $currencyConverter
     ) {
         $this->orderRepository = $orderRepository;
         $this->storeManager = $storeManager;
@@ -92,6 +93,7 @@ class OrderUpdate
         $this->logger = $logger;
         $this->amwalClientFactory = $amwalClientFactory;
         $this->sentryExceptionReport = $sentryExceptionReport;
+        $this->currencyConverter = $currencyConverter;
     }
 
     /**
@@ -288,17 +290,6 @@ class OrderUpdate
     public function dataValidation(Order $order, DataObject $amwalOrderData): bool
     {
         $subject = (string)__('Order (%1) needs Attention', $order->getIncrementId());
-        if ($order->getOrderCurrencyCode() !== self::DEFAULT_CURRENCY_CODE) {
-            $message = $this->dataValidationMessage(
-                $order->getIncrementId(),
-                'order_currency_code',
-                'default_currency_code',
-                $order->getOrderCurrencyCode(),
-                self::DEFAULT_CURRENCY_CODE
-            );
-            $this->sendAdminEmail($order, $subject, $message);
-            throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'order_currency_code', 'default_currency_code', $order->getOrderCurrencyCode(), self::DEFAULT_CURRENCY_CODE));
-        }
         if ($this->roundValue($order->getGrandTotal()) !== $this->roundValue($amwalOrderData->getTotalAmount())) {
             $message = $this->dataValidationMessage(
                 $order->getIncrementId(),
@@ -309,6 +300,17 @@ class OrderUpdate
             );
             $this->sendAdminEmail($order, $subject, $message);
             throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'grand_total', 'total_amount', $order->getGrandTotal(), $amwalOrderData->getTotalAmount()));
+        }
+        if (abs($this->roundValue($order->getDiscountAmount())) !== $this->roundValue($amwalOrderData->getDiscount())) {
+            $message = $this->dataValidationMessage(
+                $order->getIncrementId(),
+                'discount_amount',
+                'discount',
+                (string)$order->getGrandTotal(),
+                (string)$amwalOrderData->getTotalAmount()
+            );
+            $this->sendAdminEmail($order, $subject, $message);
+            throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'discount_amount', 'discount', $order->getDiscountAmount(), $amwalOrderData->getDiscount()));
         }
         foreach (self::FIELD_MAPPINGS as $orderMethod => $amwalMethod) {
             $orderValue = $order->getData($orderMethod);
@@ -332,11 +334,11 @@ class OrderUpdate
      * @param string $orderId
      * @param string $orderMethod
      * @param string $amwalMethod
-     * @param string $orderValue
+     * @param float|string $orderValue
      * @param string $amwalValue
      * @return string
      */
-    private function dataValidationMessage(string $orderId, string $orderMethod, string $amwalMethod, string $orderValue, string $amwalValue): string
+    private function dataValidationMessage(string $orderId, string $orderMethod, string $amwalMethod, $orderValue, string $amwalValue): string
     {
         return (string) __('Order (%1) Needs Attention, Please check Amwal Order Details in the Sales Order View Page..., Note: Order (%2) %3 does not match Amwal Order %4 (%5 != %6)', $orderId, $orderId, $orderMethod, $amwalMethod, $orderValue, $amwalValue);
     }

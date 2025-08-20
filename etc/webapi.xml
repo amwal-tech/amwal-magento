@@ -73,4 +73,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/amwal/currency" method="GET">
+        <service class="Amwal\Payments\Model\Settings" method="getCurrencySettings"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

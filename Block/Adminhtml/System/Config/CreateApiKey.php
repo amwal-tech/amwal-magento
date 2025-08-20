@@ -28,7 +28,7 @@ class CreateApiKey extends Field
     protected function _getElementHtml(AbstractElement $element)
     {
         $originalData = $element->getOriginalData();
-        $buttonLabel = $originalData['button_label'] ?? __('Create Webhook API Key');
+        $buttonLabel = $originalData['button_label'] ?? __('Register Webhook');
         $this->addData([
             'button_label' => $buttonLabel,
             'html_id' => $element->getHtmlId(),

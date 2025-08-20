@@ -12,6 +12,7 @@ use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
+use Amwal\Payments\Model\CurrencyConverter;
 use Amwal\Payments\Model\ErrorReporter;
 use JsonException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -65,6 +66,7 @@ class GetQuote extends AmwalCheckoutAction
     private CheckoutSession $checkoutSession;
     private SentryExceptionReport $sentryExceptionReport;
     private QuoteIdMaskFactory $quoteIdMaskFactory;
+    private CurrencyConverter $currencyConverter;
 
     /**
      * @param CustomerRepositoryInterface $customerRepository
@@ -87,6 +89,7 @@ class GetQuote extends AmwalCheckoutAction
      * @param Config $config
      * @param LoggerInterface $logger
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @param CurrencyConverter $currencyConverter
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -109,7 +112,8 @@ class GetQuote extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        CurrencyConverter $currencyConverter
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->customerRepository = $customerRepository;
@@ -129,6 +133,7 @@ class GetQuote extends AmwalCheckoutAction
         $this->checkoutSession = $checkoutSession;
         $this->sentryExceptionReport = $sentryExceptionReport;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->currencyConverter = $currencyConverter;
     }
 
     /**
@@ -228,7 +233,7 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            $this->throwException($e->getMessage(), $e);
+            $this->throwException($e->getMessage(), $e, $quote->getAmwalOrderId());
         }
 
         return $quoteData;
@@ -264,12 +269,14 @@ class GetQuote extends AmwalCheckoutAction
     /**
      * @param Phrase|string|null $message
      * @param Throwable|null $originalException
+     * @param int|null $amwalOrderId
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, Throwable $originalException = null): void
+    private function throwException($message = null, Throwable $originalException = null, ?int $amwalOrderId = null): void
     {
         if($originalException){
+            $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);
             $this->sentryExceptionReport->report($originalException);
         }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
@@ -349,7 +356,7 @@ class GetQuote extends AmwalCheckoutAction
             );
             $this->reportError($refId, $message);
             $this->logger->error($message);
-            $this->throwException(__('Something went wrong while processing you address information.'), $e);
+            $this->throwException(__('Something went wrong while processing you address information.'), $e, $amwalOrderData->getOrderId());
         }
         return $customerAddress;
     }
@@ -425,9 +432,11 @@ class GetQuote extends AmwalCheckoutAction
                 $this->logger->warning('Shipping method title is empty. Falling back to ID as title: ' . $id);
             }
             if ($rate->getAvailable()) {
+                $priceInclTax = (float)$rate->getPriceInclTax();
+                $convertedPrice = $this->currencyConverter->convertToSAR($priceInclTax, $quote);
                 $availableRates[$id] = [
                     'carrier_title' => $rate->getMethodTitle() ?? $id,
-                    'price' => number_format((float)$rate->getPriceInclTax(), 2)
+                    'price' => $convertedPrice
                 ];
             }else{
                 $this->logger->warning(sprintf(
@@ -458,19 +467,17 @@ class GetQuote extends AmwalCheckoutAction
      */
     public function getResponseData(CartInterface $quote, array $availableRates): array
     {
-        $useBaseCurrency = $this->config->shouldUseBaseCurrency();
-        $shippingAddress = $quote->getShippingAddress();
-        $taxAmount = $useBaseCurrency ? $shippingAddress->getBaseTaxAmount() : $shippingAddress->getTaxAmount();
         $cartId = $this->quoteIdMaskFactory->create()->load($quote->getId(), 'quote_id')->getMaskedId();
+        $totals = $this->currencyConverter->getMainAmountsInSAR($quote);
         return [
             'cart_id' => $cartId,
             'available_rates' => $availableRates,
-            'amount' => $this->getAmount($quote, $useBaseCurrency),
-            'subtotal' => $this->getSubtotal($shippingAddress, $taxAmount, $useBaseCurrency),
-            'tax_amount' => $taxAmount,
-            'shipping_amount' => $useBaseCurrency ? $shippingAddress->getBaseShippingInclTax() : $shippingAddress->getShippingInclTax(),
-            'discount_amount' => $useBaseCurrency ? abs($shippingAddress->getBaseDiscountAmount()) : abs($shippingAddress->getDiscountAmount()),
-            'additional_fee_amount' => $this->getAdditionalFeeAmount($quote),
+            'amount' => $totals['grand_total'],
+            'subtotal' => $totals['subtotal'],
+            'tax_amount' => $totals['tax_amount'],
+            'shipping_amount' => $totals['shipping_amount'],
+            'discount_amount' => $totals['discount_amount'],
+            'additional_fee_amount' => $this->currencyConverter->convertToSAR($this->getAdditionalFeeAmount($quote), $quote),
             'additional_fee_description' => $this->getAdditionalFeeDescription($quote)
         ];
     }
@@ -528,7 +535,7 @@ class GetQuote extends AmwalCheckoutAction
             $grandTotal -= $extraFee;
         }
         if (!$grandTotal) {
-            $this->throwException(__('Unable to calculate order total'));
+            $this->throwException(__('Unable to calculate order total'), null, $quote->getAmwalOrderId());
         }
         return $grandTotal;
     }
@@ -552,7 +559,7 @@ class GetQuote extends AmwalCheckoutAction
     private function virtualItemSupport(Quote $quote): void
     {
         if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupport()) {
-            $this->throwException(__('Virtual products are not supported, please remove them from your cart.'));
+            $this->throwException(__('Virtual products are not supported, please remove them from your cart.'), null, $quote->getAmwalOrderId());
         }
     }
 }

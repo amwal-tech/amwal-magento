@@ -38,6 +38,19 @@
                                         </item>
                                     </item>
                                 </item>
+                                <item name="sidebar" xsi:type="array">
+                                    <item name="children" xsi:type="array">
+                                        <item name="summary" xsi:type="array">
+                                            <item name="children" xsi:type="array">
+                                                <item name="amwal-promotion" xsi:type="array">
+                                                    <item name="component" xsi:type="string">Amwal_Payments/js/view/checkout/sidebar/promotion</item>
+                                                    <item name="displayArea" xsi:type="string">summary</item>
+                                                    <item name="sortOrder" xsi:type="string">10</item>
+                                                </item>
+                                            </item>
+                                        </item>
+                                    </item>
+                                </item>
                             </item>
                         </item>
                     </item>

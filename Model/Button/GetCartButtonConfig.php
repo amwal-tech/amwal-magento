@@ -10,6 +10,7 @@ use Amwal\Payments\Api\RefIdManagementInterface;
 use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\Data\AmwalButtonConfig;
 use Amwal\Payments\Model\Data\AmwalButtonConfigFactory;
+use Amwal\Payments\Model\CurrencyConverter;
 use Amwal\Payments\Model\ThirdParty\CityHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
@@ -25,6 +26,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Amwal\Payments\ViewModel\ExpressCheckoutButton;
+use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Api\Data\ProductInterface;
@@ -37,6 +39,7 @@ class GetCartButtonConfig extends GetConfig
 {
     private AttributeRepositoryInterface $attributeRepository;
     protected $amwalQuote;
+    private CurrencyConverter $currencyConverter;
 
     /**
      * @param AmwalButtonConfigFactory $buttonConfigFactory
@@ -69,7 +72,8 @@ class GetCartButtonConfig extends GetConfig
         Json $jsonSerializer,
         RegionCollectionFactory $regionCollectionFactory,
         QuoteIdMaskFactory $quoteIdMaskFactory,
-        AttributeRepositoryInterface $attributeRepository
+        AttributeRepositoryInterface $attributeRepository,
+        CurrencyConverter $currencyConverter
     ) {
         parent::__construct(
             $buttonConfigFactory, $config, $storeManager, $customerSessionFactory, $checkoutSessionFactory, $cityHelper,
@@ -78,6 +82,7 @@ class GetCartButtonConfig extends GetConfig
         );
 
         $this->attributeRepository = $attributeRepository;
+        $this->currencyConverter = $currencyConverter;
     }
 
 
@@ -153,15 +158,18 @@ class GetCartButtonConfig extends GetConfig
     {
         if ($productId && $buttonConfig->isShowDiscountRibbon()) {
             $product = $this->productRepository->getById($productId);
-            return (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            $amount = (float)$product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+            return $this->currencyConverter->convertToSAR($amount, $quote);
         }
 
-        return ((float)
+        $amount = ((float)
             $quote->getGrandTotal() +
             $this->getDiscountAmount($quote, $buttonConfig, $productId) -
-            $this->getTaxAmount($quote) -
+            $quote->getShippingAddress()->getTaxAmount() -
             $this->getFeesAmount($quote)
         );
+
+        return $this->currencyConverter->convertToSAR($amount, $quote);
     }
 
 
@@ -183,7 +191,9 @@ class GetCartButtonConfig extends GetConfig
                 $discountAmount += $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
             } else {
                 foreach ($quote->getAllVisibleItems() as $item) {
-                    $product = $this->productRepository->get($item->getSku());
+                    $product = $item->getProductId()
+                        ? $this->productRepository->getById($item->getProductId())
+                        : $this->productRepository->get($item->getSku());
                     $priceInfo = $product->getPriceInfo();
                     $price = $priceInfo->getPrice('regular_price')->getAmount()->getValue() - $priceInfo->getPrice('final_price')->getAmount()->getValue();
                     $discountAmount += $price * $item->getQty();
@@ -201,7 +211,8 @@ class GetCartButtonConfig extends GetConfig
      */
     public function getTaxAmount(CartInterface $quote): float
     {
-        return (float)$quote->getShippingAddress()->getTaxAmount();
+        $taxAmount = (float)$quote->getShippingAddress()->getTaxAmount();
+        return $this->currencyConverter->convertToSAR($taxAmount, $quote);
     }
 
     /**
@@ -216,7 +227,7 @@ class GetCartButtonConfig extends GetConfig
         if (isset($totals['amasty_extrafee'])) {
             $extraFee = $totals['amasty_extrafee']->getValueInclTax();
         }
-        return $extraFee;
+        return $this->currencyConverter->convertToSAR($extraFee, $quote);
     }
 
     /**
@@ -252,6 +263,8 @@ class GetCartButtonConfig extends GetConfig
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setEnablePreCheckoutTrigger($this->config->isPreCheckoutTriggerEnabled());
         $buttonConfig->setShowDiscountRibbon(false);
+        $buttonConfig->setTimelineStyle($this->config->getTimelineStyle());
+        $buttonConfig->setFooterMessage($this->config->getFooterMessage() . __('No fees, sharia compliant.'));
     }
 
 
@@ -326,7 +339,7 @@ class GetCartButtonConfig extends GetConfig
         $orderContent = [];
         foreach ($quote->getAllItems() as $item) {
             if (!$item->getParentItemId()) {
-                $orderContent[] = $this->getProductData($item);
+                $orderContent[] = $this->getProductData($item, $quote);
             }
         }
         return $orderContent;
@@ -334,28 +347,31 @@ class GetCartButtonConfig extends GetConfig
 
     /**
      * @param Item $item
+     * @param CartInterface $quote
      * @return array
      */
-    private function getProductData(Item $item): array
+    private function getProductData(Item $item, CartInterface $quote): array
     {
         // Check if the item is part of a configurable product
         if ($item->getProductType() === 'configurable') {
             foreach ($item->getChildren() as $child) {
+                $total = (float)$child->getRowTotalInclTax() == 0 ? (float)$item->getRowTotalInclTax() : (float)$child->getRowTotalInclTax();
                 return [
                     'id' => $child->getProductId(),
                     'name' => $this->getProductName($item->getProduct(), $child->getProduct()),
                     'quantity' => (float)$item->getQty(),
-                    'total' => (float)$child->getRowTotalInclTax() == 0 ? (float)$item->getRowTotalInclTax() : (float)$child->getRowTotalInclTax(),
+                    'total' => $this->currencyConverter->convertToSAR($total, $quote),
                     'url' => $child->getProductUrl(),
                     'image' => $this->getProductImageUrl($child->getProduct())
                 ];
             }
         }
+        $total = (float)$item->getRowTotalInclTax();
         return [
             'id' => $item->getProductId(),
             'name' => $item->getName(),
             'quantity' => (float)$item->getQty(),
-            'total' => (float)$item->getRowTotalInclTax(),
+            'total' => $this->currencyConverter->convertToSAR($total, $quote),
             'url' => $item->getProductUrl(),
             'image' => $this->getProductImageUrl($item->getProduct())
         ];

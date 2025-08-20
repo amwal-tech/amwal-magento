@@ -38,6 +38,8 @@ interface AmwalButtonConfigInterface
     public const FEES = 'fees';
     public const ORDER_CONTENT = 'order_content';
     public const ENABLE_BANK_INSTALLMENTS = 'enable_bank_installments';
+    public const TIMELINE_STYLE = 'timeline_style';
+    public const FOOTER_MESSAGE = 'footer_message';
 
     /**
      * @return string
@@ -394,4 +396,24 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setEnableBankInstallments(bool $enableBankInstallments): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getTimelineStyle(): ?string;
+    /**
+     * @param string|null $timelineStyle
+     * @return AmwalButtonConfigInterface
+     */
+    public function setTimelineStyle(?string $timelineStyle): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getFooterMessage(): ?string;
+    /**
+     * @param string|null $footerMessage
+     * @return AmwalButtonConfigInterface
+     */
+    public function setFooterMessage(?string $footerMessage): AmwalButtonConfigInterface;
 }
