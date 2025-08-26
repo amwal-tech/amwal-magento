@@ -56,7 +56,21 @@ function ($, Component, redirectOnSuccessAction, $t) {
 
             return self;
         },
+        validateForm: function() {
+            const form = document.querySelector('#co-payment-form');
+            if (!form) return false;
+            const hasEmptyRequired = form.querySelectorAll('[required]').length > form.querySelectorAll('[required]:valid').length;
+            const hasPaymentMethod = form.querySelector('input[name="payment[method]"]:checked');
+            return !hasEmptyRequired && !!hasPaymentMethod;
+        },
 
+        toggleButtonState: function(isValid) {
+            const amwalButton = document.querySelector('.amwal-checkout-button');
+            if (amwalButton) {
+                amwalButton.disabled = !isValid;
+                amwalButton.style.opacity = isValid ? '1' : '0.5';
+            }
+        },
         initializeAmwalButton: function () {
             let self = this;
 
@@ -66,12 +80,28 @@ function ($, Component, redirectOnSuccessAction, $t) {
                 return;
             }
 
+            // Validate form before initializing
+            const isValid = self.validateForm();
             self.amwalBankInstallmentsButtonContainer.setAttribute('data-locale', self.getLocale());
             self.amwalBankInstallmentsButtonContainer.setAttribute('data-scope-code', self.getScopeCode());
             self.amwalBankInstallmentsButtonContainer.setAttribute('data-button-id', self.getButtonId());
             if (window.renderReactElement) {
                 window.renderReactElement(self.amwalBankInstallmentsButtonContainer);
             }
+            // Set button state after render
+            setTimeout(() => {
+                self.toggleButtonState(isValid);
+                const amwalButton = document.querySelector('.amwal-checkout-button');
+                if (amwalButton) {
+                    amwalButton.addEventListener('click', function(e) {
+                        if (!self.validateForm()) {
+                            e.preventDefault();
+                            alert('Please fill in all required fields and select a payment method');
+                            return false;
+                        }
+                    });
+                }
+            }, 100);
             if (window.checkoutConfig.payment.amwal_payments.isRegularCheckoutRedirect) {
                 self.amwalBankInstallmentsButtonContainer.style.display = 'none';
                 const amwalPlaceOrderButtons = document.querySelectorAll('.amwal-place-order');
