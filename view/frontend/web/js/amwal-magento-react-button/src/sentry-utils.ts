@@ -34,7 +34,74 @@ const importSentry = async (): Promise<{ Sentry: any } | null> => {
 };
 
 /**
- * Initialize Sentry with Amwal-optimized configuration
+ * Check if an error is Amwal-related
+ */
+const isAmwalRelatedError = (event: any): boolean => {
+    // Check error message for Amwal-related keywords
+    const errorMessage = event.exception?.values?.[0]?.value || event.message || '';
+    const amwalKeywords = [
+        'amwal',
+        'Amwal',
+        'AMWAL',
+        'amwal-checkout-button',
+        'AmwalCheckoutButton',
+        'amwal-payment',
+        'amwal_payments'
+    ];
+
+    if (amwalKeywords.some(keyword => errorMessage.includes(keyword))) {
+        return true;
+    }
+
+    // Check stack trace for Amwal-related files/functions
+    const stackFrames = event.exception?.values?.[0]?.stacktrace?.frames || [];
+    for (const frame of stackFrames) {
+        const filename = frame.filename || '';
+        const functionName = frame.function || '';
+
+        if (amwalKeywords.some(keyword =>
+            filename.toLowerCase().includes(keyword.toLowerCase()) ||
+            functionName.toLowerCase().includes(keyword.toLowerCase())
+        )) {
+            return true;
+        }
+    }
+
+    // Check breadcrumbs for Amwal context
+    const breadcrumbs = event.breadcrumbs || [];
+    for (const breadcrumb of breadcrumbs) {
+        if (breadcrumb.category === 'amwal.payment' ||
+            breadcrumb.message?.includes('Amwal') ||
+            breadcrumb.data?.amwal_context) {
+            return true;
+        }
+    }
+
+    // Check tags for Amwal-related context
+    const tags = event.tags || {};
+    if (tags.component === 'amwal-payment' ||
+        tags.amwal_context ||
+        tags.transaction_id) {
+        return true;
+    }
+
+    // Check contexts for Amwal-related data
+    const contexts = event.contexts || {};
+    if (contexts.amwal_payment || contexts.amwal_error_data) {
+        return true;
+    }
+
+    // Check request URLs for Amwal endpoints
+    const requestUrl = event.request?.url || '';
+    if (requestUrl.includes('/amwal/') || requestUrl.includes('amwal')) {
+        return true;
+    }
+
+    return false;
+};
+
+/**
+ * Initialize Sentry with Amwal-optimized configuration that only reports Amwal JS errors
  * Call this in your main app's index.tsx or App.tsx
  */
 export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> => {
@@ -142,9 +209,18 @@ export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> 
             debug,
             integrations,
 
-            // Enhanced beforeSend for Amwal payment security
+            // Enhanced beforeSend for Amwal payment security AND filtering only Amwal errors
             beforeSend: (event: any) => {
-                // Apply user's custom beforeSend first
+                // FIRST: Check if this is an Amwal-related error
+                // If not, drop the event entirely
+                if (!isAmwalRelatedError(event)) {
+                    if (debug) {
+                        console.log('[Amwal] Dropping non-Amwal error:', event);
+                    }
+                    return null;
+                }
+
+                // Apply user's custom beforeSend first (only for Amwal errors)
                 if (beforeSend) {
                     event = beforeSend(event);
                     if (!event) return null;
@@ -170,6 +246,13 @@ export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> 
                     });
                 }
 
+                // Add additional Amwal-specific tags for better categorization
+                event.tags = {
+                    ...event.tags,
+                    amwal_filtered: true,
+                    component: 'amwal-payment'
+                };
+
                 return event;
             },
 
@@ -178,7 +261,8 @@ export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> 
                 tags: {
                     component: 'amwal-payment',
                     integration: 'magento',
-                    plugin_version: '1.0.0'
+                    plugin_version: '1.0.0',
+                    amwal_filtered: true
                 }
             }
         });
@@ -189,7 +273,7 @@ export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> 
         }
         amwalSentryInitialized = true;
 
-        console.log('[Amwal] Sentry initialized successfully');
+        console.log('[Amwal] Sentry initialized successfully (Amwal errors only)');
 
     } catch (error) {
         console.warn('[Amwal] Failed to initialize Sentry:', error);
@@ -228,6 +312,7 @@ export const reportAmwalError = async (
 
         Sentry.withScope((scope: any) => {
             scope.setTag('amwal_context', context);
+            scope.setTag('amwal_manual_report', true);
 
             // Set transaction_id as a tag if it exists in additionalData
             if (additionalData?.transaction_id) {
@@ -315,6 +400,7 @@ export const startAmwalTransaction = async (
             op: `amwal.${operation}`,
             tags: {
                 component: 'amwal-payment',
+                amwal_transaction: true,
                 ...additionalTags
             }
         });
