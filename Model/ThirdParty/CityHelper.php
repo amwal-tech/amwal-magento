@@ -38,48 +38,89 @@ class CityHelper
     {
         $cityCodes = [];
         $connection = $this->resourceConnection->getConnection();
+
+        $cityCodes = array_merge_recursive(
+            $cityCodes,
+            $this->getCitiesFromMainTable($connection),
+            $this->getCitiesFromTorodRegion($connection),
+            $this->getCitiesFromDirectoryTables($connection)
+        );
+
+        return $cityCodes;
+    }
+
+    private function getCitiesFromMainTable($connection): array
+    {
+        $cityCodes = [];
         $citiesTable = $this->resourceConnection->getTableName('cities');
-        if ($connection->isTableExists($citiesTable)) {
-            $condition = $connection->quoteInto('city.status = ?', 1);
-            $sql = $connection->select()
-                ->from(['city' => $citiesTable], ['city', 'state_id', 'country_id'])
-                ->where($condition);
 
-            foreach ($connection->fetchAll($sql) as $city) {
-                $cityCodes[$city['country_id']][$city['state_id']][] = (strpos($this->localeResolver->getLocale(), 'ar') !== false && !empty($city['city_ar'])) ? $city['city_ar'] : ($city['city'] ?? '');
-            }
+        if (!$connection->isTableExists($citiesTable)) {
+            return [];
         }
 
-        // Torod\CityRegion
-        $torodCityRegionName = $this->resourceConnection->getTableName('torod_cityregion_cityregion');
-        if ($connection->isTableExists($torodCityRegionName)) {
-            $sql = $connection->select()->from(
-                ['city' => $torodCityRegionName],
-                ['city_name', 'city_name_ar', 'region_id', 'country_id']
-            );
-            foreach ($connection->fetchAll($sql) as $city) {
-                $cityCodes[$city['country_id']][$city['region_id']][] = strpos($this->localeResolver->getLocale(), 'ar') !== false ? $city['city_name_ar'] : $city['city_name'];
+        $sql = $connection->select()
+            ->from(['city' => $citiesTable], ['city', 'city_ar', 'state_id', 'country_id'])
+            ->where('city.status = ?', 1);
 
-            }
-        }
-
-        // Magento 2 Region & City Dropdown Manager
-        $tableName = $this->resourceConnection->getTableName('directory_country_region_city');
-        $localeCityTableName = $this->resourceConnection->getTableName('directory_country_region_city_name');
-        if ($connection->isTableExists($tableName) && $connection->isTableExists($localeCityTableName)) {
-            $sql = $connection->select()
-                ->from(['city' => $tableName])
-                ->joinLeft(
-                    ['lngname' => $localeCityTableName],
-                    'city.city_id = lngname.city_id AND lngname.locale = :region_locale',
-                    ['name']
-                );
-
-            foreach ($connection->fetchAll($sql, [':region_locale' => $this->localeResolver->getLocale()]) as $city) {
-                $cityCodes[$city['country_id']][$city['region_id']][] = $city['name'] ?? $city['default_name'];
-            }
+        foreach ($connection->fetchAll($sql) as $city) {
+            $cityCodes[$city['country_id']][$city['state_id']][] =
+                $this->getLocalizedCityName($city['city'], $city['city_ar']);
         }
 
         return $cityCodes;
+    }
+
+    private function getCitiesFromTorodRegion($connection): array
+    {
+        $cityCodes = [];
+        $table = $this->resourceConnection->getTableName('torod_cityregion_cityregion');
+
+        if (!$connection->isTableExists($table)) {
+            return [];
+        }
+
+        $sql = $connection->select()->from(
+            ['city' => $table],
+            ['city_name', 'city_name_ar', 'region_id', 'country_id']
+        );
+
+        foreach ($connection->fetchAll($sql) as $city) {
+            $cityCodes[$city['country_id']][$city['region_id']][] =
+                $this->getLocalizedCityName($city['city_name'], $city['city_name_ar']);
+        }
+
+        return $cityCodes;
+    }
+
+    private function getCitiesFromDirectoryTables($connection): array
+    {
+        $cityCodes = [];
+        $table = $this->resourceConnection->getTableName('directory_country_region_city');
+        $localeTable = $this->resourceConnection->getTableName('directory_country_region_city_name');
+
+        if (!$connection->isTableExists($table) || !$connection->isTableExists($localeTable)) {
+            return [];
+        }
+
+        $sql = $connection->select()
+            ->from(['city' => $table])
+            ->joinLeft(
+                ['lngname' => $localeTable],
+                'city.city_id = lngname.city_id AND lngname.locale = :region_locale',
+                ['name', 'default_name']
+            );
+
+        foreach ($connection->fetchAll($sql, [':region_locale' => $this->localeResolver->getLocale()]) as $city) {
+            $cityCodes[$city['country_id']][$city['region_id']][] =
+                $city['name'] ?? $city['default_name'];
+        }
+
+        return $cityCodes;
+    }
+
+    private function getLocalizedCityName(?string $default, ?string $arabic): string
+    {
+        $isArabic = strpos($this->localeResolver->getLocale(), 'ar') !== false;
+        return $isArabic && !empty($arabic) ? $arabic : ($default ?? '');
     }
 }
