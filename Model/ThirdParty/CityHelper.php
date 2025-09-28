@@ -46,7 +46,7 @@ class CityHelper
                 ->where($condition);
 
             foreach ($connection->fetchAll($sql) as $city) {
-                $cityCodes[$city['country_id']][$city['state_id']][] = $city['city'];
+                $cityCodes[$city['country_id']][$city['state_id']][] = (strpos($this->localeResolver->getLocale(), 'ar') !== false && !empty($city['city_ar'])) ? $city['city_ar'] : ($city['city'] ?? '');
             }
         }
 
