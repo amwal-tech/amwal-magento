@@ -58,13 +58,23 @@ class CityHelper
             return [];
         }
 
+        // Check if city_ar column exists
+        $tableColumns = $connection->describeTable($citiesTable);
+        $hasArabicColumn = isset($tableColumns['city_ar']);
+
+        $selectFields = ['city', 'state_id', 'country_id'];
+        if ($hasArabicColumn) {
+            $selectFields[] = 'city_ar';
+        }
+
         $sql = $connection->select()
-            ->from(['city' => $citiesTable], ['city', 'city_ar', 'state_id', 'country_id'])
+            ->from(['city' => $citiesTable], $selectFields)
             ->where('city.status = ?', 1);
 
         foreach ($connection->fetchAll($sql) as $city) {
+            $cityArabic = $hasArabicColumn ? ($city['city_ar'] ?? null) : null;
             $cityCodes[$city['country_id']][$city['state_id']][] =
-                $this->getLocalizedCityName($city['city'], $city['city_ar']);
+                $this->getLocalizedCityName($city['city'], $cityArabic);
         }
 
         return $cityCodes;
@@ -79,14 +89,25 @@ class CityHelper
             return [];
         }
 
-        $sql = $connection->select()->from(
-            ['city' => $table],
-            ['city_name', 'city_name_ar', 'region_id', 'country_id']
-        );
+        // Check what columns exist in the table
+        $tableColumns = $connection->describeTable($table);
+        $selectFields = ['region_id', 'country_id'];
+
+        // Add city name fields if they exist
+        if (isset($tableColumns['city_name'])) {
+            $selectFields[] = 'city_name';
+        }
+        if (isset($tableColumns['city_name_ar'])) {
+            $selectFields[] = 'city_name_ar';
+        }
+
+        $sql = $connection->select()->from(['city' => $table], $selectFields);
 
         foreach ($connection->fetchAll($sql) as $city) {
+            $cityName = $city['city_name'] ?? '';
+            $cityNameAr = $city['city_name_ar'] ?? null;
             $cityCodes[$city['country_id']][$city['region_id']][] =
-                $this->getLocalizedCityName($city['city_name'], $city['city_name_ar']);
+                $this->getLocalizedCityName($cityName, $cityNameAr);
         }
 
         return $cityCodes;
@@ -102,17 +123,24 @@ class CityHelper
             return [];
         }
 
+        // Check what columns exist in the locale table
+        $localeTableColumns = $connection->describeTable($localeTable);
+        $selectFields = ['name'];
+        if (isset($localeTableColumns['default_name'])) {
+            $selectFields[] = 'default_name';
+        }
+
         $sql = $connection->select()
             ->from(['city' => $table])
             ->joinLeft(
                 ['lngname' => $localeTable],
                 'city.city_id = lngname.city_id AND lngname.locale = :region_locale',
-                ['name', 'default_name']
+                $selectFields
             );
 
         foreach ($connection->fetchAll($sql, [':region_locale' => $this->localeResolver->getLocale()]) as $city) {
-            $cityCodes[$city['country_id']][$city['region_id']][] =
-                $city['name'] ?? $city['default_name'];
+            $cityName = $city['name'] ?? $city['default_name'] ?? '';
+            $cityCodes[$city['country_id']][$city['region_id']][] = $cityName;
         }
 
         return $cityCodes;
