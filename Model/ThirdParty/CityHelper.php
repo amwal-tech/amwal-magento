@@ -120,7 +120,7 @@ class CityHelper
 
     private function getLocalizedCityName(?string $default, ?string $arabic): string
     {
-        $isArabic = strpos($this->localeResolver->getLocale(), 'ar') !== false;
+        $isArabic = str_starts_with($this->localeResolver->getLocale(), 'ar');
         return $isArabic && !empty($arabic) ? $arabic : ($default ?? '');
     }
 }
