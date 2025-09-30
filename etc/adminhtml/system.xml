@@ -230,6 +230,12 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/virtual_items_support</config_path>
                     </field>
+                    <field id="prevent_order_email" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Prevent Order Confirmation Email</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment><![CDATA[Prevent sending order confirmation email immediately on order placement. Email will be sent when order reaches confirmed status.]]></comment>
+                        <config_path>payment/amwal_payments/prevent_order_email</config_path>
+                    </field>
                 </group>
 
                 <!--Country specific settings-->

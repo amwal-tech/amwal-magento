@@ -34,6 +34,11 @@ class PreventEmailForNewOrder
      */
     public function aroundSend(OrderSender $subject, callable $proceed, Order $order, $forceSyncMode = false)
     {
+        // If the prevention is disabled, proceed as normally
+        if (!$this->config->isPreventOrderEmailEnabled()) {
+            return $proceed($order, $forceSyncMode);
+        }
+
         $payment = $order->getPayment();
 
         // Skip orders not paid with Amwal.

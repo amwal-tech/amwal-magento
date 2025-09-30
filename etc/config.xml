@@ -37,6 +37,7 @@
                 <redirect_on_load_click>0</redirect_on_load_click>
                 <product_promotions>1</product_promotions>
                 <cart_promotions>1</cart_promotions>
+                <prevent_order_email>1</prevent_order_email>
             </amwal_payments>
             <amwal_payments_apple_pay>
                 <title>Amwal apple pay</title>

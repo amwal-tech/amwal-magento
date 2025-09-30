@@ -72,8 +72,10 @@ class Config
     public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_TIMELINE_STYLE = 'payment/amwal_payments/bank_installments_timeline_style';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE = 'payment/amwal_payments/bank_installments_footer_message';
+    private const XML_PATH_PREVENT_ORDER_EMAIL = 'payment/amwal_payments/prevent_order_email';
 
-  /**
+
+    /**
      * @var string
      */
     const MODULE_VERSION = '1.0.42';
@@ -656,5 +658,20 @@ class Config
     public function getFooterMessage(): string
     {
         return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE, ScopeInterface::SCOPE_WEBSITE);
+    }
+
+    /**
+     * Check if order confirmation email should be prevented for pending Amwal orders
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isPreventOrderEmailEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_PREVENT_ORDER_EMAIL,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
     }
 }

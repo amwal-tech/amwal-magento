@@ -273,7 +273,7 @@ export const initAmwalSentry = async (config: AmwalSentryConfig): Promise<void> 
         }
         amwalSentryInitialized = true;
 
-        console.log('[Amwal] Sentry initialized successfully (Amwal errors only)');
+        console.log('[Amwal] Sentry initialized successfully');
 
     } catch (error) {
         console.warn('[Amwal] Failed to initialize Sentry:', error);
