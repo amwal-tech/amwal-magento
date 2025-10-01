@@ -161,26 +161,32 @@ class OrderSuccess implements HandlerInterface
             try {
                 // Create the invoice
                 $invoice = $this->invoiceService->prepareInvoice($order);
-                $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+                $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
+                // Register and explicitly mark as paid
                 $invoice->register();
+                $invoice->pay();
 
                 // Set invoice transaction ID
                 $invoice->setTransactionId($transactionId);
-
-                // Save the invoice
+                // Save the invoice and order
                 $this->transaction->addObject($invoice)
-                    ->addObject($transaction)
                     ->addObject($order)
                     ->save();
 
-                // Send invoice email
-                $this->invoiceSender->send($invoice);
+                // Send invoice email (wrap in try-catch to not fail if email fails)
+                try {
+                    $this->invoiceSender->send($invoice);
+                } catch (\Exception $emailException) {
+                    $this->logger->warning("Could not send invoice email: " . $emailException->getMessage());
+                }
 
                 $order->addCommentToStatusHistory(
-                    __('[Webhook] Invoice #%1 created', $invoice->getIncrementId()),
+                    __('[Webhook] Invoice #%1 created and marked as paid', $invoice->getIncrementId()),
                     false,
                     true
                 );
+
+                $this->logger->info("Invoice #{$invoice->getIncrementId()} created successfully for order #{$order->getIncrementId()}");
             } catch (\Exception $e) {
                 $this->logger->error("Failed to create invoice: " . $e->getMessage());
                 $order->addCommentToStatusHistory(
@@ -189,8 +195,6 @@ class OrderSuccess implements HandlerInterface
                     true
                 );
             }
-        } else {
-            $this->logger->info("Order #{$order->getIncrementId()} cannot be invoiced in its current state");
         }
 
         // Save the order
