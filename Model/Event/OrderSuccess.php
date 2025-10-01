@@ -11,7 +11,6 @@ use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Psr\Log\LoggerInterface;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
-use Magento\Quote\Api\CartRepositoryInterface;
 
 /**
  * Handles order.success webhook event
@@ -58,18 +57,12 @@ class OrderSuccess implements HandlerInterface
     private $logger;
 
     /**
-     * @var CartRepositoryInterface
-     */
-    private $quoteRepository;
-
-    /**
      * @param OrderRepositoryInterface $orderRepository
      * @param InvoiceService $invoiceService
      * @param Transaction $transaction
      * @param InvoiceSender $invoiceSender
      * @param OrderSender $orderSender
      * @param LoggerInterface $logger
-     * @param CartRepositoryInterface $quoteRepository
      */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
@@ -77,8 +70,7 @@ class OrderSuccess implements HandlerInterface
         Transaction $transaction,
         InvoiceSender $invoiceSender,
         OrderSender $orderSender,
-        LoggerInterface $logger,
-        CartRepositoryInterface $quoteRepository
+        LoggerInterface $logger
     ) {
         $this->orderRepository = $orderRepository;
         $this->invoiceService = $invoiceService;
@@ -86,7 +78,6 @@ class OrderSuccess implements HandlerInterface
         $this->invoiceSender = $invoiceSender;
         $this->orderSender = $orderSender;
         $this->logger = $logger;
-        $this->quoteRepository = $quoteRepository;
     }
 
     /**
