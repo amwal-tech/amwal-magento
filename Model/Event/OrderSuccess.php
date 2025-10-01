@@ -136,7 +136,12 @@ class OrderSuccess implements HandlerInterface
         // Set payment as captured
         $payment->setIsTransactionClosed(true);
         $payment->setShouldCloseParentTransaction(true);
+
+        // Set order state and status
+        $orderState = Order::STATE_PROCESSING;
+        $orderStatus = 'processing';
         $order->setEmailSent(true);
+
         $order->setState(Order::STATE_PROCESSING);
         $order->setStatus(Order::STATE_PROCESSING);
 
