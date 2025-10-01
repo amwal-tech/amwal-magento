@@ -136,13 +136,9 @@ class OrderSuccess implements HandlerInterface
         // Set payment as captured
         $payment->setIsTransactionClosed(true);
         $payment->setShouldCloseParentTransaction(true);
-
-        // Set order state and status
-        $orderState = Order::STATE_PROCESSING;
-        $orderStatus = 'processing';
-
-        $order->setState($orderState);
-        $order->setStatus($orderStatus);
+        $order->setEmailSent(true);
+        $order->setState(Order::STATE_PROCESSING);
+        $order->setStatus(Order::STATE_PROCESSING);
 
         // Set custom field for webhook processing
         $order->setData('amwal_webhook_processed', true);
@@ -227,6 +223,13 @@ class OrderSuccess implements HandlerInterface
             if (in_array($orderField, ['grand_total', 'discount_amount'])) {
                 $orderValue = $this->roundValue((float)$orderValue);
                 $amwalValue = $this->roundValue((float)$amwalValue);
+            }
+
+            // For discount_amount, compare absolute values
+            // Magento stores discounts as negative, Amwal might send as positive
+            if ($orderField === 'discount_amount') {
+                $orderValue = abs($orderValue);
+                $amwalValue = abs($amwalValue);
             }
 
             if ($orderValue != $amwalValue) {
