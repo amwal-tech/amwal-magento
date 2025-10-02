@@ -38,6 +38,7 @@ class CleanQuote extends AmwalCheckoutAction
 
     /**
      * Execute the quote cleaning process
+     * @return void
      */
     public function execute(): void
     {
