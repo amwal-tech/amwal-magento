@@ -72,6 +72,7 @@ class Config
     public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_TIMELINE_STYLE = 'payment/amwal_payments/bank_installments_timeline_style';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE = 'payment/amwal_payments/bank_installments_footer_message';
+    public const XML_CONFIG_PATH_CHECKOUT_PROMOS_ACTIVE = 'payment/amwal_payments/checkout_promotions';
 
   /**
      * @var string
@@ -657,4 +658,13 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE, ScopeInterface::SCOPE_WEBSITE);
     }
+
+    /**
+     * @return bool
+     */
+    public function isCheckoutPromosActive(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_CHECKOUT_PROMOS_ACTIVE, ScopeInterface::SCOPE_WEBSITE);
+    }
+
 }

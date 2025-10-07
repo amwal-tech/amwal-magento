@@ -134,6 +134,7 @@ class ConfigProvider implements ConfigProviderInterface
             'isBankInstallmentsActive' => $this->isBankInstallmentsActive(),
             'defaultRedirectUrl' => $this->urlInterface->getUrl('amwal/redirect'),
             'isRegularCheckoutRedirect' => $this->config->isRegularCheckoutRedirect(),
+            'isCheckoutPromosActive' => $this->config->isCheckoutPromosActive(),
         ];
 
         return [
