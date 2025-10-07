@@ -104,6 +104,11 @@ define([
         },
 
         isVisible: function () {
+            let config = window.checkoutConfig.payment;
+            let methodCode = 'amwal_payments';
+            if (!config[methodCode]?.isCheckoutPromosActive) {
+                return false;
+            }
             return this.getGrandTotal() > 0;
         },
 
