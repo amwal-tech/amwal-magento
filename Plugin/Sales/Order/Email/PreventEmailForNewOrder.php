@@ -15,11 +15,6 @@ class PreventEmailForNewOrder
 {
 
     private Config $config;
-    private const AMWAL_PAYMENT_METHODS = [
-        'amwal_payments',
-        'amwal_payments_bank_installments',
-        'amwal_payments_apple_pay'
-    ];
 
     /**
      * @param Config $config
@@ -42,7 +37,7 @@ class PreventEmailForNewOrder
         $payment = $order->getPayment();
 
         // Skip orders not paid with Amwal.
-        if (!$payment || !in_array($payment->getMethod(), self::AMWAL_PAYMENT_METHODS, true)) {
+        if (!$payment || $payment->getMethod() !== ConfigProvider::CODE) {
             return $proceed($order, $forceSyncMode);
         }
 
