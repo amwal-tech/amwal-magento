@@ -62,6 +62,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         // Get order by Amwal order ID
         $order = $this->getOrderByAmwalOrderId($amwalOrderId);
         $order->setData('order_url', $this->getOrderUrl($order));
+        $order->setData('history', $this->getOrderHistory($order));
 
         return [
             'order' => $order->getData(),
@@ -78,6 +79,7 @@ class AmwalOrderDetails implements AmwalOrderInterface
         // Get order by order ID
         $order = $this->getOrderById($orderId);
         $order->setData('order_url', $this->getOrderUrl($order));
+        $order->setData('history', $this->getOrderHistory($order));
 
         return [
             'order' => $order->getData(),
@@ -152,6 +154,30 @@ class AmwalOrderDetails implements AmwalOrderInterface
             throw new RuntimeException('Order not found, please check the provided Order ID.');
         }
         return $order;
+    }
+
+    /**
+     * Get order status history
+     * @param OrderInterface $order
+     * @return array
+     */
+    private function getOrderHistory(OrderInterface $order): array
+    {
+        $history = [];
+        $statusHistories = $order->getAllStatusHistory();
+
+        foreach ($statusHistories as $statusHistory) {
+            $history[] = [
+                'status' => $statusHistory->getStatus(),
+                'comment' => $statusHistory->getComment(),
+                'created_at' => $statusHistory->getCreatedAt(),
+                'is_customer_notified' => $statusHistory->getIsCustomerNotified(),
+                'is_visible_on_front' => $statusHistory->getIsVisibleOnFront(),
+                'entity_name' => $statusHistory->getEntityName()
+            ];
+        }
+
+        return $history;
     }
 
     /**

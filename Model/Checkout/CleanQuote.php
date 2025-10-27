@@ -7,7 +7,6 @@ use Amwal\Payments\Model\Config;
 use Amwal\Payments\Model\ErrorReporter;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Psr\Log\LoggerInterface;
 
@@ -17,6 +16,8 @@ class CleanQuote extends AmwalCheckoutAction
     private CartRepositoryInterface $cartRepository;
 
     /**
+     * CleanQuote constructor.
+     *
      * @param CheckoutSession $checkoutSession
      * @param CartRepositoryInterface $cartRepository
      * @param ErrorReporter $errorReporter
@@ -36,25 +37,27 @@ class CleanQuote extends AmwalCheckoutAction
     }
 
     /**
+     * Execute the quote cleaning process
      * @return void
      */
     public function execute(): void
     {
         try {
             $quote = $this->checkoutSession->getQuote();
-        } catch (NoSuchEntityException|LocalizedException $e) {
-            $this->logDebug('No existing quote found, skipping cleanup.');
-            return;
-        }
 
-        if (!$quote) {
-            $this->logDebug('No existing quote found, skipping cleanup.');
-            return;
-        }
+            if ($quote && $quote->getId()) {
+                $this->logDebug('Deactivating quote: ' . $quote->getId());
 
-        $this->logDebug('Starting Quote cleanup.');
-        $quote->removeAllItems();
-        $this->cartRepository->save($quote);
-        $this->logDebug('Quote cleanup completed.');
+                $quote->setIsActive(false);
+                $this->cartRepository->save($quote);
+            }
+            $this->checkoutSession->clearQuote();
+            $this->checkoutSession->clearStorage();
+
+            $this->logDebug('Quote cleaned successfully. New quote will be created automatically.');
+
+        } catch (\Exception $e) {
+            $this->logDebug('Error cleaning quote: ' . $e->getMessage());
+        }
     }
 }
