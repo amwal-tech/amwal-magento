@@ -58,11 +58,6 @@ class OrderSuccess implements HandlerInterface
      */
     private OrderNotifier $orderNotifier;
 
-    private const FIELD_MAPPINGS = [
-        'discount_amount' => 'discount',
-        'grand_total' => 'total_amount',
-    ];
-
     /**
      * @param OrderRepositoryInterface $orderRepository
      * @param InvoiceService $invoiceService
