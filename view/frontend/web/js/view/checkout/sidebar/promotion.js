@@ -15,6 +15,11 @@ define([
 
         initialize: function () {
             this._super();
+            let config = window.checkoutConfig.payment;
+            let methodCode = 'amwal_payments';
+            if (!config[methodCode]?.isCheckoutPromosActive) {
+                return this;
+            }
             this.visible = ko.observable(true);
             this.widgetElement = null;
 
@@ -99,6 +104,11 @@ define([
         },
 
         isVisible: function () {
+            let config = window.checkoutConfig.payment;
+            let methodCode = 'amwal_payments';
+            if (!config[methodCode]?.isCheckoutPromosActive) {
+                return false;
+            }
             return this.getGrandTotal() > 0;
         },
 

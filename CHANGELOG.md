@@ -1,4 +1,14 @@
-# [1.0.42] (2025-08-0)
+# [1.0.43] (2025-10-27)
+### Features
+- [#503](https://github.com/amwal-tech/amwal-magento/pull/503) - Support multiple Amwal payment methods in email prevention
+- [#502](https://github.com/amwal-tech/amwal-magento/pull/502) - Add checkout promotions toggle to config and frontend
+- [#493](https://github.com/amwal-tech/amwal-magento/pull/493) - Use Arabic city name if locale is Arabic
+- [#494](https://github.com/amwal-tech/amwal-magento/pull/494) - Add order status history to order details response
+### Bug Fixes
+- [#50](https://github.com/amwal-tech/amwal-magento/pull/501) - Remove unused Sentry bundle files
+- [#496](https://github.com/amwal-tech/amwal-magento/pull/496) - Prevent order closure to allow shipment creation
+
+# [1.0.42] (2025-08-20)
 ### Features
 - [#478](https://github.com/amwal-tech/amwal-magento/pull/478) - [Amwal React button] Add Sentry error tracking
 - [#477](https://github.com/amwal-tech/amwal-magento/pull/477) - Support Multi currency system

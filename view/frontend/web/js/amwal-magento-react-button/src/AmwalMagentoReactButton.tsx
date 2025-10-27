@@ -506,6 +506,12 @@ const AmwalMagentoReactButton = ({
           ...(data.extension_attributes?.amwal_card_bin_additional_discount && { card_bin_additional_discount: data.extension_attributes.amwal_card_bin_additional_discount })
         }
       }))
+    } else {
+      buttonRef.current?.dispatchEvent(new CustomEvent('amwalPrePayTriggerError', {
+        detail: {
+            description: `${data.message ?? data}${data.parameters ? ` ${data.parameters.join(', ')}` : ''}`
+        }
+      }))
 
     } catch (err) {
       transaction.setStatus('internal_error')
@@ -678,5 +684,4 @@ const AmwalMagentoReactButton = ({
     : <></>
 }
 
-export default AmwalMagentoReactButton;
-
+export default AmwalMagentoReactButton
