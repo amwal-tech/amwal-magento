@@ -48,11 +48,6 @@ class OrderSuccess implements HandlerInterface
      */
     private $quoteRepository;
 
-    private const FIELD_MAPPINGS = [
-        'discount_amount' => 'discount',
-        'grand_total' => 'total_amount',
-    ];
-
     /**
      * @var OrderNotifier
      */
