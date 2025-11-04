@@ -39,7 +39,6 @@ class IntegrationTestBase extends TestCase
         'currency/options/allow' => 'SAR',
         'currency/options/base' => 'SAR',
         'currency/options/default' => 'SAR',
-        'payment/amwal_payments/merchant_mode' => 'test',
         'payment/amwal_payments/merchant_id_valid' => 1,
         'payment/amwal_payments/merchant_id' => 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47',
         'payment/amwal_payments/order_status_changed_customer_email' => 0,

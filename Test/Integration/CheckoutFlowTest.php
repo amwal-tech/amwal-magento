@@ -69,7 +69,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         'merchant_id', 'amount', 'country_code', 'dark_mode', 'email_required',
         'address_required', 'address_handshake', 'ref_id', 'label', 'disabled',
         'show_payment_brands', 'enable_pre_checkout_trigger', 'enable_pre_pay_trigger',
-        'id', 'test_environment', 'allowed_address_countries', 'allowed_address_states',
+        'id', 'allowed_address_countries', 'allowed_address_states',
         'plugin_version', 'postcode_optional_countries', 'installment_options_url',
         'show_discount_ribbon', 'discount'
     ];
