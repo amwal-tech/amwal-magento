@@ -40,7 +40,7 @@ class IntegrationTestBase extends TestCase
         'currency/options/base' => 'SAR',
         'currency/options/default' => 'SAR',
         'payment/amwal_payments/merchant_id_valid' => 1,
-        'payment/amwal_payments/merchant_id' => 'sandbox-amwal-e09ee380-d8c7-4710-a6ab-c9b39c7ffd47',
+        'payment/amwal_payments/merchant_id' => 'sandbox-amwal-b87482f2-55da-486f-9ec5-e2ceb47a0333',
         'payment/amwal_payments/order_status_changed_customer_email' => 0,
         'payment/amwal_payments/order_status_changed_admin_email' => 0,
         'payment/amwal_payments/cards_bin_codes' => '545454,601382,601383,601384,601385,601386,601387,601388,601389,601390,601391',
@@ -56,8 +56,8 @@ class IntegrationTestBase extends TestCase
         RefIdDataInterface::TIMESTAMP => '1712005591802'
     ];
 
-    protected const MOCK_REF_ID = '0f802285a3806372235aa6b374a698fb17f4429e8946ccdc578e4d0c85d0f908';
-    protected const MOCK_TRANSACTION_ID = 'b6d03171-ff9b-49dc-93cc-07b35ff65e6c';
+    protected const MOCK_REF_ID = '5022b5fc75aa500d66809c131aab34a85ec9075185d98811f2a7397e4ecb9442';
+    protected const MOCK_TRANSACTION_ID = '562113b7-2604-41f0-a0f8-91f16247ecbb';
 
     /**
      * @var ObjectManager
