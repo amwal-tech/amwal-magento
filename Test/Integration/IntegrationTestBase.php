@@ -189,7 +189,7 @@ class IntegrationTestBase extends TestCase
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_HTTPHEADER => [
-                'authority: qa-backend.sa.amwal.tech',
+                'authority: qa.amwal.dev',
                 'accept: */*',
                 'amwal: ' . $merchantId,
                 'content-type: application/json',

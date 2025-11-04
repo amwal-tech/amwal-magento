@@ -400,7 +400,7 @@ class CheckoutFlowTest extends IntegrationTestBase
     private function getAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
     {
         return $this->executeAmwalCall(
-            'https://qa-backend.sa.amwal.tech/transactions/' . self::MOCK_TRANSACTION_ID,
+            'https://qa.amwal.dev/transactions/' . self::MOCK_TRANSACTION_ID,
             [],
             $buttonConfig->getMerchantId(),
             'GET'
