@@ -113,7 +113,6 @@ class Settings
             'sentry' => $this->config->isSentryReportEnabled(),
             'discount_ribbon' => $this->config->isDiscountRibbonEnabled(),
             'pwa' => $this->config->isPwaMode(),
-            'bank_installments' => $this->config->isBankInstallmentsEnabled(),
             'magagento_version' => $this->config->getMagentoVersion(),
             'php_version' => $this->config->getPhpVersion(),
             'version' => $this->config->getVersion(),
@@ -126,6 +125,8 @@ class Settings
             'webhook_private_key' => $this->config->getWebhookPrivateKey() ? 'stored' : 'empty',
             'webhook_fingerprint' => $this->config->getApiKeyFingerprint() ? 'stored' : 'empty',
             'webhook_debug' => $this->config->isWebhookDebugMode(),
+            'apiUrl' => $this->config->getApiUrl(),
+            'payUrl' => $this->config->getPayUrl()
         ];
         // Fetch pending payment orders count and amwal order ids
         try {

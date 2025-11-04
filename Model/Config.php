@@ -26,7 +26,6 @@ class Config
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_ACTIVE = 'payment/amwal_payments/regular_checkout_active';
     public const XML_CONFIG_PATH_HIDE_PROCEED_TO_CHECKOUT = 'payment/amwal_payments/hide_proceed_to_checkout';
     public const XML_CONFIG_PATH_MERCHANT_ID = 'payment/amwal_payments/merchant_id';
-    public const XML_CONFIG_PATH_MERCHANT_MODE = 'payment/amwal_payments/merchant_mode';
     public const XML_CONFIG_PATH_COUNTRY_CODE = 'payment/amwal_payments/country_code';
     public const XML_CONFIG_PATH_TITLE = 'payment/amwal_payments/title';
     public const XML_CONFIG_PATH_EXPRESS_CHECKOUT_TITLE = 'payment/amwal_payments/express_checkout_title';
@@ -41,8 +40,6 @@ class Config
     public const XML_CONFIG_PATH_ALLOW_SPECIFIC = 'payment/amwal_payments/allowspecific';
     public const XML_CONFIG_PATH_SPECIFIC_COUNTRIES = 'payment/amwal_payments/specificcountries';
     public const XML_CONFIG_PATH_LIMIT_REGIONS = 'payment/amwal_payments/limit_regions';
-    public const XML_CONFIG_PATH_TEST_API_BASE_URL = 'payment/amwal_payments/test_api_base_url';
-    public const XML_CONFIG_PATH_PROD_API_BASE_URL = 'payment/amwal_payments/prod_api_base_url';
     public const XML_CONFIG_PATH_STREET_LINE_COUNT = 'customer/address/street_lines';
     public const XML_CONFIG_PATH_SECRET_KEY = 'payment/amwal_payments/secret_key';
     public const XML_CONFIG_PATH_INSTALLMENT_CALLBACK = 'payment/amwal_payments/installment_callback';
@@ -73,11 +70,13 @@ class Config
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_TIMELINE_STYLE = 'payment/amwal_payments/bank_installments_timeline_style';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE = 'payment/amwal_payments/bank_installments_footer_message';
     public const XML_CONFIG_PATH_CHECKOUT_PROMOS_ACTIVE = 'payment/amwal_payments/checkout_promotions';
+    public const XML_CONFIG_PATH_API_URL = 'payment/amwal_payments/api_url';
+    public const XML_CONFIG_PATH_PAY_URL = 'payment/amwal_payments/pay_url';
 
   /**
      * @var string
      */
-    const MODULE_VERSION = '1.0.43';
+    const MODULE_VERSION = '1.0.44';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
@@ -370,18 +369,6 @@ class Config
     }
 
     /**
-     * @return string
-     */
-    public function getApiBaseUrl(): string
-    {
-        if ($this->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE) {
-            return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_TEST_API_BASE_URL);
-        }
-
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_PROD_API_BASE_URL);
-    }
-
-    /**
      * @param string $field
      * @param int|null $storeId
      * @return mixed
@@ -667,4 +654,18 @@ class Config
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_CHECKOUT_PROMOS_ACTIVE, ScopeInterface::SCOPE_WEBSITE);
     }
 
+    /**
+     * @return string
+     */
+    public function getApiUrl(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_API_URL, ScopeInterface::SCOPE_WEBSITE);
+    }
+    /**
+     * @return string
+     */
+    public function getPayUrl(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_PAY_URL, ScopeInterface::SCOPE_WEBSITE);
+    }
 }

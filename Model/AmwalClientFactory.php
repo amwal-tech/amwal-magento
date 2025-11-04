@@ -36,10 +36,10 @@ class AmwalClientFactory
      */
     public function create(): GuzzleClient
     {
-        $this->config->getApiBaseUrl();
+        $this->config->getApiUrl();
 
         $config = [
-            'base_uri' => rtrim($this->config->getApiBaseUrl(), '/') . '/',
+            'base_uri' => rtrim($this->config->getApiUrl(), '/') . '/',
             'headers' => [
                 'Cache-Control' => 'nocache'
             ],

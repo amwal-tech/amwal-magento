@@ -63,8 +63,8 @@ class PluginVersion extends Field
     private function generateHtml(AbstractElement $element, string $version): string
     {
         return '
-        <div id="' . $element->getHtmlId() . '" style="padding: 10px 0 0 10px; font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-            <span style="font-weight: bold;">' . $this->escaper->escapeHtml($version) . '</span>
+        <div id="' . $element->getHtmlId() . '">
+            <span>' . $this->escaper->escapeHtml($version) . '</span>
         </div>';
     }
 }

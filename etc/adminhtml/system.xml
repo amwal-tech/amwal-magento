@@ -6,323 +6,360 @@
                 <label>Amwal</label>
                 <fieldset_css>amwal-payments-fieldset</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
-                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+
+                <!-- Enable/Disable Payment Method -->
+                <field id="active" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <config_path>payment/amwal_payments/active</config_path>
+                    <comment><![CDATA[Enable or disable the Amwal payment method.]]></comment>
                 </field>
 
-                <!-- Merchant Settings -->
-                <group id="amwal_payments_merchant" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="10">
-                    <label>Merchant Settings</label>
+                <!-- Module Type -->
+                <field id="module_type" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Module Type</label>
+                    <source_model>Amwal\Payments\Model\Config\Source\ModuleType</source_model>
+                    <config_path>payment/amwal_payments/module_type</config_path>
+                    <comment><![CDATA[Select the integration type for your store.]]></comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+
+                <!-- Version -->
+                <field id="plugin_version" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Version</label>
+                    <frontend_model>Amwal\Payments\Model\Config\Frontend\PluginVersion</frontend_model>
+                    <comment><![CDATA[Current installed version of the Amwal Payments module.]]></comment>
+                </field>
+
+                <group id="amwal_payments_merchant" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="100">
+                    <label>API Settings</label>
                     <attribute type="expanded">1</attribute>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-                    <field id="module_type" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Module Type</label>
-                        <source_model>Amwal\Payments\Model\Config\Source\ModuleType</source_model>
-                        <config_path>payment/amwal_payments/module_type</config_path>
-                    </field>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
                     <field id="merchant_id" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Merchant ID</label>
+                        <label>Merchant ID (Public Key)</label>
                         <config_path>payment/amwal_payments/merchant_id</config_path>
-                        <comment><![CDATA[Don't have a Merchant ID yet? <a href="https://merchant.sa.amwal.tech/" target="_blank">Sign up for an account here</a> to get your Merchant ID.]]></comment>
+                        <validate>required-entry</validate>
+                        <comment><![CDATA[Don't have a Merchant ID? <a href="https://merchant.sa.amwal.tech/" target="_blank">Sign up here</a> to get your credentials.]]></comment>
                     </field>
-                    <field id="verify_merchant_id" translate="button_label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="secret_key" translate="label comment" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Secret Key</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/amwal_payments/secret_key</config_path>
+                        <validate>required-entry</validate>
+                        <comment><![CDATA[Your API secret key for secure authentication.]]></comment>
+                    </field>
+
+                    <field id="verify_merchant_id" translate="button_label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label/>
                         <button_label>Verify Merchant ID</button_label>
                         <frontend_model>Amwal\Payments\Block\System\Config\ValidateMerchantIdButton</frontend_model>
                     </field>
-                    <field id="merchant_id_valid" type="hidden" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="merchant_id_valid" type="hidden" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label/>
                         <config_path>payment/amwal_payments/merchant_id_valid</config_path>
                     </field>
-                    <field id="merchant_mode" type="hidden" sortOrder="35" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label/>
-                        <config_path>payment/amwal_payments/merchant_mode</config_path>
-                    </field>
-                    <field id="secret_key" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Secret Key</label>
-                        <config_path>payment/amwal_payments/secret_key</config_path>
-                    </field>
                 </group>
 
-                <!-- Visual Settings -->
-                <group id="amwal_payments_visual" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
-                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                <group id="amwal_payments_visual" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="200">
                     <label>Visual Settings</label>
-                    <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Title</label>
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="title" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Payment Method Title</label>
                         <config_path>payment/amwal_payments/title</config_path>
-                        <tooltip>The title of the Amwal payment method in the checkout</tooltip>
+                        <validate>required-entry</validate>
+                        <comment><![CDATA[The title displayed to customers during checkout.]]></comment>
                     </field>
-                    <field id="dark_mode" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="dark_mode" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Dark Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/dark_mode</config_path>
-                        <tooltip>Toggle to enable dark mode</tooltip>
-                    </field>
-                    <field id="style_css" translate="label tooltip" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Style CSS</label>
-                        <config_path>payment/amwal_payments/style_css</config_path>
-                        <tooltip>Custom style CSS to be applied to the Amwal checkout button</tooltip>
+                        <comment><![CDATA[Enable dark mode for the Amwal checkout button.]]></comment>
                     </field>
 
-                    <field id="show_discount_ribbon" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="style_css" translate="label comment" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Custom CSS Styles</label>
+                        <config_path>payment/amwal_payments/style_css</config_path>
+                        <comment><![CDATA[Custom CSS to be applied to the Amwal checkout button. Use with caution.]]></comment>
+                    </field>
+
+                    <field id="show_discount_ribbon" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Show Discount Ribbon</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/show_discount_ribbon</config_path>
-                        <tooltip>Toggle to enable discount ribbon</tooltip>
+                        <comment><![CDATA[Display promotional discount ribbon on the payment button.]]></comment>
                     </field>
-                    <field id="regular_checkout_active" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Enable Regular checkout</label>
+
+                    <!-- Checkout Options -->
+                    <field id="regular_checkout_active" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Regular Checkout</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/regular_checkout_active</config_path>
-                        <tooltip>Indicates if the Regular Checkout functionality should be enabled</tooltip>
+                        <comment><![CDATA[Enable Amwal as a payment option in the standard checkout flow.]]></comment>
                     </field>
-                    <field id="express_checkout_active" translate="label" type="hidden" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Enable Express checkout</label>
+
+                    <field id="express_checkout_active" translate="label comment" type="hidden" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Express Checkout</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/express_checkout_active</config_path>
-                        <tooltip>Indicates if the Express Checkout functionality should be enabled</tooltip>
+                        <comment><![CDATA[Enable express checkout functionality (one-click checkout from cart).]]></comment>
                     </field>
-                    <field id="hide_proceed_to_checkout" translate="label" type="hidden" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Hide "Proceed to Checkout" button</label>
+
+                    <field id="hide_proceed_to_checkout" translate="label comment" type="hidden" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Hide Standard Checkout Button</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/hide_proceed_to_checkout</config_path>
-                        <tooltip>If set to yes the default "Proceed to Checkout" button in the minicart will be hidden</tooltip>
+                        <comment><![CDATA[Hide the default "Proceed to Checkout" button in the mini cart when express checkout is enabled.]]></comment>
                         <depends>
                             <field id="express_checkout_active">1</field>
                         </depends>
                     </field>
-                    <field id="regular_checkout_redirect" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Enable Regular checkout redirect</label>
+
+                    <!-- Redirect Options -->
+                    <field id="regular_checkout_redirect" translate="label comment" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Checkout Redirect</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/regular_checkout_redirect</config_path>
-                        <tooltip>Indicates if the Regular Checkout redirect functionality should be enabled</tooltip>
+                        <comment><![CDATA[Automatically redirect users to Amwal checkout from the regular checkout page.]]></comment>
                     </field>
-                    <field id="redirect_on_load_click" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Regular checkout redirect on load click</label>
+
+                    <field id="redirect_on_load_click" translate="label comment" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Auto-trigger Redirect on Page Load</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/redirect_on_load_click</config_path>
-                        <tooltip>Enable this option to automatically click the regular checkout redirect button on page load.</tooltip>
+                        <comment><![CDATA[Automatically trigger the redirect button on page load (use with caution).]]></comment>
                         <depends>
                             <field id="regular_checkout_redirect">1</field>
                         </depends>
                     </field>
                 </group>
 
-                <!-- Installments Settings -->
-                <group id="amwal_payments_installments" translate="label" showInDefault="0" showInWebsite="0" showInStore="0" sortOrder="25">
-                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-                    <label>Installments Settings</label>
-                    <field id="enable_bank_installments" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Bank Installments</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/enable_bank_installments</config_path>
-                        <tooltip>Enable Bank Installments</tooltip>
-                        <comment><![CDATA[<strong class="colorRed">Note</strong>: This feature is only available for orders with a minimum amount of 1000 SAR.]]></comment>
-                    </field>
-                    <field id="installment_callback" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Custom Installments Redirect URL</label>
-                        <config_path>payment/amwal_payments/installment_callback</config_path>
-                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Make sure the URL starts with the "http" or "https" protocol.]]></comment>
-                    </field>
-                </group>
-
-                <!-- Promotion Seetings -->
-                <group id="amwal_payments_promotion" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="26">
-                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                <group id="amwal_payments_promotion" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="300">
                     <label>Promotion Settings</label>
-                    <field id="discount_rule" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="discount_rule" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Discount Rule</label>
                         <source_model>Amwal\Payments\Model\Config\Source\DiscountRule</source_model>
                         <config_path>payment/amwal_payments/discount_rule</config_path>
-                        <tooltip>Choose the discount rule to be applied</tooltip>
+                        <comment><![CDATA[Select the discount rule to apply for Amwal transactions.]]></comment>
                     </field>
 
-                    <field id="cards_bin_codes" translate="label tooltip" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Credit card BIN codes</label>
+                    <field id="cards_bin_codes" translate="label comment" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Credit Card BIN Codes</label>
                         <config_path>payment/amwal_payments/cards_bin_codes</config_path>
-                        <tooltip>Enter the bin codes of the cards that you want to filter. Use commas to separate multiple pin codes.</tooltip>
-                        <comment><![CDATA[<strong class="colorGreen">Note</strong>: Starting from April 2022, both Visa and Mastercard will issue credit cards with 8 BIN codes. <br> <strong class="colorGreen">Example</strong>: 1234, 5678, 9012]]></comment>
+                        <comment><![CDATA[Enter comma-separated BIN codes to filter eligible cards. <strong>Note:</strong> From April 2022, Visa and Mastercard issue 8-digit BIN codes.<br><strong>Example:</strong> 1234, 5678, 9012]]></comment>
                     </field>
 
-                    <field id="product_promotions" translate="label" type="select" sortOrder="123" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Promotions widget on product pages</label>
-                        <tooltip>Enable this option to show the promotions widget on product pages</tooltip>
+                    <!-- Promotion Widget Display -->
+                    <field id="product_promotions" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Show Promotions on Product Pages</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/product_promotions</config_path>
+                        <comment><![CDATA[Display the promotions widget on product detail pages.]]></comment>
                     </field>
 
-                    <field id="cart_promotions" translate="label" type="select" sortOrder="124" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Promotions widget on shopping cart</label>
-                        <tooltip>Enable this option to show the promotions widget on shopping cart page</tooltip>
+                    <field id="cart_promotions" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Show Promotions on Shopping Cart</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/cart_promotions</config_path>
+                        <comment><![CDATA[Display the promotions widget on the shopping cart page.]]></comment>
                     </field>
 
-                    <field id="checkout_promotions" translate="label" type="select" sortOrder="125" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Promotions widget on checkout</label>
-                        <tooltip>Enable this option to show the promotions widget on checkout page</tooltip>
+                    <field id="checkout_promotions" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Show Promotions on Checkout</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/checkout_promotions</config_path>
+                        <comment><![CDATA[Display the promotions widget on the checkout page.]]></comment>
                     </field>
                 </group>
 
-                <!-- Address Attribute Settings -->
-                <group id="amwal_payments_address_attributes" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
-                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-                    <label>Address Attribute Settings</label>
-                    <field id="phone_number_format" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Phone number formatting</label>
-                        <config_path>payment/amwal_payments/phone_number_format</config_path>
-                        <tooltip>Indicate which format should be used for phone numbers</tooltip>
-                        <source_model>Amwal\Payments\Model\Config\Source\PhoneNumberFormat</source_model>
-                    </field>
-                    <field id="phone_number_format_country" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Phone number formatting Country</label>
-                        <config_path>payment/amwal_payments/phone_number_format_country</config_path>
-                        <tooltip>The title of the Amwal payment method in the checkout</tooltip>
-                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-                        <depends>
-                            <field id="phone_number_format">country</field>
-                        </depends>
-                    </field>
-                    <field id="phone_number_trim_whitespace" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Trim whitespace from phone numbers?</label>
-                        <config_path>payment/amwal_payments/phone_number_trim_whitespace</config_path>
-                        <tooltip>Turn this on to remove any whitespace characters from phone numbers</tooltip>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    </field>
-                </group>
-
-                <!-- Order Settings -->
-                <group id="amwal_payments_orders" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="40">
-                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                <group id="amwal_payments_orders" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="400">
                     <label>Order Settings</label>
-                    <field id="order_confirmed_status" translate="label tooltip" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Order confirmed status</label>
-                        <tooltip>Status given to orders after the payment has been confirmed.</tooltip>
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="order_confirmed_status" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Order Confirmed Status</label>
                         <source_model>Amwal\Payments\Model\Config\Source\Status\OrderConfirmed</source_model>
                         <config_path>payment/amwal_payments/order_confirmed_status</config_path>
+                        <comment><![CDATA[Status assigned to orders after payment is confirmed.]]></comment>
                     </field>
-                    <field id="create_user_on_order" translate="label tooltip" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Create customer on order creation</label>
-                        <tooltip>When set to YES a customer will be created if a guest user places an order using Amwal.</tooltip>
+
+                    <field id="create_user_on_order" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Create Customer Account on Order</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/create_user_on_order</config_path>
+                        <comment><![CDATA[Automatically create a customer account when a guest places an order using Amwal.]]></comment>
                     </field>
-                    <field id="order_status_changed_customer_email" translate="label tooltip" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Send email when order status changed to customer</label>
-                        <tooltip>When set to YES an email will be sent to customer when order status changed.</tooltip>
+
+                    <field id="order_status_changed_customer_email" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Email Customer on Status Change</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/order_status_changed_customer_email</config_path>
+                        <comment><![CDATA[Send email notification to customer when order status changes.]]></comment>
                     </field>
-                    <field id="order_status_changed_admin_email" translate="label tooltip" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Send email when order status changed to admin</label>
-                        <tooltip>When set to YES an email will be sent to admin when order status changed.</tooltip>
+
+                    <field id="order_status_changed_admin_email" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Email Admin on Status Change</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/order_status_changed_admin_email</config_path>
+                        <comment><![CDATA[Send email notification to admin when order status changes.]]></comment>
                     </field>
-                    <field id="virtual_items_support" translate="label tooltip" type="hidden" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="virtual_items_support" translate="label comment" type="hidden" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Virtual Items Support</label>
-                        <tooltip>Enable this setting if you are selling virtual items.</tooltip>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/virtual_items_support</config_path>
                     </field>
                 </group>
 
-                <!--Country specific settings-->
-                <group id="amwal_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50">
+                <group id="amwal_payments_address_attributes" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="500">
+                    <label>Address Attribute Settings</label>
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="phone_number_format" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Phone Number Format</label>
+                        <source_model>Amwal\Payments\Model\Config\Source\PhoneNumberFormat</source_model>
+                        <config_path>payment/amwal_payments/phone_number_format</config_path>
+                        <comment><![CDATA[Specify the format for phone number validation and display.]]></comment>
+                    </field>
+
+                    <field id="phone_number_format_country" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Phone Number Format Country</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <config_path>payment/amwal_payments/phone_number_format_country</config_path>
+                        <comment><![CDATA[Select the country for phone number formatting rules.]]></comment>
+                        <depends>
+                            <field id="phone_number_format">country</field>
+                        </depends>
+                    </field>
+
+                    <field id="phone_number_trim_whitespace" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Trim Whitespace from Phone Numbers</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/phone_number_trim_whitespace</config_path>
+                        <comment><![CDATA[Remove all whitespace characters from phone numbers before processing.]]></comment>
+                    </field>
+                </group>
+
+                <group id="amwal_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="600">
                     <label>Country Specific Settings</label>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-                    <field id="use_system_country_settings" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Use System Value</label>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="use_system_country_settings" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Use System Country Settings</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/use_system_country_settings</config_path>
-                        <comment>Use system value for country specific settings</comment>
+                        <comment><![CDATA[Use the system's default allowed country configuration instead of custom settings.]]></comment>
                     </field>
-                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Payment from Applicable Countries</label>
                         <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                         <config_path>payment/amwal_payments/allowspecific</config_path>
+                        <depends>
+                            <field id="use_system_country_settings">0</field>
+                        </depends>
                     </field>
-                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Payment from Specific Countries</label>
                         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-                        <can_be_empty>1</can_be_empty>
                         <config_path>payment/amwal_payments/specificcountry</config_path>
-                    </field>
-                    <field id="limit_regions" translate="label" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Limit allowed regions</label>
-                        <source_model>Magento\Directory\Model\Config\Source\Allregion</source_model>
                         <can_be_empty>1</can_be_empty>
-                        <config_path>payment/amwal_payments/limit_regions</config_path>
-                    </field>
-                </group>
-
-                <!-- CronJob Settings -->
-                <group id="amwal_payments_cronjob" translate="label" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="60">
-                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-                    <label>CronJob Settings</label>
-                    <comment><![CDATA[
-                        This Cron Job plays a crucial role in maintaining order processing efficiency.
-                        It is specifically designed to periodically check and update the status of orders that are currently marked with a 'Pending Payment' status.
-                        By running at regular intervals, this automated process ensures timely updates, reducing manual intervention and helping maintain accurate and up-to-date order status information in the system.
-                    ]]></comment>
-                    <field id="cronjob_enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Cron Job Enable</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/cronjob_enable</config_path>
-                    </field>
-                    <field id="cron_status" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Cron Job Status</label>
-                        <frontend_model>Amwal\Payments\Model\Config\Frontend\CronStatus</frontend_model>
-                        <comment><![CDATA[<strong class="colorRed">Note</strong>: Cron Job Frequency 1 Hour.]]></comment>
                         <depends>
-                            <field id="cronjob_enable">1</field>
+                            <field id="allowspecific">1</field>
+                            <field id="use_system_country_settings">0</field>
+                        </depends>
+                    </field>
+
+                    <field id="limit_regions" translate="label comment" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Allowed Regions</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Allregion</source_model>
+                        <config_path>payment/amwal_payments/limit_regions</config_path>
+                        <can_be_empty>1</can_be_empty>
+                        <comment><![CDATA[Restrict payment availability to specific regions within allowed countries.]]></comment>
+                        <depends>
+                            <field id="use_system_country_settings">0</field>
                         </depends>
                     </field>
                 </group>
 
-                <!-- Webhook Settings -->
-                <group id="webhook" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                <group id="webhook" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="700">
                     <label>Webhook Settings</label>
-                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Enable Webhooks</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/webhook_enabled</config_path>
+                        <comment><![CDATA[Enable webhook notifications for real-time order status updates.]]></comment>
                     </field>
-                    <field id="endpoint_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="endpoint_url" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Webhook Endpoint URL</label>
-                        <comment>This is your store's webhook endpoint that will receive notifications.</comment>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookUrl</frontend_model>
+                        <comment><![CDATA[Your store's webhook endpoint that will receive notifications from Amwal.]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
                     </field>
-                    <field id="webhook_events" translate="label" type="multiselect" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="webhook_events" translate="label comment" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Webhook Events</label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookEvents</frontend_model>
-                        <comment>Choose the events that will trigger the webhook.</comment>
+                        <comment><![CDATA[Select the events that will trigger webhook notifications.]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
                     </field>
-                    <field id="create_api_key" translate="label" type="button" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="create_api_key" translate="button_label" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Create Webhook API Key</label>
+                        <button_label>Create API Key</button_label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\CreateApiKey</frontend_model>
-                        <comment>Click to create a new Webhook API key from Amwal and configure webhook integration.</comment>
+                        <comment><![CDATA[Generate a new webhook API key from Amwal and configure webhook integration.]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
                     </field>
-                    <field id="api_key_fingerprint" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+
+                    <field id="api_key_fingerprint" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>API Key Fingerprint</label>
-                        <comment>This will be automatically populated when you create an Webhook API key.</comment>
+                        <config_path>payment/amwal_payments/webhook_api_key_fingerprint</config_path>
+                        <comment><![CDATA[Automatically populated when you create a webhook API key.]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
                     </field>
+
                     <field id="private_key_hint" translate="label" type="note" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Private Key Status</label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\PrivateKeyStatus</frontend_model>
@@ -330,53 +367,99 @@
                             <field id="enabled">1</field>
                         </depends>
                     </field>
-                    <field id="debug" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Debug Mode</label>
+
+                    <field id="debug" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Webhook Debug Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <comment>Enable detailed logging for webhook events.</comment>
+                        <config_path>payment/amwal_payments/webhook_debug</config_path>
+                        <comment><![CDATA[Enable detailed logging for webhook events. Disable in production environments.]]></comment>
                     </field>
                 </group>
 
-                <!-- Developer Settings -->
-                <group id="amwal_payments_developer" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="70">
+                <group id="amwal_payments_cronjob" translate="label comment" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="800">
+                    <label>Cron Job Settings</label>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-                    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <comment><![CDATA[Automatically checks and updates pending payment orders every hour to maintain accurate order status information.]]></comment>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="cronjob_enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Enable Cron Job</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/cronjob_enable</config_path>
+                        <comment><![CDATA[Enable automatic order status synchronization via scheduled cron job.]]></comment>
+                    </field>
+
+                    <field id="cron_status" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Cron Job Status</label>
+                        <frontend_model>Amwal\Payments\Model\Config\Frontend\CronStatus</frontend_model>
+                        <comment><![CDATA[Current status and last execution time. <strong>Frequency:</strong> Runs every hour.]]></comment>
+                        <depends>
+                            <field id="cronjob_enable">1</field>
+                        </depends>
+                    </field>
+                </group>
+
+                <group id="amwal_payments_developer" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="900">
+                    <label>Developer Settings</label>
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                    <comment><![CDATA[<strong style="color: #c00;">Warning:</strong> These settings should only be modified by developers or when instructed by Amwal Support.]]></comment>
+                    <depends>
+                        <field id="*/*/active">1</field>
+                    </depends>
+
+                    <field id="pwa_mode" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>PWA Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/pwa_mode</config_path>
-                        <comment>Set to Yes if your storefront is managed as a PWA.</comment>
+                        <comment><![CDATA[Enable if your storefront uses Progressive Web App (PWA) architecture.]]></comment>
                     </field>
-                    <label>Developer Settings</label>
-                    <field id="debug_mode" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Debug mode</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/debug_mode</config_path>
-                        <tooltip>Enable additional debug logging</tooltip>
-                    </field>
-                    <field id="use_base_currency" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Use base currency</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/use_base_currency</config_path>
-                        <comment><![CDATA[<strong class="colorRed">Warning</strong>: Do not set to "Yes" unless you experience problems with the total amounts in orders due to third party modules.]]></comment>
-                    </field>
-                    <field id="sentry_report" translate="label tooltip" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Report errors to Sentry</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/amwal_payments/sentry_report</config_path>
-                        <tooltip>Enable reporting of errors to Amwal Sentry</tooltip>
-                    </field>
-                    <field id="enable_pre_checkout_trigger" translate="label tooltip" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Enable Pre Checkout Trigger</label>
+
+                    <field id="enable_pre_checkout_trigger" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Pre-Checkout Trigger</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/enable_pre_checkout_trigger</config_path>
-                        <tooltip>Enable Pre Checkout Trigger</tooltip>
+                        <comment><![CDATA[Enable pre-checkout validation and preparation hooks for advanced integrations.]]></comment>
                     </field>
-                    <field id="plugin_version" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Plugin Version</label>
-                        <frontend_model>Amwal\Payments\Model\Config\Frontend\PluginVersion</frontend_model>
+
+                    <field id="use_base_currency" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Use Base Currency</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/use_base_currency</config_path>
+                        <comment><![CDATA[<strong style="color: #c00;">Warning:</strong> Only enable if experiencing total amount discrepancies caused by third-party modules.]]></comment>
+                    </field>
+
+                    <field id="debug_mode" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Debug Mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/debug_mode</config_path>
+                        <comment><![CDATA[Enable detailed logging for troubleshooting. <strong>Disable in production.</strong>]]></comment>
+                    </field>
+
+                    <field id="sentry_report" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Sentry Error Reporting</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/amwal_payments/sentry_report</config_path>
+                        <comment><![CDATA[Send error reports to Amwal's Sentry monitoring system for faster issue resolution.]]></comment>
+                    </field>
+
+                    <field id="api_url" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>API URL</label>
+                        <config_path>payment/amwal_payments/api_url</config_path>
+                        <validate>validate-url</validate>
+                        <comment><![CDATA[<strong>Advanced:</strong> Custom API endpoint. Only modify if instructed by Amwal Support.]]></comment>
+                    </field>
+
+                    <field id="pay_url" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment URL</label>
+                        <config_path>payment/amwal_payments/pay_url</config_path>
+                        <validate>validate-url</validate>
+                        <comment><![CDATA[<strong>Advanced:</strong> Custom payment endpoint. Only modify if instructed by Amwal Support.]]></comment>
                     </field>
                 </group>
             </group>
+
             <group id="amwal_payments_apple_pay" translate="label" type="text" sortOrder="51" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Amwal Apple Pay</label>
                 <fieldset_css>amwal-payments-fieldset</fieldset_css>

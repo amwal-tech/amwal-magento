@@ -6,12 +6,9 @@
                 <title>Amwal</title>
                 <active>1</active>
                 <order_confirmed_status>processing</order_confirmed_status>
-                <merchant_mode>live</merchant_mode>
                 <merchant_id></merchant_id>
                 <model>AmwalPaymentMethodFacade</model>
                 <group>amwal_payments_group</group>
-                <prod_api_base_url><![CDATA[https://backend.sa.amwal.tech]]></prod_api_base_url>
-                <test_api_base_url><![CDATA[https://qa-backend.sa.amwal.tech]]></test_api_base_url>
                 <can_use_checkout>1</can_use_checkout>
                 <create_user_on_order>0</create_user_on_order>
                 <phone_number_format>raw</phone_number_format>
@@ -38,6 +35,8 @@
                 <product_promotions>1</product_promotions>
                 <cart_promotions>1</cart_promotions>
                 <checkout_promotions>1</checkout_promotions>
+                <api_url><![CDATA[https://backend.sa.amwal.tech]]></api_url>
+                <pay_url><![CDATA[https://pay.sa.amwal.tech]]></pay_url>
             </amwal_payments>
             <amwal_payments_apple_pay>
                 <title>Amwal apple pay</title>

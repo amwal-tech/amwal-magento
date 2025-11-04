@@ -1,23 +1,24 @@
 <?php
-/** @var \Amwal\Payments\Block\System\Config\ValidateMerchantIdButton $block  */
+/**
+ * Merchant ID Verification Button Template
+ *
+ * @var \Amwal\Payments\Block\System\Config\ValidateMerchantIdButton $block
+ */
 ?>
-<button class="scalable" type="button" id="<?= $block->getHtmlId() ?>" data-mage-init='{"verifyMerchantId":{
-    "baseUrl": "<?= $block->escapeUrl($block->getApiUrl()) ?>",
-    "elementId": "<?= $block->getHtmlId() ?>",
-    "successText": "<?= $block->escapeHtmlAttr(__('Merchant ID is valid!')) ?>",
-    "failedText": "<?= $block->escapeHtmlAttr(__('Invalid Merchant ID Provided!')) ?>"}}'>
-    <span id="<?= $block->getHtmlId() ?>_result"><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
+<!-- Merchant Verification Button -->
+<button
+    class="scalable"
+    type="button"
+    id="<?= $block->escapeHtmlAttr($block->getHtmlId()) ?>"
+    data-mage-init='<?= /* @noEscape */ json_encode([
+        'verifyMerchantId' => [
+            'baseUrl' => $block->getApiUrl(),
+            'elementId' => $block->getHtmlId(),
+            'successText' => __('Merchant ID is valid!'),
+            'failedText' => __('Invalid Merchant ID provided!')
+        ]
+    ]) ?>'>
+    <span id="<?= $block->escapeHtmlAttr($block->getHtmlId()) ?>_result">
+        <?= $block->escapeHtml($block->getButtonLabel()) ?>
+    </span>
 </button>
-<script>
-    window.fwSettings={
-        'widget_id':501000001543,
-        'custom_fields': {
-            'source': 'magento',
-            'page_url': window.location.href,
-            'referrer': document.referrer
-        }
-    };
-    !function(){if("function"!=typeof window.FreshworksWidget){var n=function(){n.q.push(arguments)};n.q=[],window.FreshworksWidget=n}}()
-</script>
-<script type='text/javascript' src='https://mec-widget.freshworks.com/widgets/501000001543.js' async defer></script>
-
