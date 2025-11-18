@@ -120,7 +120,7 @@ class IntegrationTestBase extends TestCase
             $this->productFixture = new ProductFixture(
                 ProductBuilder::aSimpleProduct()
                     ->withSku(self::MOCK_PRODUCT_SKU)
-                    ->withPrice(32)
+                    ->withPrice(82.50)
                     ->build()
             );
         }
