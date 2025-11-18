@@ -59,6 +59,7 @@ class IntegrationTestBase extends TestCase
     ];
 
     protected const MOCK_REF_ID = '5022b5fc75aa500d66809c131aab34a85ec9075185d98811f2a7397e4ecb9442';
+    protected const MOCK_TRANSACTION_ID = '562113b7-2604-41f0-a0f8-91f16247ecbb';
 
     /**
      * @var ObjectManager
@@ -200,7 +201,6 @@ class IntegrationTestBase extends TestCase
         ]);
 
         $response = curl_exec($curl);
-        echo $response;
         curl_close($curl);
 
         return json_decode($response, true, 512, JSON_THROW_ON_ERROR);

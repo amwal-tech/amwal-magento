@@ -50,9 +50,8 @@ use TddWizard\Fixtures\Checkout\CartBuilder;
 /**
  * Tests the full checkout flow consisting of
  *    - Retrieving button configuration
- *    - Creating a new Amwal transaction dynamically
- *    - Updating Amwal transaction data (Phone number, Address, Shipping)
- *    - Retrieving the created transaction
+ *    - Create Amwal transaction
+ *    - Set Amwal transaction data (Phone number, Address, Shipping)
  *    - Retrieving Quote
  *    - Placing Order
  *    - Paying Order
@@ -210,27 +209,7 @@ class CheckoutFlowTest extends IntegrationTestBase
         /** @var AmwalButtonConfigInterface $buttonConfig */
         [$buttonConfig, $cartId] = $dependencies;
 
-        // Try to create a new Amwal transaction, fall back to mock if it fails
-        try {
-            // Create a new Amwal transaction
-            $createdTransaction = $this->createAmwalTransaction($buttonConfig);
-            $this->assertIsArray($createdTransaction);
-            $this->assertArrayHasKey('id', $createdTransaction, 'Amwal Transaction creation did not return a transaction ID');
-
-            $transactionId = $createdTransaction['id'];
-
-            // Update the transaction with customer details
-            $updatedTransaction = $this->updateAmwalTransaction($transactionId, $buttonConfig->getMerchantId());
-            $this->assertIsArray($updatedTransaction);
-
-            // Get the full transaction data
-            $amwalTransactionData = $this->getAmwalTransaction($transactionId, $buttonConfig->getMerchantId());
-        } catch (RuntimeException $e) {
-            // If API calls fail, use mock transaction data
-            error_log('Falling back to mock transaction data: ' . $e->getMessage());
-            $amwalTransactionData = $this->getMockAmwalTransaction($buttonConfig);
-        }
-
+        $amwalTransactionData = $this->getAmwalTransaction($buttonConfig);
         $this->assertIsArray($amwalTransactionData);
         $this->assertArrayHasKey('id', $amwalTransactionData, 'Amwal Transaction did not return a transaction ID');
         $this->assertArrayHasKey('address_details', $amwalTransactionData, 'Amwal Transaction did not return address details');
@@ -411,142 +390,19 @@ class CheckoutFlowTest extends IntegrationTestBase
     }
 
     /**
-     * Create a new Amwal transaction
+     * Amwal pop-up - Generate a transaction on button press
      *
      * @param AmwalButtonConfigInterface $buttonConfig
      *
      * @return array
      * @throws JsonException
-     * @throws RuntimeException
      */
-    private function createAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
-    {
-        $transactionData = [
-            'amount' => $buttonConfig->getAmount(),
-            'country_code' => $buttonConfig->getCountryCode(),
-            'currency_code' => 'SAR',
-            'merchant_id' => $buttonConfig->getMerchantId(),
-            'ref_id' => $buttonConfig->getRefId(),
-            'test_mode' => true
-        ];
-
-        try {
-            $response = $this->executeAmwalCall(
-                'https://qa.amwal.dev/transactions',
-                $transactionData,
-                $buttonConfig->getMerchantId(),
-                'POST'
-            );
-
-            // Validate response structure
-            if (!isset($response['id'])) {
-                throw new RuntimeException(
-                    'Transaction created but no ID returned. Response: ' .
-                    print_r($response, true)
-                );
-            }
-
-            return $response;
-        } catch (RuntimeException $e) {
-            // Log the error for debugging
-            error_log('Failed to create Amwal transaction: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Get or create a mock Amwal transaction for testing
-     * This method returns a mock transaction structure when API creation fails
-     *
-     * @param AmwalButtonConfigInterface $buttonConfig
-     *
-     * @return array
-     */
-    private function getMockAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
-    {
-        // Generate a unique transaction ID for this test run
-        $transactionId = sprintf(
-            '%s-%s-%s-%s-%s',
-            bin2hex(random_bytes(4)),
-            bin2hex(random_bytes(2)),
-            bin2hex(random_bytes(2)),
-            bin2hex(random_bytes(2)),
-            bin2hex(random_bytes(6))
-        );
-
-        return [
-            'id' => $transactionId,
-            'amount' => $buttonConfig->getAmount(),
-            'currency_code' => 'SAR',
-            'country_code' => $buttonConfig->getCountryCode(),
-            'merchant_id' => $buttonConfig->getMerchantId(),
-            'ref_id' => $buttonConfig->getRefId(),
-            'status' => 'pending',
-            'test_mode' => true,
-            'client_first_name' => 'Test',
-            'client_last_name' => 'User',
-            'client_email' => 'test@example.com',
-            'client_phone_number' => '+966501234567',
-            'address_details' => [
-                'street1' => '123 Test Street',
-                'city' => 'Riyadh',
-                'state' => 'Riyadh',
-                'country' => 'SA',
-                'postcode' => '12345'
-            ],
-            'created_at' => date('c'),
-            'updated_at' => date('c')
-        ];
-    }
-
-    /**
-     * Update an Amwal transaction with customer details
-     *
-     * @param string $transactionId
-     * @param string $merchantId
-     *
-     * @return array
-     * @throws JsonException
-     */
-    private function updateAmwalTransaction(string $transactionId, string $merchantId): array
-    {
-        $updateData = [
-            'client_first_name' => 'Test',
-            'client_last_name' => 'User',
-            'client_email' => 'test@example.com',
-            'client_phone_number' => '+966501234567',
-            'address_details' => [
-                'street1' => '123 Test Street',
-                'city' => 'Riyadh',
-                'state' => 'Riyadh',
-                'country' => 'SA',
-                'postcode' => '12345'
-            ]
-        ];
-
-        return $this->executeAmwalCall(
-            'https://qa.amwal.dev/transactions/' . $transactionId,
-            $updateData,
-            $merchantId,
-            'PATCH'
-        );
-    }
-
-    /**
-     * Get an Amwal transaction by ID
-     *
-     * @param string $transactionId
-     * @param string $merchantId
-     *
-     * @return array
-     * @throws JsonException
-     */
-    private function getAmwalTransaction(string $transactionId, string $merchantId): array
+    private function getAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
     {
         return $this->executeAmwalCall(
-            'https://qa.amwal.dev/transactions/' . $transactionId,
+            'https://qa.amwal.dev/transactions/' . self::MOCK_TRANSACTION_ID,
             [],
-            $merchantId,
+            $buttonConfig->getMerchantId(),
             'GET'
         );
     }
