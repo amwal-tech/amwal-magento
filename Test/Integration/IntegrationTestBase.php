@@ -200,6 +200,7 @@ class IntegrationTestBase extends TestCase
         ]);
 
         $response = curl_exec($curl);
+        echo $response;
         curl_close($curl);
 
         return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
