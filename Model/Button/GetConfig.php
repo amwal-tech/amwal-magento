@@ -117,7 +117,8 @@ class GetConfig
         $buttonConfig->setEnablePrePayTrigger(true);
         $buttonConfig->setMerchantId($this->config->getMerchantId());
         $buttonConfig->setRefId($this->refIdManagement->generateRefId($refIdData));
-        $buttonConfig->setTestEnvironment($this->config->getMerchantMode() === MerchantMode::MERCHANT_TEST_MODE ? 'qa' : null);
+        $buttonConfig->setApiUrl($this->config->getApiUrl());
+        $buttonConfig->setPayUrl($this->config->getPayUrl());
         $buttonConfig->setPluginVersion($this->config->getVersion());
         $buttonConfig->setPostCodeOptionalCountries($this->config->getPostCodeOptionalCountries());
         $buttonConfig->setInstallmentOptionsUrl($this->config->getInstallmentOptionsUrl());

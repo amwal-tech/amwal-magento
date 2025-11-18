@@ -19,7 +19,6 @@ interface AmwalButtonConfigInterface
     public const SHOW_PAYMENT_BRANDS = 'show_payment_brands';
     public const ENABLE_PRE_CHECKOUT_TRIGGER = 'enable_pre_checkout_trigger';
     public const ENABLE_PRE_PAY_TRIGGER = 'enable_pre_pay_trigger';
-    public const TEST_ENVIRONMENT = 'test_environment';
     public const ALLOWED_ADDRESS_COUNTRIES = 'allowed_address_countries';
     public const POSTCODE_OPTIONAL_COUNTRIES = 'postcode_optional_countries';
     public const INSTALLMENT_OPTIONS_URL = 'installment_options_url';
@@ -40,6 +39,8 @@ interface AmwalButtonConfigInterface
     public const ENABLE_BANK_INSTALLMENTS = 'enable_bank_installments';
     public const TIMELINE_STYLE = 'timeline_style';
     public const FOOTER_MESSAGE = 'footer_message';
+    public const API_URL = 'api_url';
+    public const PAY_URL = 'pay_url';
 
     /**
      * @return string
@@ -183,17 +184,6 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setEnablePrePayTrigger(bool $enablePrePayTrigger): AmwalButtonConfigInterface;
-
-    /**
-     * @return string|null
-     */
-    public function getTestEnvironment(): ?string;
-
-    /**
-     * @param string|null $testEnvironment
-     * @return AmwalButtonConfigInterface
-     */
-    public function setTestEnvironment(?string $testEnvironment): AmwalButtonConfigInterface;
 
     /**
      * @return array|null
@@ -416,4 +406,26 @@ interface AmwalButtonConfigInterface
      * @return AmwalButtonConfigInterface
      */
     public function setFooterMessage(?string $footerMessage): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getApiUrl(): ?string;
+
+    /**
+     * @param string|null $apiUrl
+     * @return AmwalButtonConfigInterface
+     */
+    public function setApiUrl(?string $apiUrl): AmwalButtonConfigInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getPayUrl(): ?string;
+
+    /**
+     * @param string|null $payUrl
+     * @return AmwalButtonConfigInterface
+     */
+    public function setPayUrl(?string $payUrl): AmwalButtonConfigInterface;
 }

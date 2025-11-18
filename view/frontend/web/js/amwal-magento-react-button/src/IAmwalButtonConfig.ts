@@ -1,9 +1,9 @@
-import { type CountryCode } from 'libphonenumber-js'
 import {
-  type StateSpecs,
   type CitySpecs,
-  type IAddress
+  type IAddress,
+  type StateSpecs
 } from 'amwal-checkout-button'
+import { type CountryCode } from 'libphonenumber-js'
 
 export interface IAmwalButtonConfig {
   merchant_id: string
@@ -23,7 +23,6 @@ export interface IAmwalButtonConfig {
   enable_pre_checkout_trigger: boolean
   enable_pre_pay_trigger: boolean
   id: string
-  test_environment: string
   allowed_address_states: Record<string, StateSpecs>
   allowed_address_cities: Record<string, CitySpecs>
   allowed_address_countries: string[]
@@ -41,6 +40,8 @@ export interface IAmwalButtonConfig {
   enable_bank_installments: boolean
   timeline_style: 'default' | 'simple'
   footer_message: string
+  api_url: string
+  pay_url: string
 }
 
 export interface IRefIdData {
