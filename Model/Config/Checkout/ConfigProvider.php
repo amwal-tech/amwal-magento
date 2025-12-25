@@ -117,7 +117,6 @@ class ConfigProvider implements ConfigProviderInterface
             'isRegularCheckoutActive' => $this->isRegularCheckoutActive(),
             'isExpressCheckoutActive' => $this->config->isExpressCheckoutActive(),
             'merchantId' => $this->config->getMerchantId(),
-            'merchantMode' => $this->config->getMerchantMode(),
             'title' => $this->config->getTitle(),
             'countryCode' => $this->config->getCountryCode(),
             'locale' => $this->config->getLocale(),

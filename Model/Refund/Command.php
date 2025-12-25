@@ -15,6 +15,7 @@ use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 
 class Command implements CommandInterface
 {
@@ -24,6 +25,7 @@ class Command implements CommandInterface
     private OrderRepositoryInterface $orderRepository;
     private Context $context;
     private LoggerInterface $logger;
+    private EncryptorInterface $encryptor;
 
     /**
      * @param AmwalClientFactory $amwalClientFactory
@@ -31,19 +33,22 @@ class Command implements CommandInterface
      * @param OrderRepositoryInterface $orderRepository
      * @param Context $context
      * @param LoggerInterface $logger
+     * @param EncryptorInterface $encryptor
      */
     public function __construct(
         AmwalClientFactory $amwalClientFactory,
         Config $config,
         OrderRepositoryInterface $orderRepository,
         Context $context,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        EncryptorInterface $encryptor
     ) {
         $this->amwalClientFactory = $amwalClientFactory;
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->context = $context;
         $this->logger = $logger;
+        $this->encryptor = $encryptor;
     }
 
     /**
@@ -91,7 +96,7 @@ class Command implements CommandInterface
                 'transactions/refund/' . $transactionId . '/',
                 [
                     RequestOptions::JSON => $this->getRequestBody((float) $commandSubject['amount'], $transactionId),
-                    RequestOptions::HEADERS => ['Authorization' => $this->config->getSecretKey()]
+                    RequestOptions::HEADERS => ['Authorization' => $this->encryptor->decrypt($this->config->getSecretKey())]
                 ]
             );
         } catch (GuzzleException $e) {

@@ -65,7 +65,7 @@ class Config
     public const XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT = 'payment/amwal_payments/webhook/api_key_fingerprint';
     public const XML_CONFIG_PATH_WEBHOOK_PRIVATE_KEY = 'payment/amwal_payments/webhook/private_key';
     public const XML_CONFIG_PATH_WEBHOOK_EVENTS = 'payment/amwal_payments/webhook/events';
-    public const XML_CONFIG_PATH_WEBHOOK_ENABLED = 'payment/amwal_payments/webhook/enabled';
+    public const XML_CONFIG_PATH_WEBHOOK_ENABLED = 'payment/amwal_payments/webhook_enabled';
     public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_TIMELINE_STYLE = 'payment/amwal_payments/bank_installments_timeline_style';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_FOOTER_MESSAGE = 'payment/amwal_payments/bank_installments_footer_message';
@@ -185,14 +185,6 @@ class Config
     public function getMerchantId(): string
     {
         return (string)$this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_ID, ScopeInterface::SCOPE_WEBSITE);
-    }
-
-    /**
-     * @return string
-     */
-    public function getMerchantMode(): string
-    {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_MERCHANT_MODE, ScopeInterface::SCOPE_WEBSITE);
     }
 
     /**
