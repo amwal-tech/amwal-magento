@@ -1,5 +1,5 @@
-import { type AmwalCheckoutButtonCustomEvent, type AmwalCheckoutStatus, type AmwalDismissalStatus, type IAddress, type IShippingMethod, type ITransactionDetails } from 'amwal-checkout-button'
-import { AmwalCheckoutButton } from 'amwal-checkout-button-react'
+import { type AmwalCheckoutButtonCustomEvent, type AmwalCheckoutStatus, type AmwalDismissalStatus, type IAddress, type IShippingMethod, type ITransactionDetails } from '@amwaljs/checkout-button'
+import { AmwalCheckoutButton } from '@amwaljs/checkout-button-react'
 import React from 'react'
 import { type IAmwalButtonConfig, type IRefIdData, type ISuccessInfo } from './IAmwalButtonConfig'
 
@@ -357,7 +357,6 @@ const AmwalMagentoReactButton = ({
       setTriggerPreCheckoutAck(false)
     }
   }, [triggerPreCheckoutAck])
-  console.log('Rendering AmwalMagentoReactButton with config:', config)
   return (config != null)
     ? <AmwalCheckoutButton
           ref={buttonRef}
@@ -404,9 +403,7 @@ const AmwalMagentoReactButton = ({
           timelineStyle={config.timeline_style}
           footerMessage={config.footer_message}
           apiUrl={config.api_url}
-          payUrl={config.pay_url}
-          placeholder={undefined} onPointerEnterCapture={undefined}
-          onPointerLeaveCapture={undefined}    />
+          payUrl={config.pay_url}   />
     : <></>
 }
 

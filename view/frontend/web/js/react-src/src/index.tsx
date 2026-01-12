@@ -1,6 +1,5 @@
-import AmwalMagentoReactButton from 'amwal-magento-react-button'
+import AmwalMagentoReactButton from '@amwaljs/magento-react-button'
 import { createRoot } from 'react-dom/client'
-import React from 'react'
 
 export const renderReactElement = (container: Element): void => {
   const triggerContext = container.getAttribute('data-trigger-context')

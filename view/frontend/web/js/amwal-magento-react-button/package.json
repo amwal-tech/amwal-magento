@@ -1,8 +1,8 @@
 {
-  "name": "amwal-magento-react-button",
+  "name": "@amwaljs/magento-react-button",
   "sideEffects": false,
-  "version": "0.0.41",
-  "description": "Amwal React Button with Magento Backend",
+  "version": "0.1.0",
+  "description": "Amwal Magento Headless React Button",
   "repository": {
     "type": "git",
     "url": "https://github.com/amwal-tech/amwal-magento"
@@ -39,10 +39,7 @@
     "react-dom": "*"
   },
   "dependencies": {
-    "@sentry/react": "^9.40.0",
-    "@sentry/replay": "^7.116.0",
-    "@sentry/tracing": "^7.120.3",
-    "amwal-checkout-button": "^0.2.2",
-    "amwal-checkout-button-react": "^0.2.2"
+    "@amwaljs/checkout-button": "^0.2.9",
+    "@amwaljs/checkout-button-react": "^0.2.9"
   }
 }
