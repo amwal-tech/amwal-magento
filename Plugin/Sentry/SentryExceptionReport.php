@@ -173,7 +173,7 @@ class SentryExceptionReport
         try {
             // Initialize Sentry with error handling
             \Sentry\init([
-                'dsn' => 'https://0352c5fdf6587d2cf2313bae5e3fa6fe@o4509389080690688.ingest.us.sentry.io/4509389509623808',
+                'dsn' => 'https://14c10e4c892713fad85b3f4ec6249f00@o4509389080690688.ingest.us.sentry.io/4510504862744576',
                 'environment' => $this->state->getMode(),
                 'error_types' => E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED,
             ]);
