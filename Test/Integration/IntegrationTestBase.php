@@ -185,11 +185,11 @@ class IntegrationTestBase extends TestCase
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_TIMEOUT => 30, // Increased timeout
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_POSTFIELDS => $method === 'GET' ? null : json_encode($data),
             CURLOPT_HTTPHEADER => [
                 'authority: qa.amwal.dev',
                 'accept: */*',
@@ -201,9 +201,33 @@ class IntegrationTestBase extends TestCase
         ]);
 
         $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($curl);
         curl_close($curl);
 
-        return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        // Check for cURL errors
+        if ($response === false || !empty($curlError)) {
+            throw new JsonException('cURL error: ' . $curlError);
+        }
+
+        // Check for HTTP errors
+        if ($httpCode >= 400) {
+            throw new JsonException('HTTP error ' . $httpCode . ': ' . $response);
+        }
+
+        // Validate response content
+        if (empty($response)) {
+            throw new JsonException('Empty response from Amwal API');
+        }
+
+        // Try to decode JSON
+        $decodedResponse = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new JsonException('Invalid JSON response: ' . json_last_error_msg() . '. Response: ' . substr($response, 0, 200));
+        }
+
+        return $decodedResponse;
     }
 
     /**
