@@ -2,7 +2,7 @@ import {
   type CitySpecs,
   type IAddress,
   type StateSpecs
-} from 'amwal-checkout-button'
+} from '@amwaljs/checkout-button'
 import { type CountryCode } from 'libphonenumber-js'
 
 export interface IAmwalButtonConfig {

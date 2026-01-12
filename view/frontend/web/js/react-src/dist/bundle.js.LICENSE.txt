@@ -1,3 +1,7 @@
+/*!
+ * (C) Ionic http://ionicframework.com - MIT License
+ */
+
 /**
  * @license React
  * react-dom-client.production.js

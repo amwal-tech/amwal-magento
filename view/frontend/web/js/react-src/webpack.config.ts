@@ -35,7 +35,7 @@ const config: webpack.Configuration = {
   target: 'web',
   externalsType: 'module',
   externals: {
-    'amwal-checkout-button/loader': `https://cdn.jsdelivr.net/npm/amwal-checkout-button@${package_lock.packages['node_modules/amwal-checkout-button'].version}/loader/index.js`
+    '@amwaljs/checkout-button/loader': `https://cdn.jsdelivr.net/npm/@amwaljs/checkout-button@${package_lock.packages['node_modules/@amwaljs/checkout-button'].version}/loader/index.js`
   }
 }
 export default config
