@@ -1,5 +1,6 @@
 name: Integration Tests
-on: push
+on:
+  workflow_dispatch:  # Only allow manual triggering
 
 jobs:
   mage243:

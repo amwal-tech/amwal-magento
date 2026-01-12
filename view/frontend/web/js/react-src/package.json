@@ -4,13 +4,13 @@
   "private": true,
   "dependencies": {
     "@amwaljs/magento-react-button": "file:../amwal-magento-react-button",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "scripts": {
-    "setup": "npm uninstall amwal-magento-react-button; npm install --install-links ../amwal-magento-react-button",
+    "setup": "npm uninstall @amwaljs/magento-react-button; npm install --install-links ../amwal-magento-react-button",
     "build": "rm -rf dist/*; webpack --mode production",
     "lint": "eslint src/*.ts*",
     "prepare": "cd ../../../../.. && husky install view/frontend/web/js/react-src/.husky"
