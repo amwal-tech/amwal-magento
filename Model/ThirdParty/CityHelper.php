@@ -71,7 +71,9 @@ class CityHelper
             ->from(['city' => $citiesTable], $selectFields)
             ->where('city.status = ?', 1);
 
-        foreach ($connection->fetchAll($sql) as $city) {
+        $results = $connection->fetchAll($sql);
+
+        foreach ($results as $city) {
             $cityArabic = $hasArabicColumn ? ($city['city_ar'] ?? null) : null;
             $cityCodes[$city['country_id']][$city['state_id']][] =
                 $this->getLocalizedCityName($city['city'], $cityArabic);
@@ -146,9 +148,19 @@ class CityHelper
         return $cityCodes;
     }
 
+    /**
+     * Get localized city name based on current locale
+     *
+     * @param string|null $default English city name
+     * @param string|null $arabic Arabic city name (city_ar)
+     * @return string Localized city name
+     */
     private function getLocalizedCityName(?string $default, ?string $arabic): string
     {
+        // Check if current locale is Arabic (ar_SA, ar_EG, etc.)
         $isArabic = str_starts_with($this->localeResolver->getLocale(), 'ar');
+
+        // Return Arabic name if locale is Arabic and Arabic name exists, otherwise return English
         return $isArabic && !empty($arabic) ? $arabic : ($default ?? '');
     }
 }
