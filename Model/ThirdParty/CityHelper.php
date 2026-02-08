@@ -61,7 +61,6 @@ class CityHelper
         // Check if city_ar column exists
         $tableColumns = $connection->describeTable($citiesTable);
         $hasArabicColumn = isset($tableColumns['city_ar']);
-        $hasSortOrder = isset($tableColumns['sort_order']);
 
         $selectFields = ['city', 'state_id', 'country_id'];
         if ($hasArabicColumn) {
