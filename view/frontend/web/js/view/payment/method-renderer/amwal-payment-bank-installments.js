@@ -32,7 +32,7 @@ function ($, Component, redirectOnSuccessAction, $t) {
             let self = this;
             self._super();
             self.getTitle = function () {
-                return $t('0% Bank Installments up to 12 months');
+                return $t('0% Credit card installments, up to 2% miles/cashback');
             }
             self.getDescription = function () {
                 return $t('0% bank installment, up to 12 months with instant approval.');
