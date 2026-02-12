@@ -153,9 +153,18 @@ class OrderSuccess implements HandlerInterface
         $order->setState(Order::STATE_PROCESSING);
         $order->setStatus(Order::STATE_PROCESSING);
 
-        $order->setSendEmail(true);
-        $this->orderNotifier->notify($order);
-        $order->setIsCustomerNotified(true);
+        // Check if order confirmation email was already sent to prevent duplicates
+        $emailAlreadySent = $order->getEmailSent() || $order->getIsCustomerNotified();
+
+        if (!$emailAlreadySent) {
+            $this->logger->info("Sending order confirmation email for order #{$order->getIncrementId()} via webhook");
+            $order->setSendEmail(true);
+            $this->orderNotifier->notify($order);
+            $order->setIsCustomerNotified(true);
+        } else {
+            $this->logger->info("Order confirmation email already sent for order #{$order->getIncrementId()}, skipping duplicate");
+            $order->setSendEmail(false);
+        }
 
         // Set custom field for webhook processing
         $order->setData('amwal_webhook_processed', true);

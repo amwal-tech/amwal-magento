@@ -223,22 +223,6 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     /**
      * @inheritDoc
      */
-    public function getTestEnvironment(): ?string
-    {
-        return $this->getData(self::TEST_ENVIRONMENT);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setTestEnvironment(?string $testEnvironment): AmwalButtonConfigInterface
-    {
-        return $this->setData(self::TEST_ENVIRONMENT, $testEnvironment);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getAllowedAddressCountries(): ?array
     {
         return $this->getData(self::ALLOWED_ADDRESS_COUNTRIES);
@@ -557,5 +541,37 @@ class AmwalButtonConfig extends DataObject implements AmwalButtonConfigInterface
     public function setFooterMessage(?string $footerMessage): AmwalButtonConfigInterface
     {
         return $this->setData(self::FOOTER_MESSAGE, $footerMessage);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setApiUrl(?string $apiUrl): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::API_URL, $apiUrl);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getApiUrl(): ?string
+    {
+        return $this->getData(self::API_URL);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setPayUrl(?string $payUrl): AmwalButtonConfigInterface
+    {
+        return $this->setData(self::PAY_URL, $payUrl);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPayUrl(): ?string
+    {
+        return $this->getData(self::PAY_URL);
     }
 }

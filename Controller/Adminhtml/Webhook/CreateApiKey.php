@@ -132,7 +132,7 @@ class CreateApiKey extends Action
                 'api/create-webhook-and-apikey/',
                 [
                     RequestOptions::JSON => $requestData,
-                    RequestOptions::HEADERS => ['Authorization' => $this->config->getSecretKey(), 'X-API-Key' => $this->config->getSecretKey()]
+                    RequestOptions::HEADERS => ['Authorization' => $this->encryptor->decrypt($this->config->getSecretKey()), 'X-API-Key' => $this->encryptor->decrypt($this->config->getSecretKey())]
                 ]
             );
             $responseData = $this->json->unserialize($response->getBody()->getContents());
