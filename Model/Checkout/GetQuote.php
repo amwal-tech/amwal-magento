@@ -233,7 +233,8 @@ class GetQuote extends AmwalCheckoutAction
             }
         } catch (Throwable $e) {
             $this->reportError($refId, $e->getMessage());
-            $this->throwException($e->getMessage(), $e, $quote->getAmwalOrderId());
+            $userMessage = $this->resolveExceptionMessage($e);
+            $this->throwException($userMessage, $e, $quote->getAmwalOrderId());
         }
 
         return $quoteData;
@@ -281,9 +282,9 @@ class GetQuote extends AmwalCheckoutAction
         }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
-        throw new LocalizedException(
-            is_string($message) ? __($message) : $message
-        );
+        // Render Phrase to string so placeholders (%1, %2, etc.) are resolved in the API response
+        $renderedMessage = ($message instanceof Phrase) ? $message->render() : (string) $message;
+        throw new LocalizedException(__($renderedMessage));
     }
 
     /**
@@ -561,5 +562,39 @@ class GetQuote extends AmwalCheckoutAction
         if ($quote->hasVirtualItems() && !$this->config->isVirtualItemsSupport()) {
             $this->throwException(__('Virtual products are not supported, please remove them from your cart.'), null, $quote->getAmwalOrderId());
         }
+    }
+
+    /**
+     * Convert technical exception messages into user-friendly messages.
+     *
+     * @param Throwable $e
+     * @return Phrase
+     */
+    private function resolveExceptionMessage(Throwable $e): Phrase
+    {
+        $message = $e->getMessage();
+
+        // Map known address field type errors to friendly messages
+        $addressFieldMap = [
+            'getCity' => __('City'),
+            'getCountry' => __('Country'),
+            'getState' => __('State/Region'),
+            'getStreet1' => __('Street Address'),
+            'getStreet2' => __('Street Address (Line 2)'),
+            'getPostcode' => __('Postal Code or National Address Code'),
+        ];
+        foreach ($addressFieldMap as $method => $fieldName) {
+            if (str_contains($message, $method)) {
+                return __('The address is incomplete. Please provide a valid %1.', $fieldName);
+            }
+        }
+
+        // If it's a LocalizedException, it likely already has a user-friendly message
+        if ($e instanceof LocalizedException) {
+            return $e->getMessage() ? __($message) : $this->getGenericErrorMessage();
+        }
+
+        // For any other unexpected errors, return a generic message
+        return $this->getGenericErrorMessage();
     }
 }
