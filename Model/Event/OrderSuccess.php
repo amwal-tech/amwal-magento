@@ -123,8 +123,6 @@ class OrderSuccess implements HandlerInterface
      * @param array $data
      * @return void
      * @throws LocalizedException
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function execute(Order $order, array $data)
     {
@@ -133,37 +131,9 @@ class OrderSuccess implements HandlerInterface
         // Reload order from DB to get the freshest state (another process may have already updated it)
         $order = $this->orderRepository->get($order->getId());
 
-        // Don't process already completed/closed/processing orders
-        if (in_array($order->getState(), [Order::STATE_COMPLETE, Order::STATE_CLOSED, Order::STATE_PROCESSING])) {
-            $this->logger->info("Order #{$order->getIncrementId()} is already in state {$order->getState()}. Skipping webhook.");
+        if ($this->shouldSkipProcessing($order)) {
             return;
         }
-
-        // Check if already processed via the sales_order column (set by PayOrder, cron, or previous webhook)
-        if ($order->getData('amwal_webhook_processed')) {
-            $this->logger->info("Order #{$order->getIncrementId()} already has amwal_webhook_processed flag. Skipping.");
-            return;
-        }
-
-        // Check if already processed via payment additional info (set by previous webhook)
-        if ($order->getPayment()->getAdditionalInformation('amwal_webhook_processed')) {
-            $this->logger->info("Order #{$order->getIncrementId()} already processed by webhook (payment flag). Skipping.");
-            return;
-        }
-
-        // Check if order already has invoices (created by PayOrder/InvoiceOrder or cron)
-        if ($order->hasInvoices()) {
-            $this->logger->info("Order #{$order->getIncrementId()} already has invoices. Skipping webhook processing.");
-            return;
-        }
-
-        // Atomically claim the processing flag to prevent race conditions between concurrent webhooks
-        if (!$this->claimWebhookProcessing((int)$order->getId())) {
-            $this->logger->info("Order #{$order->getIncrementId()} webhook processing already claimed by another process. Skipping.");
-            return;
-        }
-
-        $this->logger->info("Successfully claimed webhook processing for order #{$order->getIncrementId()}");
 
         // Validate order data before processing
         $this->validateOrderData($order, $data);
@@ -175,105 +145,176 @@ class OrderSuccess implements HandlerInterface
             return;
         }
 
-        // Update payment information
+        $this->setupPaymentTransaction($order, $transactionId);
+
+        $order->setState(Order::STATE_PROCESSING);
+        $order->setStatus(Order::STATE_PROCESSING);
+
+        $this->sendOrderConfirmationEmail($order);
+
+        $order->setData('amwal_webhook_processed', true);
+
+        $order->addCommentToStatusHistory(
+            __('[Webhook] Payment successful with transaction ID: %1', $transactionId),
+            'processing',
+            true
+        );
+
+        $this->createInvoice($order, $transactionId);
+
+        // Save the order
+        $this->orderRepository->save($order);
+        $this->logger->info("Order #{$order->getIncrementId()} updated to " . Order::STATE_PROCESSING . " status");
+    }
+
+    /**
+     * Check whether the order should be skipped for processing.
+     *
+     * @param Order $order
+     * @return bool
+     */
+    private function shouldSkipProcessing(Order $order): bool
+    {
+        $incrementId = $order->getIncrementId();
+
+        if (in_array($order->getState(), [Order::STATE_COMPLETE, Order::STATE_CLOSED, Order::STATE_PROCESSING])) {
+            $this->logger->info("Order #{$incrementId} is already in state {$order->getState()}. Skipping webhook.");
+            return true;
+        }
+
+        if ($order->getData('amwal_webhook_processed')) {
+            $this->logger->info("Order #{$incrementId} already has amwal_webhook_processed flag. Skipping.");
+            return true;
+        }
+
+        if ($order->getPayment()->getAdditionalInformation('amwal_webhook_processed')) {
+            $this->logger->info("Order #{$incrementId} already processed by webhook (payment flag). Skipping.");
+            return true;
+        }
+
+        if ($order->hasInvoices()) {
+            $this->logger->info("Order #{$incrementId} already has invoices. Skipping webhook processing.");
+            return true;
+        }
+
+        if (!$this->claimWebhookProcessing((int)$order->getId())) {
+            $this->logger->info("Order #{$incrementId} webhook processing already claimed by another process. Skipping.");
+            return true;
+        }
+
+        $this->logger->info("Successfully claimed webhook processing for order #{$incrementId}");
+        return false;
+    }
+
+    /**
+     * Set up payment transaction details.
+     *
+     * @param Order $order
+     * @param string $transactionId
+     * @return void
+     */
+    private function setupPaymentTransaction(Order $order, string $transactionId): void
+    {
         $payment = $order->getPayment();
         $payment->setTransactionId($transactionId);
         $payment->setLastTransId($transactionId);
         $payment->setAdditionalInformation('amwal_payment_id', $transactionId);
         $payment->setAdditionalInformation('amwal_webhook_processed', true);
 
-        // Create payment transaction record
         $payment->setParentTransactionId(null);
         $transaction = $payment->addTransaction(PaymentTransaction::TYPE_CAPTURE, null, true);
         $transaction->setIsClosed(true);
         $transaction->setAdditionalInformation(PaymentTransaction::RAW_DETAILS, [
             'Transaction ID' => $transactionId,
-            'Payment Method' => $order->getPayment()->getMethod(),
+            'Payment Method' => $payment->getMethod(),
             'Amount' => $order->getGrandTotal()
         ]);
 
-        // Set payment as captured
         $payment->setIsTransactionClosed(true);
         $payment->setShouldCloseParentTransaction(true);
+    }
 
-        // Set order state and status
-        $orderState = Order::STATE_PROCESSING;
-        $orderStatus = 'processing';
-
-        $order->setState(Order::STATE_PROCESSING);
-        $order->setStatus(Order::STATE_PROCESSING);
-
-        // Check if order confirmation email was already sent to prevent duplicates
+    /**
+     * Send order confirmation email if not already sent.
+     *
+     * @param Order $order
+     * @return void
+     */
+    private function sendOrderConfirmationEmail(Order $order): void
+    {
         $emailAlreadySent = $order->getEmailSent() || $order->getIsCustomerNotified();
 
-        if (!$emailAlreadySent) {
-            $this->logger->info("Sending order confirmation email for order #{$order->getIncrementId()} via webhook");
-            $order->setSendEmail(true);
-            $this->orderNotifier->notify($order);
-            $order->setIsCustomerNotified(true);
-        } else {
+        if ($emailAlreadySent) {
             $this->logger->info("Order confirmation email already sent for order #{$order->getIncrementId()}, skipping duplicate");
             $order->setSendEmail(false);
+            return;
         }
 
-        // Set custom field for webhook processing (already claimed via SQL, but keep in sync with ORM)
-        $order->setData('amwal_webhook_processed', true);
+        $this->logger->info("Sending order confirmation email for order #{$order->getIncrementId()} via webhook");
+        $order->setSendEmail(true);
+        $this->orderNotifier->notify($order);
+        $order->setIsCustomerNotified(true);
+    }
 
-        // Add comment to order history
-        $order->addCommentToStatusHistory(
-            __('[Webhook] Payment successful with transaction ID: %1', $transactionId),
-            $orderStatus,
-            true
-        );
-
-        // Create invoice if the order doesn't have one already
-        if ($order->canInvoice()) {
-            $this->logger->info("[Webhook] Creating invoice for order #{$order->getIncrementId()} with transaction ID: $transactionId");
-
-            try {
-                // Create the invoice
-                $invoice = $this->invoiceService->prepareInvoice($order);
-                $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
-                // Register and explicitly mark as paid
-                $invoice->register();
-                $invoice->pay();
-
-                // Set invoice transaction ID
-                $invoice->setTransactionId($transactionId);
-                // Save the invoice and order
-                $this->transaction->addObject($invoice)
-                    ->addObject($order)
-                    ->save();
-
-                // Send invoice email (wrap in try-catch to not fail if email fails)
-                try {
-                    $this->invoiceSender->send($invoice);
-                } catch (\Exception $emailException) {
-                    $this->logger->warning("Could not send invoice email: " . $emailException->getMessage());
-                }
-
-                $order->addCommentToStatusHistory(
-                    __('[Webhook] Invoice #%1 created and marked as paid', $invoice->getIncrementId()),
-                    false,
-                    true
-                );
-
-                $this->logger->info("Invoice #{$invoice->getIncrementId()} created successfully for order #{$order->getIncrementId()}");
-            } catch (\Exception $e) {
-                $this->logger->error("Failed to create invoice: " . $e->getMessage());
-                $order->addCommentToStatusHistory(
-                    __('[Webhook] Failed to create invoice: %1', $e->getMessage()),
-                    false,
-                    true
-                );
-            }
-        } else {
+    /**
+     * Create invoice for the order if possible.
+     *
+     * @param Order $order
+     * @param string $transactionId
+     * @return void
+     */
+    private function createInvoice(Order $order, string $transactionId): void
+    {
+        if (!$order->canInvoice()) {
             $this->logger->info("Order #{$order->getIncrementId()} cannot be invoiced (already invoiced or not invoiceable). Skipping invoice creation.");
+            return;
         }
 
-        // Save the order
-        $this->orderRepository->save($order);
-        $this->logger->info("Order #{$order->getIncrementId()} updated to {$orderState} status");
+        $this->logger->info("[Webhook] Creating invoice for order #{$order->getIncrementId()} with transaction ID: $transactionId");
+
+        try {
+            $invoice = $this->invoiceService->prepareInvoice($order);
+            $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
+            $invoice->register();
+            $invoice->pay();
+            $invoice->setTransactionId($transactionId);
+
+            $this->transaction->addObject($invoice)
+                ->addObject($order)
+                ->save();
+
+            $this->sendInvoiceEmail($invoice);
+
+            $order->addCommentToStatusHistory(
+                __('[Webhook] Invoice #%1 created and marked as paid', $invoice->getIncrementId()),
+                false,
+                true
+            );
+
+            $this->logger->info("Invoice #{$invoice->getIncrementId()} created successfully for order #{$order->getIncrementId()}");
+        } catch (\Exception $e) {
+            $this->logger->error("Failed to create invoice: " . $e->getMessage());
+            $order->addCommentToStatusHistory(
+                __('[Webhook] Failed to create invoice: %1', $e->getMessage()),
+                false,
+                true
+            );
+        }
+    }
+
+    /**
+     * Send invoice email, suppressing exceptions.
+     *
+     * @param \Magento\Sales\Model\Order\Invoice $invoice
+     * @return void
+     */
+    private function sendInvoiceEmail($invoice): void
+    {
+        try {
+            $this->invoiceSender->send($invoice);
+        } catch (\Exception $emailException) {
+            $this->logger->warning("Could not send invoice email: " . $emailException->getMessage());
+        }
     }
 
     /**

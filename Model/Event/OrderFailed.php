@@ -119,8 +119,6 @@ class OrderFailed implements HandlerInterface
      * @param array $data
      * @return void
      * @throws LocalizedException
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function execute(Order $order, array $data)
     {
@@ -130,129 +128,19 @@ class OrderFailed implements HandlerInterface
             // Reload order from DB to get the freshest state
             $order = $this->orderRepository->get($order->getId());
 
-            // Don't process already cancelled/closed orders
-            if ($order->getState() === Order::STATE_CANCELED || $order->getState() === Order::STATE_CLOSED) {
-                $this->logger->info("Order #{$order->getIncrementId()} is already in state {$order->getState()}. Skipping.");
+            if ($this->shouldSkipProcessing($order)) {
                 return;
             }
 
-            // Don't cancel an order that has already been successfully processed (paid)
-            if ($order->getState() === Order::STATE_PROCESSING || $order->getState() === Order::STATE_COMPLETE) {
-                $this->logger->info("Order #{$order->getIncrementId()} is already in state {$order->getState()} (payment succeeded). Skipping failure webhook.");
-                return;
-            }
-
-            // Check if already processed via the sales_order column
-            if ($order->getData('amwal_webhook_processed')) {
-                $this->logger->info("Order #{$order->getIncrementId()} already has amwal_webhook_processed flag. Skipping.");
-                return;
-            }
-
-            // Check if already processed via payment additional info
-            if ($order->getPayment()->getAdditionalInformation('amwal_failure_reason')) {
-                $this->logger->info("Order #{$order->getIncrementId()} already has failure reason in payment info. Skipping.");
-                return;
-            }
-
-            // Atomically claim the processing flag to prevent race conditions
-            if (!$this->claimWebhookProcessing((int)$order->getId())) {
-                $this->logger->info("Order #{$order->getIncrementId()} webhook processing already claimed by another process. Skipping.");
-                return;
-            }
-
-            $this->logger->info("Successfully claimed webhook processing for order #{$order->getIncrementId()}");
-
-            // Get failure reason
             $reason = $data['data']['failure_reason'] ?? 'Payment failed';
-            $transactionId = $data['data']['id'] ?? null;
 
-            // Update payment information
-            $payment = $order->getPayment();
-            if ($transactionId ?? false) {
-                $payment->setTransactionId($transactionId);
-                $payment->setLastTransId($transactionId);
-            }
-
-            // Add failure details to payment
-            $payment->setAdditionalInformation('amwal_failure_reason', $reason);
-            // Set custom field for webhook processing
-            $order->setData('amwal_webhook_processed', true);
-
-            // Save payment changes
-            $this->orderRepository->save($order);
-
-            // Restore stock before canceling
+            $this->updatePaymentInfo($order, $data);
             $this->restoreOrderStock($order);
 
-            // Cancel the order
             if ($order->canCancel()) {
-                // Explicitly set both state and status to CANCELED
-                $order->setState(Order::STATE_CANCELED)
-                    ->setStatus(Order::STATE_CANCELED);
-
-                // Add comment with payment failure reason
-                $comment = $order->addCommentToStatusHistory(
-                    __('[Webhook] Payment failed with Amwal. Reason: %1. Stock quantities restored.', $reason),
-                    Order::STATE_CANCELED,
-                    true
-                );
-
-                // Log comment ID for debugging
-                if ($comment && $comment->getId()) {
-                    $this->logger->info("Added comment ID: " . $comment->getId() . " to order #{$order->getIncrementId()}");
-                } else {
-                    $this->logger->info("Comment was not created for order #{$order->getIncrementId()}");
-                }
-
-                // Save order with comment before cancellation
-                $this->orderRepository->save($order);
-
-                // Cancel the order
-                $this->orderManagement->cancel($order->getId());
-
-                // Reload the order to ensure we have the latest state
-                $updatedOrder = $this->orderRepository->get($order->getId());
-
-                // Ensure status is still set after cancel operation
-                if ($updatedOrder->getStatus() !== Order::STATE_CANCELED) {
-                    $updatedOrder->setStatus(Order::STATE_CANCELED);
-                }
-
-                // Add another comment confirming cancellation
-                $updatedOrder->addCommentToStatusHistory(
-                    __('[Webhook] Order was cancelled due to payment failure with Amwal. Stock restored.'),
-                    Order::STATE_CANCELED,
-                    true
-                );
-
-                // Save the order again to ensure the confirmation comment is saved
-                $this->orderRepository->save($updatedOrder);
-
-                $this->logger->info("Order #{$order->getIncrementId()} cancelled due to payment failure and stock restored");
+                $this->cancelOrder($order, $reason);
             } else {
-                // If order cannot be cancelled, just add a comment
-                // Set a proper status even if we can't cancel
-                $currentState = $order->getState();
-                $paymentFailedStatus = $currentState . '_payment_failed';
-
-                // Set the status to indicate payment failure
-                $order->setStatus($paymentFailedStatus);
-
-                $comment = $order->addCommentToStatusHistory(
-                    __('[Webhook] Payment failed with Amwal but order could not be cancelled. Reason: %1. Stock restored.', $reason),
-                    $paymentFailedStatus,
-                    true
-                );
-
-                // Log comment ID for debugging
-                if ($comment && $comment->getId()) {
-                    $this->logger->info("Added comment ID: " . $comment->getId() . " to order #{$order->getIncrementId()}");
-                } else {
-                    $this->logger->info("Comment was not created for order #{$order->getIncrementId()}");
-                }
-
-                $this->orderRepository->save($order);
-                $this->logger->info("Order #{$order->getIncrementId()} could not be cancelled. Added comment only. Status set to: {$paymentFailedStatus}. Stock restored.");
+                $this->handleUncancellableOrder($order, $reason);
             }
         } catch (\Exception $e) {
             $this->logger->critical(
@@ -260,6 +148,146 @@ class OrderFailed implements HandlerInterface
                 ['exception' => $e]
             );
             throw new LocalizedException(__('Error processing payment failure: %1', $e->getMessage()));
+        }
+    }
+
+    /**
+     * Check whether the order should be skipped for processing.
+     *
+     * @param Order $order
+     * @return bool
+     */
+    private function shouldSkipProcessing(Order $order): bool
+    {
+        $incrementId = $order->getIncrementId();
+
+        if (in_array($order->getState(), [Order::STATE_CANCELED, Order::STATE_CLOSED])) {
+            $this->logger->info("Order #{$incrementId} is already in state {$order->getState()}. Skipping.");
+            return true;
+        }
+
+        if (in_array($order->getState(), [Order::STATE_PROCESSING, Order::STATE_COMPLETE])) {
+            $this->logger->info("Order #{$incrementId} is already in state {$order->getState()} (payment succeeded). Skipping failure webhook.");
+            return true;
+        }
+
+        if ($order->getData('amwal_webhook_processed')) {
+            $this->logger->info("Order #{$incrementId} already has amwal_webhook_processed flag. Skipping.");
+            return true;
+        }
+
+        if ($order->getPayment()->getAdditionalInformation('amwal_failure_reason')) {
+            $this->logger->info("Order #{$incrementId} already has failure reason in payment info. Skipping.");
+            return true;
+        }
+
+        if (!$this->claimWebhookProcessing((int)$order->getId())) {
+            $this->logger->info("Order #{$incrementId} webhook processing already claimed by another process. Skipping.");
+            return true;
+        }
+
+        $this->logger->info("Successfully claimed webhook processing for order #{$incrementId}");
+        return false;
+    }
+
+    /**
+     * Update payment information with failure details.
+     *
+     * @param Order $order
+     * @param array $data
+     * @return void
+     */
+    private function updatePaymentInfo(Order $order, array $data): void
+    {
+        $reason = $data['data']['failure_reason'] ?? 'Payment failed';
+        $transactionId = $data['data']['id'] ?? null;
+
+        $payment = $order->getPayment();
+        if ($transactionId) {
+            $payment->setTransactionId($transactionId);
+            $payment->setLastTransId($transactionId);
+        }
+
+        $payment->setAdditionalInformation('amwal_failure_reason', $reason);
+        $order->setData('amwal_webhook_processed', true);
+
+        $this->orderRepository->save($order);
+    }
+
+    /**
+     * Cancel the order and add status history comments.
+     *
+     * @param Order $order
+     * @param string $reason
+     * @return void
+     */
+    private function cancelOrder(Order $order, string $reason): void
+    {
+        $order->setState(Order::STATE_CANCELED)
+            ->setStatus(Order::STATE_CANCELED);
+
+        $comment = $order->addCommentToStatusHistory(
+            __('[Webhook] Payment failed with Amwal. Reason: %1. Stock quantities restored.', $reason),
+            Order::STATE_CANCELED,
+            true
+        );
+
+        $this->logComment($comment, $order);
+        $this->orderRepository->save($order);
+
+        $this->orderManagement->cancel($order->getId());
+
+        $updatedOrder = $this->orderRepository->get($order->getId());
+        if ($updatedOrder->getStatus() !== Order::STATE_CANCELED) {
+            $updatedOrder->setStatus(Order::STATE_CANCELED);
+        }
+
+        $updatedOrder->addCommentToStatusHistory(
+            __('[Webhook] Order was cancelled due to payment failure with Amwal. Stock restored.'),
+            Order::STATE_CANCELED,
+            true
+        );
+
+        $this->orderRepository->save($updatedOrder);
+        $this->logger->info("Order #{$order->getIncrementId()} cancelled due to payment failure and stock restored");
+    }
+
+    /**
+     * Handle orders that cannot be cancelled.
+     *
+     * @param Order $order
+     * @param string $reason
+     * @return void
+     */
+    private function handleUncancellableOrder(Order $order, string $reason): void
+    {
+        $paymentFailedStatus = $order->getState() . '_payment_failed';
+        $order->setStatus($paymentFailedStatus);
+
+        $comment = $order->addCommentToStatusHistory(
+            __('[Webhook] Payment failed with Amwal but order could not be cancelled. Reason: %1. Stock restored.', $reason),
+            $paymentFailedStatus,
+            true
+        );
+
+        $this->logComment($comment, $order);
+        $this->orderRepository->save($order);
+        $this->logger->info("Order #{$order->getIncrementId()} could not be cancelled. Added comment only. Status set to: {$paymentFailedStatus}. Stock restored.");
+    }
+
+    /**
+     * Log comment creation result.
+     *
+     * @param mixed $comment
+     * @param Order $order
+     * @return void
+     */
+    private function logComment($comment, Order $order): void
+    {
+        if ($comment && $comment->getId()) {
+            $this->logger->info("Added comment ID: " . $comment->getId() . " to order #{$order->getIncrementId()}");
+        } else {
+            $this->logger->info("Comment was not created for order #{$order->getIncrementId()}");
         }
     }
 
