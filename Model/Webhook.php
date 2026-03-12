@@ -163,6 +163,7 @@ class Webhook implements WebHookInterface
     private function logWebhookReceived(array $data): void
     {
         $this->logger->info('Amwal webhook received: ' . $this->json->serialize($data));
+        $this->logger->info('Amwal webhook headers: ' . $this->json->serialize($this->request->getHeaders()));
         $this->logger->info('X-Signature: ' . $this->request->getHeader('X-Signature'));
         $this->logger->info('X-API-Key: ' . $this->request->getHeader('X-API-Key'));
     }

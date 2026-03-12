@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Tab\TabInterface;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Registry;
 use Psr\Log\LoggerInterface;
 
@@ -35,6 +36,16 @@ class AmwalTab extends Template implements TabInterface
     private LoggerInterface $logger;
 
     /**
+     * @var PriceCurrencyInterface
+     */
+    private PriceCurrencyInterface $priceCurrency;
+
+    /**
+     * @var array|null Cached decoded Amwal API data
+     */
+    private ?array $decodedAmwalData = null;
+
+    /**
      * Define the template file
      *
      * @var string
@@ -44,12 +55,13 @@ class AmwalTab extends Template implements TabInterface
     /**
      * Constructor
      *
-     * @param Context            $context
-     * @param Registry           $registry
-     * @param AmwalClientFactory $amwalClientFactory
-     * @param Config             $config
-     * @param LoggerInterface    $logger
-     * @param array              $data
+     * @param Context                $context
+     * @param Registry               $registry
+     * @param AmwalClientFactory     $amwalClientFactory
+     * @param Config                 $config
+     * @param LoggerInterface        $logger
+     * @param PriceCurrencyInterface $priceCurrency
+     * @param array                  $data
      */
     public function __construct(
         Context $context,
@@ -57,12 +69,14 @@ class AmwalTab extends Template implements TabInterface
         AmwalClientFactory $amwalClientFactory,
         Config $config,
         LoggerInterface $logger,
+        PriceCurrencyInterface $priceCurrency,
         array $data = []
     ) {
         $this->registry = $registry;
         $this->amwalClientFactory = $amwalClientFactory;
         $this->config = $config;
         $this->logger = $logger;
+        $this->priceCurrency = $priceCurrency;
         parent::__construct($context, $data);
     }
 
@@ -73,7 +87,7 @@ class AmwalTab extends Template implements TabInterface
      */
     public function getTabLabel()
     {
-        return __('Amwal Payments');
+        return __('Amwal');
     }
 
     /**
@@ -139,8 +153,7 @@ class AmwalTab extends Template implements TabInterface
             $response = $amwalClient->get('transactions/' . $amwalOrderId);
 
             if ($response->getStatusCode() === 200) {
-                $amwalOrderData = $response->getBody()->getContents();
-                return $amwalOrderData;
+                return $response->getBody()->getContents();
             } else {
                 $this->logger->warning(sprintf(
                     'Amwal API returned non-200 status code for order ID "%s": %s',
@@ -157,6 +170,27 @@ class AmwalTab extends Template implements TabInterface
         }
 
         return null;
+    }
+
+    /**
+     * Get decoded Amwal data (cached).
+     *
+     * @return array
+     */
+    public function getDecodedAmwalData(): array
+    {
+        if ($this->decodedAmwalData === null) {
+            $json = $this->getAmwalOrderData();
+            if ($json) {
+                $this->decodedAmwalData = json_decode($json, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $this->decodedAmwalData = [];
+                }
+            } else {
+                $this->decodedAmwalData = [];
+            }
+        }
+        return $this->decodedAmwalData;
     }
 
     /**
@@ -196,5 +230,220 @@ class AmwalTab extends Template implements TabInterface
         $baseUrl = $amwalClient->getConfig('base_uri');
 
         return $baseUrl . 'transactions/' . $amwalOrderId;
+    }
+
+    /**
+     * Format a currency amount for display.
+     *
+     * @param mixed $amount
+     * @return string
+     */
+    public function formatCurrency($amount): string
+    {
+        $value = (float) $amount;
+        $order = $this->getCurrentOrder();
+        $currencyCode = $order ? $order->getOrderCurrencyCode() : 'SAR';
+
+        return $this->priceCurrency->format(
+            $value,
+            true,
+            PriceCurrencyInterface::DEFAULT_PRECISION,
+            null,
+            $currencyCode
+        );
+    }
+
+    /**
+     * Get the CSS class for a status badge.
+     *
+     * @param string|null $status
+     * @return string
+     */
+    public function getStatusBadgeClass(?string $status): string
+    {
+        if (!$status) {
+            return 'amwal-badge--default';
+        }
+
+        $statusLower = strtolower($status);
+        $map = [
+            'success'   => 'amwal-badge--success',
+            'completed' => 'amwal-badge--success',
+            'failed'    => 'amwal-badge--danger',
+            'expired'   => 'amwal-badge--danger',
+            'cancelled' => 'amwal-badge--danger',
+            'pending'   => 'amwal-badge--warning',
+            'processing' => 'amwal-badge--info',
+        ];
+
+        return $map[$statusLower] ?? 'amwal-badge--default';
+    }
+
+    /**
+     * Get the type badge class (SANDBOX/LIVE).
+     *
+     * @param string|null $type
+     * @return string
+     */
+    public function getTypeBadgeClass(?string $type): string
+    {
+        if (!$type) {
+            return 'amwal-type-pill--default';
+        }
+        return strtoupper($type) === 'SANDBOX'
+            ? 'amwal-type-pill--sandbox'
+            : 'amwal-type-pill--live';
+    }
+
+    /**
+     * Check if installment data is present.
+     *
+     * @return bool
+     */
+    public function hasInstallment(): bool
+    {
+        $data = $this->getDecodedAmwalData();
+        return isset($data['installment_duration']) && $data['installment_duration'] !== null;
+    }
+
+    /**
+     * Check if there is refund-related data worth showing.
+     *
+     * @return bool
+     */
+    public function hasRefundInfo(): bool
+    {
+        $data = $this->getDecodedAmwalData();
+        $refundedAmount = (float)($data['refunded_amount'] ?? 0);
+        return $refundedAmount > 0 || !empty($data['is_refundable']) || !empty($data['refund_tracker']);
+    }
+
+    /**
+     * Get order items from order_details.order_content.
+     *
+     * @return array
+     */
+    public function getOrderItems(): array
+    {
+        $data = $this->getDecodedAmwalData();
+        return $data['order_details']['order_content'] ?? [];
+    }
+
+    /**
+     * Get order errors from order_details.error.
+     *
+     * @return array
+     */
+    public function getOrderErrors(): array
+    {
+        $data = $this->getDecodedAmwalData();
+        if (!empty($data['order_details']['error']) && is_array($data['order_details']['error'])) {
+            return $data['order_details']['error'];
+        }
+        return [];
+    }
+
+    /**
+     * Format a masked card number display.
+     *
+     * @return string
+     */
+    public function getMaskedCardDisplay(): string
+    {
+        $data = $this->getDecodedAmwalData();
+        $number = $data['number'] ?? '';
+        $brand = $data['paymentBrand'] ?? $data['card_payment_brand'] ?? '';
+        $holder = $data['card_holder'] ?? '';
+
+        if (empty($number) && empty($data['card_last_4_digits'])) {
+            return '';
+        }
+
+        // Use the masked number from API if available (e.g., "545454xxxxxx5454")
+        if (!empty($number)) {
+            // Format: #### •••• •••• ####
+            $display = preg_replace('/x+/', ' •••• •••• ', $number);
+        } elseif (!empty($data['card_last_4_digits'])) {
+            $display = '•••• •••• •••• ' . $data['card_last_4_digits'];
+        } else {
+            $display = '';
+        }
+
+        $parts = [];
+        if ($display) {
+            $parts[] = $display;
+        }
+        if ($brand) {
+            $parts[] = strtoupper($brand);
+        }
+
+        return implode(' — ', $parts);
+    }
+
+    /**
+     * Format a date string for display.
+     *
+     * @param string|null $dateString
+     * @return string
+     */
+    public function formatDate($dateString = null, $format = \IntlDateFormatter::MEDIUM, $showTime = true, $timezone = null): string
+    {
+        if (!$dateString) {
+            return (string) __('N/A');
+        }
+        try {
+            $date = new \DateTime($dateString);
+            return $date->format('M d, Y \a\t h:i A');
+        } catch (\Exception $e) {
+            return (string) $dateString;
+        }
+    }
+
+    /**
+     * Determine if the "Update Order Status" button should be shown.
+     *
+     * @return bool
+     */
+    public function shouldShowUpdateButton(): bool
+    {
+        $data = $this->getDecodedAmwalData();
+        $amwalStatus = $data['status'] ?? '';
+        $currentOrder = $this->getCurrentOrder();
+        $storeStatus = $currentOrder ? $currentOrder->getStatus() : '';
+
+        return $amwalStatus === 'success' && $storeStatus !== 'processing';
+    }
+
+    /**
+     * Get the formatted address block from address_details.
+     *
+     * @return string
+     */
+    public function getFormattedAddress(): string
+    {
+        $data = $this->getDecodedAmwalData();
+        $addr = $data['address_details'] ?? [];
+
+        if (empty($addr)) {
+            return (string) __('N/A');
+        }
+
+        $lines = [];
+        $name = trim(($addr['first_name'] ?? '') . ' ' . ($addr['last_name'] ?? ''));
+        if ($name) {
+            $lines[] = $name;
+        }
+        if (!empty($addr['street1'])) {
+            $lines[] = $addr['street1'];
+        }
+        $cityLine = trim(($addr['city'] ?? '') . ', ' . ($addr['state'] ?? '') . ' ' . ($addr['postcode'] ?? ''));
+        if ($cityLine && $cityLine !== ', ') {
+            $lines[] = $cityLine;
+        }
+        if (!empty($addr['country'])) {
+            $lines[] = $addr['country'];
+        }
+
+        return implode("\n", $lines);
     }
 }
