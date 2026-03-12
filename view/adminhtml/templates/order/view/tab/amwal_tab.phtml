@@ -641,6 +641,91 @@ $svgChevron = '';
     </div>
     <?php endif; ?>
 
+    <!-- ========== SECTION: Support & Troubleshooting ========== -->
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                <?= $block->escapeHtml(__('Support & Troubleshooting')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div style="display: flex; align-items: flex-start; gap: 16px; padding: 8px 0;">
+                <div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #ede9fe, #dbeafe); display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6d28d9" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 15px; color: #1e293b; margin-bottom: 4px;">
+                        <?= $block->escapeHtml(__('Need Help?')) ?>
+                    </div>
+                    <div style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 12px;">
+                        <?= $block->escapeHtml(__('If you are experiencing any issues with this order or need assistance with your Amwal integration, our support team is here to help. Please include the Amwal Order ID and Reference ID when contacting us for faster resolution.')) ?>
+                    </div>
+                    <?php
+                    $supportSubject = 'Support Request - Order ' . ($amwalData['id'] ?? 'N/A');
+                    $supportBodyText =
+                        "Hi Amwal Support,\n\n"
+                        . "I need assistance with the following order:\n\n"
+                        . "Amwal Order ID: " . ($amwalData['id'] ?? 'N/A') . "\n"
+                        . "Reference ID: " . ($amwalData['ref_id'] ?? 'N/A') . "\n"
+                        . "Magento Order ID: " . ($amwalData['order_details']['order_id'] ?? 'N/A') . "\n"
+                        . "Amwal Status: " . ($amwalData['status'] ?? 'N/A') . "\n"
+                        . "Store Status: " . ($storeStatus ?: 'N/A') . "\n"
+                        . "Plugin Version: " . ($amwalData['order_details']['plugin_version'] ?? 'N/A') . "\n\n"
+                        . "Issue Description:\n"
+                        . "[Please describe your issue here]\n\n"
+                        . "Thank you.";
+                    ?>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                        <button type="button"
+                                id="amwal-support-email-btn"
+                                class="amwal-btn amwal-btn--primary amwal-btn--sm"
+                                data-support-subject="<?= $block->escapeHtmlAttr($supportSubject) ?>"
+                                data-support-body="<?= $block->escapeHtmlAttr($supportBodyText) ?>">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            <?= $block->escapeHtml(__('Email Amwal Support')) ?>
+                        </button>
+                        <button type="button"
+                                id="amwal-support-copy-btn"
+                                class="amwal-btn amwal-btn--outline amwal-btn--sm"
+                                data-support-body="<?= $block->escapeHtmlAttr($supportBodyText) ?>"
+                                title="<?= $block->escapeHtmlAttr(__('Copy support details to clipboard')) ?>">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                            <?= $block->escapeHtml(__('Copy Details')) ?>
+                        </button>
+                        <span style="font-size: 13px; color: #94a3b8;">
+                            support@amwal.tech
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <?php if (!empty($orderErrors)): ?>
+            <div style="margin-top: 16px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; color: #991b1b; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="flex-shrink: 0;">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <?= $block->escapeHtml(__('This order has errors. We recommend contacting support with the details above for quick resolution.')) ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
 </div><!-- /.amwal-tab-container -->
 <?php endif; ?>
 
@@ -704,5 +789,44 @@ require(['jquery', 'mage/translate'], function($, $t) {
             });
         });
     }
+
+    // ---- Support: Email button ----
+    $(document).on('click', '#amwal-support-email-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var subject = encodeURIComponent($(this).data('support-subject') || '');
+        var body    = encodeURIComponent($(this).data('support-body') || '');
+        var mailtoUrl = 'mailto:support@amwal.tech?subject=' + subject + '&body=' + body;
+        window.location.href = mailtoUrl;
+    });
+
+    // ---- Support: Copy details button ----
+    $(document).on('click', '#amwal-support-copy-btn', function(e) {    
+        e.preventDefault();
+        e.stopPropagation();
+        var $btn = $(this);
+        var bodyText = 'To: support@amwal.tech\nSubject: ' + ($('#amwal-support-email-btn').data('support-subject') || '') + '\n\n' + ($btn.data('support-body') || '');
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(bodyText).then(function() {
+                var origHtml = $btn.html();
+                $btn.html('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ' + $t('Copied!'));
+                setTimeout(function() { $btn.html(origHtml); }, 2000);
+            });
+        } else {
+            // Fallback for older browsers
+            var textarea = document.createElement('textarea');
+            textarea.value = bodyText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            var origHtml = $btn.html();
+            $btn.html('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ' + $t('Copied!'));
+            setTimeout(function() { $btn.html(origHtml); }, 2000);
+        }
+    });
 });
 </script>
