@@ -669,7 +669,13 @@ require(['jquery', 'mage/translate'], function($, $t) {
     ?>
     var config = <?= json_encode($jsConfig) ?>;
 
-    if (config.amwalStatus === 'success' && config.storeStatus !== 'processing') {
+    // Bind handler if the button exists (PHP shouldShowUpdateButton() controls visibility)
+    var failedStatuses = ['fail', 'failed', 'expired', 'cancelled'];
+    var pendingStatuses = ['pending', 'pending_payment'];
+    var shouldBind = (config.amwalStatus === 'success' && config.storeStatus !== 'processing')
+        || (failedStatuses.indexOf(config.amwalStatus) !== -1 && pendingStatuses.indexOf(config.storeStatus) !== -1);
+
+    if (shouldBind) {
         $(document).on('click', '.amwal-order-status-update', function() {
             var $btn = $(this);
             $btn.prop('disabled', true).text($t('Updating...'));

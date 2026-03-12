@@ -409,16 +409,36 @@ class AmwalTab extends Template implements TabInterface
     /**
      * Determine if the "Update Order Status" button should be shown.
      *
+     * Shows the button when the Amwal status and Magento status are out of sync:
+     * - Amwal "success" but Magento is not yet "processing"
+     * - Amwal "fail" but Magento is still "pending" or "pending_payment"
+     *
      * @return bool
      */
     public function shouldShowUpdateButton(): bool
     {
         $data = $this->getDecodedAmwalData();
-        $amwalStatus = $data['status'] ?? '';
+        $amwalStatus = strtolower($data['status'] ?? '');
         $currentOrder = $this->getCurrentOrder();
         $storeStatus = $currentOrder ? $currentOrder->getStatus() : '';
 
-        return $amwalStatus === 'success' && $storeStatus !== 'processing';
+        if (empty($amwalStatus) || empty($storeStatus)) {
+            return false;
+        }
+
+        // Amwal succeeded but Magento hasn't moved to processing yet
+        if ($amwalStatus === 'success' && $storeStatus !== 'processing') {
+            return true;
+        }
+
+        // Amwal failed but Magento is still pending — allow admin to sync
+        $failedStatuses = ['fail', 'failed', 'expired', 'cancelled'];
+        $pendingStatuses = ['pending', 'pending_payment'];
+        if (in_array($amwalStatus, $failedStatuses) && in_array($storeStatus, $pendingStatuses)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
