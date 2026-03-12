@@ -13,6 +13,7 @@ use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\ResourceConnection;
 
 /**
  * Handles order.failed webhook event
@@ -56,6 +57,11 @@ class OrderFailed implements HandlerInterface
     private $getSalableQuantityDataBySku;
 
     /**
+     * @var ResourceConnection
+     */
+    private $resourceConnection;
+
+    /**
      * @param OrderRepositoryInterface $orderRepository
      * @param OrderManagementInterface $orderManagement
      * @param LoggerInterface $logger
@@ -63,6 +69,7 @@ class OrderFailed implements HandlerInterface
      * @param SourceItemsSaveInterface $sourceItemsSave
      * @param SourceItemInterfaceFactory $sourceItemFactory
      * @param GetSalableQuantityDataBySku $getSalableQuantityDataBySku
+     * @param ResourceConnection $resourceConnection
      */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
@@ -71,7 +78,8 @@ class OrderFailed implements HandlerInterface
         StockManagementInterface $stockManagement,
         SourceItemsSaveInterface $sourceItemsSave,
         SourceItemInterfaceFactory $sourceItemFactory,
-        GetSalableQuantityDataBySku $getSalableQuantityDataBySku
+        GetSalableQuantityDataBySku $getSalableQuantityDataBySku,
+        ResourceConnection $resourceConnection
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderManagement = $orderManagement;
@@ -80,6 +88,28 @@ class OrderFailed implements HandlerInterface
         $this->sourceItemsSave = $sourceItemsSave;
         $this->sourceItemFactory = $sourceItemFactory;
         $this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
+        $this->resourceConnection = $resourceConnection;
+    }
+
+    /**
+     * Atomically claim the webhook processing flag for this order.
+     * Returns true if this process successfully claimed it (no other process has).
+     *
+     * @param int $orderId
+     * @return bool
+     */
+    private function claimWebhookProcessing(int $orderId): bool
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $tableName = $this->resourceConnection->getTableName('sales_order');
+
+        $affectedRows = $connection->update(
+            $tableName,
+            ['amwal_webhook_processed' => 1],
+            ['entity_id = ?' => $orderId, 'amwal_webhook_processed = ?' => 0]
+        );
+
+        return $affectedRows > 0;
     }
 
     /**
@@ -97,11 +127,40 @@ class OrderFailed implements HandlerInterface
         try {
             $this->logger->info('Processing order.failed for order #' . $order->getIncrementId());
 
+            // Reload order from DB to get the freshest state
+            $order = $this->orderRepository->get($order->getId());
+
             // Don't process already cancelled/closed orders
             if ($order->getState() === Order::STATE_CANCELED || $order->getState() === Order::STATE_CLOSED) {
                 $this->logger->info("Order #{$order->getIncrementId()} is already in state {$order->getState()}. Skipping.");
                 return;
             }
+
+            // Don't cancel an order that has already been successfully processed (paid)
+            if ($order->getState() === Order::STATE_PROCESSING || $order->getState() === Order::STATE_COMPLETE) {
+                $this->logger->info("Order #{$order->getIncrementId()} is already in state {$order->getState()} (payment succeeded). Skipping failure webhook.");
+                return;
+            }
+
+            // Check if already processed via the sales_order column
+            if ($order->getData('amwal_webhook_processed')) {
+                $this->logger->info("Order #{$order->getIncrementId()} already has amwal_webhook_processed flag. Skipping.");
+                return;
+            }
+
+            // Check if already processed via payment additional info
+            if ($order->getPayment()->getAdditionalInformation('amwal_failure_reason')) {
+                $this->logger->info("Order #{$order->getIncrementId()} already has failure reason in payment info. Skipping.");
+                return;
+            }
+
+            // Atomically claim the processing flag to prevent race conditions
+            if (!$this->claimWebhookProcessing((int)$order->getId())) {
+                $this->logger->info("Order #{$order->getIncrementId()} webhook processing already claimed by another process. Skipping.");
+                return;
+            }
+
+            $this->logger->info("Successfully claimed webhook processing for order #{$order->getIncrementId()}");
 
             // Get failure reason
             $reason = $data['data']['failure_reason'] ?? 'Payment failed';

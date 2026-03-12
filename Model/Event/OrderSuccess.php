@@ -12,9 +12,11 @@ use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Psr\Log\LoggerInterface;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Framework\App\ResourceConnection;
 
 /**
  * Handles order.success webhook event
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class OrderSuccess implements HandlerInterface
 {
@@ -53,6 +55,11 @@ class OrderSuccess implements HandlerInterface
      */
     private OrderNotifier $orderNotifier;
 
+    /**
+     * @var ResourceConnection
+     */
+    private $resourceConnection;
+
     private const FIELD_MAPPINGS = [
         'discount_amount' => 'discount',
         'grand_total' => 'total_amount',
@@ -66,6 +73,7 @@ class OrderSuccess implements HandlerInterface
      * @param LoggerInterface $logger
      * @param CartRepositoryInterface $quoteRepository
      * @param OrderNotifier $orderNotifier
+     * @param ResourceConnection $resourceConnection
      */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
@@ -74,7 +82,8 @@ class OrderSuccess implements HandlerInterface
         InvoiceSender $invoiceSender,
         LoggerInterface $logger,
         CartRepositoryInterface $quoteRepository,
-        OrderNotifier $orderNotifier
+        OrderNotifier $orderNotifier,
+        ResourceConnection $resourceConnection
     ) {
         $this->orderRepository = $orderRepository;
         $this->invoiceService = $invoiceService;
@@ -83,6 +92,28 @@ class OrderSuccess implements HandlerInterface
         $this->logger = $logger;
         $this->quoteRepository = $quoteRepository;
         $this->orderNotifier = $orderNotifier;
+        $this->resourceConnection = $resourceConnection;
+    }
+
+    /**
+     * Atomically claim the webhook processing flag for this order.
+     * Returns true if this process successfully claimed it (no other process has).
+     *
+     * @param int $orderId
+     * @return bool
+     */
+    private function claimWebhookProcessing(int $orderId): bool
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $tableName = $this->resourceConnection->getTableName('sales_order');
+
+        $affectedRows = $connection->update(
+            $tableName,
+            ['amwal_webhook_processed' => 1],
+            ['entity_id = ?' => $orderId, 'amwal_webhook_processed = ?' => 0]
+        );
+
+        return $affectedRows > 0;
     }
 
     /**
@@ -99,21 +130,40 @@ class OrderSuccess implements HandlerInterface
     {
         $this->logger->info('Processing order.success for order #' . $order->getIncrementId());
 
-        // Don't process already completed/closed orders
-        if ($order->getState() === Order::STATE_COMPLETE || $order->getState() === Order::STATE_CLOSED) {
-            $this->logger->info("Order #{$order->getIncrementId()} is already in state {$order->getState()}. Skipping.");
+        // Reload order from DB to get the freshest state (another process may have already updated it)
+        $order = $this->orderRepository->get($order->getId());
+
+        // Don't process already completed/closed/processing orders
+        if (in_array($order->getState(), [Order::STATE_COMPLETE, Order::STATE_CLOSED, Order::STATE_PROCESSING])) {
+            $this->logger->info("Order #{$order->getIncrementId()} is already in state {$order->getState()}. Skipping webhook.");
             return;
         }
 
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction
-        sleep(10);
-        $this->logger->info("Delay of 10 seconds added for order #{$order->getIncrementId()}");
+        // Check if already processed via the sales_order column (set by PayOrder, cron, or previous webhook)
+        if ($order->getData('amwal_webhook_processed')) {
+            $this->logger->info("Order #{$order->getIncrementId()} already has amwal_webhook_processed flag. Skipping.");
+            return;
+        }
 
-        // Check if already processed to prevent duplicate processing
+        // Check if already processed via payment additional info (set by previous webhook)
         if ($order->getPayment()->getAdditionalInformation('amwal_webhook_processed')) {
-            $this->logger->info("Order #{$order->getIncrementId()} already processed by webhook. Skipping.");
+            $this->logger->info("Order #{$order->getIncrementId()} already processed by webhook (payment flag). Skipping.");
             return;
         }
+
+        // Check if order already has invoices (created by PayOrder/InvoiceOrder or cron)
+        if ($order->hasInvoices()) {
+            $this->logger->info("Order #{$order->getIncrementId()} already has invoices. Skipping webhook processing.");
+            return;
+        }
+
+        // Atomically claim the processing flag to prevent race conditions between concurrent webhooks
+        if (!$this->claimWebhookProcessing((int)$order->getId())) {
+            $this->logger->info("Order #{$order->getIncrementId()} webhook processing already claimed by another process. Skipping.");
+            return;
+        }
+
+        $this->logger->info("Successfully claimed webhook processing for order #{$order->getIncrementId()}");
 
         // Validate order data before processing
         $this->validateOrderData($order, $data);
@@ -166,7 +216,7 @@ class OrderSuccess implements HandlerInterface
             $order->setSendEmail(false);
         }
 
-        // Set custom field for webhook processing
+        // Set custom field for webhook processing (already claimed via SQL, but keep in sync with ORM)
         $order->setData('amwal_webhook_processed', true);
 
         // Add comment to order history
@@ -217,6 +267,8 @@ class OrderSuccess implements HandlerInterface
                     true
                 );
             }
+        } else {
+            $this->logger->info("Order #{$order->getIncrementId()} cannot be invoiced (already invoiced or not invoiceable). Skipping invoice creation.");
         }
 
         // Save the order
