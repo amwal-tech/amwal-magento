@@ -8,7 +8,7 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Framework\Serialize\Serializer\Base64Json;
+use Magento\Framework\Url\DecoderInterface;
 
 /**
  * Webhook helper class for common webhook functions
@@ -31,27 +31,27 @@ class WebhookHelper extends AbstractHelper
     protected $json;
 
     /**
-     * @var Base64Json
+     * @var DecoderInterface
      */
-    protected $base64Json;
+    protected $decoder;
 
     /**
      * @param Context $context
      * @param ResourceConnection $resource
      * @param Json $json
-     * @param Base64Json $base64Json
+     * @param DecoderInterface $decoder
      */
     public function __construct(
         Context $context,
         ResourceConnection $resource,
         Json $json,
-        Base64Json $base64Json
+        DecoderInterface $decoder
     ) {
         parent::__construct($context);
         $this->resource = $resource;
         $this->connection = $resource->getConnection();
         $this->json = $json;
-        $this->base64Json = $base64Json;
+        $this->decoder = $decoder;
     }
 
     /**
@@ -139,9 +139,9 @@ class WebhookHelper extends AbstractHelper
                 return false;
             }
 
-            // Decode the base64 signature
-            $signatureBytes = base64_decode($signature);
-            if ($signatureBytes === false) {
+            // Decode the base64 signature using Magento's decoder
+            $signatureBytes = $this->decoder->decode($signature);
+            if ($signatureBytes === false || empty($signatureBytes)) {
                 $this->_logger->error('Failed to base64 decode signature');
                 return false;
             }

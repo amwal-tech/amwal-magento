@@ -174,7 +174,7 @@ class CreateApiKey extends Action
     {
         $store = $this->storeManager->getStore();
         $storeName = $store->getName() ?: 'Magento Store';
-        $storeDomain = parse_url($store->getBaseUrl(), PHP_URL_HOST) ?: 'unknown';
+        $storeDomain = $this->getRequest()->getHttpHost() ?: 'unknown';
 
         $requestData = [
             'api_key_name' => sprintf('%s - Magento Webhook', $storeName),
