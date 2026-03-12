@@ -15,6 +15,7 @@ use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Controller for creating API key
@@ -62,6 +63,11 @@ class CreateApiKey extends Action
      */
     private Config $config;
 
+    /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
 
     /**
      * @param Context $context
@@ -72,6 +78,7 @@ class CreateApiKey extends Action
      * @param EncryptorInterface $encryptor
      * @param AmwalClientFactory $amwalClientFactory
      * @param Config $config
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Context $context,
@@ -81,7 +88,8 @@ class CreateApiKey extends Action
         WriterInterface $configWriter,
         EncryptorInterface $encryptor,
         AmwalClientFactory $amwalClientFactory,
-        Config $config
+        Config $config,
+        StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
         $this->resultJsonFactory = $resultJsonFactory;
@@ -91,6 +99,7 @@ class CreateApiKey extends Action
         $this->encryptor = $encryptor;
         $this->amwalClientFactory = $amwalClientFactory;
         $this->config = $config;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -120,10 +129,15 @@ class CreateApiKey extends Action
             if (empty($this->config->getSecretKey())) {
                 throw new LocalizedException(__('A secret key is required. To retrieve it, navigate to the Merchant Portal and go to Integration > API Keys.'));
             }
+            // Get store name and domain for the API key name
+            $store = $this->storeManager->getStore();
+            $storeName = $store->getName() ?: 'Magento Store';
+            $storeDomain = parse_url($store->getBaseUrl(), PHP_URL_HOST) ?: 'unknown';
+
             $requestData = [
-                'api_key_name' => 'Amwal Magento Webhook',
+                'api_key_name' => sprintf('%s - Magento Webhook', $storeName),
+                'description' => sprintf('Webhook API key for %s (%s)', $storeName, $storeDomain),
                 'url' => $webhookUrl,
-                'description' => 'Amwal Magento Webhook API key',
                 "event_type_names" => $webhookEvents,
                 'api_key_scopes' => ["trigger_events", "manage_webhooks"]
             ];
@@ -140,7 +154,7 @@ class CreateApiKey extends Action
             // Check for errors
             if (!isset($responseData['webhook']) || !isset($responseData['api_key'])) {
                 $error = isset($responseData['error']) ? $responseData['error'] : 'Unknown error';
-                throw new LocalizedException(__('Failed to register Webhook API key: %1', $error));
+                throw new LocalizedException(__('Failed to register webhook: %1', $error));
             }
             $webhookData = $responseData['webhook'];
             $apiKeyData = $responseData['api_key'];
@@ -165,12 +179,12 @@ class CreateApiKey extends Action
                 $scopeId
             );
 
-            // Save private key (encrypted)
-            if (isset($apiKeyData['private_key'])) {
-                $encryptedPrivateKey = $this->encryptor->encrypt($apiKeyData['private_key']);
+            // Save public key from API response
+            if (isset($apiKeyData['public_key'])) {
+                $encryptedPublicKey = $this->encryptor->encrypt($apiKeyData['public_key']);
                 $this->configWriter->save(
-                    'payment/amwal_payments/webhook/private_key',
-                    $encryptedPrivateKey,
+                    'payment/amwal_payments/webhook/public_key',
+                    $encryptedPublicKey,
                     $scope,
                     $scopeId
                 );
@@ -185,8 +199,8 @@ class CreateApiKey extends Action
                 'success' => true,
                 'webhook_id' => $webhookData['id'],
                 'key_fingerprint' => $apiKeyData['fingerprint'] ?? null,
-                'private_key' => $apiKeyData['private_key'] ?? null,
-                'message' => __('Webhook API key created successfully')
+                'public_key_saved' => isset($apiKeyData['public_key']),
+                'message' => __('Webhook registered successfully. Public key has been securely stored.')
             ]);
         } catch (\Exception $e) {
             return $result->setData([

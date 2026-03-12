@@ -1,0 +1,236 @@
+<?php
+/**
+ * Amwal Payments - Webhook Registration template
+ * Shows registration status + register button in a clean, unified UI
+ *
+ * @var $block \Amwal\Payments\Block\Adminhtml\System\Config\WebhookRegistration
+ */
+$isRegistered = $block->getIsRegistered();
+$fingerprint = $block->getFingerprint();
+$publicKeyStored = $block->getPublicKeyStored();
+?>
+
+<div id="amwal-webhook-registration" class="amwal-webhook-registration">
+
+    <?php if ($isRegistered): ?>
+    <!-- ✅ Registered State -->
+    <div class="amwal-webhook-status amwal-webhook-status--registered">
+        <div class="amwal-webhook-status__badge">
+            <span class="amwal-webhook-status__icon">✓</span>
+            <span class="amwal-webhook-status__text"><?= $block->escapeHtml(__('Webhook Registered')) ?></span>
+        </div>
+        <div class="amwal-webhook-status__details">
+            <div class="amwal-webhook-status__row">
+                <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Fingerprint:')) ?></span>
+                <code class="amwal-webhook-status__value"><?= $block->escapeHtml($fingerprint) ?></code>
+            </div>
+            <div class="amwal-webhook-status__row">
+                <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Signature Key:')) ?></span>
+                <?php if ($publicKeyStored): ?>
+                    <span class="amwal-webhook-status__value amwal-webhook-status__value--ok">✓ <?= $block->escapeHtml(__('Stored')) ?></span>
+                <?php else: ?>
+                    <span class="amwal-webhook-status__value amwal-webhook-status__value--warn">⚠ <?= $block->escapeHtml(__('Missing — re-register to fix')) ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+        <button type="button" class="action-default amwal-webhook-btn amwal-webhook-btn--secondary" id="<?= $block->getHtmlId() ?>_button">
+            <span><?= $block->escapeHtml(__('Re-register Webhook')) ?></span>
+        </button>
+    </div>
+    <?php else: ?>
+    <!-- ⬜ Not Registered State -->
+    <div class="amwal-webhook-status amwal-webhook-status--unregistered">
+        <div class="amwal-webhook-status__badge amwal-webhook-status__badge--pending">
+            <span class="amwal-webhook-status__icon">○</span>
+            <span class="amwal-webhook-status__text"><?= $block->escapeHtml(__('Not Registered')) ?></span>
+        </div>
+        <p class="amwal-webhook-status__hint">
+            <?= $block->escapeHtml(__('Click the button below to register your webhook endpoint with Amwal.')) ?>
+        </p>
+        <button type="button" class="action-primary amwal-webhook-btn" id="<?= $block->getHtmlId() ?>_button">
+            <span><?= $block->escapeHtml(__('Register Webhook')) ?></span>
+        </button>
+    </div>
+    <?php endif; ?>
+
+    <div id="amwal-webhook-result" style="margin-top: 12px; display: none;"></div>
+</div>
+
+<style>
+    .amwal-webhook-registration {
+        max-width: 600px;
+    }
+    .amwal-webhook-status {
+        border: 1px solid #d1d1d1;
+        border-radius: 6px;
+        padding: 16px 20px;
+        background: #fafafa;
+    }
+    .amwal-webhook-status--registered {
+        border-color: #79a22e;
+        background: #f6fbf0;
+    }
+    .amwal-webhook-status--unregistered {
+        border-color: #d6d6d6;
+        background: #f9f9f9;
+    }
+    .amwal-webhook-status__badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    .amwal-webhook-status__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 13px;
+        line-height: 1;
+    }
+    .amwal-webhook-status--registered .amwal-webhook-status__icon {
+        background: #79a22e;
+        color: #fff;
+    }
+    .amwal-webhook-status__badge--pending .amwal-webhook-status__icon {
+        background: #d1d1d1;
+        color: #666;
+    }
+    .amwal-webhook-status__details {
+        margin-bottom: 14px;
+        padding: 10px 12px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+    .amwal-webhook-status__row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+    }
+    .amwal-webhook-status__row + .amwal-webhook-status__row {
+        border-top: 1px solid #f0f0f0;
+        margin-top: 4px;
+        padding-top: 8px;
+    }
+    .amwal-webhook-status__label {
+        font-weight: 600;
+        color: #555;
+        white-space: nowrap;
+    }
+    .amwal-webhook-status__value {
+        color: #333;
+        word-break: break-all;
+    }
+    code.amwal-webhook-status__value {
+        background: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+    .amwal-webhook-status__value--ok {
+        color: #79a22e;
+        font-weight: 600;
+    }
+    .amwal-webhook-status__value--warn {
+        color: #eb5202;
+        font-weight: 600;
+    }
+    .amwal-webhook-status__hint {
+        color: #666;
+        font-size: 13px;
+        margin: 0 0 14px;
+    }
+    .amwal-webhook-btn {
+        padding: 8px 24px !important;
+        border-radius: 4px !important;
+        font-size: 14px !important;
+        cursor: pointer;
+    }
+    .amwal-webhook-btn--secondary {
+        background: #e3e3e3 !important;
+        border: 1px solid #ccc !important;
+        color: #333 !important;
+    }
+    .amwal-webhook-btn--secondary:hover {
+        background: #d6d6d6 !important;
+    }
+    .amwal-webhook-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+
+<script type="text/javascript">
+    require(['jquery', 'mage/translate'], function($, $t) {
+        $(document).ready(function() {
+            $('#<?= $block->getHtmlId() ?>_button').click(function() {
+                var $btn = $(this);
+                var $result = $('#amwal-webhook-result');
+
+                // Gather inputs
+                var webhookUrl = document.querySelector('[name="groups[amwal_payments][groups][webhook][fields][endpoint_url][value]"]');
+                var webhookEvents = $('input[name="groups[amwal][fields][webhook_events][value][]"]:checked').map(function() {
+                    return this.value;
+                }).get();
+                var formKey = $('input[name="form_key"]').val();
+
+                if (!webhookUrl || !webhookUrl.value) {
+                    $result.html('<div class="message message-error">' + $t('Webhook URL could not be detected.') + '</div>').show();
+                    return;
+                }
+                if (!webhookEvents.length) {
+                    $result.html('<div class="message message-error">' + $t('Please select at least one webhook event.') + '</div>').show();
+                    return;
+                }
+
+                // Loading state
+                $btn.attr('disabled', true);
+                $result.html('<div class="message message-notice">' + $t('Registering webhook, please wait…') + '</div>').show();
+
+                $.ajax({
+                    url: '<?= $block->getAjaxUrl() ?>',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        webhook_url: webhookUrl.value,
+                        webhook_events: webhookEvents,
+                        form_key: formKey
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $result.html(
+                                '<div class="message message-success">' +
+                                $t('Webhook registered successfully! Reload the page to see updated status.') +
+                                '</div>'
+                            ).show();
+                        } else {
+                            $result.html(
+                                '<div class="message message-error">' +
+                                $t('Failed to register webhook: ') + response.message +
+                                '</div>'
+                            ).show();
+                        }
+                    },
+                    error: function() {
+                        $result.html(
+                            '<div class="message message-error">' +
+                            $t('An error occurred while registering the webhook. Please try again or check system logs.') +
+                            '</div>'
+                        ).show();
+                    },
+                    complete: function() {
+                        $btn.attr('disabled', false);
+                    }
+                });
+            });
+        });
+    });
+</script>
+

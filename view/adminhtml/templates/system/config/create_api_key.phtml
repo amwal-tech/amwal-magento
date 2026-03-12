@@ -28,7 +28,7 @@
 
                 // Show loading message
                 $('#api-key-creation-result')
-                    .html('<div class="message message-notice">' + $t('Creating Webhook API key, please wait...') + '</div>')
+                    .html('<div class="message message-notice">' + $t('Registering webhook, please wait...') + '</div>')
                     .show();
 
                 // Disable the button during the API call
@@ -52,31 +52,27 @@
                             // Show success message
                             $('#api-key-creation-result').html(
                                 '<div class="message message-success">' +
-                                $t('Webhook API key created successfully! The configuration has been updated.') +
+                                $t('Webhook registered successfully! The public key has been derived and securely stored.') +
                                 '</div>'
                             );
 
-                            // Update the fingerprint and public key fields
+                            // Update the fingerprint field
                             $('#payment_other_amwal_payments_webhook_api_key_fingerprint').val(response.key_fingerprint);
 
-                            // Show private key notification
-                            if (response.private_key) {
-                                var privateKeyMsg = '<div class="message message-warning">' +
-                                    '<p><strong>' + $t('IMPORTANT: Store your private key securely') + '</strong></p>' +
-                                    '<p>' + $t('This private key will only be shown once. Please copy and store it securely:') + '</p>' +
-                                    '<textarea rows="8" style="width: 100%; font-family: monospace;" readonly onClick="this.select();">' +
-                                    response.private_key +
-                                    '</textarea>' +
-                                    '<p><em>' + $t('This key has been securely stored in your configuration, but keeping a backup is recommended.') + '</em></p>' +
+                            // Show public key saved notification
+                            if (response.public_key_saved) {
+                                var publicKeyMsg = '<div class="message message-success">' +
+                                    '<p><strong>' + $t('Public key derived and stored') + '</strong></p>' +
+                                    '<p>' + $t('The public key has been automatically derived from the API key and securely stored in your configuration for webhook signature verification.') + '</p>' +
                                     '</div>';
 
-                                $('#api-key-creation-result').append(privateKeyMsg);
+                                $('#api-key-creation-result').append(publicKeyMsg);
                             }
                         } else {
                             // Show error message
                             $('#api-key-creation-result').html(
                                 '<div class="message message-error">' +
-                                $t('Failed to Register Webhook API key: ') + response.message +
+                                $t('Failed to register webhook: ') + response.message +
                                 '</div>'
                             );
                         }
@@ -85,7 +81,7 @@
                         // Show general error message
                         $('#api-key-creation-result').html(
                             '<div class="message message-error">' +
-                            $t('An error occurred while trying to register the Webhook API key. Please try again or check system logs.') +
+                            $t('An error occurred while trying to register the webhook. Please try again or check system logs.') +
                             '</div>'
                         );
                     },

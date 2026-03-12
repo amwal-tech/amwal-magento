@@ -187,14 +187,14 @@ class Webhook implements WebHookInterface
         $orderId = $data['id'] ?? null;
         $apiKeyFingerprint = $this->request->getHeader('X-API-Key') ?: 'missing';
 
-        // Get private key for verification
-        $privateKey = $this->config->getWebhookPrivateKey();
-        if (!$privateKey) {
-            throw new LocalizedException(__('Missing webhook private key configuration'));
+        // Get public key for verification
+        $publicKey = $this->config->getWebhookPublicKey();
+        if (!$publicKey) {
+            throw new LocalizedException(__('Missing webhook public key configuration'));
         }
 
         // Verify signature
-        $signatureVerified = $this->webhookHelper->verifySignature($payload, $signature, $privateKey);
+        $signatureVerified = $this->webhookHelper->verifySignature($payload, $signature, $publicKey);
 
         // Validate API key fingerprint
         $this->validateApiKeyFingerprint($apiKeyFingerprint, $data, $payload);

@@ -2,8 +2,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
-            <group id="amwal_payments" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="amwal_payments" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Amwal</label>
+                <comment><![CDATA[For installation and configuration instructions, visit the <a href="https://docs.amwal.tech/docs/magento-installation" target="_blank">Amwal Magento Documentation</a>.]]></comment>
                 <fieldset_css>amwal-payments-fieldset</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
 
@@ -309,8 +310,9 @@
                     </field>
                 </group>
 
-                <group id="webhook" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="700">
+                <group id="webhook" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="700">
                     <label>Webhook Settings</label>
+                    <comment><![CDATA[Receive real-time order status updates from Amwal. Enable webhooks, then click <strong>Register Webhook</strong> to complete setup.]]></comment>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <depends>
                         <field id="*/*/active">1</field>
@@ -326,7 +328,7 @@
                     <field id="endpoint_url" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Webhook Endpoint URL</label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookUrl</frontend_model>
-                        <comment><![CDATA[Your store's webhook endpoint that will receive notifications from Amwal.]]></comment>
+                        <comment><![CDATA[This is your store's webhook endpoint. It is auto-generated and read-only.]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
@@ -335,44 +337,25 @@
                     <field id="webhook_events" translate="label comment" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Webhook Events</label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookEvents</frontend_model>
-                        <comment><![CDATA[Select the events that will trigger webhook notifications.]]></comment>
+                        <comment><![CDATA[Select which events should trigger webhook notifications.]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
                     </field>
 
-                    <field id="create_api_key" translate="button_label" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Create Webhook API Key</label>
-                        <button_label>Create API Key</button_label>
-                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\CreateApiKey</frontend_model>
-                        <comment><![CDATA[Generate a new webhook API key from Amwal and configure webhook integration.]]></comment>
+                    <field id="webhook_registration" translate="label" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Webhook Registration</label>
+                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookRegistration</frontend_model>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
                     </field>
 
-                    <field id="api_key_fingerprint" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>API Key Fingerprint</label>
-                        <config_path>payment/amwal_payments/webhook_api_key_fingerprint</config_path>
-                        <comment><![CDATA[Automatically populated when you create a webhook API key.]]></comment>
-                        <depends>
-                            <field id="enabled">1</field>
-                        </depends>
-                    </field>
-
-                    <field id="private_key_hint" translate="label" type="note" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Private Key Status</label>
-                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\PrivateKeyStatus</frontend_model>
-                        <depends>
-                            <field id="enabled">1</field>
-                        </depends>
-                    </field>
-
-                    <field id="debug" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Webhook Debug Mode</label>
+                    <field id="debug" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Debug Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/webhook_debug</config_path>
-                        <comment><![CDATA[Enable detailed logging for webhook events. Disable in production environments.]]></comment>
+                        <comment><![CDATA[Enable detailed webhook logging. <strong>Disable in production.</strong>]]></comment>
                     </field>
                 </group>
 

@@ -124,42 +124,32 @@ class WebhookHelper extends AbstractHelper
     }
 
     /**
-     * Verify signature using private key
+     * Verify signature using public key
      *
      * @param string $payload Raw payload
      * @param string $signature Base64 encoded signature
-     * @param string $privateKey PEM format private key
+     * @param string $publicKey PEM format public key
      * @return bool
      */
-    public function verifySignature($payload, $signature, $privateKey)
+    public function verifySignature($payload, $signature, $publicKey)
     {
         try {
             // Skip verification if any parameters are missing
-            if (empty($payload) || empty($signature) || empty($privateKey)) {
+            if (empty($payload) || empty($signature) || empty($publicKey)) {
                 return false;
             }
 
             // Decode the base64 signature
-            $signatureBytes = $this->base64Json->unserialize($signature);
-
-            // Extract public key from private key
-            $privateKeyResource = openssl_pkey_get_private($privateKey);
-            if (!$privateKeyResource) {
-                $this->_logger->error('Failed to load private key: ' . openssl_error_string());
+            $signatureBytes = base64_decode($signature);
+            if ($signatureBytes === false) {
+                $this->_logger->error('Failed to base64 decode signature');
                 return false;
             }
 
-            // Get key details to extract public key components
-            $keyDetails = openssl_pkey_get_details($privateKeyResource);
-            if (!$keyDetails || !isset($keyDetails['key'])) {
-                $this->_logger->error('Failed to extract public key details from private key');
-                return false;
-            }
-
-            // Use the extracted public key for verification
-            $publicKeyResource = openssl_pkey_get_public($keyDetails['key']);
+            // Load public key directly
+            $publicKeyResource = openssl_pkey_get_public($publicKey);
             if (!$publicKeyResource) {
-                $this->_logger->error('Failed to load extracted public key: ' . openssl_error_string());
+                $this->_logger->error('Failed to load public key: ' . openssl_error_string());
                 return false;
             }
 
@@ -168,12 +158,7 @@ class WebhookHelper extends AbstractHelper
                 $payload,
                 $signatureBytes,
                 $publicKeyResource,
-                OPENSSL_ALGO_SHA256,
-                [
-                    'digest_alg' => 'sha256',
-                    'padding' => OPENSSL_PKCS1_PSS_PADDING,
-                    'mgf1_hash' => 'sha256'
-                ]
+                OPENSSL_ALGO_SHA256
             );
 
             return $result === 1;
