@@ -44,16 +44,10 @@
     flex-shrink: 0;
 }
 
-.amwal-tab-header__logo svg {
-    width: 36px;
+.amwal-tab-header__logo .amwal-logo {
     height: 36px;
-}
-
-.amwal-tab-header__logo-text {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--amwal-brand-dark);
-    letter-spacing: -0.02em;
+    width: auto;
+    object-fit: contain;
 }
 
 .amwal-tab-header__summary {

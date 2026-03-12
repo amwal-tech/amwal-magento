@@ -244,13 +244,16 @@ class AmwalTab extends Template implements TabInterface
         $order = $this->getCurrentOrder();
         $currencyCode = $order ? $order->getOrderCurrencyCode() : 'SAR';
 
-        return $this->priceCurrency->format(
+        $formatted = $this->priceCurrency->format(
             $value,
             true,
             PriceCurrencyInterface::DEFAULT_PRECISION,
             null,
             $currencyCode
         );
+
+        // Strip HTML tags so the result is plain text (e.g. "SAR 61.82" instead of "<span>SAR 61.82</span>")
+        return strip_tags((string) $formatted);
     }
 
     /**
@@ -353,7 +356,6 @@ class AmwalTab extends Template implements TabInterface
         $data = $this->getDecodedAmwalData();
         $number = $data['number'] ?? '';
         $brand = $data['paymentBrand'] ?? $data['card_payment_brand'] ?? '';
-        $holder = $data['card_holder'] ?? '';
 
         if (empty($number) && empty($data['card_last_4_digits'])) {
             return '';
@@ -384,7 +386,12 @@ class AmwalTab extends Template implements TabInterface
      * Format a date string for display.
      *
      * @param string|null $dateString
+     * @param int         $format  (unused, kept for parent compatibility)
+     * @param bool        $showTime (unused, kept for parent compatibility)
+     * @param string|null $timezone (unused, kept for parent compatibility)
      * @return string
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function formatDate($dateString = null, $format = \IntlDateFormatter::MEDIUM, $showTime = true, $timezone = null): string
     {
