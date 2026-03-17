@@ -31,7 +31,7 @@
                 <field id="plugin_version" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Version</label>
                     <frontend_model>Amwal\Payments\Model\Config\Frontend\PluginVersion</frontend_model>
-                    <comment><![CDATA[Current installed version of the Amwal Payments module.]]></comment>
+                    <comment><![CDATA[Current installed version of the Amwal module. <a href="https://github.com/amwal-tech/amwal-magento/releases" target="_blank">View releases on GitHub</a>.]]></comment>
                 </field>
 
                 <group id="amwal_payments_merchant" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="100">
@@ -43,10 +43,10 @@
                     </depends>
 
                     <field id="merchant_id" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Merchant ID (Public Key)</label>
+                        <label>Sandbox or Production Key</label>
                         <config_path>payment/amwal_payments/merchant_id</config_path>
                         <validate>required-entry</validate>
-                        <comment><![CDATA[Don't have a Merchant ID? <a href="https://merchant.sa.amwal.tech/" target="_blank">Sign up here</a> to get your credentials.]]></comment>
+                        <comment><![CDATA[Don't have a Merchant Key? <a href="https://merchant.sa.amwal.tech/" target="_blank">Sign up here</a> to get your credentials.]]></comment>
                     </field>
 
                     <field id="secret_key" translate="label comment" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">

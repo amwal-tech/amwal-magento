@@ -266,47 +266,6 @@ $svgChevron = '';
         </div>
     </div>
 
-    <!-- ========== SECTION: Amwal Fees (collapsed by default) ========== -->
-    <div class="amwal-section amwal-section--collapsed" data-amwal-section>
-        <div class="amwal-section__header" data-amwal-toggle>
-            <h3 class="amwal-section__title">
-                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-                <?= $block->escapeHtml(__('Amwal Fees & Payout')) ?>
-            </h3>
-            <?= $svgChevron ?>
-        </div>
-        <div class="amwal-section__content">
-            <div class="amwal-kv-grid">
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Amwal Fee')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['amwal_fee'] ?? 0)) ?></span>
-                </div>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Amwal Tax / VAT')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['amwal_tax_vat'] ?? 0)) ?></span>
-                </div>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Brand Percentage')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml(($amwalData['brand_percentage'] ?? '0') . '%') ?></span>
-                </div>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Brand Static Fee')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['brand_static_fee'] ?? 0)) ?></span>
-                </div>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Merchant Payout')) ?></span>
-                    <span class="amwal-kv-value" style="font-weight: 700; color: var(--amwal-brand-dark);">
-                        <?= $block->escapeHtml($block->formatCurrency($amwalData['merchant_payout'] ?? 0)) ?>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- ========== SECTION: Installment (conditional) ========== -->
     <?php if ($block->hasInstallment()): ?>
     <div class="amwal-section" data-amwal-section>
@@ -338,22 +297,6 @@ $svgChevron = '';
                     </span>
                 </div>
                 <?php endif; ?>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Installment Fee')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['installment_fee'] ?? 0)) ?></span>
-                </div>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Installment Fee VAT')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['installment_fee_vat'] ?? 0)) ?></span>
-                </div>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Murabha Fee')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['murabha_fee'] ?? 0)) ?></span>
-                </div>
-                <div class="amwal-kv-item">
-                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Murabha Fee VAT')) ?></span>
-                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['murabha_fee_vat'] ?? 0)) ?></span>
-                </div>
             </div>
         </div>
     </div>
