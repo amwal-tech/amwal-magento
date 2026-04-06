@@ -185,7 +185,8 @@ class Webhook implements WebHookInterface
 
         $signature = $this->request->getHeader('X-Signature');
         $eventType = $data['event_type'] ?? 'unknown';
-        $orderId = $data['id'] ?? null;
+        $orderId = $data['data']['id'] ?? $data['id'] ?? null;
+        $magentoOrderId = $data['data']['ref_id'] ?? null;
         $apiKeyFingerprint = $this->request->getHeader('X-API-Key') ?: 'missing';
 
         // Get public key for verification
@@ -197,9 +198,6 @@ class Webhook implements WebHookInterface
         // Verify signature
         $signatureVerified = $this->webhookHelper->verifySignature($payload, $signature, $publicKey);
 
-        // Validate API key fingerprint
-        $this->validateApiKeyFingerprint($apiKeyFingerprint, $data, $payload);
-
         // Log the webhook validation result
         $logId = $this->webhookHelper->logWebhook(
             $eventType,
@@ -207,7 +205,7 @@ class Webhook implements WebHookInterface
             $apiKeyFingerprint,
             $signatureVerified,
             $orderId,
-            null,
+            $magentoOrderId,
             $signatureVerified,
             $signatureVerified ? 'Signature verified' : 'Invalid or missing signature'
         );
@@ -217,37 +215,6 @@ class Webhook implements WebHookInterface
         }
 
         return true;
-    }
-
-    /**
-     * Validate API key fingerprint
-     *
-     * @param string $apiKeyFingerprint
-     * @param array $data
-     * @param string $payload
-     * @throws LocalizedException
-     * @return void
-     */
-    private function validateApiKeyFingerprint(string $apiKeyFingerprint, array $data, string $payload): void
-    {
-        if (!$apiKeyFingerprint) {
-            throw new LocalizedException(__('Missing API key fingerprint'));
-        }
-
-        $configApiKeyFingerprint = $this->config->getApiKeyFingerprint();
-
-        // Validate if configured
-        if ($configApiKeyFingerprint && $apiKeyFingerprint !== $configApiKeyFingerprint) {
-            $this->logValidationFailure(
-                $data['event_type'] ?? 'unknown',
-                $payload,
-                $apiKeyFingerprint,
-                $data['order_id'] ?? null,
-                'API key fingerprint mismatch'
-            );
-
-            throw new LocalizedException(__('Invalid API key fingerprint'));
-        }
     }
 
     /**
@@ -267,13 +234,17 @@ class Webhook implements WebHookInterface
         ?string $orderId,
         string $errorMessage
     ): string {
+        $data = $this->parsePayload($payload);
+        $orderId = $data['data']['id'] ?? $orderId;
+        $magentoOrderId = $data['data']['ref_id'] ?? null;
+
         return $this->webhookHelper->logWebhook(
             $eventType,
             $payload,
             $apiKeyFingerprint,
             false,
             $orderId,
-            null,
+            $magentoOrderId,
             false,
             $errorMessage
         );

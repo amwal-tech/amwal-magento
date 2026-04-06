@@ -13,6 +13,7 @@ use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Shell\Driver as ShellDriver;
 
 /**
@@ -93,25 +94,31 @@ class Config
     /** @var ShellDriver */
     private ShellDriver $shell;
 
+    /** @var EncryptorInterface */
+    private EncryptorInterface $encryptor;
+
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param DirectoryHelper $directoryHelper
      * @param ProductMetadataInterface $productMetadata
      * @param ShellDriver $shell
+     * @param EncryptorInterface $encryptor
      */
     public function __construct(
         ScopeConfigInterface    $scopeConfig,
         RegionCollectionFactory $regionCollectionFactory,
         DirectoryHelper         $directoryHelper,
         ProductMetadataInterface $productMetadata,
-        ShellDriver             $shell
+        ShellDriver             $shell,
+        EncryptorInterface      $encryptor
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
         $this->productMetadata = $productMetadata;
         $this->shell = $shell;
+        $this->encryptor = $encryptor;
     }
 
     /**
@@ -595,7 +602,11 @@ class Config
      */
     public function getWebhookPublicKey(): ?string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY, ScopeInterface::SCOPE_STORE);
+        $encryptedKey = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY, ScopeInterface::SCOPE_STORE);
+        if (empty($encryptedKey)) {
+            return null;
+        }
+        return $this->encryptor->decrypt($encryptedKey);
     }
 
     /**

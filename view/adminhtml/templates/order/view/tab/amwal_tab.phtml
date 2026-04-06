@@ -62,6 +62,18 @@ $svgChevron = '';
                     <?= $block->escapeHtml(__('Update Order Status')) ?>
                 </button>
             <?php endif; ?>
+
+            <?php if (!empty($amwalData['id'])): ?>
+                <button type="button"
+                        class="amwal-btn amwal-btn--outline amwal-btn--sm amwal-resend-webhook-btn"
+                        title="<?= $block->escapeHtmlAttr(__('Resend the webhook for this transaction to re-trigger order processing')) ?>">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+                    </svg>
+                    <?= $block->escapeHtml(__('Resend Webhook')) ?>
+                </button>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -669,6 +681,87 @@ $svgChevron = '';
         </div>
     </div>
 
+    <!-- ========== SECTION: Webhook Logs ========== -->
+    <?php $webhookLogs = $block->getWebhookLogs(); ?>
+    <div class="amwal-section amwal-section--collapsed" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+                </svg>
+                <?= $block->escapeHtml(__('Webhook Logs')) ?>
+                <span class="amwal-badge amwal-badge--default" style="font-size: 11px;"><?= count($webhookLogs) ?></span>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content" style="padding: 0;">
+            <?php if (empty($webhookLogs)): ?>
+                <div style="padding: 24px; text-align: center; color: var(--amwal-muted); font-size: 13px;">
+                    <?= $block->escapeHtml(__('No webhook logs found for this order.')) ?>
+                </div>
+            <?php else: ?>
+                <table class="amwal-webhook-logs-table">
+                    <thead>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Date')) ?></th>
+                            <th><?= $block->escapeHtml(__('Event')) ?></th>
+                            <th style="text-align: center;"><?= $block->escapeHtml(__('Verified')) ?></th>
+                            <th style="text-align: center;"><?= $block->escapeHtml(__('Success')) ?></th>
+                            <th><?= $block->escapeHtml(__('Message')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($webhookLogs as $log): ?>
+                        <tr>
+                            <td style="white-space: nowrap;"><?= $block->escapeHtml($block->formatDate($log['created_at'])) ?></td>
+                            <td style="font-weight: 600;"><?= $block->escapeHtml($log['event_type']) ?></td>
+                            <td style="text-align: center;">
+                                <span class="amwal-badge <?= $log['signature_verified'] ? 'amwal-badge--success' : 'amwal-badge--danger' ?>" style="padding: 2px 8px; font-size: 10px;">
+                                    <?= $block->escapeHtml($log['signature_verified'] ? __('Yes') : __('No')) ?>
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="amwal-badge <?= $log['success'] ? 'amwal-badge--success' : 'amwal-badge--danger' ?>" style="padding: 2px 8px; font-size: 10px;">
+                                    <?= $block->escapeHtml($log['success'] ? __('Yes') : __('No')) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="margin-bottom: 4px;"><?= $block->escapeHtml($log['message']) ?></div>
+                                <?php if (!empty($log['payload'])): ?>
+                                    <div class="amwal-payload-wrapper">
+                                        <div class="amwal-payload-toggle" data-amwal-payload-toggle>
+                                            <svg class="amwal-payload-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                            <?= $block->escapeHtml(__('View Payload')) ?>
+                                        </div>
+                                        <div class="amwal-payload-content">
+                                            <div class="amwal-payload-header">
+                                                <span class="amwal-payload-filename">payload.json</span>
+                                                <button type="button" class="amwal-payload-copy" data-amwal-copy-payload>
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                                                    </svg>
+                                                    <?= $block->escapeHtml(__('Copy')) ?>
+                                                </button>
+                                            </div>
+                                            <pre class="amwal-payload-pre"><?php
+                                                $decodedPayload = $block->jsonDecode($log['payload']);
+                                                echo $block->escapeHtml(json_encode($decodedPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                                            ?></pre>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
 </div><!-- /.amwal-tab-container -->
 <?php endif; ?>
 
@@ -696,6 +789,58 @@ require(['jquery', 'mage/translate'], function($, $t) {
     ];
     ?>
     var config = <?= json_encode($jsConfig) ?>;
+
+    // ---- Resend Webhook ----
+    var resendWebhookUrl = <?= json_encode($block->getResendWebhookUrl()) ?>;
+
+    $(document).on('click', '.amwal-resend-webhook-btn', function() {
+        var $btn = $(this);
+        var originalHtml = $btn.html();
+
+        if (!confirm($t('Are you sure you want to resend the webhook for this transaction? This will re-trigger webhook processing.'))) {
+            return;
+        }
+
+        $btn.prop('disabled', true).html(
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="amwal-spin"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> ' +
+            $t('Resending...')
+        );
+
+        $.ajax({
+            url: resendWebhookUrl,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                amwal_order_id: config.amwalOrderId,
+                magento_order_id: config.orderId,
+                form_key: window.FORM_KEY
+            },
+            success: function(data) {
+                if (data.success) {
+                    $btn.removeClass('amwal-btn--outline').addClass('amwal-btn--success');
+                    $btn.html(
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ' +
+                        $t('Webhook Resent!')
+                    );
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    alert(data.message || $t('Failed to resend webhook.'));
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            },
+            error: function(xhr) {
+                var msg = $t('An error occurred while resending the webhook.');
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.message) msg = resp.message;
+                } catch(e) {}
+                alert(msg);
+                $btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
 
     // Bind handler if the button exists (PHP shouldShowUpdateButton() controls visibility)
     var failedStatuses = ['fail', 'failed', 'expired', 'cancelled'];
@@ -744,7 +889,7 @@ require(['jquery', 'mage/translate'], function($, $t) {
     });
 
     // ---- Support: Copy details button ----
-    $(document).on('click', '#amwal-support-copy-btn', function(e) {    
+    $(document).on('click', '#amwal-support-copy-btn', function(e) {
         e.preventDefault();
         e.stopPropagation();
         var $btn = $(this);
@@ -769,6 +914,32 @@ require(['jquery', 'mage/translate'], function($, $t) {
             var origHtml = $btn.html();
             $btn.html('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ' + $t('Copied!'));
             setTimeout(function() { $btn.html(origHtml); }, 2000);
+        }
+    });
+
+    // ---- Webhook Payload Toggle ----
+    $(document).on('click', '[data-amwal-payload-toggle]', function() {
+        var $wrapper = $(this).closest('.amwal-payload-wrapper');
+        $wrapper.toggleClass('amwal-payload-row--active');
+
+        var isVisible = $wrapper.hasClass('amwal-payload-row--active');
+        $(this).find('.amwal-payload-icon').css('transform', isVisible ? 'rotate(90deg)' : 'rotate(0deg)');
+    });
+
+    // ---- Webhook Payload Copy ----
+    $(document).on('click', '[data-amwal-copy-payload]', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $btn = $(this);
+        var $pre = $btn.closest('.amwal-payload-content').find('.amwal-payload-pre');
+        var payloadText = $pre.text();
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(payloadText).then(function() {
+                var originalHtml = $btn.html();
+                $btn.addClass('amwal-payload-copy--success').html('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!');
+                setTimeout(function() { $btn.removeClass('amwal-payload-copy--success').html(originalHtml); }, 2000);
+            });
         }
     });
 });

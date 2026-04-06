@@ -9,8 +9,10 @@ use GuzzleHttp\Exception\GuzzleException;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Tab\TabInterface;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Registry;
+use Magento\Framework\Serialize\Serializer\Json;
 use Psr\Log\LoggerInterface;
 
 class AmwalTab extends Template implements TabInterface
@@ -41,6 +43,16 @@ class AmwalTab extends Template implements TabInterface
     private PriceCurrencyInterface $priceCurrency;
 
     /**
+     * @var ResourceConnection
+     */
+    private ResourceConnection $resourceConnection;
+
+    /**
+     * @var Json
+     */
+    private Json $jsonSerializer;
+
+    /**
      * @var array|null Cached decoded Amwal API data
      */
     private ?array $decodedAmwalData = null;
@@ -53,14 +65,14 @@ class AmwalTab extends Template implements TabInterface
     protected $_template = 'Amwal_Payments::order/view/tab/amwal_tab.phtml';
 
     /**
-     * Constructor
-     *
      * @param Context                $context
      * @param Registry               $registry
      * @param AmwalClientFactory     $amwalClientFactory
      * @param Config                 $config
      * @param LoggerInterface        $logger
      * @param PriceCurrencyInterface $priceCurrency
+     * @param ResourceConnection     $resourceConnection
+     * @param Json                   $jsonSerializer
      * @param array                  $data
      */
     public function __construct(
@@ -70,6 +82,8 @@ class AmwalTab extends Template implements TabInterface
         Config $config,
         LoggerInterface $logger,
         PriceCurrencyInterface $priceCurrency,
+        ResourceConnection $resourceConnection,
+        Json $jsonSerializer,
         array $data = []
     ) {
         $this->registry = $registry;
@@ -77,6 +91,8 @@ class AmwalTab extends Template implements TabInterface
         $this->config = $config;
         $this->logger = $logger;
         $this->priceCurrency = $priceCurrency;
+        $this->resourceConnection = $resourceConnection;
+        $this->jsonSerializer = $jsonSerializer;
         parent::__construct($context, $data);
     }
 
@@ -472,5 +488,80 @@ class AmwalTab extends Template implements TabInterface
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * Get webhook logs for the current order.
+     *
+     * @return array
+     */
+    public function getWebhookLogs(): array
+    {
+        $order = $this->getCurrentOrder();
+        if (!$order) {
+            return [];
+        }
+
+        $amwalOrderId = $order->getAmwalOrderId();
+        $incrementId = $order->getIncrementId();
+
+        if (!$amwalOrderId && !$incrementId) {
+            return [];
+        }
+
+        $connection = $this->resourceConnection->getConnection();
+        $tableName = $this->resourceConnection->getTableName('amwal_webhook_log');
+
+        $select = $connection->select()
+            ->from($tableName);
+
+        $conditions = [];
+        if ($amwalOrderId) {
+            $conditions[] = $connection->quoteInto('order_id = ?', $amwalOrderId);
+            // Fallback for logs where order_id contains the webhook event ID instead
+            $conditions[] = $connection->quoteInto('payload LIKE ?', '%' . $amwalOrderId . '%');
+        }
+        if ($incrementId) {
+            $conditions[] = $connection->quoteInto('magento_order_id = ?', $incrementId);
+        }
+
+        if (empty($conditions)) {
+            return [];
+        }
+
+        $select->where(implode(' OR ', $conditions))
+            ->order('created_at DESC');
+
+        try {
+            return $connection->fetchAll($select);
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching Amwal webhook logs: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get the URL for the resend webhook admin action.
+     *
+     * @return string
+     */
+    public function getResendWebhookUrl(): string
+    {
+        return $this->getUrl('amwal/webhook/resendWebhook');
+    }
+
+    /**
+     * Decode JSON string.
+     *
+     * @param string $json
+     * @return array
+     */
+    public function jsonDecode(string $json): array
+    {
+        try {
+            return $this->jsonSerializer->unserialize($json);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

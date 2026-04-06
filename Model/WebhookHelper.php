@@ -8,7 +8,9 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Framework\Url\DecoderInterface;
+use Psr\Log\LoggerInterface;
+use phpseclib3\Crypt\RSA;
+use phpseclib3\Crypt\PublicKeyLoader;
 
 /**
  * Webhook helper class for common webhook functions
@@ -31,27 +33,27 @@ class WebhookHelper extends AbstractHelper
     protected $json;
 
     /**
-     * @var DecoderInterface
+     * @var LoggerInterface
      */
-    protected $decoder;
+    private $webhookLogger;
 
     /**
      * @param Context $context
      * @param ResourceConnection $resource
      * @param Json $json
-     * @param DecoderInterface $decoder
+     * @param LoggerInterface $webhookLogger
      */
     public function __construct(
         Context $context,
         ResourceConnection $resource,
         Json $json,
-        DecoderInterface $decoder
+        LoggerInterface $webhookLogger
     ) {
         parent::__construct($context);
         $this->resource = $resource;
         $this->connection = $resource->getConnection();
         $this->json = $json;
-        $this->decoder = $decoder;
+        $this->webhookLogger = $webhookLogger;
     }
 
     /**
@@ -118,13 +120,13 @@ class WebhookHelper extends AbstractHelper
 
             return $this->connection->lastInsertId();
         } catch (\Exception $e) {
-            $this->_logger->error('Failed to log webhook: ' . $e->getMessage());
+            $this->webhookLogger->error('Failed to log webhook: ' . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * Verify signature using public key
+     * Verify signature using public key with RSA-PSS (SHA-256)
      *
      * @param string $payload Raw payload
      * @param string $signature Base64 encoded signature
@@ -136,34 +138,51 @@ class WebhookHelper extends AbstractHelper
         try {
             // Skip verification if any parameters are missing
             if (empty($payload) || empty($signature) || empty($publicKey)) {
+                $this->webhookLogger->error('Signature verification skipped: missing parameters', [
+                    'has_payload' => !empty($payload),
+                    'has_signature' => !empty($signature),
+                    'has_publicKey' => !empty($publicKey),
+                ]);
                 return false;
             }
 
-            // Decode the base64 signature using Magento's decoder
-            $signatureBytes = $this->decoder->decode($signature);
+            // Decode the base64 signature using PHP's native base64_decode
+            // NOTE: Do NOT use Magento's Url\Decoder here — it runs urldecode/strtr
+            // and sessionUrlVar() on the result, which corrupts binary signature data.
+            $signatureBytes = base64_decode($signature, true);
             if ($signatureBytes === false || empty($signatureBytes)) {
-                $this->_logger->error('Failed to base64 decode signature');
+                $this->webhookLogger->error('Failed to base64 decode signature');
                 return false;
             }
 
-            // Load public key directly
-            $publicKeyResource = openssl_pkey_get_public($publicKey);
-            if (!$publicKeyResource) {
-                $this->_logger->error('Failed to load public key: ' . openssl_error_string());
+            // Ensure the public key is in proper PEM format
+            $publicKey = trim($publicKey);
+            if (strpos($publicKey, '-----BEGIN') === false) {
+                $this->webhookLogger->error('Public key does not appear to be in PEM format (missing BEGIN marker). Key starts with: ' . substr($publicKey, 0, 40));
                 return false;
             }
 
-            // Verify using PSS padding
-            $result = openssl_verify(
-                $payload,
-                $signatureBytes,
-                $publicKeyResource,
-                OPENSSL_ALGO_SHA256
-            );
+            // Load public key and verify using RSA-PSS with SHA-256 via phpseclib
+            $key = PublicKeyLoader::load($publicKey);
+            if (!($key instanceof \phpseclib3\Crypt\RSA\PublicKey)) {
+                $this->webhookLogger->error('Loaded key is not an RSA PublicKey, got: ' . get_class($key));
+                return false;
+            }
 
-            return $result === 1;
+            /** @var \phpseclib3\Crypt\RSA\PublicKey $pssPubKey */
+            $pssPubKey = $key->withPadding(RSA::SIGNATURE_PSS)
+                ->withHash('sha256')
+                ->withMGFHash('sha256');
+
+            $result = $pssPubKey->verify($payload, $signatureBytes);
+
+            if (!$result) {
+                $this->webhookLogger->warning('RSA-PSS signature verification returned false');
+            }
+
+            return $result;
         } catch (\Exception $e) {
-            $this->_logger->error('Signature verification exception: ' . $e->getMessage());
+            $this->webhookLogger->error('Signature verification exception: ' . $e->getMessage());
             return false;
         }
     }

@@ -567,3 +567,154 @@
     font-size: 13px;
 }
 
+/* ---- Webhook Logs ---- */
+.amwal-webhook-logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.amwal-webhook-logs-table th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--amwal-muted);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--amwal-border);
+    background: var(--amwal-bg);
+}
+
+.amwal-webhook-logs-table td {
+    padding: 12px;
+    font-size: 13px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+}
+
+.amwal-payload-toggle {
+    color: var(--amwal-brand);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--amwal-brand-light);
+    transition: all 0.15s ease;
+}
+
+.amwal-payload-toggle:hover {
+    background: var(--amwal-brand-border);
+    color: var(--amwal-brand-dark);
+}
+
+.amwal-payload-icon {
+    transition: transform 0.2s ease;
+}
+
+.amwal-payload-content {
+    display: none;
+    margin-top: 10px;
+    background: #0f172a;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #1e293b;
+    overflow: hidden;
+}
+
+.amwal-payload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.amwal-payload-filename {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: lowercase;
+}
+
+.amwal-payload-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.amwal-payload-copy:hover {
+    background: #475569;
+    color: #fff;
+    border-color: #64748b;
+}
+
+.amwal-payload-copy--success {
+    background: #065f46;
+    color: #a7f3d0;
+    border-color: #059669;
+}
+
+.amwal-payload-pre {
+    margin: 0;
+    padding: 16px;
+    color: #e2e8f0;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 400px;
+}
+
+.amwal-payload-row--active .amwal-payload-content {
+    display: block;
+}
+
+/* ---- Resend Webhook Button ---- */
+.amwal-btn--success {
+    background: #16a34a;
+    color: #fff;
+    border-color: #16a34a;
+}
+
+.amwal-btn--success:hover {
+    background: #15803d;
+    border-color: #15803d;
+    color: #fff;
+    text-decoration: none;
+}
+
+.amwal-btn:disabled,
+.amwal-btn[disabled] {
+    opacity: 0.65;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Spin animation for loading indicator */
+@keyframes amwal-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.amwal-spin {
+    animation: amwal-spin 1s linear infinite;
+    display: inline-block;
+}
+
