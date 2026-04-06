@@ -217,38 +217,6 @@ class Webhook implements WebHookInterface
         return true;
     }
 
-    /**
-     * Log webhook validation failure
-     *
-     * @param string $eventType
-     * @param string $payload
-     * @param string $apiKeyFingerprint
-     * @param string|null $orderId
-     * @param string $errorMessage
-     * @return string Log ID
-     */
-    private function logValidationFailure(
-        string $eventType,
-        string $payload,
-        string $apiKeyFingerprint,
-        ?string $orderId,
-        string $errorMessage
-    ): string {
-        $data = $this->parsePayload($payload);
-        $orderId = $data['data']['id'] ?? $orderId;
-        $magentoOrderId = $data['data']['ref_id'] ?? null;
-
-        return $this->webhookHelper->logWebhook(
-            $eventType,
-            $payload,
-            $apiKeyFingerprint,
-            false,
-            $orderId,
-            $magentoOrderId,
-            false,
-            $errorMessage
-        );
-    }
 
     /**
      * Process webhook event based on type

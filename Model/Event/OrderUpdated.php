@@ -8,7 +8,6 @@ use Magento\Sales\Api\CreditmemoManagementInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Email\Sender\CreditmemoSender;
-use Magento\Sales\Model\Order\Invoice;
 use Magento\Framework\Lock\LockManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -300,7 +299,7 @@ class OrderUpdated implements HandlerInterface
             $creditmemo = $this->creditmemoFactory->createByOrder($order);
 
             if (!$isFullRefund) {
-                $this->adjustCreditMemoForPartialRefund($creditmemo, $order, $amountToRefund);
+                $this->adjustCreditMemoForPartialRefund($creditmemo, $amountToRefund);
             }
 
             // Mark as offline so Magento doesn't call the payment gateway again
@@ -335,11 +334,10 @@ class OrderUpdated implements HandlerInterface
      * Adjust credit memo amounts for partial refund.
      *
      * @param \Magento\Sales\Model\Order\Creditmemo $creditmemo
-     * @param Order $order
      * @param float $amountToRefund
      * @return void
      */
-    private function adjustCreditMemoForPartialRefund($creditmemo, Order $order, float $amountToRefund): void
+    private function adjustCreditMemoForPartialRefund($creditmemo, float $amountToRefund): void
     {
         // Zero out all item qtys — we use adjustment to control the refund amount
         foreach ($creditmemo->getAllItems() as $item) {

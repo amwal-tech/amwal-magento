@@ -15,6 +15,10 @@ use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Amwal order tab block for admin order view
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class AmwalTab extends Template implements TabInterface
 {
     /**

@@ -18,9 +18,14 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Resend Webhook admin controller
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class ResendWebhook extends Action
 {
     /**
@@ -119,36 +124,10 @@ class ResendWebhook extends Action
         ));
 
         try {
-            $decryptedKey = $this->encryptor->decrypt($this->config->getSecretKey());
-
-            if (empty($decryptedKey)) {
-                $this->logger->error('Amwal ResendWebhook: Secret key is not configured.');
-                return $result->setData([
-                    'success' => false,
-                    'message' => (string) __('Amwal secret key is not configured. Please set it in Stores > Configuration > Payment Methods > Amwal.')
-                ]);
-            }
-
-            $amwalClient = $this->amwalClientFactory->create();
-            $endpoint = 'transactions/' . $amwalOrderId . '/resend_webhook/';
-            $response = $amwalClient->post($endpoint, [
-                RequestOptions::JSON => new \stdClass(), // sends {}
-                RequestOptions::HEADERS => [
-                    'Authorization' => $decryptedKey,
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                ]
-            ]);
-
-            $statusCode = $response->getStatusCode();
-            $responseBody = $response->getBody()->getContents();
-            $responseData = [];
-
-            try {
-                $responseData = $this->json->unserialize($responseBody);
-            } catch (\Exception $e) {
-                $responseData = ['raw' => $responseBody];
-            }
+            $apiResult = $this->sendResendRequest($amwalOrderId);
+            $statusCode = $apiResult['statusCode'];
+            $responseBody = $apiResult['responseBody'];
+            $responseData = $apiResult['responseData'];
 
             $this->logger->info(sprintf(
                 'Amwal ResendWebhook: Response for Amwal Order ID "%s" — HTTP %d — %s',
@@ -203,6 +182,48 @@ class ResendWebhook extends Action
                 'message' => (string) __('An error occurred: %1', $errorMessage)
             ]);
         }
+    }
+
+    /**
+     * Send the resend webhook request to Amwal API.
+     *
+     * @param string $amwalOrderId
+     * @return array{statusCode: int, responseBody: string, responseData: array}
+     * @throws LocalizedException
+     * @throws GuzzleException
+     */
+    private function sendResendRequest(string $amwalOrderId): array
+    {
+        $decryptedKey = $this->encryptor->decrypt($this->config->getSecretKey());
+
+        if (empty($decryptedKey)) {
+            $this->logger->error('Amwal ResendWebhook: Secret key is not configured.');
+            throw new LocalizedException(
+                __('Amwal secret key is not configured. Please set it in Stores > Configuration > Payment Methods > Amwal.')
+            );
+        }
+
+        $amwalClient = $this->amwalClientFactory->create();
+        $endpoint = 'transactions/' . $amwalOrderId . '/resend_webhook/';
+        $response = $amwalClient->post($endpoint, [
+            RequestOptions::JSON => new \stdClass(), // sends {}
+            RequestOptions::HEADERS => [
+                'Authorization' => $decryptedKey,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ]
+        ]);
+
+        $statusCode = $response->getStatusCode();
+        $responseBody = $response->getBody()->getContents();
+
+        try {
+            $responseData = $this->json->unserialize($responseBody);
+        } catch (\Exception $e) {
+            $responseData = ['raw' => $responseBody];
+        }
+
+        return ['statusCode' => $statusCode, 'responseBody' => $responseBody, 'responseData' => $responseData];
     }
 
     /**

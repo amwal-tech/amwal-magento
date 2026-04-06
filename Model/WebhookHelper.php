@@ -146,32 +146,18 @@ class WebhookHelper extends AbstractHelper
                 return false;
             }
 
-            // Decode the base64 signature using PHP's native base64_decode
-            // NOTE: Do NOT use Magento's Url\Decoder here — it runs urldecode/strtr
-            // and sessionUrlVar() on the result, which corrupts binary signature data.
-            // phpcs:ignore Magento2.Functions.DiscouragedFunction
-            $signatureBytes = base64_decode($signature, true);
-            if ($signatureBytes === false || empty($signatureBytes)) {
-                $this->webhookLogger->error('Failed to base64 decode signature');
+            $signatureBytes = $this->decodeSignature($signature);
+            if ($signatureBytes === null) {
                 return false;
             }
 
-            // Ensure the public key is in proper PEM format
-            $publicKey = trim($publicKey);
-            if (strpos($publicKey, '-----BEGIN') === false) {
-                $this->webhookLogger->error('Public key does not appear to be in PEM format (missing BEGIN marker). Key starts with: ' . substr($publicKey, 0, 40));
-                return false;
-            }
-
-            // Load public key and verify using RSA-PSS with SHA-256 via phpseclib
-            $key = PublicKeyLoader::load($publicKey);
-            if (!($key instanceof \phpseclib3\Crypt\RSA\PublicKey)) {
-                $this->webhookLogger->error('Loaded key is not an RSA PublicKey, got: ' . get_class($key));
+            $rsaPublicKey = $this->loadRsaPublicKey($publicKey);
+            if ($rsaPublicKey === null) {
                 return false;
             }
 
             /** @var \phpseclib3\Crypt\RSA\PublicKey $pssPubKey */
-            $pssPubKey = $key->withPadding(RSA::SIGNATURE_PSS)
+            $pssPubKey = $rsaPublicKey->withPadding(RSA::SIGNATURE_PSS)
                 ->withHash('sha256')
                 ->withMGFHash('sha256');
 
@@ -186,6 +172,51 @@ class WebhookHelper extends AbstractHelper
             $this->webhookLogger->error('Signature verification exception: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Decode a base64-encoded signature string.
+     *
+     * @param string $signature
+     * @return string|null Decoded bytes or null on failure
+     */
+    private function decodeSignature(string $signature): ?string
+    {
+        // NOTE: Do NOT use Magento's Url\Decoder here — it runs urldecode/strtr
+        // and sessionUrlVar() on the result, which corrupts binary signature data.
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        $signatureBytes = base64_decode($signature, true);
+        if ($signatureBytes === false || empty($signatureBytes)) {
+            $this->webhookLogger->error('Failed to base64 decode signature');
+            return null;
+        }
+        return $signatureBytes;
+    }
+
+    /**
+     * Load and validate an RSA public key from PEM string.
+     *
+     * @param string $publicKey PEM format public key
+     * @return \phpseclib3\Crypt\RSA\PublicKey|null
+     */
+    private function loadRsaPublicKey(string $publicKey): ?\phpseclib3\Crypt\RSA\PublicKey
+    {
+        $publicKey = trim($publicKey);
+        if (strpos($publicKey, '-----BEGIN') === false) {
+            $this->webhookLogger->error(
+                'Public key does not appear to be in PEM format (missing BEGIN marker). Key starts with: '
+                . substr($publicKey, 0, 40)
+            );
+            return null;
+        }
+
+        $key = PublicKeyLoader::load($publicKey);
+        if (!($key instanceof \phpseclib3\Crypt\RSA\PublicKey)) {
+            $this->webhookLogger->error('Loaded key is not an RSA PublicKey, got: ' . get_class($key));
+            return null;
+        }
+
+        return $key;
     }
 
     /**
