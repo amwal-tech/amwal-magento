@@ -149,6 +149,7 @@ class WebhookHelper extends AbstractHelper
             // Decode the base64 signature using PHP's native base64_decode
             // NOTE: Do NOT use Magento's Url\Decoder here — it runs urldecode/strtr
             // and sessionUrlVar() on the result, which corrupts binary signature data.
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
             $signatureBytes = base64_decode($signature, true);
             if ($signatureBytes === false || empty($signatureBytes)) {
                 $this->webhookLogger->error('Failed to base64 decode signature');

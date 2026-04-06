@@ -9,7 +9,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Email\Sender\CreditmemoSender;
 use Magento\Sales\Model\Order\Invoice;
-use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Lock\LockManagerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -44,9 +44,9 @@ class OrderUpdated implements HandlerInterface
     private $logger;
 
     /**
-     * @var ResourceConnection
+     * @var LockManagerInterface
      */
-    private $resourceConnection;
+    private $lockManager;
 
     /**
      * Amwal statuses that indicate a refund
@@ -64,7 +64,7 @@ class OrderUpdated implements HandlerInterface
      * @param CreditmemoManagementInterface $creditmemoManagement
      * @param CreditmemoSender $creditmemoSender
      * @param LoggerInterface $logger
-     * @param ResourceConnection $resourceConnection
+     * @param LockManagerInterface $lockManager
      */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
@@ -72,14 +72,14 @@ class OrderUpdated implements HandlerInterface
         CreditmemoManagementInterface $creditmemoManagement,
         CreditmemoSender $creditmemoSender,
         LoggerInterface $logger,
-        ResourceConnection $resourceConnection
+        LockManagerInterface $lockManager
     ) {
         $this->orderRepository = $orderRepository;
         $this->creditmemoFactory = $creditmemoFactory;
         $this->creditmemoManagement = $creditmemoManagement;
         $this->creditmemoSender = $creditmemoSender;
         $this->logger = $logger;
-        $this->resourceConnection = $resourceConnection;
+        $this->lockManager = $lockManager;
     }
 
     /**
@@ -105,11 +105,10 @@ class OrderUpdated implements HandlerInterface
             return;
         }
 
-        // Use DB-level advisory lock to prevent duplicate processing from webhook retries
+        // Use advisory lock to prevent duplicate processing from webhook retries
         $lockName = 'amwal_refund_order_' . $order->getId();
-        $connection = $this->resourceConnection->getConnection();
 
-        if (!$this->acquireLock($connection, $lockName)) {
+        if (!$this->lockManager->lock($lockName, self::LOCK_WAIT_TIMEOUT)) {
             $this->logger->info("Order #{$order->getIncrementId()} - Could not acquire lock. Another refund is being processed. Skipping.");
             return;
         }
@@ -130,44 +129,7 @@ class OrderUpdated implements HandlerInterface
             );
             throw new LocalizedException(__('Error processing refund: %1', $e->getMessage()));
         } finally {
-            $this->releaseLock($connection, $lockName);
-        }
-    }
-
-    /**
-     * Acquire a named database lock.
-     *
-     * @param \Magento\Framework\DB\Adapter\AdapterInterface $connection
-     * @param string $lockName
-     * @return bool
-     */
-    private function acquireLock($connection, string $lockName): bool
-    {
-        try {
-            $result = $connection->query(
-                "SELECT GET_LOCK(?, ?)",
-                [$lockName, self::LOCK_WAIT_TIMEOUT]
-            )->fetchColumn();
-            return (int)$result === 1;
-        } catch (\Exception $e) {
-            $this->logger->warning("Failed to acquire DB lock '{$lockName}': " . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Release a named database lock.
-     *
-     * @param \Magento\Framework\DB\Adapter\AdapterInterface $connection
-     * @param string $lockName
-     * @return void
-     */
-    private function releaseLock($connection, string $lockName): void
-    {
-        try {
-            $connection->query("SELECT RELEASE_LOCK(?)", [$lockName]);
-        } catch (\Exception $e) {
-            $this->logger->warning("Failed to release DB lock '{$lockName}': " . $e->getMessage());
+            $this->lockManager->unlock($lockName);
         }
     }
 
