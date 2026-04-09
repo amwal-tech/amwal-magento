@@ -122,42 +122,12 @@ class Settings
             'bank_installments_active' => $this->config->isBankInstallmentsActive(),
             'webhook_enabled' => $this->config->isWebhookEnabled(),
             'webhook_events' => $this->config->getWebhookEvents(),
-            'webhook_private_key' => $this->config->getWebhookPrivateKey() ? 'stored' : 'empty',
+            'webhook_public_key' => $this->config->getWebhookPublicKey() ? 'stored' : 'empty',
             'webhook_fingerprint' => $this->config->getApiKeyFingerprint() ? 'stored' : 'empty',
             'webhook_debug' => $this->config->isWebhookDebugMode(),
             'apiUrl' => $this->config->getApiUrl(),
             'payUrl' => $this->config->getPayUrl()
         ];
-        // Fetch pending payment orders count and amwal order ids
-        try {
-            $pendingPaymentOrders = $this->orderRepository->getList(
-                $this->searchCriteriaBuilder
-                    ->addFilter('amwal_order_id', '', 'neq')
-                    ->addFilter('status', 'pending_payment')
-                    ->create()
-            );
-            $settings['pending_payment_orders'] = $pendingPaymentOrders->getTotalCount();
-            $settings['pending_payment_orders_amwal_ids'] = array_map(function ($order) {
-                return $order->getAmwalOrderId();
-            }, $pendingPaymentOrders->getItems());
-        } catch (\Exception $e) {
-            $settings['pending_payment_orders'] = 0;
-        }
-        // Fetch cancelled orders count and amwal order ids
-        try {
-            $cancelledOrders = $this->orderRepository->getList(
-                $this->searchCriteriaBuilder
-                    ->addFilter('amwal_order_id', '', 'neq')
-                    ->addFilter('status', 'canceled')
-                    ->create()
-            );
-            $settings['cancelled_orders'] = $cancelledOrders->getTotalCount();
-            $settings['cancelled_orders_amwal_ids'] = array_map(function ($order) {
-                return $order->getAmwalOrderId();
-            }, $cancelledOrders->getItems());
-        } catch (\Exception $e) {
-            $settings['cancelled_orders'] = 0;
-        }
 
         // Fetch cron job information for amwal_pending_orders_update
         $scheduleCollectionPending = $this->scheduleCollectionFactory->create();

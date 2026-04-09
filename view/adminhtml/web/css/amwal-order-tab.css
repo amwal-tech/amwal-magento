@@ -1,0 +1,720 @@
+/* ===================================================================
+   Amwal Order Tab — Admin Styles
+   =================================================================== */
+
+:root {
+    --amwal-brand: #128c4b;
+    --amwal-brand-light: #e8f5ee;
+    --amwal-brand-border: #ccead9;
+    --amwal-brand-dark: #0f5532;
+    --amwal-ink: #1a1a2e;
+    --amwal-muted: #6b7280;
+    --amwal-bg: #f9fafb;
+    --amwal-card: #ffffff;
+    --amwal-border: #e5e7eb;
+    --amwal-radius: 8px;
+    --amwal-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --amwal-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* ---- Container ---- */
+.amwal-tab-container {
+    padding: 0;
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: var(--amwal-ink);
+}
+
+/* ---- Header Bar ---- */
+.amwal-tab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--amwal-brand-light) 0%, #ffffff 100%);
+    border: 1px solid var(--amwal-brand-border);
+    border-radius: var(--amwal-radius);
+    margin-bottom: 24px;
+}
+
+.amwal-tab-header__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.amwal-tab-header__logo .amwal-logo {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+}
+
+.amwal-tab-header__summary {
+    flex: 1;
+    text-align: center;
+}
+
+.amwal-tab-header__txn-id {
+    font-size: 12px;
+    color: var(--amwal-muted);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    word-break: break-all;
+}
+
+.amwal-tab-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* ---- Badges ---- */
+.amwal-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.amwal-badge--success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.amwal-badge--danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.amwal-badge--warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.amwal-badge--info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.amwal-badge--default {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+/* ---- Type Pills (SANDBOX / LIVE) ---- */
+.amwal-type-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.amwal-type-pill--sandbox {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.amwal-type-pill--live {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.amwal-type-pill--default {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* ---- Sections ---- */
+.amwal-section {
+    background: var(--amwal-card);
+    border: 1px solid var(--amwal-border);
+    border-radius: var(--amwal-radius);
+    margin-bottom: 16px;
+    box-shadow: var(--amwal-shadow);
+    overflow: hidden;
+}
+
+.amwal-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--amwal-bg);
+    border-bottom: 1px solid var(--amwal-border);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease;
+}
+
+.amwal-section__header:hover {
+    background: #f3f4f6;
+}
+
+.amwal-section__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--amwal-ink);
+    margin: 0;
+}
+
+.amwal-section__title-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--amwal-brand);
+    flex-shrink: 0;
+}
+
+.amwal-section__chevron {
+    width: 16px;
+    height: 16px;
+    color: var(--amwal-muted);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.amwal-section--collapsed .amwal-section__chevron {
+    transform: rotate(-90deg);
+}
+
+.amwal-section__content {
+    padding: 20px;
+}
+
+.amwal-section--collapsed .amwal-section__content {
+    display: none;
+}
+
+/* ---- Key-Value Grid ---- */
+.amwal-kv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.amwal-kv-item {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.amwal-kv-item:nth-child(odd) {
+    border-right: 1px solid #f3f4f6;
+}
+
+.amwal-kv-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--amwal-muted);
+    margin-bottom: 4px;
+}
+
+.amwal-kv-value {
+    font-size: 14px;
+    color: var(--amwal-ink);
+    word-break: break-word;
+}
+
+.amwal-kv-value--mono {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 13px;
+}
+
+.amwal-kv-value a {
+    color: var(--amwal-brand);
+    text-decoration: none;
+}
+
+.amwal-kv-value a:hover {
+    text-decoration: underline;
+}
+
+/* ---- Financial Summary ---- */
+.amwal-financial-summary {
+    max-width: 420px;
+}
+
+.amwal-financial-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #f9fafb;
+}
+
+.amwal-financial-row__label {
+    color: var(--amwal-muted);
+}
+
+.amwal-financial-row__value {
+    font-weight: 500;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 13px;
+}
+
+.amwal-financial-row--discount .amwal-financial-row__value {
+    color: #16a34a;
+}
+
+.amwal-financial-row--negative .amwal-financial-row__value {
+    color: #dc2626;
+}
+
+.amwal-financial-divider {
+    border: none;
+    border-top: 2px solid var(--amwal-border);
+    margin: 8px 0;
+}
+
+.amwal-financial-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.amwal-financial-total__value {
+    color: var(--amwal-brand-dark);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* ---- Card Display ---- */
+.amwal-card-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: #f9fafb;
+    border: 1px solid var(--amwal-border);
+    border-radius: 6px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    color: var(--amwal-ink);
+}
+
+.amwal-card-display__brand {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--amwal-muted);
+    padding: 2px 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+}
+
+/* ---- Address Block ---- */
+.amwal-address-block {
+    white-space: pre-line;
+    line-height: 1.7;
+    font-size: 14px;
+    color: var(--amwal-ink);
+    padding: 12px 16px;
+    background: var(--amwal-bg);
+    border-radius: 6px;
+    border: 1px solid #f3f4f6;
+}
+
+/* ---- Order Items Table ---- */
+.amwal-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+
+.amwal-items-table th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--amwal-muted);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--amwal-border);
+    background: var(--amwal-bg);
+}
+
+.amwal-items-table td {
+    padding: 12px;
+    font-size: 14px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.amwal-items-table tr:last-child td {
+    border-bottom: none;
+}
+
+.amwal-items-table__img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--amwal-border);
+    background: var(--amwal-bg);
+}
+
+.amwal-items-table__name {
+    font-weight: 500;
+}
+
+.amwal-items-table__name a {
+    color: var(--amwal-ink);
+    text-decoration: none;
+}
+
+.amwal-items-table__name a:hover {
+    color: var(--amwal-brand);
+    text-decoration: underline;
+}
+
+/* ---- Errors ---- */
+.amwal-error-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.amwal-error-row__icon {
+    width: 20px;
+    height: 20px;
+    color: #dc2626;
+    flex-shrink: 0;
+}
+
+.amwal-error-row__text {
+    flex: 1;
+    font-size: 13px;
+    color: #991b1b;
+}
+
+.amwal-error-row__type {
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+/* ---- No Data State ---- */
+.amwal-no-data {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--amwal-muted);
+}
+
+.amwal-no-data__icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    opacity: 0.4;
+}
+
+.amwal-no-data__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--amwal-ink);
+    margin-bottom: 8px;
+}
+
+.amwal-no-data__text {
+    font-size: 14px;
+}
+
+/* ---- Buttons ---- */
+.amwal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    line-height: 1.4;
+}
+
+.amwal-btn--primary {
+    background: var(--amwal-brand);
+    color: #fff;
+    border-color: var(--amwal-brand);
+}
+
+.amwal-btn--primary:hover {
+    background: var(--amwal-brand-dark);
+    border-color: var(--amwal-brand-dark);
+    color: #fff;
+    text-decoration: none;
+}
+
+.amwal-btn--outline {
+    background: transparent;
+    color: var(--amwal-brand);
+    border-color: var(--amwal-brand-border);
+}
+
+.amwal-btn--outline:hover {
+    background: var(--amwal-brand-light);
+    color: var(--amwal-brand-dark);
+    text-decoration: none;
+}
+
+.amwal-btn--sm {
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+/* ---- Link ---- */
+.amwal-link {
+    color: var(--amwal-brand);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.amwal-link:hover {
+    text-decoration: underline;
+    color: var(--amwal-brand-dark);
+}
+
+/* ---- Meta info below sections ---- */
+.amwal-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--amwal-muted);
+}
+
+.amwal-meta-row__separator {
+    width: 1px;
+    height: 14px;
+    background: var(--amwal-border);
+}
+
+/* ---- Two-Column Layout for Shipping & Address ---- */
+.amwal-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.amwal-two-col__block-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--amwal-muted);
+    margin-bottom: 10px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .amwal-tab-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .amwal-kv-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .amwal-kv-item:nth-child(odd) {
+        border-right: none;
+    }
+
+    .amwal-two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .amwal-financial-summary {
+        max-width: 100%;
+    }
+}
+
+/* ---- Failure reason ---- */
+.amwal-failure-reason {
+    color: #dc2626;
+    font-weight: 500;
+    margin-top: 4px;
+    font-size: 13px;
+}
+
+/* ---- Webhook Logs ---- */
+.amwal-webhook-logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.amwal-webhook-logs-table th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--amwal-muted);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--amwal-border);
+    background: var(--amwal-bg);
+}
+
+.amwal-webhook-logs-table td {
+    padding: 12px;
+    font-size: 13px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+}
+
+.amwal-payload-toggle {
+    color: var(--amwal-brand);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--amwal-brand-light);
+    transition: all 0.15s ease;
+}
+
+.amwal-payload-toggle:hover {
+    background: var(--amwal-brand-border);
+    color: var(--amwal-brand-dark);
+}
+
+.amwal-payload-icon {
+    transition: transform 0.2s ease;
+}
+
+.amwal-payload-content {
+    display: none;
+    margin-top: 10px;
+    background: #0f172a;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #1e293b;
+    overflow: hidden;
+}
+
+.amwal-payload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.amwal-payload-filename {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: lowercase;
+}
+
+.amwal-payload-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.amwal-payload-copy:hover {
+    background: #475569;
+    color: #fff;
+    border-color: #64748b;
+}
+
+.amwal-payload-copy--success {
+    background: #065f46;
+    color: #a7f3d0;
+    border-color: #059669;
+}
+
+.amwal-payload-pre {
+    margin: 0;
+    padding: 16px;
+    color: #e2e8f0;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 400px;
+}
+
+.amwal-payload-row--active .amwal-payload-content {
+    display: block;
+}
+
+/* ---- Resend Webhook Button ---- */
+.amwal-btn--success {
+    background: #16a34a;
+    color: #fff;
+    border-color: #16a34a;
+}
+
+.amwal-btn--success:hover {
+    background: #15803d;
+    border-color: #15803d;
+    color: #fff;
+    text-decoration: none;
+}
+
+.amwal-btn:disabled,
+.amwal-btn[disabled] {
+    opacity: 0.65;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Spin animation for loading indicator */
+@keyframes amwal-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.amwal-spin {
+    animation: amwal-spin 1s linear infinite;
+    display: inline-block;
+}
+
