@@ -38,14 +38,20 @@ class WebhookHelper
         'order.updated' => 'Order Updated',
     ];
 
+    private ResourceConnection $resource;
+    private Json $json;
+    private LoggerInterface $webhookLogger;
     private AdapterInterface $connection;
 
     public function __construct(
-        private readonly ResourceConnection $resource,
-        private readonly Json $json,
-        private readonly LoggerInterface $webhookLogger,
+        ResourceConnection $resource,
+        Json $json,
+        LoggerInterface $webhookLogger
     ) {
-        $this->connection = $resource->getConnection();
+        $this->resource       = $resource;
+        $this->json           = $json;
+        $this->webhookLogger  = $webhookLogger;
+        $this->connection     = $resource->getConnection();
     }
 
     // -------------------------------------------------------------------------
@@ -80,14 +86,14 @@ class WebhookHelper
      */
     public function logWebhook(
         string $eventType,
-        array|string $payload,
+               $payload,
         ?string $apiKeyFingerprint = null,
         bool $signatureVerified = false,
         ?string $orderId = null,
         ?string $magentoOrderId = null,
         bool $success = false,
-        ?string $message = null,
-    ): int|false {
+        ?string $message = null
+    ) {
         try {
             if (is_array($payload)) {
                 $payload = $this->json->serialize($payload);
@@ -271,7 +277,7 @@ class WebhookHelper
     private function loadRsaPublicKey(string $publicKey): ?\phpseclib3\Crypt\RSA\PublicKey
     {
         $publicKey = trim($publicKey);
-        if (!str_contains($publicKey, '-----BEGIN')) {
+        if (strpos($publicKey, '-----BEGIN') === false) {
             $this->webhookLogger->error(
                 '[Amwal] Public key missing PEM BEGIN marker. Starts with: ' . substr($publicKey, 0, 40)
             );
