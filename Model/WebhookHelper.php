@@ -1,147 +1,147 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Amwal\Payments\Model;
 
-use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\PublicKeyLoader;
 
 /**
- * Webhook helper class for common webhook functions
+ * Common helpers for Amwal webhook processing and signature verification.
  */
-class WebhookHelper extends AbstractHelper
+class WebhookHelper
 {
     /**
-     * @var ResourceConnection
+     * The exact fields Amwal includes in the signed payload, derived from
+     * the reference test script (x-signature.php). The live webhook uses
+     * "id" for what the signature calls "transaction_id".
      */
-    protected $resource;
+    private const SIGNED_FIELDS = [
+        'amount',
+        'client_first_name',
+        'client_last_name',
+        'payment_link_id',
+        'payment_option',
+        'status',
+        'transaction_id',   // sourced from data['id'] in the live webhook
+    ];
 
-    /**
-     * @var AdapterInterface
-     */
-    protected $connection;
+    private const WEBHOOK_EVENTS = [
+        'order.created' => 'Order Created',
+        'order.success' => 'Order Success',
+        'order.failed'  => 'Order Failed',
+        'order.updated' => 'Order Updated',
+    ];
 
-    /**
-     * @var Json
-     */
-    protected $json;
+    private AdapterInterface $connection;
 
-    /**
-     * @var LoggerInterface
-     */
-    private $webhookLogger;
-
-    /**
-     * @param Context $context
-     * @param ResourceConnection $resource
-     * @param Json $json
-     * @param LoggerInterface $webhookLogger
-     */
     public function __construct(
-        Context $context,
-        ResourceConnection $resource,
-        Json $json,
-        LoggerInterface $webhookLogger
+        private readonly ResourceConnection $resource,
+        private readonly Json $json,
+        private readonly LoggerInterface $webhookLogger,
     ) {
-        parent::__construct($context);
-        $this->resource = $resource;
         $this->connection = $resource->getConnection();
-        $this->json = $json;
-        $this->webhookLogger = $webhookLogger;
     }
 
-    /**
-     * Get supported webhook events
-     *
-     * @return array
-     */
-    public function getWebhookEvents()
+    // -------------------------------------------------------------------------
+    // Event registry
+    // -------------------------------------------------------------------------
+
+    /** @return array<string, string> */
+    public function getWebhookEvents(): array
     {
-        return [
-            'order.created' => 'Order Created',
-            'order.success' => 'Order Success',
-            'order.failed' => 'Order Failed',
-            'order.updated' => 'Order Updated'
-        ];
+        return self::WEBHOOK_EVENTS;
     }
 
+    public function isEventSupported(string $eventType): bool
+    {
+        return isset(self::WEBHOOK_EVENTS[$eventType]);
+    }
+
+    public function getEventDisplayName(string $eventType): string
+    {
+        return self::WEBHOOK_EVENTS[$eventType] ?? $eventType;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logging
+    // -------------------------------------------------------------------------
+
     /**
-     * Log webhook request to database
+     * Persist a webhook event to amwal_webhook_log.
      *
-     * @param string $eventType
      * @param array|string $payload
-     * @param string|null $apiKeyFingerprint
-     * @param bool $signatureVerified
-     * @param string|null $orderId
-     * @param string|null $magentoOrderId
-     * @param bool $success
-     * @param string|null $message
-     * @return int|bool
+     * @return int|false  Inserted row ID, or false on failure.
      */
     public function logWebhook(
-        $eventType,
-        $payload,
-        $apiKeyFingerprint = null,
-        $signatureVerified = false,
-        $orderId = null,
-        $magentoOrderId = null,
-        $success = false,
-        $message = null
-    ) {
+        string $eventType,
+        array|string $payload,
+        ?string $apiKeyFingerprint = null,
+        bool $signatureVerified = false,
+        ?string $orderId = null,
+        ?string $magentoOrderId = null,
+        bool $success = false,
+        ?string $message = null,
+    ): int|false {
         try {
-            // Convert payload to JSON if it's an array
             if (is_array($payload)) {
                 $payload = $this->json->serialize($payload);
             }
 
-            // Insert log into database
-            $data = [
-                'event_type' => $eventType,
-                'payload' => $payload,
-                'api_key_fingerprint' => $apiKeyFingerprint,
-                'signature_verified' => $signatureVerified ? 1 : 0,
-                'order_id' => $orderId,
-                'magento_order_id' => $magentoOrderId,
-                'success' => $success ? 1 : 0,
-                'message' => $message,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-
             $this->connection->insert(
                 $this->resource->getTableName('amwal_webhook_log'),
-                $data
+                [
+                    'event_type'          => $eventType,
+                    'payload'             => $payload,
+                    'api_key_fingerprint' => $apiKeyFingerprint,
+                    'signature_verified'  => (int) $signatureVerified,
+                    'order_id'            => $orderId,
+                    'magento_order_id'    => $magentoOrderId,
+                    'success'             => (int) $success,
+                    'message'             => $message,
+                    'created_at'          => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+                ]
             );
 
-            return $this->connection->lastInsertId();
+            return (int) $this->connection->lastInsertId();
         } catch (\Exception $e) {
             $this->webhookLogger->error('Failed to log webhook: ' . $e->getMessage());
             return false;
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Signature verification
+    // -------------------------------------------------------------------------
+
     /**
-     * Verify signature using public key with RSA-PSS (SHA-256)
+     * Verify an RSA-PSS SHA-256 webhook signature.
      *
-     * @param string $payload Raw payload
-     * @param string $signature Base64 encoded signature
-     * @param string $publicKey PEM format public key
-     * @return bool
+     * Amwal signs only the 7 fields in SIGNED_FIELDS, not the full body.
+     *
+     * Signing process (mirrored from Amwal's Python backend):
+     *   1. Build a dict with the 7 fields, mapping data['id'] → 'transaction_id'.
+     *   2. Sort keys alphabetically  (sort_keys=True).
+     *   3. Serialize with Python's default json.dumps separators (", " / ": ").
+     *   4. Sign with RSA-PSS, SHA-256, MGF1-SHA-256, salt = PSS.MAX_LENGTH (222).
+     *
+     * @param string $payload   Raw JSON from the HTTP body.
+     * @param string $signature Base64-encoded X-Signature header value.
+     * @param string $publicKey PEM RSA public key.
      */
-    public function verifySignature($payload, $signature, $publicKey)
+    public function verifySignature(string $payload, string $signature, string $publicKey): bool
     {
         try {
-            // Skip verification if any parameters are missing
             if (empty($payload) || empty($signature) || empty($publicKey)) {
-                $this->webhookLogger->error('Signature verification skipped: missing parameters', [
-                    'has_payload' => !empty($payload),
-                    'has_signature' => !empty($signature),
-                    'has_publicKey' => !empty($publicKey),
+                $this->webhookLogger->error('[Amwal] Signature verification skipped: missing parameters', [
+                    'has_payload'    => !empty($payload),
+                    'has_signature'  => !empty($signature),
+                    'has_public_key' => !empty($publicKey),
                 ]);
                 return false;
             }
@@ -156,90 +156,134 @@ class WebhookHelper extends AbstractHelper
                 return false;
             }
 
-            /** @var \phpseclib3\Crypt\RSA\PublicKey $pssPubKey */
-            $pssPubKey = $rsaPublicKey->withPadding(RSA::SIGNATURE_PSS)
-                ->withHash('sha256')
-                ->withMGFHash('sha256');
-
-            $result = $pssPubKey->verify($payload, $signatureBytes);
-
-            if (!$result) {
-                $this->webhookLogger->warning('RSA-PSS signature verification returned false');
+            $candidateStr = $this->buildSignedPayload($payload);
+            if ($candidateStr === null) {
+                return false;
             }
 
-            return $result;
+            $this->webhookLogger->debug('[Amwal] Signed payload candidate', ['value' => $candidateStr]);
+
+            // Try salt=222 (Python PSS.MAX_LENGTH for 2048-bit + SHA-256),
+            // then salt=32 (SHA-256 digest length) as a fallback.
+            foreach ([222, 32] as $salt) {
+                $verified = $rsaPublicKey
+                    ->withPadding(RSA::SIGNATURE_PSS)
+                    ->withHash('sha256')
+                    ->withMGFHash('sha256')
+                    ->withSaltLength($salt)
+                    ->verify($candidateStr, $signatureBytes);
+
+                if ($verified) {
+                    $this->webhookLogger->info("[Amwal] ✓ Signature VALID (salt=$salt)");
+                    return true;
+                }
+
+                $this->webhookLogger->warning("[Amwal] ✗ Signature failed (salt=$salt)");
+            }
+
+            $this->webhookLogger->error('[Amwal] ✗ Signature verification failed', [
+                'signed_payload'  => $candidateStr,
+                'signature_b64'   => $signature,
+                'public_key_head' => substr(trim($publicKey), 0, 60),
+            ]);
+
+            return false;
+
         } catch (\Exception $e) {
-            $this->webhookLogger->error('Signature verification exception: ' . $e->getMessage());
+            $this->webhookLogger->error(
+                '[Amwal] Signature verification exception: ' . $e->getMessage(),
+                ['trace' => $e->getTraceAsString()]
+            );
             return false;
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
     /**
-     * Decode a base64-encoded signature string.
+     * Extract and serialize the 7 signed fields from the raw webhook body.
      *
-     * @param string $signature
-     * @return string|null Decoded bytes or null on failure
+     * Returns null and logs on JSON decode failure.
      */
-    private function decodeSignature(string $signature): ?string
+    private function buildSignedPayload(string $rawPayload): ?string
     {
-        // NOTE: Do NOT use Magento's Url\Decoder here — it runs urldecode/strtr
-        // and sessionUrlVar() on the result, which corrupts binary signature data.
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction
-        $signatureBytes = base64_decode($signature, true);
-        if ($signatureBytes === false || empty($signatureBytes)) {
-            $this->webhookLogger->error('Failed to base64 decode signature');
+        $envelope = json_decode($rawPayload, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->webhookLogger->error('[Amwal] Failed to decode payload: ' . json_last_error_msg());
             return null;
         }
-        return $signatureBytes;
+
+        $data = $envelope['data'] ?? [];
+
+        $signed = [
+            'amount'            => $data['amount']            ?? null,
+            'client_first_name' => $data['client_first_name'] ?? null,
+            'client_last_name'  => $data['client_last_name']  ?? null,
+            'payment_link_id'   => $data['payment_link_id']   ?? null,
+            'payment_option'    => $data['payment_option']    ?? null,
+            'status'            => $data['status']            ?? null,
+            'transaction_id'    => $data['id']                ?? null,  // 'id' in webhook = 'transaction_id' in signature
+        ];
+
+        ksort($signed);  // mirrors Python's sort_keys=True
+
+        return $this->toPythonSeparators(
+            json_encode($signed, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        );
     }
 
     /**
-     * Load and validate an RSA public key from PEM string.
+     * Convert a compact PHP JSON string to Python json.dumps default separators.
      *
-     * @param string $publicKey PEM format public key
-     * @return \phpseclib3\Crypt\RSA\PublicKey|null
+     * PHP: {"key":"value","key2":"value2"}
+     * Python: {"key": "value", "key2": "value2"}
+     *
+     * str_replace is safe here because the 7 signed fields are known: `amount`
+     * is numeric and always comes first (alphabetically), so every `,` in the
+     * serialised string is structurally followed by `"` — never inside a value.
+     */
+    private function toPythonSeparators(string $json): string
+    {
+        return str_replace(['":', ',"'], ['": ', ', "'], $json);
+    }
+
+    /**
+     * Base64-decode the incoming signature header.
+     *
+     * NOTE: Never use Magento's Url\Decoder — it corrupts binary data.
+     */
+    private function decodeSignature(string $signature): ?string
+    {
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        $bytes = base64_decode($signature, true);
+        if ($bytes === false || $bytes === '') {
+            $this->webhookLogger->error('[Amwal] base64_decode failed for signature: ' . $signature);
+            return null;
+        }
+        return $bytes;
+    }
+
+    /**
+     * Load and validate a PEM RSA public key via phpseclib3.
      */
     private function loadRsaPublicKey(string $publicKey): ?\phpseclib3\Crypt\RSA\PublicKey
     {
         $publicKey = trim($publicKey);
-        if (strpos($publicKey, '-----BEGIN') === false) {
+        if (!str_contains($publicKey, '-----BEGIN')) {
             $this->webhookLogger->error(
-                'Public key does not appear to be in PEM format (missing BEGIN marker). Key starts with: '
-                . substr($publicKey, 0, 40)
+                '[Amwal] Public key missing PEM BEGIN marker. Starts with: ' . substr($publicKey, 0, 40)
             );
             return null;
         }
 
         $key = PublicKeyLoader::load($publicKey);
         if (!($key instanceof \phpseclib3\Crypt\RSA\PublicKey)) {
-            $this->webhookLogger->error('Loaded key is not an RSA PublicKey, got: ' . get_class($key));
+            $this->webhookLogger->error('[Amwal] Key is not an RSA PublicKey, got: ' . get_class($key));
             return null;
         }
 
         return $key;
-    }
-
-    /**
-     * Checks if the event type is supported
-     *
-     * @param string $eventType
-     * @return bool
-     */
-    public function isEventSupported($eventType)
-    {
-        $supportedEvents = $this->getWebhookEvents();
-        return isset($supportedEvents[$eventType]);
-    }
-
-    /**
-     * Get event display name
-     *
-     * @param string $eventType
-     * @return string
-     */
-    public function getEventDisplayName($eventType)
-    {
-        $supportedEvents = $this->getWebhookEvents();
-        return $supportedEvents[$eventType] ?? $eventType;
     }
 }
