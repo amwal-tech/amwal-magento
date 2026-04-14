@@ -38,14 +38,20 @@ class WebhookHelper
         'order.updated' => 'Order Updated',
     ];
 
+    private ResourceConnection $resource;
+    private Json $json;
+    private LoggerInterface $webhookLogger;
     private AdapterInterface $connection;
 
     public function __construct(
-        private readonly ResourceConnection $resource,
-        private readonly Json $json,
-        private readonly LoggerInterface $webhookLogger,
+        ResourceConnection $resource,
+        Json $json,
+        LoggerInterface $webhookLogger
     ) {
-        $this->connection = $resource->getConnection();
+        $this->resource       = $resource;
+        $this->json           = $json;
+        $this->webhookLogger  = $webhookLogger;
+        $this->connection     = $resource->getConnection();
     }
 
     // -------------------------------------------------------------------------
@@ -80,14 +86,14 @@ class WebhookHelper
      */
     public function logWebhook(
         string $eventType,
-        array|string $payload,
+               $payload,
         ?string $apiKeyFingerprint = null,
         bool $signatureVerified = false,
         ?string $orderId = null,
         ?string $magentoOrderId = null,
         bool $success = false,
-        ?string $message = null,
-    ): int|false {
+        ?string $message = null
+    ) {
         try {
             if (is_array($payload)) {
                 $payload = $this->json->serialize($payload);
@@ -163,22 +169,8 @@ class WebhookHelper
 
             $this->webhookLogger->debug('[Amwal] Signed payload candidate', ['value' => $candidateStr]);
 
-            // Try salt=222 (Python PSS.MAX_LENGTH for 2048-bit + SHA-256),
-            // then salt=32 (SHA-256 digest length) as a fallback.
-            foreach ([222, 32] as $salt) {
-                $verified = $rsaPublicKey
-                    ->withPadding(RSA::SIGNATURE_PSS)
-                    ->withHash('sha256')
-                    ->withMGFHash('sha256')
-                    ->withSaltLength($salt)
-                    ->verify($candidateStr, $signatureBytes);
-
-                if ($verified) {
-                    $this->webhookLogger->info("[Amwal] ✓ Signature VALID (salt=$salt)");
-                    return true;
-                }
-
-                $this->webhookLogger->warning("[Amwal] ✗ Signature failed (salt=$salt)");
+            if ($this->verifyPss($rsaPublicKey, $candidateStr, $signatureBytes)) {
+                return true;
             }
 
             $this->webhookLogger->error('[Amwal] ✗ Signature verification failed', [
@@ -201,6 +193,33 @@ class WebhookHelper
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Attempt PSS verification with salt=222 (Python PSS.MAX_LENGTH for a
+     * 2048-bit key + SHA-256) and fall back to salt=32 (SHA-256 digest length).
+     *
+     * @param \phpseclib3\Crypt\RSA\PublicKey $key
+     */
+    private function verifyPss($key, string $message, string $signature): bool
+    {
+        foreach ([222, 32] as $salt) {
+            $ok = $key
+                ->withPadding(RSA::SIGNATURE_PSS)
+                ->withHash('sha256')
+                ->withMGFHash('sha256')
+                ->withSaltLength($salt)
+                ->verify($message, $signature);
+
+            if ($ok) {
+                $this->webhookLogger->info("[Amwal] ✓ Signature VALID (salt=$salt)");
+                return true;
+            }
+
+            $this->webhookLogger->warning("[Amwal] ✗ Signature failed (salt=$salt)");
+        }
+
+        return false;
+    }
 
     /**
      * Extract and serialize the 7 signed fields from the raw webhook body.
@@ -271,7 +290,7 @@ class WebhookHelper
     private function loadRsaPublicKey(string $publicKey): ?\phpseclib3\Crypt\RSA\PublicKey
     {
         $publicKey = trim($publicKey);
-        if (!str_contains($publicKey, '-----BEGIN')) {
+        if (strpos($publicKey, '-----BEGIN') === false) {
             $this->webhookLogger->error(
                 '[Amwal] Public key missing PEM BEGIN marker. Starts with: ' . substr($publicKey, 0, 40)
             );
