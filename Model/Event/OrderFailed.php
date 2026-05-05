@@ -305,7 +305,7 @@ class OrderFailed implements HandlerInterface
     {
         $createdAt = strtotime((string)$order->getCreatedAt());
         if (!$createdAt) {
-            sleep($windowSeconds);
+            sleep($windowSeconds); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
             return;
         }
 
@@ -317,7 +317,7 @@ class OrderFailed implements HandlerInterface
                 "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
                 "Waiting {$remaining}s more to allow frontend redirect to complete."
             );
-            sleep($remaining);
+            sleep($remaining); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
         } else {
             $this->logger->info(
                 "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
