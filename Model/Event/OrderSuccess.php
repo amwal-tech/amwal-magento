@@ -131,6 +131,8 @@ class OrderSuccess implements HandlerInterface
         // Reload order from DB to get the freshest state (another process may have already updated it)
         $order = $this->orderRepository->get($order->getId());
 
+        $this->waitForFrontendRedirect($order);
+
         if ($this->shouldSkipProcessing($order)) {
             return;
         }
@@ -367,6 +369,39 @@ class OrderSuccess implements HandlerInterface
         }
 
         $this->logger->info("All field validation passed for order #{$order->getIncrementId()}");
+    }
+
+    /**
+     * Wait only the remaining time needed for the frontend redirect to complete.
+     * Avoids a blind sleep by accounting for time already elapsed since order creation.
+     *
+     * @param Order $order
+     * @param int $windowSeconds Total window to guarantee (default: 15s)
+     * @return void
+     */
+    private function waitForFrontendRedirect(Order $order, int $windowSeconds = 15): void
+    {
+        $createdAt = strtotime((string)$order->getCreatedAt());
+        if (!$createdAt) {
+            sleep($windowSeconds); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
+            return;
+        }
+    
+        $elapsed = time() - $createdAt;
+        $remaining = $windowSeconds - $elapsed;
+
+        if ($remaining > 0) {
+            $this->logger->info(
+                "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
+                "Waiting {$remaining}s more to allow frontend redirect to complete."
+            );
+            sleep($remaining); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
+        } else {
+            $this->logger->info(
+                "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
+                "No wait needed — frontend redirect window already passed."
+            );
+        }
     }
 
     /**
