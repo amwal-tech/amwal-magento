@@ -163,6 +163,7 @@ class Webhook implements WebHookInterface
     private function logWebhookReceived(array $data): void
     {
         $this->logger->info('Amwal webhook received: ' . $this->json->serialize($data));
+        $this->logger->info('Amwal webhook headers: ' . $this->json->serialize($this->request->getHeaders()));
         $this->logger->info('X-Signature: ' . $this->request->getHeader('X-Signature'));
         $this->logger->info('X-API-Key: ' . $this->request->getHeader('X-API-Key'));
     }
@@ -184,20 +185,18 @@ class Webhook implements WebHookInterface
 
         $signature = $this->request->getHeader('X-Signature');
         $eventType = $data['event_type'] ?? 'unknown';
-        $orderId = $data['id'] ?? null;
+        $orderId = $data['data']['id'] ?? $data['id'] ?? null;
+        $magentoOrderId = $data['data']['ref_id'] ?? null;
         $apiKeyFingerprint = $this->request->getHeader('X-API-Key') ?: 'missing';
 
-        // Get private key for verification
-        $privateKey = $this->config->getWebhookPrivateKey();
-        if (!$privateKey) {
-            throw new LocalizedException(__('Missing webhook private key configuration'));
+        // Get public key for verification
+        $publicKey = $this->config->getWebhookPublicKey();
+        if (!$publicKey) {
+            throw new LocalizedException(__('Missing webhook public key configuration'));
         }
 
         // Verify signature
-        $signatureVerified = $this->webhookHelper->verifySignature($payload, $signature, $privateKey);
-
-        // Validate API key fingerprint
-        $this->validateApiKeyFingerprint($apiKeyFingerprint, $data, $payload);
+        $signatureVerified = $this->webhookHelper->verifySignature($payload, $signature, $publicKey);
 
         // Log the webhook validation result
         $logId = $this->webhookHelper->logWebhook(
@@ -206,7 +205,7 @@ class Webhook implements WebHookInterface
             $apiKeyFingerprint,
             $signatureVerified,
             $orderId,
-            null,
+            $magentoOrderId,
             $signatureVerified,
             $signatureVerified ? 'Signature verified' : 'Invalid or missing signature'
         );
@@ -218,65 +217,6 @@ class Webhook implements WebHookInterface
         return true;
     }
 
-    /**
-     * Validate API key fingerprint
-     *
-     * @param string $apiKeyFingerprint
-     * @param array $data
-     * @param string $payload
-     * @throws LocalizedException
-     * @return void
-     */
-    private function validateApiKeyFingerprint(string $apiKeyFingerprint, array $data, string $payload): void
-    {
-        if (!$apiKeyFingerprint) {
-            throw new LocalizedException(__('Missing API key fingerprint'));
-        }
-
-        $configApiKeyFingerprint = $this->config->getApiKeyFingerprint();
-
-        // Validate if configured
-        if ($configApiKeyFingerprint && $apiKeyFingerprint !== $configApiKeyFingerprint) {
-            $this->logValidationFailure(
-                $data['event_type'] ?? 'unknown',
-                $payload,
-                $apiKeyFingerprint,
-                $data['order_id'] ?? null,
-                'API key fingerprint mismatch'
-            );
-
-            throw new LocalizedException(__('Invalid API key fingerprint'));
-        }
-    }
-
-    /**
-     * Log webhook validation failure
-     *
-     * @param string $eventType
-     * @param string $payload
-     * @param string $apiKeyFingerprint
-     * @param string|null $orderId
-     * @param string $errorMessage
-     * @return string Log ID
-     */
-    private function logValidationFailure(
-        string $eventType,
-        string $payload,
-        string $apiKeyFingerprint,
-        ?string $orderId,
-        string $errorMessage
-    ): string {
-        return $this->webhookHelper->logWebhook(
-            $eventType,
-            $payload,
-            $apiKeyFingerprint,
-            false,
-            $orderId,
-            null,
-            false,
-            $errorMessage
-        );
-    }
 
     /**
      * Process webhook event based on type

@@ -120,6 +120,16 @@
             <argument name="logger" xsi:type="object">AmwalWebhookLogger</argument>
         </arguments>
     </type>
+    <type name="Amwal\Payments\Model\Event\OrderUpdated">
+        <arguments>
+            <argument name="logger" xsi:type="object">AmwalWebhookLogger</argument>
+        </arguments>
+    </type>
+    <type name="Amwal\Payments\Model\WebhookHelper">
+        <arguments>
+            <argument name="webhookLogger" xsi:type="object">AmwalWebhookLogger</argument>
+        </arguments>
+    </type>
 
     <!-- Interface preferences -->
     <preference for="Amwal\Payments\Api\Data\AmwalOrderItemInterface" type="Amwal\Payments\Model\Data\AmwalOrderItem"/>

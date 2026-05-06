@@ -1,205 +1,946 @@
 <?php
-/** @var $block \Amwal\Payments\Block\Adminhtml\Order\View\Tab */
-
-// Retrieve the JSON data from the block.
-$amwalOrderDataJson = $block->getAmwalOrderData();
-$orderData = $block->getOrderData();
-$amwalOrderData = [];
-
-// Decode the JSON data into an associative array and check for errors.
-if ($amwalOrderDataJson) {
-    $amwalOrderData = json_decode($amwalOrderDataJson, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        // If decoding fails, default to an empty array.
-        $amwalOrderData = [];
-    }
-}
-
-// Safely extract the "error" information from order_details, if available.
-$orderErrors = [];
-if (!empty($amwalOrderData['order_details']['error']) && is_array($amwalOrderData['order_details']['error'])) {
-    $orderErrors = $amwalOrderData['order_details']['error'];
-}
-
 /**
- * Helper lambda to format values for display.
- * Converts arrays to a JSON string and casts other types to string.
+ * Amwal Order Summary Tab — Admin Template
  *
- * @param mixed $value
- * @return string
+ * @var \Amwal\Payments\Block\Adminhtml\Order\View\Tab\AmwalTab $block
  */
-$getFormattedValue = function ($value) use ($block): string {
-    if (is_array($value)) {
-        return $block->escapeHtml(json_encode($value, JSON_PRETTY_PRINT));
-    }
-    return $block->escapeHtml((string)$value);
-};
 
-// Determine the Amwal order status and merge with failure reason if present.
-$status = $amwalOrderData['status'] ?? __('N/A');
-$hasFailure = !empty($amwalOrderData['failure_reason']);
-if ($hasFailure) {
-    $status .= ' - ' . $amwalOrderData['failure_reason'];
-}
-
-// Choose a text color based on whether there's a failure.
-$statusColor = $hasFailure ? 'red' : 'green';
-
-// Retrieve the store order status from the current Magento order.
+$amwalData = $block->getDecodedAmwalData();
+$orderData = $block->getOrderData();
 $currentOrder = $block->getCurrentOrder();
-$storeStatus = $currentOrder ? $currentOrder->getStatus() : __('N/A');
+$storeStatus = $currentOrder ? $currentOrder->getStatus() : '';
 
-// Determine if we need to show the inline update button.
-$showUpdateButton = (($amwalOrderData['status'] ?? '') === 'success' && $storeStatus !== 'processing');
+// SVG helper for inline icons
+$svgChevron = '';
 ?>
-<div class="fieldset-wrapper">
-    <div class="fieldset-wrapper-title">
-        <span class="title"><?= $block->escapeHtml(__('Amwal Order Summary')) ?></span>
+
+<?php if (empty($amwalData)): ?>
+    <!-- No Data State -->
+    <div class="amwal-no-data">
+        <svg class="amwal-no-data__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 12h6m-3-3v6m-7 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <div class="amwal-no-data__title"><?= $block->escapeHtml(__('No Amwal Order Data')) ?></div>
+        <div class="amwal-no-data__text"><?= $block->escapeHtml(__('No Amwal payment data is available for this order.')) ?></div>
     </div>
-    <table class="data-table admin__table-secondary">
-        <thead>
-        <tr>
-            <th><?= $block->escapeHtml(__('Attribute')) ?></th>
-            <th><?= $block->escapeHtml(__('Value')) ?></th>
-            <th><?= $block->escapeHtml(__('Actions')) ?></th>
-        </tr>
-        <tbody>
-        <?php if (!empty($amwalOrderData)): ?>
-            <tr>
-                <td colspan="2"><strong><?= $block->escapeHtml(__('Order Details')) ?></strong></td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Order ID')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['id'] ?? __('N/A')) ?></td>
-                <td>
-                    <a href="<?= $block->escapeUrl($block->getAmwalOrderUrl($amwalOrderData['id'] ?? '')) ?>"
-                       target="_blank">
-                        <?= $block->escapeHtml(__('View in Amwal API')) ?>
-                    </a>
-                </td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Transaction Type')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['type'] ?? __('N/A')) ?></td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Order Status')) ?></th>
-                <td>
-                    <span style="color: <?= $block->escapeHtmlAttr($statusColor) ?>;">
-                        <?= $getFormattedValue($status) ?>
+<?php else: ?>
+<div class="amwal-tab-container">
+
+    <!-- ========== HEADER BAR ========== -->
+    <div class="amwal-tab-header">
+        <div class="amwal-tab-header__logo">
+            <img class="amwal-logo" alt="amwal" src="<?= $block->escapeUrl($block->getViewFileUrl('Amwal_Payments::images/amwal.png')) ?>"/>
+        </div>
+
+        <div class="amwal-tab-header__actions">
+            <?php $type = $amwalData['type'] ?? ''; ?>
+            <?php if ($type): ?>
+                <span class="amwal-type-pill <?= $block->escapeHtmlAttr($block->getTypeBadgeClass($type)) ?>">
+                    <?= $block->escapeHtml($type) ?>
+                </span>
+            <?php endif; ?>
+
+            <?php $status = $amwalData['status'] ?? ''; ?>
+            <span class="amwal-badge <?= $block->escapeHtmlAttr($block->getStatusBadgeClass($status)) ?>">
+                <?= $block->escapeHtml($status ?: (string)__('N/A')) ?>
+            </span>
+
+            <?php if ($block->getAmwalOrderUrl()): ?>
+                <a href="<?= $block->escapeUrl($block->getAmwalOrderUrl()) ?>"
+                   target="_blank" class="amwal-btn amwal-btn--outline amwal-btn--sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    <?= $block->escapeHtml(__('View in Amwal')) ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if ($block->shouldShowUpdateButton()): ?>
+                <button type="button" class="amwal-btn amwal-btn--primary amwal-btn--sm amwal-order-status-update">
+                    <?= $block->escapeHtml(__('Update Order Status')) ?>
+                </button>
+            <?php endif; ?>
+
+            <?php if (!empty($amwalData['id'])): ?>
+                <button type="button"
+                        class="amwal-btn amwal-btn--outline amwal-btn--sm amwal-resend-webhook-btn"
+                        title="<?= $block->escapeHtmlAttr(__('Resend the webhook for this transaction to re-trigger order processing')) ?>">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+                    </svg>
+                    <?= $block->escapeHtml(__('Resend Webhook')) ?>
+                </button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- ========== SECTION: Transaction Overview ========== -->
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="18" rx="2"/>
+                    <line x1="2" y1="9" x2="22" y2="9"/>
+                </svg>
+                <?= $block->escapeHtml(__('Transaction Overview')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div class="amwal-kv-grid">
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Amwal Order ID')) ?></span>
+                    <span class="amwal-kv-value amwal-kv-value--mono"><?= $block->escapeHtml($amwalData['id'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Reference ID')) ?></span>
+                    <span class="amwal-kv-value amwal-kv-value--mono"><?= $block->escapeHtml($amwalData['ref_id'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Magento Order ID')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['order_details']['order_id'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Status')) ?></span>
+                    <span class="amwal-kv-value">
+                        <span class="amwal-badge <?= $block->escapeHtmlAttr($block->getStatusBadgeClass($amwalData['status'] ?? '')) ?>">
+                            <?= $block->escapeHtml($amwalData['status'] ?? (string)__('N/A')) ?>
+                        </span>
+                        <?php if (!empty($amwalData['failure_reason'])): ?>
+                            <div class="amwal-failure-reason"><?= $block->escapeHtml($amwalData['failure_reason']) ?></div>
+                        <?php endif; ?>
                     </span>
-                </td>
-                <td>
-                    <?php if ($showUpdateButton): ?>
-                        <button type="button" class="action-default amwal-order-status-update" style="margin-left: 10px;">
-                            <?= $block->escapeHtml(__('Update Order Status')) ?>
-                        </button>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Transaction Type')) ?></span>
+                    <span class="amwal-kv-value">
+                        <span class="amwal-type-pill <?= $block->escapeHtmlAttr($block->getTypeBadgeClass($amwalData['type'] ?? '')) ?>">
+                            <?= $block->escapeHtml($amwalData['type'] ?? (string)__('N/A')) ?>
+                        </span>
+                    </span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Created At')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatDate($amwalData['created_at'] ?? null)) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Webhook Processed')) ?></span>
+                    <span class="amwal-kv-value">
+                        <?php $webhookProcessed = !empty($orderData['amwal_webhook_processed']); ?>
+                        <span class="amwal-badge <?= $webhookProcessed ? 'amwal-badge--success' : 'amwal-badge--warning' ?>">
+                            <?= $block->escapeHtml($webhookProcessed ? (string)__('Yes') : (string)__('No')) ?>
+                        </span>
+                    </span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Store Order Status')) ?></span>
+                    <span class="amwal-kv-value">
+                        <span class="amwal-badge <?= $block->escapeHtmlAttr($block->getStatusBadgeClass($storeStatus)) ?>">
+                            <?= $block->escapeHtml($storeStatus ?: (string)__('N/A')) ?>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION: Payment Details ========== -->
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+                <?= $block->escapeHtml(__('Payment Details')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <?php $cardDisplay = $block->getMaskedCardDisplay(); ?>
+            <?php if ($cardDisplay): ?>
+                <div style="margin-bottom: 16px;">
+                    <span class="amwal-kv-label" style="display:block; margin-bottom:6px;"><?= $block->escapeHtml(__('Card')) ?></span>
+                    <div class="amwal-card-display">
+                        <?php
+                        $maskedParts = explode(' — ', $cardDisplay);
+                        echo $block->escapeHtml($maskedParts[0] ?? '');
+                        if (!empty($maskedParts[1])): ?>
+                            <span class="amwal-card-display__brand"><?= $block->escapeHtml($maskedParts[1]) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <div class="amwal-kv-grid">
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Payment Method')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['payment_method'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Payment Option')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['payment_option'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Payment Brand')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['paymentBrand'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Funding Method')) ?></span>
+                    <span class="amwal-kv-value" style="text-transform: capitalize;"><?= $block->escapeHtml($amwalData['funding_method'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <?php if (!empty($amwalData['issuer'])): ?>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Issuer')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['issuer']) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($amwalData['card_holder'])): ?>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Card Holder')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['card_holder']) ?></span>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION: Financial Summary ========== -->
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                </svg>
+                <?= $block->escapeHtml(__('Financial Summary')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div class="amwal-financial-summary">
+                <div class="amwal-financial-row">
+                    <span class="amwal-financial-row__label"><?= $block->escapeHtml(__('Subtotal')) ?></span>
+                    <span class="amwal-financial-row__value"><?= $block->escapeHtml($block->formatCurrency($amwalData['amount'] ?? 0)) ?></span>
+                </div>
+
+                <?php $discount = (float)($amwalData['discount'] ?? 0); ?>
+                <?php if ($discount != 0): ?>
+                <div class="amwal-financial-row amwal-financial-row--discount">
+                    <span class="amwal-financial-row__label"><?= $block->escapeHtml(__('Discount')) ?></span>
+                    <span class="amwal-financial-row__value">-<?= $block->escapeHtml($block->formatCurrency($discount)) ?></span>
+                </div>
+                <?php endif; ?>
+
+                <div class="amwal-financial-row">
+                    <span class="amwal-financial-row__label"><?= $block->escapeHtml(__('Shipping')) ?></span>
+                    <span class="amwal-financial-row__value"><?= $block->escapeHtml($block->formatCurrency($amwalData['shipping'] ?? 0)) ?></span>
+                </div>
+
+                <div class="amwal-financial-row">
+                    <span class="amwal-financial-row__label"><?= $block->escapeHtml(__('Taxes')) ?></span>
+                    <span class="amwal-financial-row__value"><?= $block->escapeHtml($block->formatCurrency($amwalData['taxes'] ?? 0)) ?></span>
+                </div>
+
+                <?php $fees = (float)($amwalData['fees'] ?? 0); ?>
+                <?php if ($fees != 0): ?>
+                <div class="amwal-financial-row">
+                    <span class="amwal-financial-row__label"><?= $block->escapeHtml(__('Fees')) ?></span>
+                    <span class="amwal-financial-row__value"><?= $block->escapeHtml($block->formatCurrency($fees)) ?></span>
+                </div>
+                <?php endif; ?>
+
+                <?php $convenienceFee = (float)($amwalData['convenience_fee'] ?? 0); ?>
+                <?php if ($convenienceFee != 0): ?>
+                <div class="amwal-financial-row">
+                    <span class="amwal-financial-row__label"><?= $block->escapeHtml(__('Convenience Fee')) ?></span>
+                    <span class="amwal-financial-row__value"><?= $block->escapeHtml($block->formatCurrency($convenienceFee)) ?></span>
+                </div>
+                <?php endif; ?>
+
+                <hr class="amwal-financial-divider">
+
+                <div class="amwal-financial-total">
+                    <span><?= $block->escapeHtml(__('Total')) ?></span>
+                    <span class="amwal-financial-total__value"><?= $block->escapeHtml($block->formatCurrency($amwalData['total_amount'] ?? 0)) ?></span>
+                </div>
+
+                <?php if (isset($amwalData['payment_amount']) && $amwalData['payment_amount'] != ($amwalData['total_amount'] ?? 0)): ?>
+                <div class="amwal-financial-row" style="margin-top: 8px; border-top: 1px dashed var(--amwal-border); padding-top: 12px;">
+                    <span class="amwal-financial-row__label"><?= $block->escapeHtml(__('Payment Amount')) ?></span>
+                    <span class="amwal-financial-row__value" style="font-weight: 600;"><?= $block->escapeHtml($block->formatCurrency($amwalData['payment_amount'])) ?></span>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION: Installment (conditional) ========== -->
+    <?php if ($block->hasInstallment()): ?>
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <?= $block->escapeHtml(__('Installment Details')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div class="amwal-kv-grid">
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Duration')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['installment_duration'] . ' ' . (string)__('Months')) ?></span>
+                </div>
+                <?php if (!empty($amwalData['installment_status'])): ?>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Installment Status')) ?></span>
+                    <span class="amwal-kv-value">
+                        <span class="amwal-badge <?= $block->escapeHtmlAttr($block->getStatusBadgeClass($amwalData['installment_status'])) ?>">
+                            <?= $block->escapeHtml($amwalData['installment_status']) ?>
+                        </span>
+                    </span>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- ========== SECTION: Customer Information ========== -->
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <?= $block->escapeHtml(__('Customer Information')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div class="amwal-kv-grid">
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Name')) ?></span>
+                    <span class="amwal-kv-value">
+                        <?= $block->escapeHtml(trim(($amwalData['client_first_name'] ?? '') . ' ' . ($amwalData['client_last_name'] ?? '')) ?: (string)__('N/A')) ?>
+                    </span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Email')) ?></span>
+                    <span class="amwal-kv-value">
+                        <?php if (!empty($amwalData['client_email'])): ?>
+                            <a href="mailto:<?= $block->escapeHtmlAttr($amwalData['client_email']) ?>"><?= $block->escapeHtml($amwalData['client_email']) ?></a>
+                        <?php else: ?>
+                            <?= $block->escapeHtml((string)__('N/A')) ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Phone')) ?></span>
+                    <span class="amwal-kv-value">
+                        <?php if (!empty($amwalData['client_phone_number'])): ?>
+                            <a href="tel:<?= $block->escapeHtmlAttr($amwalData['client_phone_number']) ?>"><?= $block->escapeHtml($amwalData['client_phone_number']) ?></a>
+                        <?php else: ?>
+                            <?= $block->escapeHtml((string)__('N/A')) ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Registered Customer')) ?></span>
+                    <span class="amwal-kv-value">
+                        <?php $isRegistered = !empty($amwalData['client_registered']); ?>
+                        <span class="amwal-badge <?= $isRegistered ? 'amwal-badge--success' : 'amwal-badge--default' ?>">
+                            <?= $block->escapeHtml($isRegistered ? (string)__('Yes') : (string)__('No')) ?>
+                        </span>
+                        <?php if (!empty($amwalData['has_new_registration'])): ?>
+                            <span class="amwal-badge amwal-badge--info" style="margin-left: 6px;"><?= $block->escapeHtml((string)__('New Registration')) ?></span>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION: Shipping & Address ========== -->
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <?= $block->escapeHtml(__('Shipping & Address')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div class="amwal-two-col">
+                <div>
+                    <div class="amwal-two-col__block-title"><?= $block->escapeHtml(__('Shipping Method')) ?></div>
+                    <?php $shipping = $amwalData['shipping_details'] ?? []; ?>
+                    <?php if (!empty($shipping)): ?>
+                        <div class="amwal-kv-grid" style="border: 1px solid #f3f4f6; border-radius: 6px; overflow: hidden;">
+                            <div class="amwal-kv-item">
+                                <span class="amwal-kv-label"><?= $block->escapeHtml(__('Method')) ?></span>
+                                <span class="amwal-kv-value"><?= $block->escapeHtml($shipping['label'] ?? (string)__('N/A')) ?></span>
+                            </div>
+                            <div class="amwal-kv-item">
+                                <span class="amwal-kv-label"><?= $block->escapeHtml(__('Price')) ?></span>
+                                <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($shipping['price'] ?? 0)) ?></span>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <span style="color: var(--amwal-muted); font-size: 14px;"><?= $block->escapeHtml((string)__('N/A')) ?></span>
                     <?php endif; ?>
-                </td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Webhook Processed')) ?></th>
-                <td><?= $getFormattedValue($orderData['amwal_webhook_processed'] ? __('Yes') : __('No')) ?></td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Payment Method')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['payment_method'] ?? __('N/A')) ?></td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Payment Brand')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['paymentBrand'] ?? __('N/A')) ?></td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Payment Type')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['payment_option'] ?? __('N/A')) ?></td>
-            </tr>
-            <?php if ($amwalOrderData['installment_duration'] !== null): ?>
-            <tr>
-                <th><?= $block->escapeHtml(__('Installment Duration')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['installment_duration']. ' Months' ?? __('N/A')) ?></td>
-            </tr>
-            <?php endif; ?>
-            <tr>
-                <th><?= $block->escapeHtml(__('Order Position')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['order_details']['order_position'] ?? __('N/A')) ?></td>
-            </tr>
-            <tr>
-                <th><?= $block->escapeHtml(__('Plugin Version')) ?></th>
-                <td><?= $getFormattedValue($amwalOrderData['order_details']['plugin_version'] ?? __('N/A')) ?></td>
-                <td>
-                    <a href="https://github.com/amwal-tech/amwal-magento/releases" target="_blank">
-                        <?= $block->escapeHtml(__('Check for Updates')) ?>
-                    </a>
-                </td>
-            </tr>
-            <?php if (!empty($orderErrors)): ?>
-                <tr>
-                    <td colspan="2"><strong><?= $block->escapeHtml(__('Order Reported Errors')) ?></strong></td>
-                </tr>
-                <?php foreach ($orderErrors as $error): ?>
-                    <tr style="background-color: #ffcccc;">
-                        <th><?= $getFormattedValue($error['type'] ?? __('Error')) ?></th>
-                        <td><?= $getFormattedValue($error['errorMsg'] ?? $error['description'] ?? __('N/A')) ?></td>
-                        <td>
-                            <a href="mailto:support@amwal.com?subject=Support Request for Order <?= urlencode($amwalOrderData['id'] ?? '') ?>" target="_blank">
-                                <?= $block->escapeHtml(__('Contact Support')) ?>
-                            </a>
-                        </td>
+                </div>
+                <div>
+                    <div class="amwal-two-col__block-title"><?= $block->escapeHtml(__('Delivery Address')) ?></div>
+                    <div class="amwal-address-block"><?= $block->escapeHtml($block->getFormattedAddress()) ?></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION: Order Items ========== -->
+    <?php $orderItems = $block->getOrderItems(); ?>
+    <?php if (!empty($orderItems)): ?>
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+                <?= $block->escapeHtml(__('Order Items')) ?>
+                <span class="amwal-badge amwal-badge--default" style="font-size: 11px;"><?= count($orderItems) ?></span>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content" style="padding: 0;">
+            <table class="amwal-items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;"></th>
+                        <th><?= $block->escapeHtml(__('Product')) ?></th>
+                        <th style="width: 80px; text-align: center;"><?= $block->escapeHtml(__('Qty')) ?></th>
+                        <th style="width: 120px; text-align: right;"><?= $block->escapeHtml(__('Total')) ?></th>
                     </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="2"><?= $block->escapeHtml(__('No errors reported in order details.')) ?></td>
-                </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($orderItems as $item): ?>
+                    <tr>
+                        <td>
+                            <?php if (!empty($item['image'])): ?>
+                                <img src="<?= $block->escapeUrl($item['image']) ?>"
+                                     alt="<?= $block->escapeHtmlAttr($item['name'] ?? '') ?>"
+                                     class="amwal-items-table__img">
+                            <?php endif; ?>
+                        </td>
+                        <td class="amwal-items-table__name">
+                            <?php if (!empty($item['url'])): ?>
+                                <a href="<?= $block->escapeUrl($item['url']) ?>" target="_blank">
+                                    <?= $block->escapeHtml($item['name'] ?? (string)__('N/A')) ?>
+                                </a>
+                            <?php else: ?>
+                                <?= $block->escapeHtml($item['name'] ?? (string)__('N/A')) ?>
+                            <?php endif; ?>
+                        </td>
+                        <td style="text-align: center;"><?= (int)($item['quantity'] ?? 0) ?></td>
+                        <td style="text-align: right; font-family: monospace;"><?= $block->escapeHtml($block->formatCurrency($item['total'] ?? 0)) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <!-- Order Meta -->
+            <div class="amwal-meta-row" style="padding: 12px 20px; border-top: 1px solid #f3f4f6;">
+                <span>
+                    <strong><?= $block->escapeHtml(__('Order Position:')) ?></strong>
+                    <?= $block->escapeHtml($amwalData['order_details']['order_position'] ?? (string)__('N/A')) ?>
+                </span>
+                <span class="amwal-meta-row__separator"></span>
+                <span>
+                    <strong><?= $block->escapeHtml(__('Plugin Version:')) ?></strong>
+                    <?= $block->escapeHtml($amwalData['order_details']['plugin_version'] ?? (string)__('N/A')) ?>
+                    <a href="https://github.com/amwal-tech/amwal-magento/releases" target="_blank" class="amwal-link" style="margin-left: 4px;">
+                        <?= $block->escapeHtml(__('Check Updates')) ?>
+                    </a>
+                </span>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- ========== SECTION: Refund Info (conditional) ========== -->
+    <?php if ($block->hasRefundInfo()): ?>
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+                </svg>
+                <?= $block->escapeHtml(__('Refund Information')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div class="amwal-kv-grid">
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Refunded Amount')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($block->formatCurrency($amwalData['refunded_amount'] ?? 0)) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Refundable')) ?></span>
+                    <span class="amwal-kv-value">
+                        <?php $isRefundable = !empty($amwalData['is_refundable']); ?>
+                        <span class="amwal-badge <?= $isRefundable ? 'amwal-badge--success' : 'amwal-badge--default' ?>">
+                            <?= $block->escapeHtml($isRefundable ? (string)__('Yes') : (string)__('No')) ?>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- ========== SECTION: Merchant Info (collapsed by default) ========== -->
+    <div class="amwal-section amwal-section--collapsed" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                <?= $block->escapeHtml(__('Merchant Information')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div class="amwal-kv-grid">
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Business Name')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['merchant_business_name'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('English Name')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['merchant_english_business_name'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Country')) ?></span>
+                    <span class="amwal-kv-value"><?= $block->escapeHtml($amwalData['merchant_country_code'] ?? (string)__('N/A')) ?></span>
+                </div>
+                <div class="amwal-kv-item">
+                    <span class="amwal-kv-label"><?= $block->escapeHtml(__('Domain')) ?></span>
+                    <span class="amwal-kv-value">
+                        <?php if (!empty($amwalData['merchant_domain'])): ?>
+                            <a href="<?= $block->escapeUrl($amwalData['merchant_domain']) ?>" target="_blank">
+                                <?= $block->escapeHtml($amwalData['merchant_domain']) ?>
+                            </a>
+                        <?php else: ?>
+                            <?= $block->escapeHtml((string)__('N/A')) ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION: Errors (conditional) ========== -->
+    <?php $orderErrors = $block->getOrderErrors(); ?>
+    <?php if (!empty($orderErrors)): ?>
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle style="background: #fef2f2; border-color: #fecaca;">
+            <h3 class="amwal-section__title" style="color: #991b1b;">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                <?= $block->escapeHtml(__('Order Errors')) ?>
+                <span class="amwal-badge amwal-badge--danger" style="font-size: 11px;"><?= count($orderErrors) ?></span>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <?php foreach ($orderErrors as $error): ?>
+            <div class="amwal-error-row">
+                <svg class="amwal-error-row__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div class="amwal-error-row__text">
+                    <?php if (!empty($error['type'])): ?>
+                        <span class="amwal-error-row__type"><?= $block->escapeHtml($error['type']) ?>:</span>
+                    <?php endif; ?>
+                    <?= $block->escapeHtml($error['errorMsg'] ?? $error['description'] ?? (string)__('Unknown error')) ?>
+                </div>
+                <a href="mailto:support@amwal.tech?subject=<?= urlencode('Support Request for Order ' . ($amwalData['id'] ?? '')) ?>"
+                   class="amwal-btn amwal-btn--outline amwal-btn--sm" style="flex-shrink: 0;">
+                    <?= $block->escapeHtml(__('Contact Support')) ?>
+                </a>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- ========== SECTION: Support & Troubleshooting ========== -->
+    <div class="amwal-section" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                <?= $block->escapeHtml(__('Support & Troubleshooting')) ?>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content">
+            <div style="display: flex; align-items: flex-start; gap: 16px; padding: 8px 0;">
+                <div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #ede9fe, #dbeafe); display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6d28d9" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 15px; color: #1e293b; margin-bottom: 4px;">
+                        <?= $block->escapeHtml(__('Need Help?')) ?>
+                    </div>
+                    <div style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 12px;">
+                        <?= $block->escapeHtml(__('If you are experiencing any issues with this order or need assistance with your Amwal integration, our support team is here to help. Please include the Amwal Order ID and Reference ID when contacting us for faster resolution.')) ?>
+                    </div>
+                    <?php
+                    $supportSubject = 'Support Request - Order ' . ($amwalData['id'] ?? 'N/A');
+                    $supportBodyText =
+                        "Hi Amwal Support,\n\n"
+                        . "I need assistance with the following order:\n\n"
+                        . "Amwal Order ID: " . ($amwalData['id'] ?? 'N/A') . "\n"
+                        . "Reference ID: " . ($amwalData['ref_id'] ?? 'N/A') . "\n"
+                        . "Magento Order ID: " . ($amwalData['order_details']['order_id'] ?? 'N/A') . "\n"
+                        . "Amwal Status: " . ($amwalData['status'] ?? 'N/A') . "\n"
+                        . "Store Status: " . ($storeStatus ?: 'N/A') . "\n"
+                        . "Plugin Version: " . ($amwalData['order_details']['plugin_version'] ?? 'N/A') . "\n\n"
+                        . "Issue Description:\n"
+                        . "[Please describe your issue here]\n\n"
+                        . "Thank you.";
+                    ?>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                        <button type="button"
+                                id="amwal-support-email-btn"
+                                class="amwal-btn amwal-btn--primary amwal-btn--sm"
+                                data-support-subject="<?= $block->escapeHtmlAttr($supportSubject) ?>"
+                                data-support-body="<?= $block->escapeHtmlAttr($supportBodyText) ?>">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            <?= $block->escapeHtml(__('Email Amwal Support')) ?>
+                        </button>
+                        <button type="button"
+                                id="amwal-support-copy-btn"
+                                class="amwal-btn amwal-btn--outline amwal-btn--sm"
+                                data-support-body="<?= $block->escapeHtmlAttr($supportBodyText) ?>"
+                                title="<?= $block->escapeHtmlAttr(__('Copy support details to clipboard')) ?>">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                            <?= $block->escapeHtml(__('Copy Details')) ?>
+                        </button>
+                        <span style="font-size: 13px; color: #94a3b8;">
+                            support@amwal.tech
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <?php if (!empty($orderErrors)): ?>
+            <div style="margin-top: 16px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; color: #991b1b; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="flex-shrink: 0;">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <?= $block->escapeHtml(__('This order has errors. We recommend contacting support with the details above for quick resolution.')) ?>
+            </div>
             <?php endif; ?>
-        <?php else: ?>
-            <tr>
-                <td colspan="2"><?= $block->escapeHtml(__('No Amwal order data available.')) ?></td>
-            </tr>
-        <?php endif; ?>
-        </tbody>
-    </table>
-</div>
+        </div>
+    </div>
 
+    <!-- ========== SECTION: Webhook Logs ========== -->
+    <?php $webhookLogs = $block->getWebhookLogs(); ?>
+    <div class="amwal-section amwal-section--collapsed" data-amwal-section>
+        <div class="amwal-section__header" data-amwal-toggle>
+            <h3 class="amwal-section__title">
+                <svg class="amwal-section__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+                </svg>
+                <?= $block->escapeHtml(__('Webhook Logs')) ?>
+                <span class="amwal-badge amwal-badge--default" style="font-size: 11px;"><?= count($webhookLogs) ?></span>
+            </h3>
+            <?= $svgChevron ?>
+        </div>
+        <div class="amwal-section__content" style="padding: 0;">
+            <?php if (empty($webhookLogs)): ?>
+                <div style="padding: 24px; text-align: center; color: var(--amwal-muted); font-size: 13px;">
+                    <?= $block->escapeHtml(__('No webhook logs found for this order.')) ?>
+                </div>
+            <?php else: ?>
+                <table class="amwal-webhook-logs-table">
+                    <thead>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Date')) ?></th>
+                            <th><?= $block->escapeHtml(__('Event')) ?></th>
+                            <th style="text-align: center;"><?= $block->escapeHtml(__('Verified')) ?></th>
+                            <th style="text-align: center;"><?= $block->escapeHtml(__('Success')) ?></th>
+                            <th><?= $block->escapeHtml(__('Message')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($webhookLogs as $log): ?>
+                        <tr>
+                            <td style="white-space: nowrap;"><?= $block->escapeHtml($block->formatDate($log['created_at'])) ?></td>
+                            <td style="font-weight: 600;"><?= $block->escapeHtml($log['event_type']) ?></td>
+                            <td style="text-align: center;">
+                                <span class="amwal-badge <?= $log['signature_verified'] ? 'amwal-badge--success' : 'amwal-badge--danger' ?>" style="padding: 2px 8px; font-size: 10px;">
+                                    <?= $block->escapeHtml($log['signature_verified'] ? __('Yes') : __('No')) ?>
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="amwal-badge <?= $log['success'] ? 'amwal-badge--success' : 'amwal-badge--danger' ?>" style="padding: 2px 8px; font-size: 10px;">
+                                    <?= $block->escapeHtml($log['success'] ? __('Yes') : __('No')) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="margin-bottom: 4px;"><?= $block->escapeHtml($log['message']) ?></div>
+                                <?php if (!empty($log['payload'])): ?>
+                                    <div class="amwal-payload-wrapper">
+                                        <div class="amwal-payload-toggle" data-amwal-payload-toggle>
+                                            <svg class="amwal-payload-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                            <?= $block->escapeHtml(__('View Payload')) ?>
+                                        </div>
+                                        <div class="amwal-payload-content">
+                                            <div class="amwal-payload-header">
+                                                <span class="amwal-payload-filename">payload.json</span>
+                                                <button type="button" class="amwal-payload-copy" data-amwal-copy-payload>
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                                                    </svg>
+                                                    <?= $block->escapeHtml(__('Copy')) ?>
+                                                </button>
+                                            </div>
+                                            <pre class="amwal-payload-pre"><?php
+                                                $decodedPayload = $block->jsonDecode($log['payload']);
+                                                echo $block->escapeHtml(json_encode($decodedPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                                            ?></pre>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+</div><!-- /.amwal-tab-container -->
+<?php endif; ?>
+
+<!-- JavaScript: Collapse toggle & Update Order Status -->
 <script>
-    require(['jquery', 'mage/translate'], function($, $t) {
-        var config = {
-            orderId: <?= json_encode($currentOrder ? $currentOrder->getIncrementId() : '') ?>,
-            amwalOrderId: <?= json_encode($amwalOrderData['id'] ?? '') ?>,
-            refId: <?= json_encode($amwalOrderData['ref_id'] ?? '') ?>,
-            amwalStatus: <?= json_encode($amwalOrderData['status'] ?? '') ?>,
-            storeStatus: <?= json_encode($storeStatus) ?>
-        };
+require(['jquery', 'mage/translate'], function($, $t) {
+    'use strict';
 
-        // Only attach the click handler if the Amwal order is successful and the store order isn't.
-        if (config.amwalStatus === 'success' && config.storeStatus !== 'processing') {
-            $(document).on('click', '.amwal-order-status-update', function () {
-                var requestData = {
+    // ---- Section collapse toggle ----
+    $(document).on('click', '[data-amwal-toggle]', function(e) {
+        e.preventDefault();
+        var $section = $(this).closest('[data-amwal-section]');
+        $section.toggleClass('amwal-section--collapsed');
+    });
+
+    // ---- Update Order Status ----
+    <?php
+    $amwalDataForJs = $block->getDecodedAmwalData();
+    $jsConfig = [
+        'orderId'      => $currentOrder ? $currentOrder->getIncrementId() : '',
+        'amwalOrderId' => $amwalDataForJs['id'] ?? '',
+        'refId'        => $amwalDataForJs['ref_id'] ?? '',
+        'amwalStatus'  => $amwalDataForJs['status'] ?? '',
+        'storeStatus'  => $storeStatus,
+    ];
+    ?>
+    var config = <?= json_encode($jsConfig) ?>;
+
+    // ---- Resend Webhook ----
+    var resendWebhookUrl = <?= json_encode($block->getResendWebhookUrl()) ?>;
+
+    $(document).on('click', '.amwal-resend-webhook-btn', function() {
+        var $btn = $(this);
+        var originalHtml = $btn.html();
+
+        if (!confirm($t('Are you sure you want to resend the webhook for this transaction? This will re-trigger webhook processing.'))) {
+            return;
+        }
+
+        $btn.prop('disabled', true).html(
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="amwal-spin"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> ' +
+            $t('Resending...')
+        );
+
+        $.ajax({
+            url: resendWebhookUrl,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                amwal_order_id: config.amwalOrderId,
+                magento_order_id: config.orderId,
+                form_key: window.FORM_KEY
+            },
+            success: function(data) {
+                if (data.success) {
+                    $btn.removeClass('amwal-btn--outline').addClass('amwal-btn--success');
+                    $btn.html(
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ' +
+                        $t('Webhook Resent!')
+                    );
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    alert(data.message || $t('Failed to resend webhook.'));
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            },
+            error: function(xhr) {
+                var msg = $t('An error occurred while resending the webhook.');
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.message) msg = resp.message;
+                } catch(e) {}
+                alert(msg);
+                $btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+
+    // Bind handler if the button exists (PHP shouldShowUpdateButton() controls visibility)
+    var failedStatuses = ['fail', 'failed', 'expired', 'cancelled'];
+    var pendingStatuses = ['pending', 'pending_payment'];
+    var shouldBind = (config.amwalStatus === 'success' && config.storeStatus !== 'processing')
+        || (failedStatuses.indexOf(config.amwalStatus) !== -1 && pendingStatuses.indexOf(config.storeStatus) !== -1);
+
+    if (shouldBind) {
+        $(document).on('click', '.amwal-order-status-update', function() {
+            var $btn = $(this);
+            $btn.prop('disabled', true).text($t('Updating...'));
+
+            fetch('/rest/V1/amwal/order/status', {
+                method: 'POST',
+                body: JSON.stringify({
                     order_id: config.orderId,
                     amwal_order_id: config.amwalOrderId,
                     ref_id: config.refId
-                };
+                }),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8'
+                }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.message) {
+                    alert(data.message);
+                }
+                location.reload();
+            })
+            .catch(function() {
+                alert($t('An error occurred while updating the order status.'));
+                $btn.prop('disabled', false).text($t('Update Order Status'));
+            });
+        });
+    }
 
-                fetch('/rest/V1/amwal/order/status', {
-                    method: 'POST',
-                    body: JSON.stringify(requestData),
-                    headers: {
-                        'Content-type': 'application/json; charset=UTF-8'
-                    }
-                })
-                    .then(function(response) {
-                        return response.json();
-                    })
-                    .then(function(data) {
-                        if (data.message) {
-                            alert(data.message);
-                        }
-                        location.reload();
-                    })
-                    .catch(function(error) {
-                        alert($t('An error occurred while updating the order status.'));
-                    });
+    // ---- Support: Email button ----
+    $(document).on('click', '#amwal-support-email-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var subject = encodeURIComponent($(this).data('support-subject') || '');
+        var body    = encodeURIComponent($(this).data('support-body') || '');
+        var mailtoUrl = 'mailto:support@amwal.tech?subject=' + subject + '&body=' + body;
+        window.location.href = mailtoUrl;
+    });
+
+    // ---- Support: Copy details button ----
+    $(document).on('click', '#amwal-support-copy-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $btn = $(this);
+        var bodyText = 'To: support@amwal.tech\nSubject: ' + ($('#amwal-support-email-btn').data('support-subject') || '') + '\n\n' + ($btn.data('support-body') || '');
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(bodyText).then(function() {
+                var origHtml = $btn.html();
+                $btn.html('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ' + $t('Copied!'));
+                setTimeout(function() { $btn.html(origHtml); }, 2000);
+            });
+        } else {
+            // Fallback for older browsers
+            var textarea = document.createElement('textarea');
+            textarea.value = bodyText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            var origHtml = $btn.html();
+            $btn.html('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ' + $t('Copied!'));
+            setTimeout(function() { $btn.html(origHtml); }, 2000);
+        }
+    });
+
+    // ---- Webhook Payload Toggle ----
+    $(document).on('click', '[data-amwal-payload-toggle]', function() {
+        var $wrapper = $(this).closest('.amwal-payload-wrapper');
+        $wrapper.toggleClass('amwal-payload-row--active');
+
+        var isVisible = $wrapper.hasClass('amwal-payload-row--active');
+        $(this).find('.amwal-payload-icon').css('transform', isVisible ? 'rotate(90deg)' : 'rotate(0deg)');
+    });
+
+    // ---- Webhook Payload Copy ----
+    $(document).on('click', '[data-amwal-copy-payload]', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $btn = $(this);
+        var $pre = $btn.closest('.amwal-payload-content').find('.amwal-payload-pre');
+        var payloadText = $pre.text();
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(payloadText).then(function() {
+                var originalHtml = $btn.html();
+                $btn.addClass('amwal-payload-copy--success').html('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!');
+                setTimeout(function() { $btn.removeClass('amwal-payload-copy--success').html(originalHtml); }, 2000);
             });
         }
     });
+});
 </script>

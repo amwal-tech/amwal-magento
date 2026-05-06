@@ -31,6 +31,7 @@ class HandlerFactory
     private const DEFAULT_HANDLERS = [
         'order.success' => OrderSuccess::class,
         'order.failed' => OrderFailed::class,
+        'order.updated' => OrderUpdated::class,
     ];
 
     /**

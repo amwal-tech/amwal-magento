@@ -36,7 +36,8 @@ class WebhookEvents extends Field
      */
     private array $availableEvents = [
         'order.success' => 'Order Success',
-        'order.failed' => 'Order Failed'
+        'order.failed' => 'Order Failed',
+        'order.updated' => 'Order Refunded',
     ];
 
     /**

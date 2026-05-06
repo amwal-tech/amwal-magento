@@ -13,6 +13,7 @@ use Magento\Payment\Gateway\Config\Config as GatewayConfig;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Shell\Driver as ShellDriver;
 
 /**
@@ -63,7 +64,7 @@ class Config
     public const XML_CONFIG_PATH_REGULAR_CHECKOUT_REDIRECT = 'payment/amwal_payments/regular_checkout_redirect';
     public const XML_CONFIG_PATH_REDIRECT_ON_LOAD_CLICK = 'payment/amwal_payments/redirect_on_load_click';
     public const XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT = 'payment/amwal_payments/webhook/api_key_fingerprint';
-    public const XML_CONFIG_PATH_WEBHOOK_PRIVATE_KEY = 'payment/amwal_payments/webhook/private_key';
+    public const XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY = 'payment/amwal_payments/webhook/public_key';
     public const XML_CONFIG_PATH_WEBHOOK_EVENTS = 'payment/amwal_payments/webhook/events';
     public const XML_CONFIG_PATH_WEBHOOK_ENABLED = 'payment/amwal_payments/webhook_enabled';
     public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
@@ -76,7 +77,7 @@ class Config
   /**
      * @var string
      */
-    const MODULE_VERSION = '1.0.44';
+    const MODULE_VERSION = '1.0.45';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
@@ -93,25 +94,31 @@ class Config
     /** @var ShellDriver */
     private ShellDriver $shell;
 
+    /** @var EncryptorInterface */
+    private EncryptorInterface $encryptor;
+
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param RegionCollectionFactory $regionCollectionFactory
      * @param DirectoryHelper $directoryHelper
      * @param ProductMetadataInterface $productMetadata
      * @param ShellDriver $shell
+     * @param EncryptorInterface $encryptor
      */
     public function __construct(
         ScopeConfigInterface    $scopeConfig,
         RegionCollectionFactory $regionCollectionFactory,
         DirectoryHelper         $directoryHelper,
         ProductMetadataInterface $productMetadata,
-        ShellDriver             $shell
+        ShellDriver             $shell,
+        EncryptorInterface      $encryptor
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->regionCollectionFactory = $regionCollectionFactory;
         $this->directoryHelper = $directoryHelper;
         $this->productMetadata = $productMetadata;
         $this->shell = $shell;
+        $this->encryptor = $encryptor;
     }
 
     /**
@@ -593,9 +600,13 @@ class Config
     /**
      * @return string|null
      */
-    public function getWebhookPrivateKey(): ?string
+    public function getWebhookPublicKey(): ?string
     {
-        return $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_PRIVATE_KEY, ScopeInterface::SCOPE_STORE);
+        $encryptedKey = $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY, ScopeInterface::SCOPE_STORE);
+        if (empty($encryptedKey)) {
+            return null;
+        }
+        return $this->encryptor->decrypt($encryptedKey);
     }
 
     /**

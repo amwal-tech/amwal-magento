@@ -15,6 +15,7 @@ use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Controller for creating API key
@@ -62,6 +63,11 @@ class CreateApiKey extends Action
      */
     private Config $config;
 
+    /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
 
     /**
      * @param Context $context
@@ -72,6 +78,7 @@ class CreateApiKey extends Action
      * @param EncryptorInterface $encryptor
      * @param AmwalClientFactory $amwalClientFactory
      * @param Config $config
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Context $context,
@@ -81,7 +88,8 @@ class CreateApiKey extends Action
         WriterInterface $configWriter,
         EncryptorInterface $encryptor,
         AmwalClientFactory $amwalClientFactory,
-        Config $config
+        Config $config,
+        StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
         $this->resultJsonFactory = $resultJsonFactory;
@@ -91,102 +99,38 @@ class CreateApiKey extends Action
         $this->encryptor = $encryptor;
         $this->amwalClientFactory = $amwalClientFactory;
         $this->config = $config;
+        $this->storeManager = $storeManager;
     }
 
     /**
      * Execute API key creation
      *
      * @return \Magento\Framework\Controller\Result\Json
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function execute()
     {
         $result = $this->resultJsonFactory->create();
 
         try {
-            // Validate form key is already checked in the parent execute method
-
-            // Get webhook URL from request
             $webhookUrl = $this->getRequest()->getParam('webhook_url');
-            // Get webhook events from request
             $webhookEvents = $this->getRequest()->getParam('webhook_events');
 
-            if (empty($webhookUrl)) {
-                throw new LocalizedException(__('Webhook URL is required'));
-            }
-            if (empty($webhookEvents)) {
-                throw new LocalizedException(__('Webhook events are required'));
-            }
-            if (empty($this->config->getSecretKey())) {
-                throw new LocalizedException(__('A secret key is required. To retrieve it, navigate to the Merchant Portal and go to Integration > API Keys.'));
-            }
-            $requestData = [
-                'api_key_name' => 'Amwal Magento Webhook',
-                'url' => $webhookUrl,
-                'description' => 'Amwal Magento Webhook API key',
-                "event_type_names" => $webhookEvents,
-                'api_key_scopes' => ["trigger_events", "manage_webhooks"]
-            ];
-            $amwalClient = $this->amwalClientFactory->create();
-            $response = $amwalClient->post(
-                'api/create-webhook-and-apikey/',
-                [
-                    RequestOptions::JSON => $requestData,
-                    RequestOptions::HEADERS => ['Authorization' => $this->encryptor->decrypt($this->config->getSecretKey()), 'X-API-Key' => $this->encryptor->decrypt($this->config->getSecretKey())]
-                ]
-            );
-            $responseData = $this->json->unserialize($response->getBody()->getContents());
+            $this->validateRequestParams($webhookUrl, $webhookEvents);
 
-            // Check for errors
-            if (!isset($responseData['webhook']) || !isset($responseData['api_key'])) {
-                $error = isset($responseData['error']) ? $responseData['error'] : 'Unknown error';
-                throw new LocalizedException(__('Failed to register Webhook API key: %1', $error));
-            }
+            $responseData = $this->createWebhookAndApiKey($webhookUrl, $webhookEvents);
+            $this->validateResponseData($responseData);
+
             $webhookData = $responseData['webhook'];
             $apiKeyData = $responseData['api_key'];
 
-            // Save configuration
-            $scope = $this->getRequest()->getParam('scope', 'default');
-            $scopeId = (int) $this->getRequest()->getParam('scope_id', 0);
+            $this->saveWebhookConfig($apiKeyData, $webhookEvents);
 
-            // Save API key fingerprint
-            $this->configWriter->save(
-                'payment/amwal_payments/webhook/api_key_fingerprint',
-                $apiKeyData['fingerprint'],
-                $scope,
-                $scopeId
-            );
-
-            // Save webhook events
-            $this->configWriter->save(
-                'payment/amwal_payments/webhook/events',
-                implode(',', $webhookEvents),
-                $scope,
-                $scopeId
-            );
-
-            // Save private key (encrypted)
-            if (isset($apiKeyData['private_key'])) {
-                $encryptedPrivateKey = $this->encryptor->encrypt($apiKeyData['private_key']);
-                $this->configWriter->save(
-                    'payment/amwal_payments/webhook/private_key',
-                    $encryptedPrivateKey,
-                    $scope,
-                    $scopeId
-                );
-            }
-
-            // Clear the config cache
-            $this->_objectManager->get(\Magento\Framework\App\Cache\TypeListInterface::class)
-                ->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
-
-            // Return success response
             return $result->setData([
                 'success' => true,
                 'webhook_id' => $webhookData['id'],
                 'key_fingerprint' => $apiKeyData['fingerprint'] ?? null,
-                'private_key' => $apiKeyData['private_key'] ?? null,
-                'message' => __('Webhook API key created successfully')
+                'public_key_saved' => isset($apiKeyData['public_key']),
+                'message' => __('Webhook registered successfully. Public key has been securely stored.')
             ]);
         } catch (\Exception $e) {
             return $result->setData([
@@ -194,5 +138,120 @@ class CreateApiKey extends Action
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Validate request parameters
+     *
+     * @param string|null $webhookUrl
+     * @param array|null $webhookEvents
+     * @return void
+     * @throws LocalizedException
+     */
+    private function validateRequestParams($webhookUrl, $webhookEvents)
+    {
+        if (empty($webhookUrl)) {
+            throw new LocalizedException(__('Webhook URL is required'));
+        }
+        if (empty($webhookEvents)) {
+            throw new LocalizedException(__('Webhook events are required'));
+        }
+        if (empty($this->config->getSecretKey())) {
+            throw new LocalizedException(
+                __('A secret key is required. To retrieve it, navigate to the Merchant Portal and go to Integration > API Keys.')
+            );
+        }
+    }
+
+    /**
+     * Create webhook and API key via Amwal API
+     *
+     * @param string $webhookUrl
+     * @param array $webhookEvents
+     * @return array
+     */
+    private function createWebhookAndApiKey($webhookUrl, $webhookEvents)
+    {
+        $store = $this->storeManager->getStore();
+        $storeName = $store->getName() ?: 'Magento Store';
+        $storeDomain = $this->getRequest()->getHttpHost() ?: 'unknown';
+
+        $requestData = [
+            'api_key_name' => sprintf('%s - Magento Webhook', $storeName),
+            'description' => sprintf('Webhook API key for %s (%s)', $storeName, $storeDomain),
+            'url' => $webhookUrl,
+            'event_type_names' => $webhookEvents,
+            'api_key_scopes' => ['trigger_events', 'manage_webhooks']
+        ];
+
+        $decryptedKey = $this->encryptor->decrypt($this->config->getSecretKey());
+        $amwalClient = $this->amwalClientFactory->create();
+        $response = $amwalClient->post(
+            'api/create-webhook-and-apikey/',
+            [
+                RequestOptions::JSON => $requestData,
+                RequestOptions::HEADERS => [
+                    'Authorization' => $decryptedKey,
+                    'X-API-Key' => $decryptedKey
+                ]
+            ]
+        );
+
+        return $this->json->unserialize($response->getBody()->getContents());
+    }
+
+    /**
+     * Validate API response data
+     *
+     * @param array $responseData
+     * @return void
+     * @throws LocalizedException
+     */
+    private function validateResponseData(array $responseData)
+    {
+        if (!isset($responseData['webhook']) || !isset($responseData['api_key'])) {
+            $error = $responseData['error'] ?? 'Unknown error';
+            throw new LocalizedException(__('Failed to register webhook: %1', $error));
+        }
+    }
+
+    /**
+     * Save webhook configuration to Magento config
+     *
+     * @param array $apiKeyData
+     * @param array $webhookEvents
+     * @return void
+     */
+    private function saveWebhookConfig(array $apiKeyData, array $webhookEvents)
+    {
+        $scope = $this->getRequest()->getParam('scope', 'default');
+        $scopeId = (int) $this->getRequest()->getParam('scope_id', 0);
+
+        $this->configWriter->save(
+            'payment/amwal_payments/webhook/api_key_fingerprint',
+            $apiKeyData['fingerprint'],
+            $scope,
+            $scopeId
+        );
+
+        $this->configWriter->save(
+            'payment/amwal_payments/webhook/events',
+            implode(',', $webhookEvents),
+            $scope,
+            $scopeId
+        );
+
+        if (isset($apiKeyData['public_key'])) {
+            $encryptedPublicKey = $this->encryptor->encrypt($apiKeyData['public_key']);
+            $this->configWriter->save(
+                'payment/amwal_payments/webhook/public_key',
+                $encryptedPublicKey,
+                $scope,
+                $scopeId
+            );
+        }
+
+        $this->_objectManager->get(\Magento\Framework\App\Cache\TypeListInterface::class)
+            ->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
     }
 }

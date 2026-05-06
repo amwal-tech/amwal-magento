@@ -147,6 +147,8 @@ class OrderUpdate
                 $order->setStatus($this->config->getOrderConfirmedStatus());
                 $order->addCommentToStatusHistory($historyComment);
                 $order->setTotalPaid($order->getGrandTotal());
+                // Mark as processed so webhooks won't duplicate processing
+                $order->setData('amwal_webhook_processed', true);
                 $this->setOrderUrl($order, $order->getAmwalOrderId());
 
                 // Send customer email

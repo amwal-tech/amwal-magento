@@ -1,6 +1,6 @@
 <?php
 /**
- * Amwal Payments private key status block
+ * Amwal Payments public key status block
  */
 namespace Amwal\Payments\Block\Adminhtml\System\Config;
 
@@ -11,7 +11,7 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 
 /**
- * Block for displaying private key status in system config
+ * Block for displaying public key status in system config
  */
 class PrivateKeyStatus extends Field
 {
@@ -57,20 +57,20 @@ class PrivateKeyStatus extends Field
             $scopeId = $storeId;
         }
 
-        // Check if encrypted private key exists
-        $privateKeyExists = $this->_scopeConfig->getValue(
-            'payment/amwal_payments/webhook/private_key',
+        // Check if encrypted public key exists
+        $publicKeyExists = $this->_scopeConfig->getValue(
+            'payment/amwal_payments/webhook/public_key',
             $scope,
             $scopeId
         );
 
-        if ($privateKeyExists) {
+        if ($publicKeyExists) {
             return '<div class="message message-success">' .
-                __('Private key is securely stored.') .
+                __('Public key is securely stored.') .
                 '</div>';
         } else {
             return '<div class="message message-warning">' .
-                __('No private key stored. Click "Create Amwal API Key" to set up webhook integration.') .
+                __('No public key stored. Click "Register Webhook" to set up webhook integration.') .
                 '</div>';
         }
     }
