@@ -298,32 +298,13 @@ class OrderFailed implements HandlerInterface
      * Avoids a blind sleep by accounting for time already elapsed since order creation.
      *
      * @param Order $order
-     * @param int $windowSeconds Total window to guarantee (default: 30s)
-     * @return void 
+     * @param int $windowSeconds Total window to guarantee (default: 15s)
+     * @return void s
      */
-    private function waitForFrontendRedirect(Order $order, int $windowSeconds = 30): void
+    private function waitForFrontendRedirect(Order $order, int $windowSeconds = 15): void
     {
-        $createdAt = strtotime((string)$order->getCreatedAt());
-        if (!$createdAt) {
-            sleep($windowSeconds); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-            return;
-        }
-
-        $elapsed = time() - $createdAt;
-        $remaining = $windowSeconds - $elapsed;
-
-        if ($remaining > 0) {
-            $this->logger->info(
-                "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
-                "Waiting {$remaining}s more to allow frontend redirect to complete."
-            );
-            sleep($remaining); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-        } else {
-            $this->logger->info(
-                "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
-                "No wait needed — frontend redirect window already passed."
-            );
-        }
+        sleep($windowSeconds); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
+        $this->logger->info("Order #{$order->getIncrementId()} waiting for frontend redirect");
     }
 
     /**
