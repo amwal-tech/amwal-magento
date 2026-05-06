@@ -381,27 +381,8 @@ class OrderSuccess implements HandlerInterface
      */
     private function waitForFrontendRedirect(Order $order, int $windowSeconds = 15): void
     {
-        $createdAt = strtotime((string)$order->getCreatedAt());
-        if (!$createdAt) {
-            sleep($windowSeconds); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-            return;
-        }
-    
-        $elapsed = time() - $createdAt;
-        $remaining = $windowSeconds - $elapsed;
-
-        if ($remaining > 0) {
-            $this->logger->info(
-                "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
-                "Waiting {$remaining}s more to allow frontend redirect to complete."
-            );
-            sleep($remaining); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
-        } else {
-            $this->logger->info(
-                "Order #{$order->getIncrementId()} created {$elapsed}s ago. " .
-                "No wait needed — frontend redirect window already passed."
-            );
-        }
+        sleep($windowSeconds); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
+        $this->logger->info("Order #{$order->getIncrementId()} waiting for frontend redirect");
     }
 
     /**
