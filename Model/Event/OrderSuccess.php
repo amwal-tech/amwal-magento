@@ -376,17 +376,17 @@ class OrderSuccess implements HandlerInterface
      * Avoids a blind sleep by accounting for time already elapsed since order creation.
      *
      * @param Order $order
-     * @param int $windowSeconds Total window to guarantee (default: 15s)
+     * @param int $windowSeconds Total window to guarantee (default: 60s)
      * @return void
      */
-    private function waitForFrontendRedirect(Order $order, int $windowSeconds = 15): void
+    private function waitForFrontendRedirect(Order $order, int $windowSeconds = 60): void
     {
         $createdAt = strtotime((string)$order->getCreatedAt());
         if (!$createdAt) {
             sleep($windowSeconds); // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
             return;
         }
-    
+
         $elapsed = time() - $createdAt;
         $remaining = $windowSeconds - $elapsed;
 
