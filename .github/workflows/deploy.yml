@@ -1,10 +1,7 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - develop
-  workflow_dispatch:
+  workflow_dispatch:  # Only allow manual triggering
 
 jobs:
   deploy:
