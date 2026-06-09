@@ -13,6 +13,8 @@ class PhoneNumberFormat implements OptionSourceInterface
     /**
      * Normalizes a PhoneNumberFormat value to int.
      * Supports libphonenumber ^8.x (int constants) and ^9.x (int-backed enum).
+     *
+     * @phpcs:disable Magento2.Functions.StaticFunction.StaticFunction
      */
     private static function enumVal(int|\BackedEnum $v): int
     {
