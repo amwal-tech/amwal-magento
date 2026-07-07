@@ -13,10 +13,12 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\ShippingMethodManagementInterface;
 use Psr\Log\LoggerInterface;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 
 class UpdateShippingMethod extends AmwalCheckoutAction
 {
 
+    private SentryExceptionReport $sentryExceptionReport;
     private CartRepositoryInterface $quoteRepository;
     private ShippingMethodManagementInterface $shippingMethodManagement;
 
@@ -25,11 +27,13 @@ class UpdateShippingMethod extends AmwalCheckoutAction
         ShippingMethodManagementInterface $shippingMethodManagement,
         ErrorReporter $errorReporter,
         Config $config,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        SentryExceptionReport $sentryExceptionReport
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->quoteRepository = $quoteRepository;
         $this->shippingMethodManagement = $shippingMethodManagement;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -51,6 +55,7 @@ class UpdateShippingMethod extends AmwalCheckoutAction
                 $quote->getId(),
                 $e->getMessage()
             ));
+            $this->sentryExceptionReport->report($e);
             return false;
         }
 

@@ -16,10 +16,12 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 
 class Command implements CommandInterface
 {
 
+    private SentryExceptionReport $sentryExceptionReport;
     private AmwalClientFactory $amwalClientFactory;
     private Config $config;
     private OrderRepositoryInterface $orderRepository;
@@ -41,7 +43,8 @@ class Command implements CommandInterface
         OrderRepositoryInterface $orderRepository,
         Context $context,
         LoggerInterface $logger,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        SentryExceptionReport $sentryExceptionReport
     ) {
         $this->amwalClientFactory = $amwalClientFactory;
         $this->config = $config;
@@ -49,6 +52,7 @@ class Command implements CommandInterface
         $this->context = $context;
         $this->logger = $logger;
         $this->encryptor = $encryptor;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -100,7 +104,8 @@ class Command implements CommandInterface
                 ]
             );
         } catch (GuzzleException $e) {
-            $responseBody = $e->getResponse()->getBody()->getContents();
+            $response = $e->getResponse();
+            $responseBody = $response ? $response->getBody()->getContents() : 'No response body';
 
             $message = sprintf(
                 "Unable to initiate refund request for transaction with ID \"%s\".\n Response: %s",
@@ -108,6 +113,7 @@ class Command implements CommandInterface
                 $responseBody
             );
             $this->logger->error($message);
+            $this->sentryExceptionReport->report($e);
 
             throw new LocalizedException(__('Unable to process refund in Amwal, please try again later.'));
         }

@@ -113,7 +113,7 @@ class PayOrder extends AmwalCheckoutAction
                 $this->logger->error($message);
                 $this->reportError($amwalOrderId, $message);
                 $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);
-                $this->sentryExceptionReport->report($message);
+                $this->sentryExceptionReport->report(new \RuntimeException($message));
             }
             return false;
         }

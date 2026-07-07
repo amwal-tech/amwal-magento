@@ -9,9 +9,11 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Psr\Log\LoggerInterface;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 
 class CleanQuote extends AmwalCheckoutAction
 {
+    private SentryExceptionReport $sentryExceptionReport;
     private CheckoutSession $checkoutSession;
     private CartRepositoryInterface $cartRepository;
 
@@ -29,11 +31,13 @@ class CleanQuote extends AmwalCheckoutAction
         CartRepositoryInterface $cartRepository,
         ErrorReporter $errorReporter,
         Config $config,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        SentryExceptionReport $sentryExceptionReport
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->checkoutSession = $checkoutSession;
         $this->cartRepository = $cartRepository;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -58,6 +62,7 @@ class CleanQuote extends AmwalCheckoutAction
 
         } catch (\Exception $e) {
             $this->logDebug('Error cleaning quote: ' . $e->getMessage());
+            $this->sentryExceptionReport->report($e);
         }
     }
 }

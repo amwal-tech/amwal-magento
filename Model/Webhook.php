@@ -6,6 +6,7 @@ use Amwal\Payments\Api\Data\WebhookResponseInterface;
 use Amwal\Payments\Model\Data\WebhookResponse;
 use Amwal\Payments\Model\Event\HandlerFactory;
 use Amwal\Payments\Model\Config;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -20,6 +21,11 @@ use Psr\Log\LoggerInterface;
  */
 class Webhook implements WebHookInterface
 {
+    /**
+     * @var SentryExceptionReport
+     */
+    private $sentryExceptionReport;
+
     /**
      * @var RequestInterface
      */
@@ -75,6 +81,8 @@ class Webhook implements WebHookInterface
      * @param HandlerFactory $eventHandlerFactory
      * @param Config $config
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
+     * @param SentryExceptionReport $sentryExceptionReport
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         RequestInterface $request,
@@ -85,7 +93,8 @@ class Webhook implements WebHookInterface
         WebhookHelper $webhookHelper,
         HandlerFactory $eventHandlerFactory,
         Config $config,
-        \Magento\Framework\ObjectManagerInterface $objectManager
+        \Magento\Framework\ObjectManagerInterface $objectManager,
+        SentryExceptionReport $sentryExceptionReport
     ) {
         $this->request = $request;
         $this->json = $json;
@@ -96,6 +105,7 @@ class Webhook implements WebHookInterface
         $this->eventHandlerFactory = $eventHandlerFactory;
         $this->config = $config;
         $this->objectManager = $objectManager;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -119,6 +129,7 @@ class Webhook implements WebHookInterface
             $response->setMessage('Webhook processed successfully');
         } catch (\Exception $e) {
             $this->logger->error('Amwal webhook error: ' . $e->getMessage());
+            $this->sentryExceptionReport->report($e);
             $response->setSuccess(false);
             $response->setMessage($e->getMessage());
         }
