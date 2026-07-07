@@ -179,8 +179,10 @@ class AddressResolver
         $customerAddress->setTelephone($phoneNumber);
 
         if ($region = $this->getRegion($amwalAddress)) {
-            $customerAddress->setRegion($region)
-                ->setRegionId((int) $region->getRegionId());
+            $customerAddress->setRegion($region);
+            if ($region->getRegionId()) {
+                $customerAddress->setRegionId((int) $region->getRegionId());
+            }
         }
 
         $cityId = $this->getCityId($amwalAddress);
@@ -395,8 +397,16 @@ class AddressResolver
                     return $rawPhoneNumber;
                 }
                 $formattedNumber = $phoneNumberUtil->formatOutOfCountryCallingNumber($phoneNumber, $country);
+            } elseif ($format === 'raw') {
+                // 'raw' means no libphonenumber formatting — return as-is
+                return $rawPhoneNumber;
             } else {
-                $formattedNumber = $phoneNumberUtil->format($phoneNumber, $format);
+                // libphonenumber v9 uses backed enums; cast stored int/string value to enum if needed
+                $libFormat = $format;
+                if (!($format instanceof \BackedEnum)) {
+                    $libFormat = \libphonenumber\PhoneNumberFormat::from((int) $format);
+                }
+                $formattedNumber = $phoneNumberUtil->format($phoneNumber, $libFormat);
             }
         }
 
