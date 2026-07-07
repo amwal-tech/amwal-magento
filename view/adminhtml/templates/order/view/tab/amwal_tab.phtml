@@ -581,10 +581,14 @@ $svgChevron = '';
                     <line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
                 <div class="amwal-error-row__text">
-                    <?php if (!empty($error['type'])): ?>
+                    <?php if (is_array($error) && !empty($error['type'])): ?>
                         <span class="amwal-error-row__type"><?= $block->escapeHtml($error['type']) ?>:</span>
                     <?php endif; ?>
-                    <?= $block->escapeHtml($error['errorMsg'] ?? $error['description'] ?? (string)__('Unknown error')) ?>
+                    <?php if (is_array($error)): ?>
+                        <?= $block->escapeHtml($error['message'] ?? $error['errorMsg'] ?? $error['description'] ?? (string)__('Unknown error')) ?>
+                    <?php else: ?>
+                        <?= $block->escapeHtml((string)$error) ?>
+                    <?php endif; ?>
                 </div>
                 <a href="mailto:support@amwal.tech?subject=<?= urlencode('Support Request for Order ' . ($amwalData['id'] ?? '')) ?>"
                    class="amwal-btn amwal-btn--outline amwal-btn--sm" style="flex-shrink: 0;">
