@@ -412,6 +412,8 @@
     flex: 1;
     font-size: 13px;
     color: #991b1b;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .amwal-error-row__type {
