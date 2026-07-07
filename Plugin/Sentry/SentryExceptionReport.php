@@ -47,6 +47,7 @@ class SentryExceptionReport
      * @param \Magento\Framework\App\Bootstrap $bootstrap
      * @param \Exception $exception
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function beforeCatchException(
         \Magento\Framework\App\Http $subject,

@@ -81,6 +81,8 @@ class Webhook implements WebHookInterface
      * @param HandlerFactory $eventHandlerFactory
      * @param Config $config
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
+     * @param SentryExceptionReport $sentryExceptionReport
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         RequestInterface $request,

@@ -15,6 +15,9 @@ use Magento\Sales\Model\Order;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class Index implements HttpGetActionInterface
 {
     /**
