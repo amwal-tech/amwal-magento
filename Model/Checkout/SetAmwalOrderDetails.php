@@ -13,12 +13,14 @@ use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\UrlInterface;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 /**
  * Add order details in the Amwal system after order placement
  */
 class SetAmwalOrderDetails extends AmwalCheckoutAction
 {
 
+    private SentryExceptionReport $sentryExceptionReport;
     private AmwalClientFactory $amwalClientFactory;
     private StoreManagerInterface $storeManager;
     private Json $json;
@@ -37,12 +39,14 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
         ErrorReporter $errorReporter,
         Config $config,
         LoggerInterface $logger,
-        Json $json
+        Json $json,
+        SentryExceptionReport $sentryExceptionReport
     ) {
         parent::__construct($errorReporter, $config, $logger);
         $this->amwalClientFactory = $amwalClientFactory;
         $this->storeManager = $storeManager;
         $this->json = $json;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     /**
@@ -78,6 +82,7 @@ class SetAmwalOrderDetails extends AmwalCheckoutAction
             );
             $this->reportError($amwalOrderId, $message);
             $this->logger->error($message);
+            $this->sentryExceptionReport->report($e);
             return;
         }
 

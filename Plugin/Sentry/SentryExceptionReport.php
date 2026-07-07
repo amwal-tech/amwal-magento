@@ -41,6 +41,22 @@ class SentryExceptionReport
     }
 
     /**
+     * Intercept and report uncaught exceptions from Magento HTTP application
+     *
+     * @param \Magento\Framework\App\Http $subject
+     * @param \Magento\Framework\App\Bootstrap $bootstrap
+     * @param \Exception $exception
+     * @return void
+     */
+    public function beforeCatchException(
+        \Magento\Framework\App\Http $subject,
+        \Magento\Framework\App\Bootstrap $bootstrap,
+        \Exception $exception
+    ): void {
+        $this->report($exception);
+    }
+
+    /**
      * Report an exception to Sentry
      *
      * @param \Throwable $exception
