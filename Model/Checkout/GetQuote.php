@@ -156,6 +156,7 @@ class GetQuote extends AmwalCheckoutAction
         ?string $cartId = null
     ): array {
         $quoteData = [];
+        $quote = null;
         $customerAddress = null;
         $availableRates = [];
 
@@ -186,7 +187,7 @@ class GetQuote extends AmwalCheckoutAction
                 $quote->setCustomerIsGuest(true);
             }
 
-            $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
+            $amwalAddress = $this->amwalAddressFactory->create()->setData($addressData);
             if (!$isPreCheckout) {
                 $amwalOrderData = $this->objectFactory->create([
                     'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
@@ -232,9 +233,10 @@ class GetQuote extends AmwalCheckoutAction
                 $this->logger->notice('Unable to log quote data debug message');
             }
         } catch (Throwable $e) {
+            $this->logger->error("Amwal GetQuote Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             $this->reportError($refId, $e->getMessage());
             $userMessage = $this->resolveExceptionMessage($e);
-            $this->throwException($userMessage, $e, $quote->getAmwalOrderId());
+            $this->throwException($userMessage, $e, $quote ? $quote->getAmwalOrderId() : null);
         }
 
         return $quoteData;
@@ -274,7 +276,7 @@ class GetQuote extends AmwalCheckoutAction
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, Throwable $originalException = null, ?int $amwalOrderId = null): void
+    private function throwException($message = null, ?Throwable $originalException = null, ?string $amwalOrderId = null): void
     {
         if($originalException){
             $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);

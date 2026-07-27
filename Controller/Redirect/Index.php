@@ -13,13 +13,18 @@ use Amwal\Payments\ViewModel\ExpressCheckoutButton;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Sales\Model\Order;
 use Magento\Quote\Model\QuoteIdMaskFactory;
+use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class Index implements HttpGetActionInterface
 {
     /**
      * @var PageFactory
      */
     private PageFactory $resultPageFactory;
+    private SentryExceptionReport $sentryExceptionReport;
 
     /**
      * @var QuoteRepositoryInterface
@@ -74,7 +79,8 @@ class Index implements HttpGetActionInterface
         AmwalConfig $config,
         ExpressCheckoutButton $expressCheckoutButton,
         RedirectFactory $resultRedirectFactory,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        SentryExceptionReport $sentryExceptionReport
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->quoteRepository = $quoteRepository;
@@ -84,6 +90,7 @@ class Index implements HttpGetActionInterface
         $this->expressCheckoutButton = $expressCheckoutButton;
         $this->resultRedirectFactory = $resultRedirectFactory;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->sentryExceptionReport = $sentryExceptionReport;
     }
 
     public function execute()
@@ -125,6 +132,7 @@ class Index implements HttpGetActionInterface
 
             return $resultPage;
         } catch (\Exception $e) {
+            $this->sentryExceptionReport->report($e);
             return $this->redirectToErrorPage();
         }
     }

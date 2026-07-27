@@ -9,10 +9,24 @@ use Magento\Framework\Data\OptionSourceInterface;
 class PhoneNumberFormat implements OptionSourceInterface
 {
     public const COUNTRY_OPTION_VALUE = 'country';
+
+    /**
+     * Normalizes a PhoneNumberFormat value to int.
+     * Supports libphonenumber ^8.x (int constants) and ^9.x (int-backed enum).
+     *
+     * @param int|\BackedEnum $v
+     * @return int
+     * @phpcs:disable Magento2.Functions.StaticFunction.StaticFunction
+     */
+    private static function enumVal($v): int
+    {
+        return $v instanceof \BackedEnum ? $v->value : (int) $v;
+    }
+
     /**
      * @inheritdoc
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
         $options = [
             [
@@ -20,24 +34,26 @@ class PhoneNumberFormat implements OptionSourceInterface
                 'label' => __('Raw')
             ]
         ];
+
         if (class_exists('libphonenumber\PhoneNumberFormat')) {
             $options[] = [
-                'value' => LibPhoneNumberFormat::NATIONAL,
+                'value' => self::enumVal(LibPhoneNumberFormat::NATIONAL),
                 'label' => __('National')
             ];
             $options[] = [
-                'value' => LibPhoneNumberFormat::INTERNATIONAL,
+                'value' => self::enumVal(LibPhoneNumberFormat::INTERNATIONAL),
                 'label' => __('International')
             ];
             $options[] = [
-                'value' => LibPhoneNumberFormat::E164,
+                'value' => self::enumVal(LibPhoneNumberFormat::E164),
                 'label' => __('E164')
             ];
             $options[] = [
-                'value' => LibPhoneNumberFormat::RFC3966,
+                'value' => self::enumVal(LibPhoneNumberFormat::RFC3966),
                 'label' => __('RFC3966')
             ];
         }
+
         $options[] = [
             'value' => self::COUNTRY_OPTION_VALUE,
             'label' => __('Country based')
@@ -46,9 +62,8 @@ class PhoneNumberFormat implements OptionSourceInterface
         return $options;
     }
 
-
     /**
-     * @return string[]
+     * @return array<int|string>
      * @phpcs:disable Magento2.Functions.StaticFunction.StaticFunction
      */
     public static function getValidValues(): array
@@ -59,10 +74,10 @@ class PhoneNumberFormat implements OptionSourceInterface
         ];
 
         if (class_exists('libphonenumber\PhoneNumberFormat')) {
-            $values[] = LibPhoneNumberFormat::NATIONAL;
-            $values[] = LibPhoneNumberFormat::INTERNATIONAL;
-            $values[] = LibPhoneNumberFormat::E164;
-            $values[] = LibPhoneNumberFormat::RFC3966;
+            $values[] = self::enumVal(LibPhoneNumberFormat::NATIONAL);
+            $values[] = self::enumVal(LibPhoneNumberFormat::INTERNATIONAL);
+            $values[] = self::enumVal(LibPhoneNumberFormat::E164);
+            $values[] = self::enumVal(LibPhoneNumberFormat::RFC3966);
         }
 
         return $values;

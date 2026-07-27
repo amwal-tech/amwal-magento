@@ -179,8 +179,10 @@ class AddressResolver
         $customerAddress->setTelephone($phoneNumber);
 
         if ($region = $this->getRegion($amwalAddress)) {
-            $customerAddress->setRegion($region)
-                ->setRegionId((int) $region->getRegionId());
+            $customerAddress->setRegion($region);
+            if ($region->getRegionId()) {
+                $customerAddress->setRegionId((int) $region->getRegionId());
+            }
         }
 
         $cityId = $this->getCityId($amwalAddress);
@@ -365,39 +367,16 @@ class AddressResolver
      */
     private function getFormattedPhoneNumber(string $rawPhoneNumber): string
     {
-        $format = $this->config->getPhoneNumberFormat();
-        $formattedNumber = $rawPhoneNumber;
         if ($rawPhoneNumber === self::TEMPORARY_DATA_VALUE) {
             return $rawPhoneNumber;
         }
 
+        $format = $this->config->getPhoneNumberFormat();
+        $formattedNumber = $rawPhoneNumber;
+
         if (class_exists('libphonenumber\PhoneNumberUtil') &&
             in_array($format, PhoneNumberFormat::getValidValues())) {
-            $phoneNumberUtil = PhoneNumberUtil::getInstance();
-            try {
-                $phoneNumber = $phoneNumberUtil->parse($rawPhoneNumber);
-            } catch (NumberParseException $e) {
-                $this->logger->error(sprintf(
-                    'Unable to parse phone number "%s" for formatting: %s',
-                    $rawPhoneNumber,
-                    $e->getMessage()
-                ));
-                return $rawPhoneNumber;
-            }
-
-            if ($format === PhoneNumberFormat::COUNTRY_OPTION_VALUE) {
-                $country = $this->config->getPhoneNumberFormatCountry();
-                if (!$country) {
-                    $this->logger->error(sprintf(
-                        'Unable to parse phone number "%s" for formatting. Country must be specified when country formatting is selected.',
-                        $rawPhoneNumber
-                    ));
-                    return $rawPhoneNumber;
-                }
-                $formattedNumber = $phoneNumberUtil->formatOutOfCountryCallingNumber($phoneNumber, $country);
-            } else {
-                $formattedNumber = $phoneNumberUtil->format($phoneNumber, $format);
-            }
+            $formattedNumber = $this->formatWithLibPhoneNumber($rawPhoneNumber, $format);
         }
 
         if ($this->config->isPhoneNumberTrimWhitespace()) {
@@ -405,6 +384,51 @@ class AddressResolver
         }
 
         return $formattedNumber;
+    }
+
+    /**
+     * @param string $rawPhoneNumber
+     * @param mixed $format
+     * @return string
+     */
+    private function formatWithLibPhoneNumber(string $rawPhoneNumber, $format): string
+    {
+        $phoneNumberUtil = PhoneNumberUtil::getInstance();
+        try {
+            $phoneNumber = $phoneNumberUtil->parse($rawPhoneNumber);
+        } catch (NumberParseException $e) {
+            $this->logger->error(sprintf(
+                'Unable to parse phone number "%s" for formatting: %s',
+                $rawPhoneNumber,
+                $e->getMessage()
+            ));
+            return $rawPhoneNumber;
+        }
+
+        if ($format === PhoneNumberFormat::COUNTRY_OPTION_VALUE) {
+            $country = $this->config->getPhoneNumberFormatCountry();
+            if (!$country) {
+                $this->logger->error(sprintf(
+                    'Unable to parse phone number "%s" for formatting. Country must be specified when country formatting is selected.',
+                    $rawPhoneNumber
+                ));
+                return $rawPhoneNumber;
+            }
+            return $phoneNumberUtil->formatOutOfCountryCallingNumber($phoneNumber, $country);
+        }
+
+        if ($format === 'raw') {
+            // 'raw' means no libphonenumber formatting — return as-is
+            return $rawPhoneNumber;
+        }
+
+        // libphonenumber v9 uses backed enums; cast stored int/string value to enum if needed
+        $libFormat = $format;
+        if (!($format instanceof \BackedEnum)) {
+            $libFormat = \libphonenumber\PhoneNumberFormat::from((int) $format);
+        }
+
+        return $phoneNumberUtil->format($phoneNumber, $libFormat);
     }
 
     /**
