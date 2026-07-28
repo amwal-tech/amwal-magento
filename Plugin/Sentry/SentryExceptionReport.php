@@ -70,22 +70,14 @@ class SentryExceptionReport
 
         try {
             // Check if Sentry functions are available
-            if (!function_exists('\Sentry\configureScope') && !class_exists('\Sentry\SentrySdk')) {
+            if (!function_exists('\Sentry\captureException')) {
                 return;
             }
 
-            // Use the correct method based on Sentry version
-            if (function_exists('\Sentry\configureScope')) {
-                // Sentry SDK v3+
-                \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
-                    $this->setScopeExtras($scope);
-                });
-            } elseif (class_exists('\Sentry\SentrySdk')) {
-                // Alternative approach for some versions
-                \Sentry\SentrySdk::getCurrentHub()->configureScope(function (\Sentry\State\Scope $scope): void {
-                    $this->setScopeExtras($scope);
-                });
-            }
+            // Set scope extras using Sentry SDK v4 API
+            \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
+                $this->setScopeExtras($scope);
+            });
 
             \Sentry\captureException($exception);
         } catch (\Throwable $e) {
@@ -110,22 +102,14 @@ class SentryExceptionReport
 
         try {
             // Check if Sentry functions are available
-            if (!function_exists('\Sentry\configureScope') && !class_exists('\Sentry\SentrySdk')) {
+            if (!function_exists('\Sentry\configureScope')) {
                 return false;
             }
 
-            // Use the correct method based on Sentry version
-            if (function_exists('\Sentry\configureScope')) {
-                // Sentry SDK v3+
-                \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($tags, $value): void {
-                    $this->setScopeTags($scope, $tags, $value);
-                });
-            } elseif (class_exists('\Sentry\SentrySdk')) {
-                // Alternative approach for some versions
-                \Sentry\SentrySdk::getCurrentHub()->configureScope(function (\Sentry\State\Scope $scope) use ($tags, $value): void {
-                    $this->setScopeTags($scope, $tags, $value);
-                });
-            }
+            // Sentry SDK v4
+            \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($tags, $value): void {
+                $this->setScopeTags($scope, $tags, $value);
+            });
 
             return true;
         } catch (\Throwable $e) {
@@ -202,3 +186,4 @@ class SentryExceptionReport
         }
     }
 }
+
