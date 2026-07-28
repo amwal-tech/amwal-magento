@@ -98,7 +98,7 @@ class GetCartButtonConfig extends GetConfig
      */
     public function execute(
         RefIdDataInterface $refIdData,
-        string $triggerContext = null,
+        ?string $triggerContext = null,
         ?string $cartId = null,
         ?string $productId = null
     ): AmwalButtonConfigInterface   {
