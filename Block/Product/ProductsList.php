@@ -70,10 +70,10 @@ class ProductsList extends \Magento\CatalogWidget\Block\Product\ProductsList
         Config                      $config,
         StoreManagerInterface       $storeManager,
         array                       $data = [],
-        Json                        $json = null,
-        LayoutFactory               $layoutFactory = null,
-        EncoderInterface            $urlEncoder = null,
-        CategoryRepositoryInterface $categoryRepository = null
+        ?Json                        $json = null,
+        ?LayoutFactory               $layoutFactory = null,
+        ?EncoderInterface            $urlEncoder = null,
+        ?CategoryRepositoryInterface $categoryRepository = null
     ) {
         parent::__construct($context, $productCollectionFactory, $catalogProductVisibility, $httpContext, $sqlBuilder, $rule, $conditionsHelper, $data, $json, $layoutFactory, $urlEncoder, $categoryRepository);
         $this->config = $config;
