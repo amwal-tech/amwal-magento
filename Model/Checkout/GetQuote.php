@@ -156,9 +156,8 @@ class GetQuote extends AmwalCheckoutAction
         ?string $cartId = null
     ): array {
         $quoteData = [];
-        $quote = null;
-        $customerAddress = null;
         $availableRates = [];
+        $quote = null;
 
         try {
             $this->logDebug('Start GetQuote call');
@@ -187,45 +186,19 @@ class GetQuote extends AmwalCheckoutAction
                 $quote->setCustomerIsGuest(true);
             }
 
-            $amwalAddress = $this->amwalAddressFactory->create()->setData($addressData);
+
             if (!$isPreCheckout) {
-                $amwalOrderData = $this->objectFactory->create([
-                    'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_last_name' => $addressData['client_last_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_phone_number' => $addressData['client_phone_number'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                    'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
-                ]);
-                $amwalOrderData->setAddressDetails($amwalAddress);
-                $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (string) $quote->getCustomerId());
-
-                $quoteAddress = $this->getQuoteAddress($customerAddress, $amwalAddress);
-
-                $this->logDebug('Setting Billing and Shipping address');
-                $quote->setBillingAddress($quoteAddress);
-                $quote->setShippingAddress($quoteAddress);
-
-                $this->logDebug('Collecting shipping rates');
-                $quote->getShippingAddress()->setCollectShippingRates(true);
-                $quote->getShippingAddress()->collectShippingRates();
-                $this->quoteRepository->save($quote);
-
-                $availableRates = $this->getAvailableRates($quote);
+                $availableRates = $this->applyAddressAndCollectRates($quote, $addressData, $refId);
             }
 
-            $quote->setData(self::IS_AMWAL_API_CALL, true);
-            $quote->getPayment()->setQuote($quote);
-            $quote->setPaymentMethod(ConfigProvider::CODE);
-            $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
+            $this->applyPaymentMethod($quote);
 
             $quote->setTotalsCollectedFlag(false);
             $quote->collectTotals();
             $this->quoteRepository->save($quote);
 
             $responseData = $this->getResponseData($quote, $availableRates);
-
-            $quoteData = [
-                'data' => $responseData
-            ];
+            $quoteData = ['data' => $responseData];
 
             try {
                 $this->logDebug(sprintf('End GetQuote call. Data: %s', json_encode($quoteData, JSON_THROW_ON_ERROR)));
@@ -233,13 +206,68 @@ class GetQuote extends AmwalCheckoutAction
                 $this->logger->notice('Unable to log quote data debug message');
             }
         } catch (Throwable $e) {
-            $this->logger->error("Amwal GetQuote Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->logger->error(sprintf(
+                'GetQuote::execute caught %s: %s in %s:%d',
+                get_class($e),
+                $e->getMessage(),
+                $e->getFile(),
+                $e->getLine()
+            ));
             $this->reportError($refId, $e->getMessage());
             $userMessage = $this->resolveExceptionMessage($e);
             $this->throwException($userMessage, $e, $quote ? $quote->getAmwalOrderId() : null);
         }
 
         return $quoteData;
+    }
+
+    /**
+     * Resolve and apply the Amwal shipping address to the quote, collect rates, and return available rates.
+     *
+     * @param Quote $quote
+     * @param array $addressData
+     * @param string $refId
+     * @return array
+     * @throws LocalizedException
+     */
+    private function applyAddressAndCollectRates(Quote $quote, array $addressData, string $refId): array
+    {
+        $amwalAddress = $this->amwalAddressFactory->create(['data' => $addressData]);
+        $amwalOrderData = $this->objectFactory->create([
+            'client_first_name' => $addressData['client_first_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+            'client_last_name' => $addressData['client_last_name'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+            'client_phone_number' => $addressData['client_phone_number'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+            'client_email' => $addressData['client_email'] ?? AddressResolver::TEMPORARY_DATA_VALUE,
+        ]);
+        $amwalOrderData->setAddressDetails($amwalAddress);
+        $customerAddress = $this->getCustomerAddress($amwalOrderData, $refId, (string) $quote->getCustomerId());
+
+        $quoteAddress = $this->getQuoteAddress($customerAddress, $amwalAddress);
+
+        $this->logDebug('Setting Billing and Shipping address');
+        $quote->setBillingAddress($quoteAddress);
+        $quote->setShippingAddress($quoteAddress);
+
+        $this->logDebug('Collecting shipping rates');
+        $quote->getShippingAddress()->setCollectShippingRates(true);
+        $quote->getShippingAddress()->collectShippingRates();
+        $this->quoteRepository->save($quote);
+
+        return $this->getAvailableRates($quote);
+    }
+
+    /**
+     * Configure the Amwal payment method on the quote.
+     *
+     * @param Quote $quote
+     * @return void
+     */
+    private function applyPaymentMethod(Quote $quote): void
+    {
+        $quote->setData(self::IS_AMWAL_API_CALL, true);
+        $quote->getPayment()->setQuote($quote);
+        $quote->setPaymentMethod(ConfigProvider::CODE);
+        $quote->getPayment()->importData(['method' => ConfigProvider::CODE]);
     }
 
     /**
@@ -279,14 +307,18 @@ class GetQuote extends AmwalCheckoutAction
     private function throwException($message = null, ?Throwable $originalException = null, ?string $amwalOrderId = null): void
     {
         if($originalException){
-            $this->sentryExceptionReport->setTags('transaction_id', $amwalOrderId);
+            $this->sentryExceptionReport->setTags('transaction_id', (string) $amwalOrderId);
             $this->sentryExceptionReport->report($originalException);
         }
         $this->messageManager->addErrorMessage($this->getGenericErrorMessage());
         $message = $message ?? $this->getGenericErrorMessage();
         // Render Phrase to string so placeholders (%1, %2, etc.) are resolved in the API response
         $renderedMessage = ($message instanceof Phrase) ? $message->render() : (string) $message;
-        throw new LocalizedException(__($renderedMessage));
+        // LocalizedException only accepts ?Exception (not ?Throwable), so wrap PHP Errors/TypeErrors
+        $cause = $originalException instanceof \Exception
+            ? $originalException
+            : ($originalException !== null ? new \RuntimeException($originalException->getMessage(), (int) $originalException->getCode(), $originalException) : null);
+        throw new LocalizedException(__($renderedMessage), $cause);
     }
 
     /**
@@ -351,7 +383,7 @@ class GetQuote extends AmwalCheckoutAction
                 'Resolved customer address with data: %s',
                 json_encode($customerAddress->__toArray(), JSON_THROW_ON_ERROR)
             ));
-        } catch (LocalizedException|RuntimeException $e) {
+        } catch (Throwable $e) {
             $message = sprintf(
                 'Unable to resolve customer address with Data %s. Received exception %s',
                 $amwalOrderData->toJson(),

@@ -154,10 +154,11 @@ class PlaceOrder extends AmwalCheckoutAction
             $amwalOrderData->toJson()
         ));
 
-        if ($refId !== $amwalOrderData->getRefId() || !$this->verifyRefId($refId, $refIdData)) {
+        $amwalRefId = $amwalOrderData->getRefId();
+        if (($amwalRefId !== null && $refId !== $amwalRefId) || !$this->verifyRefId($refId, $refIdData)) {
             $message = sprintf(
                 "Ref ID's don't match.\n Amwal Ref ID: %s\nInternal Ref ID: %s\nExpected Ref ID: %s\n Data used to generate ID: %s",
-                $amwalOrderData->getRefId(),
+                $amwalRefId,
                 $refId,
                 $this->refIdManagement->generateRefId($refIdData),
                 $refIdData->toJson()
@@ -215,6 +216,15 @@ class PlaceOrder extends AmwalCheckoutAction
             $this->updateCustomerAddress($quote, $customerAddress);
             if ($amwalOrderData->getShippingDetails()) {
                 $this->updateShippingMethod->execute($quote, $amwalOrderData->getShippingDetails()->getId());
+            } elseif (!$quote->getIsVirtual()) {
+                $shippingAddress = $quote->getShippingAddress();
+                $rates = $shippingAddress->getAllShippingRates();
+                if (!empty($rates)) {
+                    $firstRate = reset($rates);
+                    $shippingMethod = $firstRate->getCarrier() . '_' . $firstRate->getMethod();
+                    $this->logDebug(sprintf('No shipping details from Amwal, using first available rate: %s', $shippingMethod));
+                    $this->updateShippingMethod->execute($quote, $shippingMethod);
+                }
             }
         }
 

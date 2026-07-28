@@ -58,8 +58,11 @@ class IntegrationTestBase extends TestCase
         RefIdDataInterface::TIMESTAMP => '1712005591802'
     ];
 
-    protected const MOCK_REF_ID = '5022b5fc75aa500d66809c131aab34a85ec9075185d98811f2a7397e4ecb9442';
-    protected const MOCK_TRANSACTION_ID = '562113b7-2604-41f0-a0f8-91f16247ecbb';
+
+    /**
+     * Flag to ensure the discount price rule is only created once per test run.
+     */
+    private static bool $discountRuleCreated = false;
 
     /**
      * @var ObjectManager
@@ -131,6 +134,10 @@ class IntegrationTestBase extends TestCase
      */
     protected function createDiscountPriceRule(): void
     {
+        if (self::$discountRuleCreated) {
+            return;
+        }
+
         /** @var RuleInterface $rule */
         $rule = $this->ruleFactory->create();
         $rule->setName('Test Discount Rule')
@@ -150,6 +157,7 @@ class IntegrationTestBase extends TestCase
 
         try {
             $this->catalogRuleRepository->save($rule);
+            self::$discountRuleCreated = true;
         } catch (Exception $e) {
             throw new RuntimeException('Could not create discount price rule: ' . $e->getMessage());
         }
@@ -221,13 +229,7 @@ class IntegrationTestBase extends TestCase
         }
 
         // Try to decode JSON
-        $decodedResponse = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new JsonException('Invalid JSON response: ' . json_last_error_msg() . '. Response: ' . substr($response, 0, 200));
-        }
-
-        return $decodedResponse;
+        return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**

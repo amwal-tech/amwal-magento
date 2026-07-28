@@ -1,5 +1,13 @@
 #!/bin/bash
 
+echo "Installing ext-ftp (required by Magento 2.4.9)"
+if ! php -m | grep -i ftp > /dev/null; then
+    docker-php-ext-install ftp
+fi
+
+echo "Clearing Composer cache to ensure fresh package metadata is fetched"
+composer clear-cache
+
 echo "Adding dev packages for integration test"
 composer require tddwizard/magento2-fixtures:^1.1 --no-update
 composer require mockery/mockery:^1.6.11 --no-update

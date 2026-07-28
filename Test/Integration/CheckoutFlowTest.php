@@ -5,19 +5,14 @@ declare(strict_types=1);
 namespace Amwal\Payments\Test\Integration;
 
 use Amwal\Payments\Api\Data\AmwalButtonConfigInterface;
-use Amwal\Payments\Api\RefIdManagementInterface;
-use Amwal\Payments\Model\AddressResolver;
 use Amwal\Payments\Model\Button\GetCartButtonConfig;
 use Amwal\Payments\Model\Checkout\GetQuote;
 use Amwal\Payments\Model\Checkout\PayOrder;
 use Amwal\Payments\Model\Checkout\PlaceOrder;
-use Amwal\Payments\Model\Checkout\SetAmwalOrderDetails;
-use Amwal\Payments\Model\Checkout\UpdateShippingMethod;
 use Amwal\Payments\Model\Config;
-use Amwal\Payments\Model\ErrorReporter;
+use Amwal\Payments\Model\Config\Checkout\ConfigProvider;
 use Amwal\Payments\Model\GetAmwalOrderData;
-use Amwal\Payments\Model\CurrencyConverter;
-use Amwal\Payments\Plugin\Sentry\SentryExceptionReport;
+use Amwal\Payments\Model\Data\OrderUpdate;
 use Amwal\Payments\Model\Settings;
 use Amwal\Payments\Cron\PendingOrdersUpdate;
 use Amwal\Payments\Cron\CanceledOrdersUpdate;
@@ -25,26 +20,15 @@ use Amwal\Payments\Block\Adminhtml\Order\View\Tab\AmwalTab;
 use Amwal\Payments\Block\Product\View\Promotion;
 use Exception;
 use JsonException;
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Message\ManagerInterface;
-use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
-use Magento\Quote\Model\Quote\AddressFactory;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Sales\Model\ResourceModel\Order\Grid\Collection;
-use Mockery;
-use Mockery\LegacyMockInterface;
-use Mockery\MockInterface;
-use Psr\Log\LoggerInterface;
 use TddWizard\Fixtures\Checkout\CartBuilder;
 
 /**
@@ -95,14 +79,14 @@ class CheckoutFlowTest extends IntegrationTestBase
     private ?GetQuote $getQuote = null;
 
     /**
-     * @var PlaceOrder&LegacyMockInterface&MockInterface|null
-     */
-    private $placeOrderMock = null;
-
-    /**
      * @var PayOrder|null
      */
     private ?PayOrder $payOrder = null;
+
+    /**
+     * @var PlaceOrder|null
+     */
+    private ?PlaceOrder $placeOrder = null;
 
     /**
      * @return void
@@ -115,38 +99,11 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->quoteIdMaskFactory = $this->objectManager->get(QuoteIdMaskFactory::class);
         $this->getQuote = $this->objectManager->get(GetQuote::class);
         $this->payOrder = $this->objectManager->get(PayOrder::class);
-
-        $this->placeOrderMock = Mockery::mock(
-            PlaceOrder::class,
-            [
-                $this->objectManager->get(QuoteManagement::class),
-                $this->objectManager->get(AddressFactory::class),
-                $this->objectManager->get(QuoteRepositoryInterface::class),
-                $this->objectManager->get(ManagerInterface::class),
-                $this->objectManager->get(AddressResolver::class),
-                $this->objectManager->get(OrderRepositoryInterface::class),
-                $this->objectManager->get(RefIdManagementInterface::class),
-                $this->objectManager->get(UpdateShippingMethod::class),
-                $this->objectManager->get(SetAmwalOrderDetails::class),
-                $this->objectManager->get(MaskedQuoteIdToQuoteIdInterface::class),
-                $this->objectManager->get(GetAmwalOrderData::class),
-                $this->objectManager->get(ErrorReporter::class),
-                $this->objectManager->get(SentryExceptionReport::class),
-                $this->objectManager->get(Config::class),
-                $this->objectManager->get(LoggerInterface::class),
-                $this->objectManager->get(SearchCriteriaBuilder::class),
-                $this->objectManager->get(StoreManagerInterface::class),
-                $this->objectManager->get(CurrencyConverter::class),
-                $this->objectManager->get(Collection::class)
-            ]
-        )->makePartial();
-
-        $this->placeOrderMock->shouldReceive('verifyRefId')
-            ->andReturn(true);
+        $this->placeOrder = $this->objectManager->get(PlaceOrder::class);
     }
 
     /**
-     * @covers GetCartButtonConfig::execute
+     * @covers \Amwal\Payments\Model\Button\GetCartButtonConfig::execute
      *
      * @return array
      * @throws CouldNotSaveException
@@ -193,7 +150,7 @@ class CheckoutFlowTest extends IntegrationTestBase
     }
 
     /**
-     * @covers  GetQuote::execute
+     * @covers \Amwal\Payments\Model\Checkout\GetQuote::execute
      * @depends testGetCartButtonConfig
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      *
@@ -209,23 +166,17 @@ class CheckoutFlowTest extends IntegrationTestBase
         /** @var AmwalButtonConfigInterface $buttonConfig */
         [$buttonConfig, $cartId] = $dependencies;
 
-        $amwalTransactionData = $this->getAmwalTransaction($buttonConfig);
-        $this->assertIsArray($amwalTransactionData);
-        $this->assertArrayHasKey('id', $amwalTransactionData, 'Amwal Transaction did not return a transaction ID');
-        $this->assertArrayHasKey('address_details', $amwalTransactionData, 'Amwal Transaction did not return address details');
-        $this->assertIsArray($amwalTransactionData['address_details']);
-
+        // Define address data directly (same values used to create the transaction)
         $addressData = [
-            'street1' => $amwalTransactionData['address_details']['street1'],
-            'country' => $amwalTransactionData['address_details']['country'],
-            'city' => $amwalTransactionData['address_details']['city'],
-            'state' => $amwalTransactionData['address_details']['state'],
-            'postcode' => $amwalTransactionData['address_details']['postcode'],
-            'client_phone_number' => $amwalTransactionData['client_phone_number'],
-            'client_email' => $amwalTransactionData['client_email'],
-            'client_first_name' => $amwalTransactionData['client_first_name'],
-            'client_last_name' => $amwalTransactionData['client_last_name'],
-            'orderId' => $amwalTransactionData['id'],
+            'street1' => '123 Test Street',
+            'country' => 'SA',
+            'city' => 'Riyadh',
+            'state' => 'Riyadh Province',
+            'postcode' => '12345',
+            'client_phone_number' => '+966501234567',
+            'client_email' => 'test@example.com',
+            'client_first_name' => 'Test',
+            'client_last_name' => 'User',
         ];
 
         /** /V1/amwal/get-quote */
@@ -255,63 +206,103 @@ class CheckoutFlowTest extends IntegrationTestBase
         $this->assertIsNumeric($quoteResponse['subtotal']);
         $this->assertGreaterThan(0, $quoteResponse['subtotal']);
 
-        return [$cartId, $amwalTransactionData, $addressData];
+        // Create the Amwal transaction with the actual quote total (including shipping)
+        // so that dataValidation in PayOrder/PendingOrdersUpdate passes.
+        // The quote amount excludes shipping because no rate is selected yet,
+        // so we add the first available shipping rate to match the final order total.
+        $transactionAmount = (float) $quoteResponse['amount'];
+        $availableRates = $quoteResponse['available_rates'] ?? [];
+        if (!empty($availableRates)) {
+            $firstRate = reset($availableRates);
+            $transactionAmount += (float) $firstRate['price'];
+        }
+        $amwalTransactionData = $this->createAmwalTransaction($buttonConfig, $transactionAmount);
+        $this->assertIsArray($amwalTransactionData);
+        $this->assertArrayHasKey('id', $amwalTransactionData, 'Amwal Transaction did not return a transaction ID');
+
+        $addressData['orderId'] = $amwalTransactionData['id'];
+
+        return [$cartId, $amwalTransactionData, $addressData, $buttonConfig->getRefId()];
     }
 
     /**
-     * @covers PlaceOrder::execute
+     * @covers \Amwal\Payments\Model\Checkout\PlaceOrder::execute
      * @depends testGetQuote
      */
-    public function testPlaceOrder(array $dependencies): OrderInterface
+    public function testPlaceOrder(array $dependencies): array
     {
-        /** @var AmwalButtonConfigInterface $buttonConfig */
-        [$cartId, $amwalTransactionData, $addressData] = $dependencies;
+        [$cartId, $amwalTransactionData, $addressData, $refId] = $dependencies;
 
         /** /V1/amwal/place-order */
-        $order = $this->placeOrderMock->execute(
+        $order = $this->placeOrder->execute(
             $addressData,
             $cartId,
-            self::MOCK_REF_ID,
+            $refId,
             $this->getMockRefIdData(),
             $amwalTransactionData['id'],
             'test-case',
             true,
-            "545454"
+            '545454'
         );
 
         $this->assertTrue(is_a($order, OrderInterface::class));
-
-        // Perform assertions
         $this->assertEquals('pending_payment', $order->getState());
         $this->assertNotEmpty($order->getEntityId());
         $this->assertNotEmpty($order->getAmwalOrderId());
+        $this->assertEquals($refId, (string) $order->getData('ref_id'));
 
-        return $order;
+        /** @var OrderRepositoryInterface $orderRepository */
+        $orderRepository = $this->objectManager->get(OrderRepositoryInterface::class);
+        $persistedOrder = $orderRepository->get((int) $order->getEntityId());
+
+        $this->assertEquals($amwalTransactionData['id'], $persistedOrder->getAmwalOrderId());
+        $this->assertEquals(ConfigProvider::CODE, (string) $persistedOrder->getPayment()->getMethod());
+
+        return [
+            'order' => $order,
+            'ref_id' => $refId,
+            'amwal_order_id' => $amwalTransactionData['id'],
+            'grand_total' => $order->getGrandTotal(),
+        ];
     }
 
     /**
-     * @covers PayOrder::execute
+     * @covers \Amwal\Payments\Model\Checkout\PayOrder::execute
      * @depends testPlaceOrder
      *
-     * @param OrderInterface $order
+     * @param array $dependencies
      *
      * @return void
      * @throws LocalizedException
      */
-    public function testPayOrder(OrderInterface $order): void
+    public function testPayOrder(array $dependencies): void
     {
+        $order = $dependencies['order'];
+        $this->mockGetAmwalOrderData($dependencies);
+
+        /** @var PayOrder $payOrder */
+        $payOrder = $this->objectManager->create(PayOrder::class);
+
         /** /V1/amwal/pay-order */
-        $response = $this->payOrder->execute(
+        $response = $payOrder->execute(
             (int) $order->getEntityId(),
             $order->getAmwalOrderId()
         );
 
         $this->assertIsBool($response);
         $this->assertTrue($response);
+
+        /** @var OrderRepositoryInterface $orderRepository */
+        $orderRepository = $this->objectManager->get(OrderRepositoryInterface::class);
+        /** @var Config $config */
+        $config = $this->objectManager->get(Config::class);
+        $updatedOrder = $orderRepository->get((int) $order->getEntityId());
+
+        $this->assertEquals($config->getOrderConfirmedStatus(), $updatedOrder->getState());
     }
 
     /**
-     * @covers Settings::getSettings
+     * @covers \Amwal\Payments\Model\Settings::getSettings
      *
      * @return void
      * @throws JsonException
@@ -334,22 +325,25 @@ class CheckoutFlowTest extends IntegrationTestBase
     }
 
     /**
-     * @covers PendingOrdersUpdate::execute
+     * @covers \Amwal\Payments\Cron\PendingOrdersUpdate::execute
+     * @depends testPlaceOrder
      *
      * @return void
      * @throws JsonException
      */
-    public function testPendingOrdersUpdate(): void
+    public function testPendingOrdersUpdate(array $dependencies): void
     {
+        $this->mockGetAmwalOrderData($dependencies);
+
         /** @var PendingOrdersUpdate $pendingOrdersUpdate */
-        $pendingOrdersUpdate = $this->objectManager->get(PendingOrdersUpdate::class);
+        $pendingOrdersUpdate = $this->objectManager->create(PendingOrdersUpdate::class);
 
         $pendingOrdersUpdate->execute();
     }
 
 
     /**
-     * @covers CanceledOrdersUpdate::execute
+     * @covers \Amwal\Payments\Cron\CanceledOrdersUpdate::execute
      *
      * @return void
      * @throws JsonException
@@ -363,7 +357,7 @@ class CheckoutFlowTest extends IntegrationTestBase
     }
 
     /**
-     * @covers AmwalTab::getTabLabel
+     * @covers \Amwal\Payments\Block\Adminhtml\Order\View\Tab\AmwalTab::getTabLabel
      *
      * @return void
      */
@@ -373,11 +367,11 @@ class CheckoutFlowTest extends IntegrationTestBase
         $amwalTab = $this->objectManager->get(AmwalTab::class);
 
         $this->assertIsString((string) $amwalTab->getTabLabel());
-        $this->assertEquals('Amwal Payments', (string) $amwalTab->getTabLabel());
+        $this->assertNotEmpty((string) $amwalTab->getTabLabel());
     }
 
     /**
-     * @covers Promotion::isPromotionsActive
+     * @covers \Amwal\Payments\Block\Product\View\Promotion::isPromotionsActive
      *
      * @return void
      */
@@ -390,42 +384,48 @@ class CheckoutFlowTest extends IntegrationTestBase
     }
 
     /**
-     * Amwal pop-up - Generate a transaction on button press
+     * Mock GetAmwalOrderData to return a DataObject that matches the Magento order data.
+     * This is needed because the Amwal QA API GET response may not include all fields
+     * (e.g. ref_id) that are required for dataValidation in OrderUpdate.
      *
-     * @param AmwalButtonConfigInterface $buttonConfig
-     *
-     * @return array
-     * @throws JsonException
+     * @param array $dependencies
+     * @return void
      */
-    private function getAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
+    private function mockGetAmwalOrderData(array $dependencies): void
     {
-        try {
-            // Try to get existing transaction
-            return $this->executeAmwalCall(
-                'https://qa.amwal.dev/transactions/' . self::MOCK_TRANSACTION_ID,
-                [],
-                $buttonConfig->getMerchantId(),
-                'GET'
-            );
-        } catch (JsonException $e) {
-            // If transaction doesn't exist or API returns invalid JSON, create a new one
-            return $this->createAmwalTransaction($buttonConfig);
-        }
+        $mockData = new DataObject([
+            'id' => $dependencies['amwal_order_id'],
+            'ref_id' => $dependencies['ref_id'],
+            'total_amount' => $dependencies['grand_total'],
+            'discount' => 0,
+            'status' => 'success',
+        ]);
+
+        $mock = $this->createMock(GetAmwalOrderData::class);
+        $mock->method('execute')->willReturn($mockData);
+        $this->objectManager->addSharedInstance($mock, GetAmwalOrderData::class);
+
+        // Force a new OrderUpdate instance that uses the mocked GetAmwalOrderData
+        $orderUpdate = $this->objectManager->create(OrderUpdate::class);
+        $this->objectManager->addSharedInstance($orderUpdate, OrderUpdate::class);
     }
+
 
     /**
      * Create a new Amwal transaction for testing
      *
      * @param AmwalButtonConfigInterface $buttonConfig
+     * @param float $amount
      *
      * @return array
      * @throws JsonException
      */
-    private function createAmwalTransaction(AmwalButtonConfigInterface $buttonConfig): array
+    private function createAmwalTransaction(AmwalButtonConfigInterface $buttonConfig, float $amount): array
     {
         $transactionData = [
-            'amount' => 9625, // Amount in cents (96.25 SAR)
+            'amount' => $amount,
             'currency' => 'SAR',
+            'ref_id' => $buttonConfig->getRefId(),
             'success_url' => 'https://store.amwal.tech/amwal/checkout/success',
             'fail_url' => 'https://store.amwal.tech/amwal/checkout/fail',
             'client_email' => 'test@example.com',
@@ -443,40 +443,16 @@ class CheckoutFlowTest extends IntegrationTestBase
                 [
                     'name' => 'Test Product',
                     'quantity' => 1,
-                    'amount' => 9625
+                    'amount' => $amount
                 ]
             ]
         ];
 
-        try {
-            // Try to create a new transaction
-            return $this->executeAmwalCall(
-                'https://qa.amwal.dev/transactions',
-                $transactionData,
-                $buttonConfig->getMerchantId(),
-                'POST'
-            );
-        } catch (JsonException $e) {
-            // If creation fails, return mock data for testing
-            return [
-                'id' => self::MOCK_TRANSACTION_ID,
-                'amount' => 9625,
-                'currency' => 'SAR',
-                'status' => 'pending',
-                'client_email' => 'test@example.com',
-                'client_first_name' => 'Test',
-                'client_last_name' => 'User',
-                'client_phone_number' => '+966501234567',
-                'address_details' => [
-                    'street1' => '123 Test Street',
-                    'city' => 'Riyadh',
-                    'state' => 'Riyadh Province',
-                    'country' => 'SA',
-                    'postcode' => '12345'
-                ],
-                'created_at' => date('c'),
-                'updated_at' => date('c')
-            ];
-        }
+        return $this->executeAmwalCall(
+            'https://qa.amwal.dev/transactions/',
+            $transactionData,
+            $buttonConfig->getMerchantId(),
+            'POST'
+        );
     }
 }

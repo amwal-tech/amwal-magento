@@ -54,7 +54,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getCity(): string
     {
-        return $this->getData(self::CITY);
+        return (string) $this->getData(self::CITY);
     }
 
     /**
@@ -62,7 +62,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getCountry(): string
     {
-        return $this->getData(self::COUNTRY);
+        return (string) $this->getData(self::COUNTRY);
     }
 
     /**
@@ -78,7 +78,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getState(): string
     {
-        return $this->getData(self::STATE);
+        return (string) $this->getData(self::STATE);
     }
 
     /**
@@ -94,7 +94,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
      */
     public function getStreet1(): string
     {
-        return $this->getData(self::STREET1);
+        return (string) $this->getData(self::STREET1);
     }
 
     /**
@@ -144,7 +144,7 @@ class AmwalAddress extends DataObject implements AmwalAddressInterface
     {
         return $this->setData(self::EMAIL, $email);
     }
-    
+
     /**
      * @inheritDoc
      */
