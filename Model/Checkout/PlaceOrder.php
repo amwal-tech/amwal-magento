@@ -139,7 +139,7 @@ class PlaceOrder extends AmwalCheckoutAction
         string $amwalOrderId,
         string $triggerContext,
         bool $hasAmwalAddress,
-        string $card_bin = null,
+        ?string $card_bin = null,
         string $paymentMethod = ConfigProvider::CODE
     ): OrderInterface {
         $amwalOrderData = $this->getAmwalOrderData->execute($amwalOrderId);
@@ -407,7 +407,7 @@ class PlaceOrder extends AmwalCheckoutAction
      * @return void
      * @throws LocalizedException
      */
-    private function throwException($message = null, Throwable $originalException = null): void
+    private function throwException($message = null, ?Throwable $originalException = null): void
     {
         if ($originalException) {
             $this->sentryExceptionReport->report($originalException);

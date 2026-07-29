@@ -51,7 +51,7 @@ class CurrencyConverter
      */
     public function convertAmount(
         float $amount,
-        Quote $quote = null,
+        ?Quote $quote = null,
         ?string $targetCurrency = null,
         bool $roundResult = true
     ): array {
@@ -100,7 +100,7 @@ class CurrencyConverter
      * @return float The converted amount in SAR.
      * @throws LocalizedException|NoSuchEntityException
      */
-    public function convertToSAR($amount, Quote $quote = null, bool $roundResult = true): float
+    public function convertToSAR($amount, ?Quote $quote = null, bool $roundResult = true): float
     {
         if ($amount === null || $amount === '' || $amount == 0) {
             return 0.0;
@@ -220,7 +220,7 @@ class CurrencyConverter
      * @return StoreInterface
      * @throws NoSuchEntityException
      */
-    private function getStore(Quote $quote = null): StoreInterface
+    private function getStore(?Quote $quote = null): StoreInterface
     {
         return $quote ? $quote->getStore() : $this->storeManager->getStore();
     }
