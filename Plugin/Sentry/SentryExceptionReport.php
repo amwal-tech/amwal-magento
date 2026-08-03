@@ -41,7 +41,8 @@ class SentryExceptionReport
     }
 
     /**
-     * Intercept and report uncaught exceptions from Magento HTTP application
+     * Intercept and report uncaught exceptions from Magento HTTP application.
+     * Only reports exceptions that originate from Amwal code.
      *
      * @param \Magento\Framework\App\Http $subject
      * @param \Magento\Framework\App\Bootstrap $bootstrap
@@ -54,7 +55,50 @@ class SentryExceptionReport
         \Magento\Framework\App\Bootstrap $bootstrap,
         \Exception $exception
     ): void {
-        $this->report($exception);
+        if ($this->isAmwalException($exception)) {
+            $this->report($exception);
+        }
+    }
+
+    /**
+     * Determine if an exception originates from Amwal code.
+     *
+     * Checks the exception class namespace, the file where it was thrown,
+     * and the stack trace for any Amwal\Payments origin.
+     *
+     * @param \Throwable $exception
+     * @return bool
+     */
+    private function isAmwalException(\Throwable $exception): bool
+    {
+        // Check if the exception class itself belongs to the Amwal namespace
+        if (str_starts_with(get_class($exception), 'Amwal\\')) {
+            return true;
+        }
+
+        // Check if the exception was thrown from an Amwal file
+        $file = $exception->getFile();
+        if (stripos($file, 'Amwal') !== false) {
+            return true;
+        }
+
+        // Check the stack trace for Amwal origin
+        foreach ($exception->getTrace() as $frame) {
+            if (isset($frame['class']) && str_starts_with($frame['class'], 'Amwal\\')) {
+                return true;
+            }
+            if (isset($frame['file']) && stripos($frame['file'], 'Amwal') !== false) {
+                return true;
+            }
+        }
+
+        // Check previous/chained exceptions
+        $previous = $exception->getPrevious();
+        if ($previous !== null) {
+            return $this->isAmwalException($previous);
+        }
+
+        return false;
     }
 
     /**
