@@ -128,7 +128,8 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
             $this->getMerchantId() &&
-            $this->isMerchantValid();
+            $this->isMerchantValid() &&
+            !empty($this->getSecretKey());
     }
 
     /**
@@ -138,7 +139,8 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_APPLE_PAY_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
             $this->getMerchantId() &&
-            $this->isMerchantValid();
+            $this->isMerchantValid() &&
+            !empty($this->getSecretKey());
     }
 
     /**
@@ -148,7 +150,8 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(self::XML_CONFIG_PATH_BANK_INSTALLMENTS_ACTIVE, ScopeInterface::SCOPE_WEBSITE) &&
             $this->getMerchantId() &&
-            $this->isMerchantValid();
+            $this->isMerchantValid() &&
+            !empty($this->getSecretKey());
     }
 
     /**

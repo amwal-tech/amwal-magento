@@ -29,3 +29,5 @@
 "Items in cart","المنتجات في السلة"
 "Qty","الكمية"
 "Scroll to view all %1 items","مرر لعرض جميع المنتجات (%1)"
+"The Secret Key is required when Amwal Payments is enabled.","المفتاح السري مطلوب عند تفعيل مدفوعات أموال."
+"Your API secret key for secure authentication. Required when Amwal is enabled.","المفتاح السري الخاص بك للمصادقة الآمنة. مطلوب عند تفعيل أموال."

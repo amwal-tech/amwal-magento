@@ -47,7 +47,8 @@ class IntegrationTestBase extends TestCase
         'payment/amwal_payments/discount_rule' => '5',
         'payment/amwal_payments/cronjob_enabled' => 1,
         'payment/amwal_payments/api_url' => 'https://qa.amwal.dev',
-        'payment/amwal_payments/pay_url' => 'https://pay.amwal.dev'
+        'payment/amwal_payments/pay_url' => 'https://pay.amwal.dev',
+        'payment/amwal_payments/secret_key' => 'test-secret-key-12345'
     ];
 
     protected const MOCK_PRODUCT_SKU = 'amwal_simple';
