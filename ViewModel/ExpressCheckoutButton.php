@@ -72,27 +72,35 @@ class ExpressCheckoutButton implements ArgumentInterface
     }
 
     /**
+     * @param string|null $triggerContext
      * @return bool
      */
-    public function shouldRender(): bool
+    public function shouldRender(?string $triggerContext = null): bool
     {
-        return $this->isExpressCheckoutActive();
+        return $this->isExpressCheckoutActive($triggerContext);
     }
 
     /**
+     * @param string|null $triggerContext
      * @return bool
      */
-    public function isExpressCheckoutActive(): bool
+    public function isExpressCheckoutActive(?string $triggerContext = null): bool
     {
-        $quote = $this->checkoutSessionFactory->create()->getQuote();
-
         if ($this->config->getModuleType() === ModuleType::MODULE_TYPE_LITE) {
             return false;
         }
 
-        return $this->config->isActive()
-            && $this->config->isExpressCheckoutActive()
-            && ($quote->getItemsCount() == 0 || $quote->getGrandTotal() > 0);
+        if (!$this->config->isActive() || !$this->config->isExpressCheckoutActive()) {
+            return false;
+        }
+
+        if ($triggerContext === self::TRIGGER_CONTEXT_PRODUCT_DETAIL) {
+            return true;
+        }
+
+        $quote = $this->checkoutSessionFactory->create()->getQuote();
+
+        return ($quote->getItemsCount() == 0 || $quote->getGrandTotal() > 0);
     }
 
     /**

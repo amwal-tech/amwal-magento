@@ -370,7 +370,6 @@ const AmwalMagentoReactButton = ({
             setTriggerPreCheckoutAck(false)
         }
     }, [triggerPreCheckoutAck])
-    console.log('Rendering AmwalMagentoReactButton with config:', config)
     return (config != null)
         ? <AmwalCheckoutButton
             ref={buttonRef}

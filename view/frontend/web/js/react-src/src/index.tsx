@@ -12,6 +12,7 @@ export const renderReactElement = (container: Element): void => {
     const applePayCheckout = container.getAttribute('data-apple-pay-checkout')
     const paymentMethod = container.getAttribute('data-payment-method')
     const overrideCartId = container.getAttribute('data-override-cart-id')
+    const emptyCartOnCancellationAttr = container.getAttribute('data-empty-cart-on-cancellation')
     if (triggerContext) {
         const submitAddToCart = async (): Promise<string | undefined> => {
             if (!formSelector) return
@@ -41,6 +42,7 @@ export const renderReactElement = (container: Element): void => {
                 overrideCartId={overrideCartId}
                 applePayCheckout={applePayCheckout}
                 paymentMethod={paymentMethod}
+                emptyCartOnCancellation={emptyCartOnCancellationAttr !== null ? emptyCartOnCancellationAttr === 'true' : undefined}
                 preCheckoutTask={formSelector ? submitAddToCart : undefined}
             />)
     }

@@ -46,4 +46,405 @@ $checkoutButtonId = $viewModel->getCheckoutButtonId();
 <style>
     <?= $viewModel->getStyleCss() ?>
     .amwal-wrapper { border: 1px solid #dfdfdf; border-radius: 5px; margin-bottom: 25px;  width: 500px;} .amwal-wrapper-login { display: flex; justify-content: center; align-items: center; flex-direction: column; padding-right: 14px; padding-left: 14px;} .amwal-or { position: relative; top: 10px; width: 40px; height: 10px; line-height: 0; text-align: center; margin-left: auto; margin-right: auto; color: #757575; background: white; }
+
+    /* Modals wrapper stacking context */
+    .modals-wrapper {
+        position: relative;
+        z-index: 100000;
+    }
+
+    /* Overlay backdrop styling */
+    .modals-overlay {
+        background-color: rgba(15, 23, 42, 0.55) !important;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+
+    /* Amwal Cart Conflict Modal - Enhanced Modern UI */
+    .modal-popup.amwal-cart-conflict-modal {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        pointer-events: none !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal._show {
+        background: transparent !important;
+        background-color: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-inner-wrap {
+        position: relative !important;
+        margin: auto !important;
+        max-width: 460px !important;
+        max-height: 90vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: calc(100% - 32px) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+        border: none !important;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        pointer-events: auto !important;
+        animation: amwalModalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    @keyframes amwalModalSlideUp {
+        0% {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-header {
+        border-bottom: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        min-height: 0 !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-header .modal-title {
+        display: none !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-header .action-close {
+        position: absolute !important;
+        top: 14px !important;
+        right: 14px !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        background: #f3f4f6 !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #6b7280 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        z-index: 10 !important;
+        box-shadow: none !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-header .action-close:hover {
+        background: #e5e7eb !important;
+        color: #111827 !important;
+        transform: scale(1.05) !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-header .action-close:before {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        color: inherit !important;
+        margin: 0 !important;
+    }
+    [dir="rtl"] .modal-popup.amwal-cart-conflict-modal .modal-header .action-close,
+    html[lang="ar"] .modal-popup.amwal-cart-conflict-modal .modal-header .action-close {
+        right: auto !important;
+        left: 14px !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-content {
+        padding: 28px 24px 14px 24px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+    .amwal-conflict-modal-body {
+        text-align: center;
+        font-family: inherit;
+    }
+    .amwal-conflict-brand-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+    .amwal-conflict-brand-header .amwal-logo-svg {
+        height: 26px;
+        width: auto;
+        max-width: 100px;
+    }
+    .amwal-conflict-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 6px 0;
+        line-height: 1.3;
+        font-family: inherit;
+    }
+    .amwal-conflict-text {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #4b5563;
+        margin: 0 0 14px 0;
+        font-family: inherit;
+    }
+
+    /* Cart Items Preview */
+    .amwal-cart-items-container {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin: 0 0 16px 0;
+        text-align: left;
+    }
+    [dir="rtl"] .amwal-cart-items-container,
+    html[lang="ar"] .amwal-cart-items-container {
+        text-align: right;
+    }
+    .amwal-cart-items-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #edf0f2;
+    }
+    .amwal-cart-items-count {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .amwal-cart-items-count svg {
+        color: #6b7280;
+    }
+    .amwal-cart-items-subtotal {
+        font-weight: 700;
+        color: #111827;
+    }
+    .amwal-cart-items-list {
+        display: flex;
+        flex-direction: column;
+        max-height: 220px;
+        overflow-y: auto;
+        padding-right: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+        -webkit-overflow-scrolling: touch;
+    }
+    [dir="rtl"] .amwal-cart-items-list,
+    html[lang="ar"] .amwal-cart-items-list {
+        padding-right: 0;
+        padding-left: 6px;
+    }
+    .amwal-cart-items-list::-webkit-scrollbar {
+        width: 5px;
+    }
+    .amwal-cart-items-list::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .amwal-cart-items-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .amwal-cart-items-list::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    .amwal-cart-item-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+    }
+    .amwal-cart-item-row:not(:last-child) {
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .amwal-cart-item-img {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        flex-shrink: 0;
+    }
+    .amwal-cart-item-placeholder {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .amwal-cart-item-details {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .amwal-cart-item-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.35;
+    }
+    .amwal-cart-item-meta {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: #6b7280;
+        line-height: 1.3;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .amwal-cart-item-options {
+        color: #6b7280;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 130px;
+    }
+    .amwal-cart-item-bullet {
+        color: #9ca3af;
+        font-size: 10px;
+    }
+    .amwal-cart-item-qty {
+        color: #4b5563;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+    .amwal-cart-item-price {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111827;
+        white-space: nowrap;
+        flex-shrink: 0;
+        text-align: right;
+        margin-left: 8px;
+    }
+    .amwal-cart-item-price .price {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        color: #111827 !important;
+    }
+    [dir="rtl"] .amwal-cart-item-price,
+    html[lang="ar"] .amwal-cart-item-price {
+        text-align: left;
+        margin-left: 0;
+        margin-right: 8px;
+    }
+    .amwal-cart-scroll-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 500;
+        color: #6b7280;
+        padding-top: 8px;
+        margin-top: 6px;
+        border-top: 1px dashed #e5e7eb;
+        text-align: center;
+        transition: opacity 0.2s ease;
+    }
+    .amwal-cart-scroll-hint svg {
+        color: #9ca3af;
+        animation: amwalBounceSubtle 1.8s ease-in-out infinite;
+    }
+    @keyframes amwalBounceSubtle {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(2px);
+        }
+    }
+    @media (max-height: 650px) {
+        .modal-popup.amwal-cart-conflict-modal .modal-content {
+            padding: 20px 20px 10px 20px !important;
+        }
+        .modal-popup.amwal-cart-conflict-modal .modal-footer {
+            padding: 0 20px 16px 20px !important;
+        }
+        .amwal-conflict-title {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        .amwal-conflict-text {
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        .amwal-cart-items-list {
+            max-height: 150px;
+        }
+    }
+
+    .modal-popup.amwal-cart-conflict-modal .modal-footer {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        padding: 0 24px 24px 24px !important;
+        border-top: none !important;
+        margin-top: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-footer button {
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        font-family: inherit !important;
+        text-align: center !important;
+        letter-spacing: 0.01em !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-footer .action-primary.action-continue {
+        height: 48px !important;
+        background: #111827 !important;
+        border: 1px solid #111827 !important;
+        color: #ffffff !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 12px rgba(17, 24, 39, 0.15) !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-footer .action-primary.action-continue:hover {
+        background: #1f2937 !important;
+        border-color: #1f2937 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 16px rgba(17, 24, 39, 0.2) !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-footer .action-primary.action-continue:active {
+        transform: translateY(0) !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-footer .action-secondary.action-clear-cart {
+        height: 46px !important;
+        background: #ffffff !important;
+        border: 1.5px solid #e5e7eb !important;
+        color: #4b5563 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        box-shadow: none !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-footer .action-secondary.action-clear-cart:hover {
+        background: #f9fafb !important;
+        border-color: #d1d5db !important;
+        color: #111827 !important;
+    }
+    .modal-popup.amwal-cart-conflict-modal .modal-footer .action-secondary.action-clear-cart:active {
+        background: #f3f4f6 !important;
+    }
 </style>
