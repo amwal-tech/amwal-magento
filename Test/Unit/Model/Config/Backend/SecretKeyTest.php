@@ -13,9 +13,20 @@ use PHPUnit\Framework\TestCase;
 
 class SecretKeyTest extends TestCase
 {
-    private ObjectManager $objectManager;
-    private MockObject|ScopeConfigInterface $scopeConfigMock;
-    private MockObject|EncryptorInterface $encryptorMock;
+    /**
+     * @var ObjectManager
+     */
+    private $objectManager;
+
+    /**
+     * @var MockObject|ScopeConfigInterface
+     */
+    private $scopeConfigMock;
+
+    /**
+     * @var MockObject|EncryptorInterface
+     */
+    private $encryptorMock;
 
     protected function setUp(): void
     {

@@ -12,9 +12,20 @@ use PHPUnit\Framework\TestCase;
 
 class ConfigTest extends TestCase
 {
-    private ObjectManager $objectManager;
-    private MockObject|ScopeConfigInterface $scopeConfigMock;
-    private Config $config;
+    /**
+     * @var ObjectManager
+     */
+    private $objectManager;
+
+    /**
+     * @var MockObject|ScopeConfigInterface
+     */
+    private $scopeConfigMock;
+
+    /**
+     * @var Config
+     */
+    private $config;
 
     protected function setUp(): void
     {
