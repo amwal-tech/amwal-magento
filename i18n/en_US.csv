@@ -27,3 +27,5 @@
 "Items in cart","Items in cart"
 "Qty","Qty"
 "Scroll to view all %1 items","Scroll to view all %1 items"
+"The Secret Key is required when Amwal Payments is enabled.","The Secret Key is required when Amwal Payments is enabled."
+"Your API secret key for secure authentication. Required when Amwal is enabled.","Your API secret key for secure authentication. Required when Amwal is enabled."
