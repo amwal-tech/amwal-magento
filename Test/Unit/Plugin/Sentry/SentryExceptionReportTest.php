@@ -12,15 +12,11 @@ use Magento\Framework\App\State;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Amwal\Payments\Test\Unit\Plugin\Sentry\Fixture\DummyAmwalException;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
-
-// Dummy exception for testing Amwal namespace detection
-class DummyAmwalException extends \Exception
-{
-}
 
 class SentryExceptionReportTest extends TestCase
 {
