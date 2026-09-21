@@ -305,11 +305,9 @@ function ($, Component, placeAmwalOrder, payAmwalOrder, amwalErrorHandler, urlBu
                                 self.productButtonContainer.setAttribute('data-empty-cart-on-cancellation', 'false');
                                 $('body').trigger('processStart');
                                 cleanQuote().always(function () {
-                                    $('body').trigger('processStop');
                                     customerData.invalidate(['cart']);
                                     customerData.reload(['cart'], true);
-                                    bypassingModal = true;
-                                    amwalCheckoutButton.click();
+                                    window.location.reload();
                                 });
                             }
                         }
