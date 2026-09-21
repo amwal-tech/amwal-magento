@@ -9,6 +9,9 @@ use Magento\Framework\App\State;
 use Magento\Store\Model\Store;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class SentryExceptionReport
 {
     /**
@@ -253,10 +256,13 @@ class SentryExceptionReport
                 'error_types' => E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED,
                 // Prevent Sentry from overriding Magento's global error/exception handlers
                 'integrations' => static function (array $integrations): array {
-                    return array_filter($integrations, static function ($integration): bool {
-                        return !$integration instanceof \Sentry\Integration\ErrorListenerIntegration
-                            && !$integration instanceof \Sentry\Integration\ExceptionListenerIntegration
-                            && !$integration instanceof \Sentry\Integration\FatalErrorListenerIntegration;
+                    $excluded = [
+                        'Sentry\Integration\ErrorListenerIntegration',
+                        'Sentry\Integration\ExceptionListenerIntegration',
+                        'Sentry\Integration\FatalErrorListenerIntegration',
+                    ];
+                    return array_filter($integrations, static function ($integration) use ($excluded): bool {
+                        return !in_array(get_class($integration), $excluded, true);
                     });
                 },
             ]);
