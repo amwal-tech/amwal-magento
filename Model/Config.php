@@ -77,7 +77,7 @@ class Config
   /**
      * @var string
      */
-    const MODULE_VERSION = '1.0.47';
+    const MODULE_VERSION = '1.0.48';
 
     /** @var ScopeConfigInterface */
     private ScopeConfigInterface $scopeConfig;
