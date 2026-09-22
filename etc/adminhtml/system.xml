@@ -51,10 +51,10 @@
 
                     <field id="secret_key" translate="label comment" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Secret Key</label>
-                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <backend_model>Amwal\Payments\Model\Config\Backend\SecretKey</backend_model>
                         <config_path>payment/amwal_payments/secret_key</config_path>
                         <validate>required-entry</validate>
-                        <comment><![CDATA[Your API secret key for secure authentication.]]></comment>
+                        <comment><![CDATA[Your API secret key for secure authentication. Required when Amwal is enabled.]]></comment>
                     </field>
 
                     <field id="verify_merchant_id" translate="button_label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
