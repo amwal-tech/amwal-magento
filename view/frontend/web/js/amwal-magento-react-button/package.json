@@ -39,6 +39,7 @@
     "react-dom": "*"
   },
   "dependencies": {
+    "@amwaljs/checkout-button": "^0.3.6",
     "amwal-checkout-button": "^0.2.2",
     "amwal-checkout-button-react": "^0.2.2"
   }
