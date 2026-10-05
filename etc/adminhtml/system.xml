@@ -362,7 +362,7 @@
                 <group id="amwal_payments_cronjob" translate="label comment" showInDefault="1" showInWebsite="0" showInStore="0" sortOrder="800">
                     <label>Cron Job Settings</label>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-                    <comment><![CDATA[Automatically checks and updates pending payment orders every hour to maintain accurate order status information.]]></comment>
+                    <comment><![CDATA[Automatically synchronizes pending and canceled orders with Amwal.]]></comment>
                     <depends>
                         <field id="*/*/active">1</field>
                     </depends>
@@ -371,13 +371,13 @@
                         <label>Enable Cron Job</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/amwal_payments/cronjob_enable</config_path>
-                        <comment><![CDATA[Enable automatic order status synchronization via scheduled cron job.]]></comment>
+                        <comment><![CDATA[Enable scheduled background order synchronization.]]></comment>
                     </field>
 
                     <field id="cron_status" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Cron Job Status</label>
                         <frontend_model>Amwal\Payments\Model\Config\Frontend\CronStatus</frontend_model>
-                        <comment><![CDATA[Current status and last execution time. <strong>Frequency:</strong> Runs every hour.]]></comment>
+                        <comment><![CDATA[Frequency: Runs every hour.]]></comment>
                         <depends>
                             <field id="cronjob_enable">1</field>
                         </depends>

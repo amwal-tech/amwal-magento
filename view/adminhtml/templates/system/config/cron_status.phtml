@@ -1,0 +1,170 @@
+<?php
+/**
+ * Amwal Payments - Cron Status
+ *
+ * @var $block \Amwal\Payments\Model\Config\Frontend\CronStatus
+ */
+$pendingJob = $block->getData('pending_job');
+$canceledJob = $block->getData('canceled_job');
+$ajaxUrl = $block->getData('ajax_url');
+?>
+
+<div class="amwal-cron-status" style="max-width: 650px;">
+    <div class="amwal-cron-list">
+        <?php foreach ([$pendingJob, $canceledJob] as $job): ?>
+            <div class="amwal-cron-row" id="row-<?= $block->escapeHtmlAttr($job['code']) ?>">
+                <span class="amwal-status-dot <?= $block->escapeHtmlAttr($job['status_class']) ?>"></span>
+                <span class="amwal-cron-name"><?= $block->escapeHtml($job['title']) ?>:</span>
+                <span class="amwal-cron-status-text amwal-cron-status-text--<?= $block->escapeHtmlAttr($job['status_modifier']) ?>">
+                    <?= $block->escapeHtml($job['status_text']) ?>
+                </span>
+                <span class="amwal-cron-divider">&mdash;</span>
+                <span class="amwal-cron-time">
+                    <?= $block->escapeHtml(__('Last run: %1', $job['last_run'])) ?>
+                </span>
+                <span class="amwal-cron-queue <?= $job['queue_count'] > 0 ? 'amwal-cron-queue--has-items' : '' ?>">
+                    (<?= $block->escapeHtml($job['queue_text']) ?>)
+                </span>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div style="margin-top: 10px;">
+        <button type="button" class="action-default js-amwal-sync-btn" style="white-space: nowrap;">
+            <span><?= $block->escapeHtml(__('Sync Now')) ?></span>
+        </button>
+    </div>
+
+    <div id="amwal-cron-ajax-msg" style="display: none; margin-top: 10px;"></div>
+</div>
+
+<style>
+    .amwal-cron-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 2px;
+    }
+    .amwal-cron-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: nowrap;
+    }
+    .amwal-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .amwal-status-dot--success { background: #52a447; }
+    .amwal-status-dot--running { background: #007bdb; }
+    .amwal-status-dot--error   { background: #e22626; }
+    .amwal-status-dot--neutral { background: #b0b0b0; }
+
+    .amwal-cron-name {
+        font-weight: 600;
+        color: #222222;
+        min-width: 110px;
+    }
+    .amwal-cron-status-text {
+        font-weight: 600;
+        min-width: 55px;
+    }
+    .amwal-cron-status-text--active {
+        color: #2e7d32;
+    }
+    .amwal-cron-status-text--error {
+        color: #c62828;
+    }
+    .amwal-cron-status-text--muted {
+        color: #777777;
+    }
+    .amwal-cron-divider {
+        color: #aaaaaa;
+    }
+    .amwal-cron-time {
+        color: #666666;
+        font-size: 12px;
+    }
+    .amwal-cron-queue {
+        color: #888888;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .amwal-cron-queue--has-items {
+        color: #007bdb;
+        font-weight: 500;
+    }
+</style>
+
+<script type="text/javascript">
+    require(['jquery', 'mage/translate'], function($, $t) {
+        $(document).ready(function() {
+            var ajaxUrl = '<?= $block->escapeUrl($ajaxUrl) ?>';
+
+            $('.js-amwal-sync-btn').on('click', function(e) {
+                e.preventDefault();
+                var $btn = $(this);
+                var $msgBox = $('#amwal-cron-ajax-msg');
+                var originalHtml = $btn.html();
+                var formKey = $('input[name="form_key"]').val();
+
+                $btn.prop('disabled', true).html('<span>' + $t('Syncing…') + '</span>');
+                $msgBox.html('<div class="message message-notice">' + $t('Running synchronization, please wait…') + '</div>').slideDown(150);
+
+                $.ajax({
+                    url: ajaxUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        job: 'all',
+                        form_key: formKey
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $msgBox.html(
+                                '<div class="message message-success">' +
+                                (response.message || $t('Synchronization completed.')) +
+                                '</div>'
+                            ).show();
+
+                            var nowUtc = new Date();
+                            var hours = String(nowUtc.getUTCHours()).padStart(2, '0');
+                            var mins = String(nowUtc.getUTCMinutes()).padStart(2, '0');
+                            var timeDisplay = $t('Last run:') + ' ' + $t('Just now (%1:%2 UTC)', hours, mins);
+
+                            $('.amwal-cron-row .amwal-cron-time').text(timeDisplay);
+                            $('.amwal-cron-row .amwal-cron-status-text')
+                                .removeClass('amwal-cron-status-text--muted amwal-cron-status-text--error')
+                                .addClass('amwal-cron-status-text--active')
+                                .text($t('Active'));
+                            $('.amwal-status-dot')
+                                .removeClass('amwal-status-dot--error amwal-status-dot--neutral amwal-status-dot--running')
+                                .addClass('amwal-status-dot--success');
+                        } else {
+                            $msgBox.html(
+                                '<div class="message message-error">' +
+                                (response.message || $t('An error occurred during synchronization.')) +
+                                '</div>'
+                            ).show();
+                        }
+                    },
+                    error: function() {
+                        $msgBox.html(
+                            '<div class="message message-error">' +
+                            $t('Unable to reach the server. Please check your network and Magento logs.') +
+                            '</div>'
+                        ).show();
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
+                    }
+                });
+            });
+        });
+    });
+</script>

@@ -59,6 +59,8 @@ class AmwalClientFactory
         $config = [
             'base_uri' => rtrim($this->config->getApiUrl(), '/') . '/',
             'headers' => $headers,
+            'connect_timeout' => 5,
+            'timeout' => 15,
         ];
 
         return $this->guzzleClientFactory->create(['config' => $config]);

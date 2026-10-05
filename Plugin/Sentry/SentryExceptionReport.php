@@ -151,7 +151,6 @@ class SentryExceptionReport
                 return;
             }
 
-
             \Sentry\captureException($exception);
         } catch (\Throwable $e) {
             // Silently fail if Sentry reporting fails
