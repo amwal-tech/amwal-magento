@@ -141,6 +141,8 @@ class OrderUpdate
                 $historyComment = __('Order status updated to (%1) by Amwal Payments', $status);
             }
 
+            $orderUpdated = false;
+
             // Update order status
             if ($this->verifyStatus($status)) {
                 $order->setState($this->config->getOrderConfirmedStatus());
@@ -158,16 +160,25 @@ class OrderUpdate
                     // Send admin email
                     $this->sendAdminEmail($order);
                 }
-            } elseif ($status === 'fail' && $order->getState() !== Order::STATE_CANCELED) {
-                $order->setState(Order::STATE_CANCELED);
-                $order->setStatus(Order::STATE_CANCELED);
-                $order->setIsAmwalOrderCanceled(true);
-                $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
-                $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
+                $orderUpdated = true;
+            } elseif ($status === 'fail') {
+                if ($order->getState() !== Order::STATE_CANCELED) {
+                    $order->setState(Order::STATE_CANCELED);
+                    $order->setStatus(Order::STATE_CANCELED);
+                    $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' has been pending, status: (' . $status . ') and order has been canceled.');
+                    $order->addCommentToStatusHistory('Amwal Transaction Id: ' . $amwalOrderData->getId() . ' Amwal failure reason: ' . $amwalOrderData->getFailureReason());
+                    $orderUpdated = true;
+                }
+                if (!$order->getIsAmwalOrderCanceled()) {
+                    $order->setIsAmwalOrderCanceled(true);
+                    $orderUpdated = true;
+                }
             }
 
-            // Save the updated order
-            $this->orderRepository->save($order);
+            // Save the updated order only if changes occurred
+            if ($orderUpdated) {
+                $this->orderRepository->save($order);
+            }
 
             if (!$order->hasInvoices() && $this->verifyStatus($status)) {
                 $this->invoiceAmwalOrder->execute($order, $amwalOrderData);
@@ -308,8 +319,8 @@ class OrderUpdate
                 $order->getIncrementId(),
                 'discount_amount',
                 'discount',
-                (string)$order->getGrandTotal(),
-                (string)$amwalOrderData->getTotalAmount()
+                (string)$order->getDiscountAmount(),
+                (string)$amwalOrderData->getDiscount()
             );
             $this->sendAdminEmail($order, $subject, $message);
             throw new RuntimeException(sprintf('Order (%s) %s does not match Amwal Order %s (%s != %s)', $order->getIncrementId(), 'discount_amount', 'discount', $order->getDiscountAmount(), $amwalOrderData->getDiscount()));
