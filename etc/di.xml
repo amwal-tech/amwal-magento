@@ -105,6 +105,11 @@
             <argument name="logger" xsi:type="object">AmwalLogger</argument>
         </arguments>
     </type>
+    <type name="Amwal\Payments\Cron\CanceledOrdersUpdate">
+        <arguments>
+            <argument name="logger" xsi:type="object">AmwalLogger</argument>
+        </arguments>
+    </type>
     <type name="Amwal\Payments\Model\Webhook">
         <arguments>
             <argument name="logger" xsi:type="object">AmwalWebhookLogger</argument>
