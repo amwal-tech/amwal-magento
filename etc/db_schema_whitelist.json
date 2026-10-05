@@ -3,7 +3,43 @@
         "column": {
             "amwal_order_id": true,
             "ref_id": true,
-            "amwal_trigger_context": true
+            "amwal_trigger_context": true,
+            "is_amwal_order_canceled": true,
+            "amwal_utm": true,
+            "amwal_webhook_processed": true
+        },
+        "index": {
+            "SALES_ORDER_AMWAL_ORDER_ID": true,
+            "SALES_ORDER_IS_AMWAL_ORDER_CANCELED": true
+        }
+    },
+    "quote": {
+        "column": {
+            "is_amwal_bin_discount": true,
+            "amwal_additional_discount_amount": true
+        }
+    },
+    "amwal_webhook_log": {
+        "column": {
+            "entity_id": true,
+            "event_type": true,
+            "payload": true,
+            "api_key_fingerprint": true,
+            "signature_verified": true,
+            "order_id": true,
+            "magento_order_id": true,
+            "success": true,
+            "message": true,
+            "created_at": true
+        },
+        "index": {
+            "AMWAL_WEBHOOK_LOG_EVENT_TYPE": true,
+            "AMWAL_WEBHOOK_LOG_ORDER_ID": true,
+            "AMWAL_WEBHOOK_LOG_MAGENTO_ORDER_ID": true,
+            "AMWAL_WEBHOOK_LOG_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true
         }
     }
 }

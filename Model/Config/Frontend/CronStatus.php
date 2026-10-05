@@ -226,16 +226,18 @@ class CronStatus extends Field
     }
 
     /**
-     * Count pending payment orders with Amwal order ID
+     * Count pending payment orders with Amwal order ID within the active 24-hour sync window
      *
      * @return int
      */
     public function getPendingOrdersCount(): int
     {
         try {
+            $fromTime = gmdate('Y-m-d H:i:s', strtotime('-24 hours'));
             return (int) $this->orderCollectionFactory->create()
                 ->addFieldToFilter('status', Order::STATE_PENDING_PAYMENT)
                 ->addFieldToFilter('amwal_order_id', ['notnull' => true])
+                ->addFieldToFilter('created_at', ['gt' => $fromTime])
                 ->getSize();
         } catch (Exception $e) {
             return 0;
@@ -243,17 +245,19 @@ class CronStatus extends Field
     }
 
     /**
-     * Count canceled orders with Amwal order ID not marked canceled
+     * Count canceled orders with Amwal order ID not marked canceled within the active 24-hour sync window
      *
      * @return int
      */
     public function getCanceledOrdersCount(): int
     {
         try {
+            $fromTime = gmdate('Y-m-d H:i:s', strtotime('-24 hours'));
             return (int) $this->orderCollectionFactory->create()
                 ->addFieldToFilter('status', Order::STATE_CANCELED)
                 ->addFieldToFilter('amwal_order_id', ['notnull' => true])
                 ->addFieldToFilter('is_amwal_order_canceled', 0)
+                ->addFieldToFilter('created_at', ['gt' => $fromTime])
                 ->getSize();
         } catch (Exception $e) {
             return 0;

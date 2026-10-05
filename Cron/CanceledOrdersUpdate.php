@@ -74,7 +74,7 @@ class CanceledOrdersUpdate
             ->addFilter('created_at', $toTime, 'lt')
             ->addFilter('status', Order::STATE_CANCELED, 'eq')
             ->addFilter('amwal_order_id', true, 'notnull')
-            ->addFilter('is_amwal_order_canceled', false, 'eq')
+            ->addFilter('is_amwal_order_canceled', 0, 'eq')
             ->setPageSize(50)
             ->setCurrentPage(1)
             ->create();
