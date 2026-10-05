@@ -48,7 +48,15 @@ class PendingOrdersUpdate
         $this->logger->notice('Starting Cron Job');
         $orders = $this->getPendingOrders();
         foreach ($orders as $order) {
-            $this->orderUpdate->update($order, 'PendingOrdersUpdate', true);
+            try {
+                $this->orderUpdate->update($order, 'PendingOrdersUpdate', true);
+            } catch (\Throwable $e) {
+                $this->logger->error(sprintf(
+                    'Error updating order %s: %s',
+                    $order->getIncrementId(),
+                    $e->getMessage()
+                ));
+            }
         }
         $this->logger->notice('Cron Job Finished');
         return $this;
@@ -56,16 +64,20 @@ class PendingOrdersUpdate
 
     protected function getPendingOrders(): array
     {
-        $toTime = date('Y-m-d H:i:s');
-        $fromTime = date('Y-m-d H:i:s', strtotime('-1 hour'));
+        // Use UTC timestamps matching sales_order.created_at storage.
+        // Maintain a 15-minute buffer to avoid touching active customer checkout sessions.
+        $toTime = gmdate('Y-m-d H:i:s', strtotime('-15 minutes'));
+        $fromTime = gmdate('Y-m-d H:i:s', strtotime('-24 hours'));
 
-        $this->logger->notice(sprintf('Searching for orders created between %s and %s', $fromTime, $toTime));
+        $this->logger->notice(sprintf('Searching for orders created between %s and %s (UTC)', $fromTime, $toTime));
 
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime, 'gt')
             ->addFilter('created_at', $toTime, 'lt')
             ->addFilter('status', Order::STATE_PENDING_PAYMENT, 'eq')
             ->addFilter('amwal_order_id', true, 'notnull')
+            ->setPageSize(50)
+            ->setCurrentPage(1)
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();

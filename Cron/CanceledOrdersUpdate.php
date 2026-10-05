@@ -46,7 +46,15 @@ class CanceledOrdersUpdate
         $this->logger->notice('[CanceledOrdersUpdate] Starting Cron Job');
         $orders = $this->getCanceledOrders();
         foreach ($orders as $order) {
-            $this->orderUpdate->update($order, 'CanceledOrdersUpdate', true);
+            try {
+                $this->orderUpdate->update($order, 'CanceledOrdersUpdate', true);
+            } catch (\Throwable $e) {
+                $this->logger->error(sprintf(
+                    '[CanceledOrdersUpdate] Error updating order %s: %s',
+                    $order->getIncrementId(),
+                    $e->getMessage()
+                ));
+            }
         }
         $this->logger->notice('[CanceledOrdersUpdate] Cron Job Finished');
         return $this;
@@ -54,17 +62,21 @@ class CanceledOrdersUpdate
 
     protected function getCanceledOrders(): array
     {
-        $toTime = date('Y-m-d H:i:s');
-        $fromTime = date('Y-m-d H:i:s', strtotime('-1 hour'));
+        // Use UTC timestamps matching sales_order.created_at storage.
+        // Maintain a 15-minute buffer to avoid touching active customer checkout sessions.
+        $toTime = gmdate('Y-m-d H:i:s', strtotime('-15 minutes'));
+        $fromTime = gmdate('Y-m-d H:i:s', strtotime('-24 hours'));
 
-        $this->logger->notice(sprintf('Searching for orders created between %s and %s', $fromTime, $toTime));
+        $this->logger->notice(sprintf('Searching for orders created between %s and %s (UTC)', $fromTime, $toTime));
 
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('created_at', $fromTime, 'gt')
             ->addFilter('created_at', $toTime, 'lt')
             ->addFilter('status', Order::STATE_CANCELED, 'eq')
             ->addFilter('amwal_order_id', true, 'notnull')
-            ->addFilter('is_amwal_order_canceled', false, 'eq')
+            ->addFilter('is_amwal_order_canceled', 0, 'eq')
+            ->setPageSize(50)
+            ->setCurrentPage(1)
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
