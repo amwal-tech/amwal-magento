@@ -264,6 +264,11 @@ $scopeId = $block->getData('scope_id');
                                 $('#amwal-webhook-fingerprint').text(response.fingerprint);
                             }
 
+                            // Update textarea with normalized PEM format
+                            if (response.formatted_public_key && $keyInput.length) {
+                                $keyInput.val(response.formatted_public_key);
+                            }
+
                             // Render signature key status
                             if (response.key_active === false) {
                                 $('#amwal-webhook-key-status')

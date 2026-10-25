@@ -90,11 +90,12 @@ class ValidateKey extends Action implements HttpPostActionInterface
             $publicKey = $this->resolvePublicKey();
 
             $rsaKey = $this->validateAndLoadRsaKey($publicKey);
-            $localFingerprint = hash('sha256', $rsaKey->toString('PKCS8'));
+            $formattedPem = $rsaKey->toString('PKCS8');
+            $localFingerprint = hash('sha256', $formattedPem);
 
-            $this->saveInitialKeyConfig($publicKey, $localFingerprint, $scope, $scopeId);
+            $this->saveInitialKeyConfig($formattedPem, $localFingerprint, $scope, $scopeId);
 
-            $apiDetails = $this->fetchWebhookDetailsFromAmwalApi($publicKey, $scope, $scopeId);
+            $apiDetails = $this->fetchWebhookDetailsFromAmwalApi($formattedPem, $scope, $scopeId);
             $report = $this->buildValidationReport($apiDetails, $localFingerprint);
 
             $this->cleanConfigCache();
@@ -102,6 +103,7 @@ class ValidateKey extends Action implements HttpPostActionInterface
             return $result->setData(array_merge([
                 'success' => true,
                 'public_key_stored' => true,
+                'formatted_public_key' => $formattedPem,
                 'merchant_name' => $apiDetails['merchant']['name'] ?? null,
                 'api_synced' => ($apiDetails !== null)
             ], $report));
@@ -311,18 +313,19 @@ class ValidateKey extends Action implements HttpPostActionInterface
      */
     private function validateAndLoadRsaKey(string $publicKey): PublicKey
     {
-        if (strpos($publicKey, '-----BEGIN') === false || strpos($publicKey, '-----END') === false) {
-            throw new LocalizedException(
-                __('Invalid key format. Key must be in PEM format starting with "-----BEGIN PUBLIC KEY-----".')
-            );
+        $clean = trim($publicKey);
+        if (strpos($clean, '-----BEGIN') === false) {
+            $clean = "-----BEGIN PUBLIC KEY-----\n" . chunk_split($clean, 64, "\n") . "-----END PUBLIC KEY-----\n";
         }
 
         try {
-            $key = PublicKeyLoader::load($publicKey);
+            $key = PublicKeyLoader::load($clean);
             if (!($key instanceof PublicKey)) {
                 throw new LocalizedException(__('The provided key is not a valid RSA Public Key.'));
             }
             return $key;
+        } catch (LocalizedException $e) {
+            throw $e;
         } catch (\Exception $e) {
             throw new LocalizedException(__('Failed to load RSA Public Key: %1', $e->getMessage()));
         }

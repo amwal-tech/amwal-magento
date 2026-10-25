@@ -336,7 +336,7 @@
 
                     <field id="public_key" translate="label comment" type="textarea" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Webhook Public Key</label>
-                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <backend_model>Amwal\Payments\Model\Config\Backend\WebhookPublicKey</backend_model>
                         <config_path>payment/amwal_payments/webhook/public_key</config_path>
                         <comment><![CDATA[Paste the RSA 2048-bit Public Key (PEM format) generated in the Amwal Merchant Portal.]]></comment>
                         <depends>
