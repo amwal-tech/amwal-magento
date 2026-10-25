@@ -5,9 +5,11 @@ namespace Amwal\Payments\Controller\Adminhtml\Webhook;
 
 use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -21,8 +23,13 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Controller to validate Webhook Public Key, sync with Amwal API, and store configuration
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ * @SuppressWarnings(PHPMD.NPathComplexity)
  */
-class ValidateKey extends Action
+class ValidateKey extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Amwal_Payments::config';
 
@@ -78,146 +85,221 @@ class ValidateKey extends Action
         $result = $this->resultJsonFactory->create();
 
         try {
-            $publicKey = trim((string) $this->getRequest()->getParam('public_key'));
             $scope = (string) $this->getRequest()->getParam('scope', ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
             $scopeId = (int) $this->getRequest()->getParam('scope_id', 0);
+            $publicKey = $this->resolvePublicKey();
 
-            // If empty in request, check if we already have a saved key in this scope
-            if (empty($publicKey)) {
-                $savedKey = $this->config->getWebhookPublicKey();
-                if (!empty($savedKey)) {
-                    $publicKey = trim($savedKey);
-                }
-            }
-
-            if (empty($publicKey)) {
-                throw new LocalizedException(
-                    __('Please paste your RSA Public Key (PEM format) from the Amwal Merchant Portal into the Webhook Public Key field.')
-                );
-            }
-
-            // Clean & validate RSA Public Key format
             $rsaKey = $this->validateAndLoadRsaKey($publicKey);
-
-            // Default local fingerprint from key
             $localFingerprint = hash('sha256', $rsaKey->toString('PKCS8'));
 
-            // Store encrypted public key
-            $this->configWriter->save(
-                Config::XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY,
-                $this->encryptor->encrypt($publicKey),
-                $scope,
-                $scopeId
-            );
+            $this->saveInitialKeyConfig($publicKey, $localFingerprint, $scope, $scopeId);
 
-            // Store computed fallback fingerprint
-            $this->configWriter->save(
-                Config::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT,
-                $localFingerprint,
-                $scope,
-                $scopeId
-            );
-
-            // Query Amwal API for webhook details, events & official fingerprint
             $apiDetails = $this->fetchWebhookDetailsFromAmwalApi($publicKey, $scope, $scopeId);
+            $report = $this->buildValidationReport($apiDetails, $localFingerprint);
 
-            $warnings = [];
+            $this->cleanConfigCache();
 
-            // 1. Validate API Key status
-            $isKeyActive = $apiDetails['api_key']['is_active'] ?? true;
-            if ($apiDetails && !$isKeyActive) {
-                $warnings[] = (string) __('The API key is marked as inactive in the Amwal Merchant Portal.');
-            }
-
-            // 2. Validate Key Fingerprint
-            $officialFingerprint = $apiDetails['api_key']['key_fingerprint'] ?? $localFingerprint;
-            if (empty($officialFingerprint)) {
-                $warnings[] = (string) __('No key fingerprint was returned by the Amwal API.');
-            }
-
-            // 3. Validate Endpoint URL & Active status
-            $endpointData = $apiDetails['webhook_endpoint'] ?? [];
-            $endpointUrl = $endpointData['url'] ?? null;
-            $isEndpointActive = $endpointData['is_active'] ?? true;
-
-            $store = $this->storeManager->getStore();
-            $expectedWebhookUrl = rtrim($store->getBaseUrl(), '/') . '/rest/V1/amwal/webhook';
-            $urlMatches = null;
-
-            if ($apiDetails) {
-                if (empty($endpointUrl)) {
-                    $warnings[] = (string) __('No webhook URL is configured in the Amwal Merchant Portal.');
-                } else {
-                    $normalizedConfigured = strtolower(rtrim($endpointUrl, '/'));
-                    $normalizedExpected = strtolower(rtrim($expectedWebhookUrl, '/'));
-                    $urlMatches = ($normalizedConfigured === $normalizedExpected);
-
-                    if (!$urlMatches) {
-                        $warnings[] = (string) __(
-                            'Webhook URL mismatch: configured on Amwal as "%1", but your store endpoint is "%2".',
-                            $endpointUrl,
-                            $expectedWebhookUrl
-                        );
-                    }
-
-                    if (strpos($endpointUrl, 'http://') === 0) {
-                        $warnings[] = (string) __('Webhook URL uses insecure HTTP. Amwal requires a secure HTTPS endpoint with a valid SSL certificate in production.');
-                    }
-                }
-
-                if (!$isEndpointActive) {
-                    $warnings[] = (string) __('The webhook endpoint is disabled (inactive) in the Amwal Merchant Portal.');
-                }
-            }
-
-            // 4. Validate Webhook Events
-            $events = $apiDetails['webhook_events'] ?? [];
-            $hasEvents = !empty($events);
-            $hasOrderSuccess = in_array('order.success', $events, true);
-
-            if ($apiDetails) {
-                if (!$hasEvents) {
-                    $warnings[] = (string) __('No webhook events are selected in the Amwal Merchant Portal checklist.');
-                } elseif (!$hasOrderSuccess) {
-                    $warnings[] = (string) __('Critical event "order.success" is not selected in the Merchant Portal. Orders will not be automatically confirmed upon payment.');
-                }
-            }
-
-            // Clear config cache so changes take effect immediately
-            $this->_objectManager->get(\Magento\Framework\App\Cache\TypeListInterface::class)
-                ->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
-
-            $message = __('RSA Public Key validated and saved successfully.');
-            if ($apiDetails) {
-                if (!empty($warnings)) {
-                    $message = __('Webhook synchronized with warnings. Please review the details below.');
-                } else {
-                    $message = __('Webhook synchronized with Amwal successfully! Events, endpoint URL, and key are verified.');
-                }
-            }
-
-            return $result->setData([
+            return $result->setData(array_merge([
                 'success' => true,
-                'fingerprint' => $officialFingerprint,
                 'public_key_stored' => true,
-                'endpoint_url' => $endpointUrl,
-                'expected_endpoint_url' => $expectedWebhookUrl,
-                'url_matches' => $urlMatches,
-                'endpoint_active' => $isEndpointActive,
-                'key_active' => $isKeyActive,
-                'events' => $events,
-                'has_order_success' => $hasOrderSuccess,
                 'merchant_name' => $apiDetails['merchant']['name'] ?? null,
-                'api_synced' => ($apiDetails !== null),
-                'warnings' => $warnings,
-                'message' => $message
-            ]);
+                'api_synced' => ($apiDetails !== null)
+            ], $report));
         } catch (\Exception $e) {
             return $result->setData([
                 'success' => false,
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Resolve public key from request or existing configuration
+     *
+     * @return string
+     * @throws LocalizedException
+     */
+    private function resolvePublicKey(): string
+    {
+        $publicKey = trim((string) $this->getRequest()->getParam('public_key'));
+        if (empty($publicKey)) {
+            $savedKey = $this->config->getWebhookPublicKey();
+            if (!empty($savedKey)) {
+                $publicKey = trim($savedKey);
+            }
+        }
+
+        if (empty($publicKey)) {
+            throw new LocalizedException(
+                __('Please paste your RSA Public Key (PEM format) from the Amwal Merchant Portal into the Webhook Public Key field.')
+            );
+        }
+
+        return $publicKey;
+    }
+
+    /**
+     * Store initial public key and local fallback fingerprint
+     *
+     * @param string $publicKey
+     * @param string $localFingerprint
+     * @param string $scope
+     * @param int $scopeId
+     * @return void
+     */
+    private function saveInitialKeyConfig(string $publicKey, string $localFingerprint, string $scope, int $scopeId): void
+    {
+        $this->configWriter->save(
+            Config::XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY,
+            $this->encryptor->encrypt($publicKey),
+            $scope,
+            $scopeId
+        );
+
+        $this->configWriter->save(
+            Config::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT,
+            $localFingerprint,
+            $scope,
+            $scopeId
+        );
+    }
+
+    /**
+     * Build validation report and warnings from Amwal API data
+     *
+     * @param array|null $apiDetails
+     * @param string $localFingerprint
+     * @return array
+     */
+    private function buildValidationReport(?array $apiDetails, string $localFingerprint): array
+    {
+        $warnings = [];
+        $officialFingerprint = $apiDetails['api_key']['key_fingerprint'] ?? $localFingerprint;
+        if (empty($officialFingerprint)) {
+            $warnings[] = (string) __('No key fingerprint was returned by the Amwal API.');
+        }
+
+        $isKeyActive = $this->validateApiKeyStatus($apiDetails['api_key'] ?? null, $warnings);
+        $endpointInfo = $this->validateEndpoint($apiDetails['webhook_endpoint'] ?? null, $warnings);
+        $eventsInfo = $this->validateEvents($apiDetails['webhook_events'] ?? null, $warnings);
+
+        $message = __('RSA Public Key validated and saved successfully.');
+        if ($apiDetails !== null) {
+            $message = !empty($warnings)
+                ? __('Webhook synchronized with warnings. Please review the details below.')
+                : __('Webhook synchronized with Amwal successfully! Events, endpoint URL, and key are verified.');
+        }
+
+        return [
+            'fingerprint' => $officialFingerprint,
+            'endpoint_url' => $endpointInfo['endpoint_url'],
+            'expected_endpoint_url' => $endpointInfo['expected_url'],
+            'url_matches' => $endpointInfo['url_matches'],
+            'endpoint_active' => $endpointInfo['is_active'],
+            'key_active' => $isKeyActive,
+            'events' => $eventsInfo['events'],
+            'has_order_success' => $eventsInfo['has_order_success'],
+            'warnings' => $warnings,
+            'message' => $message
+        ];
+    }
+
+    /**
+     * Validate API key active status
+     *
+     * @param array|null $apiKeyData
+     * @param array $warnings
+     * @return bool
+     */
+    private function validateApiKeyStatus(?array $apiKeyData, array &$warnings): bool
+    {
+        $isActive = $apiKeyData['is_active'] ?? true;
+        if ($apiKeyData !== null && !$isActive) {
+            $warnings[] = (string) __('The API key is marked as inactive in the Amwal Merchant Portal.');
+        }
+        return $isActive;
+    }
+
+    /**
+     * Validate endpoint URL and active status
+     *
+     * @param array|null $endpointData
+     * @param array $warnings
+     * @return array
+     */
+    private function validateEndpoint(?array $endpointData, array &$warnings): array
+    {
+        $store = $this->storeManager->getStore();
+        $expectedUrl = rtrim($store->getBaseUrl(), '/') . '/rest/V1/amwal/webhook';
+        $endpointUrl = $endpointData['url'] ?? null;
+        $isActive = $endpointData['is_active'] ?? true;
+        $urlMatches = null;
+
+        if ($endpointData !== null) {
+            if (empty($endpointUrl)) {
+                $warnings[] = (string) __('No webhook URL is configured in the Amwal Merchant Portal.');
+            } else {
+                $urlMatches = (strtolower(rtrim($endpointUrl, '/')) === strtolower(rtrim($expectedUrl, '/')));
+                if (!$urlMatches) {
+                    $warnings[] = (string) __(
+                        'Webhook URL mismatch: configured on Amwal as "%1", but your store endpoint is "%2".',
+                        $endpointUrl,
+                        $expectedUrl
+                    );
+                }
+                if (strpos($endpointUrl, 'http://') === 0) {
+                    $warnings[] = (string) __('Webhook URL uses insecure HTTP. Amwal requires a secure HTTPS endpoint with a valid SSL certificate in production.');
+                }
+            }
+
+            if (!$isActive) {
+                $warnings[] = (string) __('The webhook endpoint is disabled (inactive) in the Amwal Merchant Portal.');
+            }
+        }
+
+        return [
+            'endpoint_url' => $endpointUrl,
+            'expected_url' => $expectedUrl,
+            'url_matches' => $urlMatches,
+            'is_active' => $isActive
+        ];
+    }
+
+    /**
+     * Validate webhook events
+     *
+     * @param array|null $events
+     * @param array $warnings
+     * @return array
+     */
+    private function validateEvents(?array $events, array &$warnings): array
+    {
+        $eventList = is_array($events) ? $events : [];
+        $hasOrderSuccess = in_array('order.success', $eventList, true);
+
+        if ($events !== null) {
+            if (empty($eventList)) {
+                $warnings[] = (string) __('No webhook events are selected in the Amwal Merchant Portal checklist.');
+            } elseif (!$hasOrderSuccess) {
+                $warnings[] = (string) __('Critical event "order.success" is not selected in the Merchant Portal. Orders will not be automatically confirmed upon payment.');
+            }
+        }
+
+        return [
+            'events' => $eventList,
+            'has_order_success' => $hasOrderSuccess
+        ];
+    }
+
+    /**
+     * Clear config cache
+     *
+     * @return void
+     */
+    private function cleanConfigCache(): void
+    {
+        $this->_objectManager->get(\Magento\Framework\App\Cache\TypeListInterface::class)
+            ->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
     }
 
     /**
@@ -270,9 +352,7 @@ class ValidateKey extends Action
             $response = $amwalClient->post(
                 'api/webhooks/public-key/',
                 [
-                    RequestOptions::JSON => [
-                        'public_key' => $publicKey,
-                    ],
+                    RequestOptions::JSON => ['public_key' => $publicKey],
                     RequestOptions::HEADERS => [
                         'Authorization' => $decryptedSecret,
                         'Content-Type'  => 'application/json',
@@ -280,53 +360,74 @@ class ValidateKey extends Action
                 ]
             );
 
-            $contents = $response->getBody()->getContents();
-            $data = $this->json->unserialize($contents);
-
+            $data = $this->json->unserialize($response->getBody()->getContents());
             if (empty($data) || !is_array($data)) {
                 return null;
             }
 
-            // Save official Amwal fingerprint if available
-            $officialFingerprint = $data['api_key']['key_fingerprint'] ?? null;
-            if ($officialFingerprint) {
-                $this->configWriter->save(
-                    Config::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT,
-                    $officialFingerprint,
-                    $scope,
-                    $scopeId
-                );
-            }
-
-            // Save and sync webhook events returned by Amwal API
-            $webhookEvents = $data['webhook_events'] ?? [];
-            if (!empty($webhookEvents) && is_array($webhookEvents)) {
-                $this->configWriter->save(
-                    Config::XML_CONFIG_PATH_WEBHOOK_EVENTS,
-                    implode(',', $webhookEvents),
-                    $scope,
-                    $scopeId
-                );
-            }
-
+            $this->saveSyncedApiData($data, $scope, $scopeId);
             return $data;
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            $responseBody = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
-            $errorMsg = 'Amwal API returned HTTP ' . $e->getCode();
-            try {
-                $errorData = $this->json->unserialize($responseBody);
-                if (isset($errorData['message'])) {
-                    $errorMsg = (string) $errorData['message'];
-                } elseif (isset($errorData['detail'])) {
-                    $errorMsg = (string) $errorData['detail'];
-                }
-            } catch (\Exception $je) {
-                // Ignore JSON unserialize error
-            }
+        } catch (ClientException $e) {
+            $errorMsg = $this->extractClientErrorMessage($e);
             throw new LocalizedException(__('Failed to sync with Amwal API: %1', $errorMsg));
         } catch (\Exception $e) {
             $this->logger->error('Error syncing webhook details from Amwal API: ' . $e->getMessage());
             throw new LocalizedException(__('Unable to communicate with Amwal API: %1', $e->getMessage()));
         }
+    }
+
+    /**
+     * Save synced API key fingerprint and webhook events
+     *
+     * @param array $data
+     * @param string $scope
+     * @param int $scopeId
+     * @return void
+     */
+    private function saveSyncedApiData(array $data, string $scope, int $scopeId): void
+    {
+        $officialFingerprint = $data['api_key']['key_fingerprint'] ?? null;
+        if ($officialFingerprint) {
+            $this->configWriter->save(
+                Config::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT,
+                $officialFingerprint,
+                $scope,
+                $scopeId
+            );
+        }
+
+        $webhookEvents = $data['webhook_events'] ?? [];
+        if (!empty($webhookEvents) && is_array($webhookEvents)) {
+            $this->configWriter->save(
+                Config::XML_CONFIG_PATH_WEBHOOK_EVENTS,
+                implode(',', $webhookEvents),
+                $scope,
+                $scopeId
+            );
+        }
+    }
+
+    /**
+     * Extract descriptive error message from ClientException response
+     *
+     * @param ClientException $e
+     * @return string
+     */
+    private function extractClientErrorMessage(ClientException $e): string
+    {
+        $responseBody = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
+        $errorMsg = 'Amwal API returned HTTP ' . $e->getCode();
+        try {
+            $errorData = $this->json->unserialize($responseBody);
+            if (isset($errorData['message'])) {
+                return (string) $errorData['message'];
+            }
+            if (isset($errorData['detail'])) {
+                return (string) $errorData['detail'];
+            }
+        } catch (\Exception $je) {
+            // Ignore JSON decode error
+        }
+        return $errorMsg;
     }
 }
