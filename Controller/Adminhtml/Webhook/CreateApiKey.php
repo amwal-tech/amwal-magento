@@ -103,7 +103,7 @@ class CreateApiKey extends Action
     }
 
     /**
-     * Execute API key creation
+     * Execute API key creation (Deprecated: delegates to ValidateKey)
      *
      * @return \Magento\Framework\Controller\Result\Json
      */
@@ -112,25 +112,17 @@ class CreateApiKey extends Action
         $result = $this->resultJsonFactory->create();
 
         try {
-            $webhookUrl = $this->getRequest()->getParam('webhook_url');
-            $webhookEvents = $this->getRequest()->getParam('webhook_events');
+            $publicKey = trim((string) $this->getRequest()->getParam('public_key'));
 
-            $this->validateRequestParams($webhookUrl, $webhookEvents);
-
-            $responseData = $this->createWebhookAndApiKey($webhookUrl, $webhookEvents);
-            $this->validateResponseData($responseData);
-
-            $webhookData = $responseData['webhook'];
-            $apiKeyData = $responseData['api_key'];
-
-            $this->saveWebhookConfig($apiKeyData, $webhookEvents);
+            if (!empty($publicKey)) {
+                /** @var ValidateKey $validateController */
+                $validateController = $this->_objectManager->get(ValidateKey::class);
+                return $validateController->execute();
+            }
 
             return $result->setData([
-                'success' => true,
-                'webhook_id' => $webhookData['id'],
-                'key_fingerprint' => $apiKeyData['fingerprint'] ?? null,
-                'public_key_saved' => isset($apiKeyData['public_key']),
-                'message' => __('Webhook registered successfully. Public key has been securely stored.')
+                'success' => false,
+                'message' => __('Automatic webhook creation via API has been deprecated. Please configure your webhook in the Amwal Merchant Portal (Settings > Webhook Sandbox / Production), enter the Public Key, and click Validate Key.')
             ]);
         } catch (\Exception $e) {
             return $result->setData([

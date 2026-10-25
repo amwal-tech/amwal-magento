@@ -312,7 +312,7 @@
 
                 <group id="webhook" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="700">
                     <label>Webhook Settings</label>
-                    <comment><![CDATA[Receive real-time order status updates from Amwal. Enable webhooks, then click <strong>Register Webhook</strong> to complete setup.]]></comment>
+                    <comment><![CDATA[Receive real-time order status updates from Amwal. Webhooks and keys are managed in the <a href="https://merchant.sa.amwal.tech/" target="_blank">Amwal Merchant Portal</a> (Settings &gt; Webhook Sandbox / Production).]]></comment>
                     <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
                     <depends>
                         <field id="*/*/active">1</field>
@@ -328,24 +328,34 @@
                     <field id="endpoint_url" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Webhook Endpoint URL</label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookUrl</frontend_model>
-                        <comment><![CDATA[This is your store's webhook endpoint. It is auto-generated and read-only.]]></comment>
+                        <comment><![CDATA[Copy this Webhook Endpoint URL and paste it into the Amwal Merchant Portal (Settings &gt; Webhook Sandbox or Webhook Production).]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
                     </field>
 
-                    <field id="webhook_events" translate="label comment" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="public_key" translate="label comment" type="textarea" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Webhook Public Key</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/amwal_payments/webhook/public_key</config_path>
+                        <comment><![CDATA[Paste the RSA 2048-bit Public Key (PEM format) generated in the Amwal Merchant Portal.]]></comment>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+
+                    <field id="webhook_registration" translate="label" type="button" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Webhook Verification</label>
+                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookRegistration</frontend_model>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+
+                    <field id="webhook_events" translate="label comment" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Webhook Events</label>
                         <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookEvents</frontend_model>
-                        <comment><![CDATA[Select which events should trigger webhook notifications.]]></comment>
-                        <depends>
-                            <field id="enabled">1</field>
-                        </depends>
-                    </field>
-
-                    <field id="webhook_registration" translate="label" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-                        <label>Webhook Registration</label>
-                        <frontend_model>Amwal\Payments\Block\Adminhtml\System\Config\WebhookRegistration</frontend_model>
+                        <comment><![CDATA[Subscribe to events in the Amwal Merchant Portal (Settings &gt; Webhook Events Checklist). This module handles order.success, order.failed, and order.updated.]]></comment>
                         <depends>
                             <field id="enabled">1</field>
                         </depends>
