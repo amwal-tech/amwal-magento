@@ -332,6 +332,19 @@ class ValidateKey extends Action implements HttpPostActionInterface
     {
         $clean = trim($publicKey);
         $clean = str_replace(["\r\n", '\r\n', '\n', "\r"], "\n", $clean);
+
+        if (strpos($clean, '-----END') !== false && strpos($clean, '-----BEGIN') === false) {
+            throw new LocalizedException(
+                __('Incomplete Public Key: The key is missing the "-----BEGIN PUBLIC KEY-----" header and starting lines. Please copy the entire public key from the Amwal Merchant Portal.')
+            );
+        }
+
+        if (strpos($clean, '-----BEGIN') !== false && strpos($clean, '-----END') === false) {
+            throw new LocalizedException(
+                __('Incomplete Public Key: The key is missing the "-----END PUBLIC KEY-----" footer. Please copy the entire public key from the Amwal Merchant Portal.')
+            );
+        }
+
         if (strpos($clean, '-----BEGIN') === false) {
             $clean = "-----BEGIN PUBLIC KEY-----\n" . chunk_split($clean, 64, "\n") . "-----END PUBLIC KEY-----\n";
         }
