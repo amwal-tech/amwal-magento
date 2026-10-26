@@ -78,6 +78,19 @@ class WebhookPublicKey extends Encrypted
     private function normalizeToPem(string $keyString): string
     {
         $clean = trim($keyString);
+        if (strpos($clean, '-----') === false) {
+            // The textarea may hold an already-encrypted value; unwrap it so it is not encrypted twice
+            for ($i = 0; $i < 3; $i++) {
+                $decrypted = (string) $this->_encryptor->decrypt($clean);
+                if ($decrypted === '' || $decrypted === $clean) {
+                    break;
+                }
+                $clean = trim($decrypted);
+                if (strpos($clean, '-----') !== false) {
+                    break;
+                }
+            }
+        }
         $clean = str_replace(["\r\n", '\r\n', '\n', "\r"], "\n", $clean);
 
         if (strpos($clean, '-----END') !== false && strpos($clean, '-----BEGIN') === false) {
