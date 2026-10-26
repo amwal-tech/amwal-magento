@@ -78,6 +78,7 @@ class WebhookPublicKey extends Encrypted
     private function normalizeToPem(string $keyString): string
     {
         $clean = trim($keyString);
+        $clean = str_replace(["\r\n", '\r\n', '\n', "\r"], "\n", $clean);
         if (strpos($clean, '-----BEGIN') === false) {
             $clean = "-----BEGIN PUBLIC KEY-----\n" . chunk_split($clean, 64, "\n") . "-----END PUBLIC KEY-----\n";
         }

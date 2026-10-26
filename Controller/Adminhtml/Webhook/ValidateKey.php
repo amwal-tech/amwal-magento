@@ -331,6 +331,7 @@ class ValidateKey extends Action implements HttpPostActionInterface
     private function validateAndLoadRsaKey(string $publicKey): PublicKey
     {
         $clean = trim($publicKey);
+        $clean = str_replace(["\r\n", '\r\n', '\n', "\r"], "\n", $clean);
         if (strpos($clean, '-----BEGIN') === false) {
             $clean = "-----BEGIN PUBLIC KEY-----\n" . chunk_split($clean, 64, "\n") . "-----END PUBLIC KEY-----\n";
         }
@@ -362,7 +363,14 @@ class ValidateKey extends Action implements HttpPostActionInterface
         $secretKey = $this->config->getSecretKey();
         if (empty($secretKey)) {
             throw new LocalizedException(
-                __('Secret Key is required (X-Amwal-Key header). Please configure your Secret Key in Amwal API Settings.')
+                __('Secret Key is required (Authorization header). Please configure your Secret Key in Amwal API Settings.')
+            );
+        }
+
+        $merchantId = $this->config->getMerchantId();
+        if (empty($merchantId)) {
+            throw new LocalizedException(
+                __('Merchant ID is required (X-Amwal-Key header). Please configure your Merchant ID in Amwal API Settings.')
             );
         }
 
@@ -376,7 +384,7 @@ class ValidateKey extends Action implements HttpPostActionInterface
                     RequestOptions::JSON => ['public_key' => $publicKey],
                     RequestOptions::HEADERS => [
                         'Authorization' => $decryptedSecret,
-                        'X-Amwal-Key'   => $decryptedSecret,
+                        'X-Amwal-Key'   => $merchantId,
                         'Content-Type'  => 'application/json',
                     ],
                 ]
@@ -448,22 +456,47 @@ class ValidateKey extends Action implements HttpPostActionInterface
     private function extractClientErrorMessage(ClientException $e): string
     {
         $responseBody = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
-        $errorMsg = 'Amwal API returned HTTP ' . $e->getCode();
+        $this->logger->error('[Amwal Webhook Sync] API error response (HTTP ' . $e->getCode() . '): ' . $responseBody);
+
         try {
             $errorData = $this->json->unserialize($responseBody);
-            if (isset($errorData['error'])) {
-                return (string) $errorData['error'];
-            }
-            if (isset($errorData['message'])) {
-                return (string) $errorData['message'];
-            }
-            if (isset($errorData['detail'])) {
-                return (string) $errorData['detail'];
+            if (is_array($errorData)) {
+                if (isset($errorData['code']) && $errorData['code'] === 'MISSING_AMWAL_KEY') {
+                    return (string) ($errorData['error'] ?? __('X-Amwal-Key header is required. Please check your Merchant ID in API Settings.'));
+                }
+                if (isset($errorData['code']) && $errorData['code'] === 'WEBHOOK_NOT_FOUND') {
+                    return (string) ($errorData['detail'] ?? __('No webhook configuration found on Amwal for this Public Key. Please ensure you generated this key in the Amwal Merchant Portal and saved your Webhook URL.'));
+                }
+                if (isset($errorData['error']) && is_string($errorData['error'])) {
+                    return (string) $errorData['error'];
+                }
+                if (isset($errorData['detail']) && is_string($errorData['detail'])) {
+                    return (string) $errorData['detail'];
+                }
+                if (isset($errorData['message']) && is_string($errorData['message'])) {
+                    return (string) $errorData['message'];
+                }
+                $messages = [];
+                foreach ($errorData as $field => $val) {
+                    if (is_array($val)) {
+                        $messages[] = $field . ': ' . implode(', ', array_map('strval', $val));
+                    } elseif (is_scalar($val) && $field !== 'code') {
+                        $messages[] = $field . ': ' . $val;
+                    }
+                }
+                if (!empty($messages)) {
+                    return implode('; ', $messages);
+                }
             }
         } catch (\Exception $je) {
             // Ignore JSON decode error
         }
-        return $errorMsg;
+
+        if (!empty($responseBody)) {
+            return substr(strip_tags($responseBody), 0, 300);
+        }
+
+        return 'Amwal API returned HTTP ' . $e->getCode();
     }
 
     /**
