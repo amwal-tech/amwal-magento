@@ -199,4 +199,35 @@ class WebhookRegistration extends Field
     {
         return rtrim($this->_storeManager->getStore()->getBaseUrl(), '/') . '/rest/V1/amwal/webhook';
     }
+
+    /**
+     * Get stored webhook key type (production or sandbox)
+     *
+     * @return string
+     */
+    public function getStoredKeyType(): string
+    {
+        list($scope, $scopeId) = $this->resolveScope();
+        return (string) $this->_scopeConfig->getValue(
+            'payment/amwal_payments/webhook/key_type',
+            $scope,
+            $scopeId
+        );
+    }
+
+    /**
+     * Get store environment mode (production or sandbox based on merchant_id)
+     *
+     * @return string
+     */
+    public function getStoreEnvironment(): string
+    {
+        list($scope, $scopeId) = $this->resolveScope();
+        $merchantId = strtolower((string) $this->_scopeConfig->getValue(
+            'payment/amwal_payments/merchant_id',
+            $scope,
+            $scopeId
+        ));
+        return (strpos($merchantId, 'sandbox') !== false) ? 'sandbox' : 'production';
+    }
 }

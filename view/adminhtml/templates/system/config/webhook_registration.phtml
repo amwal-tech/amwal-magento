@@ -9,6 +9,8 @@ $isRegistered = $block->getIsRegistered();
 $fingerprint = $block->getFingerprint();
 $publicKeyStored = $block->getPublicKeyStored();
 $storedEvents = $block->getData('stored_events') ?: [];
+$storedKeyType = $block->getStoredKeyType();
+$storeEnv = $block->getStoreEnvironment();
 $expectedUrl = $block->getData('expected_webhook_url');
 $scope = $block->getData('scope');
 $scopeId = $block->getData('scope_id');
@@ -33,6 +35,22 @@ $scopeId = $block->getData('scope_id');
                 <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Signature Key:')) ?></span>
                 <span class="amwal-webhook-status__value amwal-webhook-status__value--ok" id="amwal-webhook-key-status">
                     ✓ <?= $block->escapeHtml(__('Stored (RSA-PSS SHA-256)')) ?>
+                </span>
+            </div>
+            <div class="amwal-webhook-status__row" id="amwal-webhook-env-row" style="<?= !empty($storedKeyType) ? '' : 'display:none;' ?>">
+                <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Key Environment:')) ?></span>
+                <span class="amwal-webhook-status__value" id="amwal-webhook-env-status">
+                    <?php if (!empty($storedKeyType)): ?>
+                        <?php $envMatches = ($storedKeyType === $storeEnv); ?>
+                        <span class="amwal-event-pill <?= $envMatches ? '' : 'amwal-event-pill--warn' ?>">
+                            <?= $envMatches ? '✓' : '⚠' ?> <?= $block->escapeHtml(strtoupper($storedKeyType)) ?>
+                        </span>
+                        <?php if ($envMatches): ?>
+                            <span class="amwal-webhook-status__value--ok">(<?= $block->escapeHtml(__('Matches Store Mode')) ?>)</span>
+                        <?php else: ?>
+                            <span class="amwal-webhook-status__value--warn">(<?= $block->escapeHtml(__('Store is set to %1', ucfirst($storeEnv))) ?>)</span>
+                        <?php endif; ?>
+                    <?php endif; ?>
                 </span>
             </div>
             <div class="amwal-webhook-status__row" id="amwal-webhook-events-row" style="<?= !empty($storedEvents) ? '' : 'display:none;' ?>">
@@ -280,6 +298,20 @@ $scopeId = $block->getData('scope_id');
                                     .removeClass('amwal-webhook-status__value--warn')
                                     .addClass('amwal-webhook-status__value--ok')
                                     .html('✓ ' + $t('Stored (RSA-PSS SHA-256) - Active'));
+                            }
+
+                            // Render key environment (production / sandbox)
+                            if (response.key_type) {
+                                var envHtml = '';
+                                if (response.env_matches) {
+                                    envHtml = '<span class="amwal-event-pill">✓ ' + $('<div>').text(response.key_type.toUpperCase()).html() + '</span> ' +
+                                              '<span class="amwal-webhook-status__value--ok">(' + $t('Matches Store Mode') + ')</span>';
+                                } else {
+                                    envHtml = '<span class="amwal-event-pill amwal-event-pill--warn">⚠ ' + $('<div>').text(response.key_type.toUpperCase()).html() + '</span> ' +
+                                              '<span class="amwal-webhook-status__value--warn">(' + $t('Store is configured for ') + $('<div>').text(response.store_env).html() + ')</span>';
+                                }
+                                $('#amwal-webhook-env-status').html(envHtml);
+                                $('#amwal-webhook-env-row').show();
                             }
 
                             // Render synced events pills

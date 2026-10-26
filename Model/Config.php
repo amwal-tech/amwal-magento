@@ -66,6 +66,7 @@ class Config
     public const XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT = 'payment/amwal_payments/webhook/api_key_fingerprint';
     public const XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY = 'payment/amwal_payments/webhook/public_key';
     public const XML_CONFIG_PATH_WEBHOOK_EVENTS = 'payment/amwal_payments/webhook/events';
+    public const XML_CONFIG_PATH_WEBHOOK_KEY_TYPE = 'payment/amwal_payments/webhook/key_type';
     public const XML_CONFIG_PATH_WEBHOOK_ENABLED = 'payment/amwal_payments/webhook_enabled';
     public const XML_CONFIG_PATH_WEBHOOK_DEBUG = 'payment/amwal_payments/webhook/debug';
     public const XML_CONFIG_PATH_BANK_INSTALLMENTS_TIMELINE_STYLE = 'payment/amwal_payments/bank_installments_timeline_style';
@@ -618,6 +619,14 @@ class Config
     public function getWebhookEvents(): string
     {
         return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_EVENTS, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getWebhookKeyType(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::XML_CONFIG_PATH_WEBHOOK_KEY_TYPE, ScopeInterface::SCOPE_STORE);
     }
 
     /**

@@ -185,6 +185,20 @@ class ValidateKey extends Action implements HttpPostActionInterface
         $endpointInfo = $this->validateEndpoint($apiDetails['webhook_endpoint'] ?? null, $warnings);
         $eventsInfo = $this->validateEvents($apiDetails['webhook_events'] ?? null, $warnings);
 
+        $keyType = strtolower((string) ($apiDetails['api_key']['type'] ?? ''));
+        $storeEnv = $this->detectStoreEnvironment();
+        $envMatches = null;
+        if (!empty($keyType)) {
+            $envMatches = ($keyType === $storeEnv);
+            if (!$envMatches) {
+                $warnings[] = (string) __(
+                    'Environment mismatch: Store is configured for "%1" mode, but this Webhook Key is for "%2". Webhook verification will fail unless environments match.',
+                    ucfirst($storeEnv),
+                    ucfirst($keyType)
+                );
+            }
+        }
+
         $message = __('RSA Public Key validated and saved successfully.');
         if ($apiDetails !== null) {
             $message = !empty($warnings)
@@ -194,6 +208,9 @@ class ValidateKey extends Action implements HttpPostActionInterface
 
         return [
             'fingerprint' => $officialFingerprint,
+            'key_type' => $keyType,
+            'store_env' => $storeEnv,
+            'env_matches' => $envMatches,
             'endpoint_url' => $endpointInfo['endpoint_url'],
             'expected_endpoint_url' => $endpointInfo['expected_url'],
             'url_matches' => $endpointInfo['url_matches'],
@@ -344,8 +361,9 @@ class ValidateKey extends Action implements HttpPostActionInterface
     {
         $secretKey = $this->config->getSecretKey();
         if (empty($secretKey)) {
-            $this->logger->info('[Amwal Webhook Sync] Secret key is empty, skipping API sync.');
-            return null;
+            throw new LocalizedException(
+                __('Secret Key is required (X-Amwal-Key header). Please configure your Secret Key in Amwal API Settings.')
+            );
         }
 
         $decryptedSecret = $this->encryptor->decrypt($secretKey);
@@ -358,6 +376,7 @@ class ValidateKey extends Action implements HttpPostActionInterface
                     RequestOptions::JSON => ['public_key' => $publicKey],
                     RequestOptions::HEADERS => [
                         'Authorization' => $decryptedSecret,
+                        'X-Amwal-Key'   => $decryptedSecret,
                         'Content-Type'  => 'application/json',
                     ],
                 ]
@@ -380,7 +399,7 @@ class ValidateKey extends Action implements HttpPostActionInterface
     }
 
     /**
-     * Save synced API key fingerprint and webhook events
+     * Save synced API key fingerprint, type, and webhook events
      *
      * @param array $data
      * @param string $scope
@@ -394,6 +413,16 @@ class ValidateKey extends Action implements HttpPostActionInterface
             $this->configWriter->save(
                 Config::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT,
                 $officialFingerprint,
+                $scope,
+                $scopeId
+            );
+        }
+
+        $keyType = $data['api_key']['type'] ?? null;
+        if ($keyType) {
+            $this->configWriter->save(
+                Config::XML_CONFIG_PATH_WEBHOOK_KEY_TYPE,
+                (string) $keyType,
                 $scope,
                 $scopeId
             );
@@ -422,6 +451,9 @@ class ValidateKey extends Action implements HttpPostActionInterface
         $errorMsg = 'Amwal API returned HTTP ' . $e->getCode();
         try {
             $errorData = $this->json->unserialize($responseBody);
+            if (isset($errorData['error'])) {
+                return (string) $errorData['error'];
+            }
             if (isset($errorData['message'])) {
                 return (string) $errorData['message'];
             }
@@ -432,5 +464,16 @@ class ValidateKey extends Action implements HttpPostActionInterface
             // Ignore JSON decode error
         }
         return $errorMsg;
+    }
+
+    /**
+     * Detect store environment mode (sandbox or production)
+     *
+     * @return string
+     */
+    private function detectStoreEnvironment(): string
+    {
+        $merchantId = strtolower($this->config->getMerchantId());
+        return (strpos($merchantId, 'sandbox') !== false) ? 'sandbox' : 'production';
     }
 }
