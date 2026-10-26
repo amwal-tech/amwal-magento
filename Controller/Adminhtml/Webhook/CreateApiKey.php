@@ -6,11 +6,10 @@ namespace Amwal\Payments\Controller\Adminhtml\Webhook;
 
 use Amwal\Payments\Model\AmwalClientFactory;
 use Amwal\Payments\Model\Config;
-use GuzzleHttp\RequestOptions;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\App\Config\Storage\WriterInterface;
@@ -20,8 +19,9 @@ use Magento\Store\Model\StoreManagerInterface;
 /**
  * Controller for creating API key
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
-class CreateApiKey extends Action
+class CreateApiKey extends Action implements HttpPostActionInterface
 {
     /**
      * Authorization level
@@ -34,76 +34,33 @@ class CreateApiKey extends Action
     protected $resultJsonFactory;
 
     /**
-     * @var Curl
-     */
-    protected $curl;
-
-    /**
-     * @var Json
-     */
-    protected $json;
-
-    /**
-     * @var WriterInterface
-     */
-    protected $configWriter;
-
-    /**
-     * @var EncryptorInterface
-     */
-    protected $encryptor;
-
-    /**
-     * @var AmwalClientFactory
-     */
-    private AmwalClientFactory $amwalClientFactory;
-
-    /**
-     * @var Config
-     */
-    private Config $config;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private StoreManagerInterface $storeManager;
-
-
-    /**
      * @param Context $context
      * @param JsonFactory $resultJsonFactory
-     * @param Curl $curl
-     * @param Json $json
-     * @param WriterInterface $configWriter
-     * @param EncryptorInterface $encryptor
-     * @param AmwalClientFactory $amwalClientFactory
-     * @param Config $config
-     * @param StoreManagerInterface $storeManager
+     * @param Curl|null $curl
+     * @param Json|null $json
+     * @param WriterInterface|null $configWriter
+     * @param EncryptorInterface|null $encryptor
+     * @param AmwalClientFactory|null $amwalClientFactory
+     * @param Config|null $config
+     * @param StoreManagerInterface|null $storeManager
      */
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
-        Curl $curl,
-        Json $json,
-        WriterInterface $configWriter,
-        EncryptorInterface $encryptor,
-        AmwalClientFactory $amwalClientFactory,
-        Config $config,
-        StoreManagerInterface $storeManager
+        ?Curl $curl = null,
+        ?Json $json = null,
+        ?WriterInterface $configWriter = null,
+        ?EncryptorInterface $encryptor = null,
+        ?AmwalClientFactory $amwalClientFactory = null,
+        ?Config $config = null,
+        ?StoreManagerInterface $storeManager = null
     ) {
         parent::__construct($context);
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->curl = $curl;
-        $this->json = $json;
-        $this->configWriter = $configWriter;
-        $this->encryptor = $encryptor;
-        $this->amwalClientFactory = $amwalClientFactory;
-        $this->config = $config;
-        $this->storeManager = $storeManager;
     }
 
     /**
-     * Execute API key creation
+     * Execute API key creation (Deprecated: delegates to ValidateKey)
      *
      * @return \Magento\Framework\Controller\Result\Json
      */
@@ -112,25 +69,17 @@ class CreateApiKey extends Action
         $result = $this->resultJsonFactory->create();
 
         try {
-            $webhookUrl = $this->getRequest()->getParam('webhook_url');
-            $webhookEvents = $this->getRequest()->getParam('webhook_events');
+            $publicKey = trim((string) $this->getRequest()->getParam('public_key'));
 
-            $this->validateRequestParams($webhookUrl, $webhookEvents);
-
-            $responseData = $this->createWebhookAndApiKey($webhookUrl, $webhookEvents);
-            $this->validateResponseData($responseData);
-
-            $webhookData = $responseData['webhook'];
-            $apiKeyData = $responseData['api_key'];
-
-            $this->saveWebhookConfig($apiKeyData, $webhookEvents);
+            if (!empty($publicKey)) {
+                /** @var ValidateKey $validateController */
+                $validateController = $this->_objectManager->get(ValidateKey::class);
+                return $validateController->execute();
+            }
 
             return $result->setData([
-                'success' => true,
-                'webhook_id' => $webhookData['id'],
-                'key_fingerprint' => $apiKeyData['fingerprint'] ?? null,
-                'public_key_saved' => isset($apiKeyData['public_key']),
-                'message' => __('Webhook registered successfully. Public key has been securely stored.')
+                'success' => false,
+                'message' => __('Automatic webhook creation via API has been deprecated. Please configure your webhook in the Amwal Merchant Portal (Settings > Webhook Sandbox / Production), enter the Public Key, and click Validate Key.')
             ]);
         } catch (\Exception $e) {
             return $result->setData([
@@ -138,120 +87,5 @@ class CreateApiKey extends Action
                 'message' => $e->getMessage()
             ]);
         }
-    }
-
-    /**
-     * Validate request parameters
-     *
-     * @param string|null $webhookUrl
-     * @param array|null $webhookEvents
-     * @return void
-     * @throws LocalizedException
-     */
-    private function validateRequestParams($webhookUrl, $webhookEvents)
-    {
-        if (empty($webhookUrl)) {
-            throw new LocalizedException(__('Webhook URL is required'));
-        }
-        if (empty($webhookEvents)) {
-            throw new LocalizedException(__('Webhook events are required'));
-        }
-        if (empty($this->config->getSecretKey())) {
-            throw new LocalizedException(
-                __('A secret key is required. To retrieve it, navigate to the Merchant Portal and go to Integration > API Keys.')
-            );
-        }
-    }
-
-    /**
-     * Create webhook and API key via Amwal API
-     *
-     * @param string $webhookUrl
-     * @param array $webhookEvents
-     * @return array
-     */
-    private function createWebhookAndApiKey($webhookUrl, $webhookEvents)
-    {
-        $store = $this->storeManager->getStore();
-        $storeName = $store->getName() ?: 'Magento Store';
-        $storeDomain = $this->getRequest()->getHttpHost() ?: 'unknown';
-
-        $requestData = [
-            'api_key_name' => sprintf('%s - Magento Webhook', $storeName),
-            'description' => sprintf('Webhook API key for %s (%s)', $storeName, $storeDomain),
-            'url' => $webhookUrl,
-            'event_type_names' => $webhookEvents,
-            'api_key_scopes' => ['trigger_events', 'manage_webhooks']
-        ];
-
-        $decryptedKey = $this->encryptor->decrypt($this->config->getSecretKey());
-        $amwalClient = $this->amwalClientFactory->create();
-        $response = $amwalClient->post(
-            'api/create-webhook-and-apikey/',
-            [
-                RequestOptions::JSON => $requestData,
-                RequestOptions::HEADERS => [
-                    'Authorization' => $decryptedKey,
-                    'X-API-Key' => $decryptedKey
-                ]
-            ]
-        );
-
-        return $this->json->unserialize($response->getBody()->getContents());
-    }
-
-    /**
-     * Validate API response data
-     *
-     * @param array $responseData
-     * @return void
-     * @throws LocalizedException
-     */
-    private function validateResponseData(array $responseData)
-    {
-        if (!isset($responseData['webhook']) || !isset($responseData['api_key'])) {
-            $error = $responseData['error'] ?? 'Unknown error';
-            throw new LocalizedException(__('Failed to register webhook: %1', $error));
-        }
-    }
-
-    /**
-     * Save webhook configuration to Magento config
-     *
-     * @param array $apiKeyData
-     * @param array $webhookEvents
-     * @return void
-     */
-    private function saveWebhookConfig(array $apiKeyData, array $webhookEvents)
-    {
-        $scope = $this->getRequest()->getParam('scope', 'default');
-        $scopeId = (int) $this->getRequest()->getParam('scope_id', 0);
-
-        $this->configWriter->save(
-            'payment/amwal_payments/webhook/api_key_fingerprint',
-            $apiKeyData['fingerprint'],
-            $scope,
-            $scopeId
-        );
-
-        $this->configWriter->save(
-            'payment/amwal_payments/webhook/events',
-            implode(',', $webhookEvents),
-            $scope,
-            $scopeId
-        );
-
-        if (isset($apiKeyData['public_key'])) {
-            $encryptedPublicKey = $this->encryptor->encrypt($apiKeyData['public_key']);
-            $this->configWriter->save(
-                'payment/amwal_payments/webhook/public_key',
-                $encryptedPublicKey,
-                $scope,
-                $scopeId
-            );
-        }
-
-        $this->_objectManager->get(\Magento\Framework\App\Cache\TypeListInterface::class)
-            ->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
     }
 }

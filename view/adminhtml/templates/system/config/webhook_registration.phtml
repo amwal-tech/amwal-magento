@@ -1,64 +1,92 @@
 <?php
 /**
- * Amwal Payments - Webhook Registration template
- * Shows registration status + register button in a clean, unified UI
+ * Amwal Payments - Webhook Verification template
+ * Shows key verification status, synced events, and validate/sync button
  *
  * @var $block \Amwal\Payments\Block\Adminhtml\System\Config\WebhookRegistration
  */
 $isRegistered = $block->getIsRegistered();
 $fingerprint = $block->getFingerprint();
 $publicKeyStored = $block->getPublicKeyStored();
+$storedEvents = $block->getData('stored_events') ?: [];
+$storedKeyType = $block->getStoredKeyType();
+$storeEnv = $block->getStoreEnvironment();
+$expectedUrl = $block->getData('expected_webhook_url');
+$scope = $block->getData('scope');
+$scopeId = $block->getData('scope_id');
 ?>
 
 <div id="amwal-webhook-registration" class="amwal-webhook-registration">
 
-    <?php if ($isRegistered): ?>
-    <!-- ✅ Registered State -->
-    <div class="amwal-webhook-status amwal-webhook-status--registered">
-        <div class="amwal-webhook-status__badge">
-            <span class="amwal-webhook-status__icon">✓</span>
-            <span class="amwal-webhook-status__text"><?= $block->escapeHtml(__('Webhook Registered')) ?></span>
+    <div id="amwal-webhook-status-card" class="amwal-webhook-status <?= $isRegistered ? 'amwal-webhook-status--registered' : 'amwal-webhook-status--unregistered' ?>">
+        <div class="amwal-webhook-status__badge <?= $isRegistered ? '' : 'amwal-webhook-status__badge--pending' ?>" id="amwal-webhook-badge">
+            <span class="amwal-webhook-status__icon" id="amwal-webhook-icon"><?= $isRegistered ? '✓' : '○' ?></span>
+            <span class="amwal-webhook-status__text" id="amwal-webhook-text">
+                <?= $isRegistered ? $block->escapeHtml(__('Webhook Synchronized & Verified')) : $block->escapeHtml(__('Public Key Required')) ?>
+            </span>
         </div>
-        <div class="amwal-webhook-status__details">
+
+        <div class="amwal-webhook-status__details" id="amwal-webhook-details" style="<?= $isRegistered ? '' : 'display:none;' ?>">
             <div class="amwal-webhook-status__row">
                 <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Fingerprint:')) ?></span>
-                <code class="amwal-webhook-status__value"><?= $block->escapeHtml($fingerprint) ?></code>
+                <code class="amwal-webhook-status__value" id="amwal-webhook-fingerprint"><?= $block->escapeHtml($fingerprint ?? '') ?></code>
             </div>
             <div class="amwal-webhook-status__row">
                 <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Signature Key:')) ?></span>
-                <?php if ($publicKeyStored): ?>
-                    <span class="amwal-webhook-status__value amwal-webhook-status__value--ok">✓ <?= $block->escapeHtml(__('Stored')) ?></span>
-                <?php else: ?>
-                    <span class="amwal-webhook-status__value amwal-webhook-status__value--warn">⚠ <?= $block->escapeHtml(__('Missing — re-register to fix')) ?></span>
-                <?php endif; ?>
+                <span class="amwal-webhook-status__value amwal-webhook-status__value--ok" id="amwal-webhook-key-status">
+                    ✓ <?= $block->escapeHtml(__('Stored (RSA-PSS SHA-256)')) ?>
+                </span>
+            </div>
+            <div class="amwal-webhook-status__row" id="amwal-webhook-env-row" style="<?= !empty($storedKeyType) ? '' : 'display:none;' ?>">
+                <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Key Environment:')) ?></span>
+                <span class="amwal-webhook-status__value" id="amwal-webhook-env-status">
+                    <?php if (!empty($storedKeyType)): ?>
+                        <?php $envMatches = ($storedKeyType === $storeEnv); ?>
+                        <span class="amwal-event-pill <?= $envMatches ? '' : 'amwal-event-pill--warn' ?>">
+                            <?= $envMatches ? '✓' : '⚠' ?> <?= $block->escapeHtml(strtoupper($storedKeyType)) ?>
+                        </span>
+                        <?php if ($envMatches): ?>
+                            <span class="amwal-webhook-status__value--ok">(<?= $block->escapeHtml(__('Matches Store Mode')) ?>)</span>
+                        <?php else: ?>
+                            <span class="amwal-webhook-status__value--warn">(<?= $block->escapeHtml(__('Store is set to %1', ucfirst($storeEnv))) ?>)</span>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </span>
+            </div>
+            <div class="amwal-webhook-status__row" id="amwal-webhook-events-row" style="<?= !empty($storedEvents) ? '' : 'display:none;' ?>">
+                <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Subscribed Events:')) ?></span>
+                <span class="amwal-webhook-status__value" id="amwal-webhook-events-list">
+                    <?php foreach ($storedEvents as $ev): ?>
+                        <span class="amwal-event-pill">✓ <?= $block->escapeHtml($ev) ?></span>
+                    <?php endforeach; ?>
+                </span>
+            </div>
+            <div class="amwal-webhook-status__row" id="amwal-webhook-url-status-row" style="display:none;">
+                <span class="amwal-webhook-status__label"><?= $block->escapeHtml(__('Endpoint Match:')) ?></span>
+                <span class="amwal-webhook-status__value" id="amwal-webhook-url-status"></span>
             </div>
         </div>
-        <button type="button" class="action-default amwal-webhook-btn amwal-webhook-btn--secondary" id="<?= $block->getHtmlId() ?>_button">
-            <span><?= $block->escapeHtml(__('Re-register Webhook')) ?></span>
-        </button>
-    </div>
-    <?php else: ?>
-    <!-- ⬜ Not Registered State -->
-    <div class="amwal-webhook-status amwal-webhook-status--unregistered">
-        <div class="amwal-webhook-status__badge amwal-webhook-status__badge--pending">
-            <span class="amwal-webhook-status__icon">○</span>
-            <span class="amwal-webhook-status__text"><?= $block->escapeHtml(__('Not Registered')) ?></span>
+
+        <div class="amwal-webhook-status__hint" id="amwal-webhook-hint" style="<?= $isRegistered ? 'display:none;' : '' ?>">
+            <ol style="margin: 0; padding-left: 18px; line-height: 1.6;">
+                <li><?= $block->escapeHtml(__('Copy your store\'s Webhook Endpoint URL above.')) ?></li>
+                <li><?= __('Go to <a href="https://merchant.sa.amwal.tech/" target="_blank">Amwal Merchant Portal</a> &gt; <strong>Settings</strong> &gt; <strong>Webhook Sandbox</strong> or <strong>Webhook Production</strong>.') ?></li>
+                <li><?= $block->escapeHtml(__('Paste your Webhook URL, click Save, then click "Generate Key" to create your RSA keypair.')) ?></li>
+                <li><?= $block->escapeHtml(__('Paste the generated Public Key into the Webhook Public Key field above and click "Validate & Sync Webhook".')) ?></li>
+            </ol>
         </div>
-        <p class="amwal-webhook-status__hint">
-            <?= $block->escapeHtml(__('Click the button below to register your webhook endpoint with Amwal.')) ?>
-        </p>
-        <button type="button" class="action-primary amwal-webhook-btn" id="<?= $block->getHtmlId() ?>_button">
-            <span><?= $block->escapeHtml(__('Register Webhook')) ?></span>
+
+        <button type="button" class="action-primary amwal-webhook-btn <?= $isRegistered ? 'amwal-webhook-btn--secondary' : '' ?>" id="<?= $block->getHtmlId() ?>_button">
+            <span id="amwal-webhook-btn-text"><?= $block->escapeHtml($isRegistered ? __('Validate & Sync Webhook') : __('Validate & Sync Webhook')) ?></span>
         </button>
     </div>
-    <?php endif; ?>
 
     <div id="amwal-webhook-result" style="margin-top: 12px; display: none;"></div>
 </div>
 
 <style>
     .amwal-webhook-registration {
-        max-width: 600px;
+        max-width: 650px;
     }
     .amwal-webhook-status {
         border: 1px solid #d1d1d1;
@@ -91,8 +119,6 @@ $publicKeyStored = $block->getPublicKeyStored();
         border-radius: 50%;
         font-size: 13px;
         line-height: 1;
-    }
-    .amwal-webhook-status--registered .amwal-webhook-status__icon {
         background: #79a22e;
         color: #fff;
     }
@@ -110,9 +136,9 @@ $publicKeyStored = $block->getPublicKeyStored();
     }
     .amwal-webhook-status__row {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
-        padding: 4px 0;
+        padding: 5px 0;
     }
     .amwal-webhook-status__row + .amwal-webhook-status__row {
         border-top: 1px solid #f0f0f0;
@@ -123,10 +149,12 @@ $publicKeyStored = $block->getPublicKeyStored();
         font-weight: 600;
         color: #555;
         white-space: nowrap;
+        min-width: 130px;
     }
     .amwal-webhook-status__value {
         color: #333;
         word-break: break-all;
+        flex: 1;
     }
     code.amwal-webhook-status__value {
         background: #f5f5f5;
@@ -141,6 +169,22 @@ $publicKeyStored = $block->getPublicKeyStored();
     .amwal-webhook-status__value--warn {
         color: #eb5202;
         font-weight: 600;
+    }
+    .amwal-event-pill {
+        display: inline-block;
+        background: #eef7e6;
+        color: #3c763d;
+        border: 1px solid #d6e9c6;
+        border-radius: 12px;
+        padding: 2px 8px;
+        margin: 2px 4px 2px 0;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .amwal-event-pill--warn {
+        background: #fff8e5;
+        color: #8a6d3b;
+        border-color: #faebcc;
     }
     .amwal-webhook-status__hint {
         color: #666;
@@ -174,46 +218,139 @@ $publicKeyStored = $block->getPublicKeyStored();
                 var $btn = $(this);
                 var $result = $('#amwal-webhook-result');
 
-                // Gather inputs
-                var webhookUrl = document.querySelector('[name="groups[amwal_payments][groups][webhook][fields][endpoint_url][value]"]');
-                var webhookEvents = $('input[name="groups[amwal][fields][webhook_events][value][]"]:checked').map(function() {
-                    return this.value;
-                }).get();
-                var formKey = $('input[name="form_key"]').val();
-
-                if (!webhookUrl || !webhookUrl.value) {
-                    $result.html('<div class="message message-error">' + $t('Webhook URL could not be detected.') + '</div>').show();
-                    return;
+                // Get public key input value
+                var $keyInput = $('[name="groups[amwal_payments][groups][webhook][fields][public_key][value]"]');
+                if (!$keyInput.length) {
+                    $keyInput = $('#payment_amwal_payments_webhook_public_key');
                 }
-                if (!webhookEvents.length) {
-                    $result.html('<div class="message message-error">' + $t('Please select at least one webhook event.') + '</div>').show();
-                    return;
+                var publicKey = $keyInput.length ? $keyInput.val().trim() : '';
+                var formKey = $('input[name="form_key"]').val();
+                var scope = '<?= $block->escapeJs($scope ?? 'default') ?>';
+                var scopeId = '<?= (int) ($scopeId ?? 0) ?>';
+
+                // Check URL params if not in scope data
+                var urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('website')) {
+                    scope = 'websites';
+                    scopeId = urlParams.get('website');
+                } else if (urlParams.get('store')) {
+                    scope = 'stores';
+                    scopeId = urlParams.get('store');
                 }
 
                 // Loading state
                 $btn.attr('disabled', true);
-                $result.html('<div class="message message-notice">' + $t('Registering webhook, please wait…') + '</div>').show();
+                $result.html('<div class="message message-notice">' + $t('Validating key & synchronizing with Amwal API…') + '</div>').show();
 
                 $.ajax({
                     url: '<?= $block->getAjaxUrl() ?>',
                     type: 'POST',
                     dataType: 'json',
                     data: {
-                        webhook_url: webhookUrl.value,
-                        webhook_events: webhookEvents,
+                        public_key: publicKey,
+                        scope: scope,
+                        scope_id: scopeId,
                         form_key: formKey
                     },
                     success: function(response) {
                         if (response.success) {
-                            $result.html(
-                                '<div class="message message-success">' +
-                                $t('Webhook registered successfully! Reload the page to see updated status.') +
-                                '</div>'
-                            ).show();
+                            var alertClass = (response.warnings && response.warnings.length) ? 'message-warning' : 'message-success';
+                            var alertHtml = '<div class="message ' + alertClass + '"><strong>' + (response.message || $t('Webhook synchronized with Amwal successfully!')) + '</strong>';
+
+                            if (response.warnings && response.warnings.length) {
+                                alertHtml += '<ul style="margin: 6px 0 0 16px; padding: 0;">';
+                                response.warnings.forEach(function(w) {
+                                    alertHtml += '<li>' + $('<div>').text(w).html() + '</li>';
+                                });
+                                alertHtml += '</ul>';
+                            }
+                            alertHtml += '</div>';
+                            $result.html(alertHtml).show();
+
+                            // Update UI state dynamically
+                            $('#amwal-webhook-status-card')
+                                .removeClass('amwal-webhook-status--unregistered')
+                                .addClass('amwal-webhook-status--registered');
+                            $('#amwal-webhook-badge')
+                                .removeClass('amwal-webhook-status__badge--pending');
+                            $('#amwal-webhook-icon').text('✓');
+                            $('#amwal-webhook-text').text($t('Webhook Synchronized & Verified'));
+                            $('#amwal-webhook-hint').hide();
+                            $('#amwal-webhook-details').show();
+
+                            if (response.fingerprint) {
+                                $('#amwal-webhook-fingerprint').text(response.fingerprint);
+                            }
+
+                            // Update textarea with normalized PEM format
+                            if (response.formatted_public_key && $keyInput.length) {
+                                $keyInput.val(response.formatted_public_key);
+                            }
+
+                            // Render signature key status
+                            if (response.key_active === false) {
+                                $('#amwal-webhook-key-status')
+                                    .removeClass('amwal-webhook-status__value--ok')
+                                    .addClass('amwal-webhook-status__value--warn')
+                                    .html('⚠ ' + $t('Key Inactive on Amwal'));
+                            } else {
+                                $('#amwal-webhook-key-status')
+                                    .removeClass('amwal-webhook-status__value--warn')
+                                    .addClass('amwal-webhook-status__value--ok')
+                                    .html('✓ ' + $t('Stored (RSA-PSS SHA-256) - Active'));
+                            }
+
+                            // Render key environment (production / sandbox)
+                            if (response.key_type) {
+                                var envHtml = '';
+                                if (response.env_matches) {
+                                    envHtml = '<span class="amwal-event-pill">✓ ' + $('<div>').text(response.key_type.toUpperCase()).html() + '</span> ' +
+                                              '<span class="amwal-webhook-status__value--ok">(' + $t('Matches Store Mode') + ')</span>';
+                                } else {
+                                    envHtml = '<span class="amwal-event-pill amwal-event-pill--warn">⚠ ' + $('<div>').text(response.key_type.toUpperCase()).html() + '</span> ' +
+                                              '<span class="amwal-webhook-status__value--warn">(' + $t('Store is configured for ') + $('<div>').text(response.store_env).html() + ')</span>';
+                                }
+                                $('#amwal-webhook-env-status').html(envHtml);
+                                $('#amwal-webhook-env-row').show();
+                            }
+
+                            // Render synced events pills
+                            if (response.events && response.events.length) {
+                                var pillsHtml = '';
+                                response.events.forEach(function(ev) {
+                                    pillsHtml += '<span class="amwal-event-pill">✓ ' + $('<div>').text(ev).html() + '</span> ';
+                                });
+                                if (!response.has_order_success) {
+                                    pillsHtml += '<span class="amwal-event-pill amwal-event-pill--warn">⚠ ' + $t('order.success missing') + '</span> ';
+                                }
+                                $('#amwal-webhook-events-list').html(pillsHtml);
+                                $('#amwal-webhook-events-row').show();
+                            } else {
+                                $('#amwal-webhook-events-list').html('<span class="amwal-event-pill amwal-event-pill--warn">⚠ ' + $t('No events selected on Amwal') + '</span>');
+                                $('#amwal-webhook-events-row').show();
+                            }
+
+                            // Render endpoint match & active status
+                            if (response.endpoint_url) {
+                                var urlStatusHtml = '';
+                                if (response.url_matches) {
+                                    urlStatusHtml = '<span class="amwal-webhook-status__value--ok">✓ ' + $t('Matches Store Endpoint') + ' (' + $('<div>').text(response.endpoint_url).html() + ')</span>';
+                                } else {
+                                    urlStatusHtml = '<span class="amwal-webhook-status__value--warn">⚠ ' + $t('Amwal URL: ') + $('<div>').text(response.endpoint_url).html() + ' ≠ ' + $t('Store: ') + $('<div>').text(response.expected_endpoint_url || '').html() + '</span>';
+                                }
+                                if (response.endpoint_active === false) {
+                                    urlStatusHtml += ' <span class="amwal-event-pill amwal-event-pill--warn">⚠ ' + $t('Endpoint Inactive') + '</span>';
+                                }
+                                $('#amwal-webhook-url-status').html(urlStatusHtml);
+                                $('#amwal-webhook-url-status-row').show();
+                            }
+
+                            $('#amwal-webhook-btn-text').text($t('Validate & Sync Webhook'));
+                            $btn.addClass('amwal-webhook-btn--secondary');
                         } else {
                             $result.html(
                                 '<div class="message message-error">' +
-                                $t('Failed to register webhook: ') + response.message +
+                                $t('Validation failed: ') + response.message +
                                 '</div>'
                             ).show();
                         }
@@ -221,7 +358,7 @@ $publicKeyStored = $block->getPublicKeyStored();
                     error: function() {
                         $result.html(
                             '<div class="message message-error">' +
-                            $t('An error occurred while registering the webhook. Please try again or check system logs.') +
+                            $t('An error occurred while validating the key. Please check system logs.') +
                             '</div>'
                         ).show();
                     },
@@ -233,4 +370,3 @@ $publicKeyStored = $block->getPublicKeyStored();
         });
     });
 </script>
-
