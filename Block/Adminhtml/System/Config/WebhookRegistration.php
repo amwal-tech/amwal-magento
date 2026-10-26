@@ -144,6 +144,9 @@ class WebhookRegistration extends Field
         }
 
         try {
+            if (strpos((string) $encrypted, '-----BEGIN') !== false) {
+                return (string) $encrypted;
+            }
             return $this->encryptor->decrypt($encrypted);
         } catch (\Exception $e) {
             return null;

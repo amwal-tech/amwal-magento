@@ -610,6 +610,9 @@ class Config
         if (empty($encryptedKey)) {
             return null;
         }
+        if (strpos((string) $encryptedKey, '-----BEGIN') !== false) {
+            return (string) $encryptedKey;
+        }
         $key = $this->encryptor->decrypt($encryptedKey);
         // Guard against a value that was encrypted more than once
         for ($i = 0; $i < 3 && !empty($key) && strpos($key, '-----BEGIN') === false; $i++) {

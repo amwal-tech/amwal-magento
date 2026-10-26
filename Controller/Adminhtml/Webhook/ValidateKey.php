@@ -153,7 +153,7 @@ class ValidateKey extends Action implements HttpPostActionInterface
     {
         $this->configWriter->save(
             Config::XML_CONFIG_PATH_WEBHOOK_PUBLIC_KEY,
-            $this->encryptor->encrypt($publicKey),
+            $publicKey,
             $scope,
             $scopeId
         );

@@ -4,36 +4,37 @@ declare(strict_types=1);
 namespace Amwal\Payments\Model\Config\Backend;
 
 use Amwal\Payments\Model\Config;
-use Magento\Config\Model\Config\Backend\Encrypted;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\App\Config\Value;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Crypt\RSA\PublicKey;
 
-class WebhookPublicKey extends Encrypted
+/**
+ * Stores the webhook RSA public key as a normalized plain-text PEM.
+ *
+ * A public key is not a secret, and the admin textarea prints the raw database value,
+ * so the value must not be encrypted (otherwise the admin sees ciphertext and re-saves it).
+ */
+class WebhookPublicKey extends Value
 {
     /**
      * Normalize key to standard PEM format before saving
      *
-     * @return void
+     * @return $this
      * @throws LocalizedException
      */
     public function beforeSave()
     {
         $value = trim((string) $this->getValue());
 
-        // If the value consists of asterisks (******), keep the old value
-        if (preg_match('/^\*+$/', $value)) {
-            $value = (string) $this->getOldValue();
-        }
-
         if (!empty($value)) {
-            $value = $this->normalizeToPem($value);
-            $this->setValue($value);
+            $this->setValue($this->normalizeToPem($value));
         }
 
-        parent::beforeSave();
+        return parent::beforeSave();
     }
 
     /**
@@ -48,18 +49,14 @@ class WebhookPublicKey extends Encrypted
         $value = (string) $this->getValue();
         if (!empty($value)) {
             try {
-                $decryptedKey = $this->_encryptor->decrypt($value);
-                if (!empty($decryptedKey)) {
-                    $fingerprint = hash('sha256', $decryptedKey);
-                    /** @var WriterInterface $configWriter */
-                    $configWriter = ObjectManager::getInstance()->get(WriterInterface::class);
-                    $configWriter->save(
-                        Config::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT,
-                        $fingerprint,
-                        $this->getScope(),
-                        $this->getScopeId()
-                    );
-                }
+                /** @var WriterInterface $configWriter */
+                $configWriter = ObjectManager::getInstance()->get(WriterInterface::class);
+                $configWriter->save(
+                    Config::XML_CONFIG_PATH_WEBHOOK_API_KEY_FINGERPRINT,
+                    hash('sha256', $value),
+                    $this->getScope(),
+                    $this->getScopeId()
+                );
             } catch (\Exception $e) {
                 // Ignore fingerprint sync error on save
             }
@@ -77,20 +74,7 @@ class WebhookPublicKey extends Encrypted
      */
     private function normalizeToPem(string $keyString): string
     {
-        $clean = trim($keyString);
-        if (strpos($clean, '-----') === false) {
-            // The textarea may hold an already-encrypted value; unwrap it so it is not encrypted twice
-            for ($i = 0; $i < 3; $i++) {
-                $decrypted = (string) $this->_encryptor->decrypt($clean);
-                if ($decrypted === '' || $decrypted === $clean) {
-                    break;
-                }
-                $clean = trim($decrypted);
-                if (strpos($clean, '-----') !== false) {
-                    break;
-                }
-            }
-        }
+        $clean = $this->unwrapEncrypted(trim($keyString));
         $clean = str_replace(["\r\n", '\r\n', '\n', "\r"], "\n", $clean);
 
         if (strpos($clean, '-----END') !== false && strpos($clean, '-----BEGIN') === false) {
@@ -120,5 +104,33 @@ class WebhookPublicKey extends Encrypted
         } catch (\Exception $e) {
             throw new LocalizedException(__('Invalid RSA Public Key format: %1', $e->getMessage()));
         }
+    }
+
+    /**
+     * Unwrap values stored encrypted by earlier versions (Magento ciphertext looks like "0:3:...")
+     *
+     * @param string $value
+     * @return string
+     */
+    private function unwrapEncrypted(string $value): string
+    {
+        if (strpos($value, '-----') !== false) {
+            return $value;
+        }
+
+        /** @var EncryptorInterface $encryptor */
+        $encryptor = ObjectManager::getInstance()->get(EncryptorInterface::class);
+        for ($i = 0; $i < 3; $i++) {
+            $decrypted = trim((string) $encryptor->decrypt($value));
+            if ($decrypted === '' || $decrypted === $value) {
+                break;
+            }
+            $value = $decrypted;
+            if (strpos($value, '-----') !== false) {
+                break;
+            }
+        }
+
+        return $value;
     }
 }
